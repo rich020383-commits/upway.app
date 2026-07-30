@@ -13,44 +13,36 @@ async function generarRespuestaConGemini(textoCliente: string, productos: Array<
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const preferredModels = [
-      process.env.GEMINI_MODEL,
-      'gemini-2.5-flash',
-      'gemini-2.0-flash',
-      'gemini-2.0-flash-001',
-      'gemini-1.5-flash',
-      'gemini-1.5-pro',
-      'gemini-2.5-pro',
-      'gemini-3.1-flash-lite',
-      'gemini-3.1-flash',
-    ].filter((value, index, arr) => Boolean(value) && arr.indexOf(value) === index) as string[];
+    
+    // 🛡️ BLINDAJE DE COSTOS: Solo permitimos el modelo Flash ultra veloz y económico
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-    let lastError: unknown;
+    // 🧠 PROMPT SUPREMO ACTUALIZADO CON LA MATRIZ DE CAPACIDAD
+    const prompt = `
+      Rol: Eres un cerrador de ventas persuasivo y profesional. Trabajas y te identificas como un "Empleado Digital de Upway". El secreto de nuestro servicio es que TODOS los clientes obtienen las funciones principales completas; lo que cambia es su capacidad de procesamiento y volumen.
+      
+      Objetivo: Asistir a los clientes en WhatsApp, diagnosticar el tamaño de su operación y vender el plan exacto que necesitan.
+      
+      Reglas:
+      - Responde de forma natural, directa, y usando respuestas cortas. Usa emojis estratégicos.
+      - Funciones Incluidas siempre: Audios, Imágenes, Documentos, Pedidos, Pagos y Reporte Diario. No limitamos las funciones principales.
+      
+      Planes (Recomienda solo uno según el tamaño del cliente):
+      1. Plan Emprendedor ($149.900 COP/mes): Capacidad para 500 productos, volumen WhatsApp básico.
+      2. Plan Negocio ($299.900 COP/mes): Capacidad para 2.000 productos, volumen WhatsApp alto.
+      3. Plan Empresa ($499.900 COP/mes): Capacidad para 10.000 productos, volumen WhatsApp muy alto, analítica gerencial.
+      4. Plan Personalizado (Desde $999.900 COP/mes): Para corporaciones, sin límites operativos.
+      
+      Inventario de ejemplo para mostrar capacidad de la IA: ${productos.slice(0, 3).map((p) => `*${p.nombre}* ($${p.precio.toLocaleString('es-CO')})`).join(', ')}.
+      
+      Cierre: Justifica el precio demostrando que el cliente paga por su capacidad de consumo. Aceptamos pagos seguros vía Nequi, Bancolombia o Wompi.
+      
+      Mensaje del cliente: "${textoCliente}"
+    `;
+    
+    const result = await model.generateContent(prompt);
+    return result.response.text();
 
-    for (const modelName of preferredModels) {
-      try {
-        const model = genAI.getGenerativeModel({ model: modelName });
-        const prompt = `🧠 Prompt Definitivo del Empleado Digital de Upway
-Rol: Eres un cerrador de ventas de alto nivel, persuasivo, profesional y educado. Trabajas y te identificas orgullosamente como un "Empleado Digital de Upway".
-Objetivo Principal: Tu misión es asistir a los clientes a través de WhatsApp, explicar claramente el valor de nuestros servicios de inteligencia artificial y concretar ventas o agendar demostraciones de manera efectiva.
-
-Reglas de Interacción:
-- Utiliza siempre respuestas cortas, directas y fáciles de leer en un celular.
-- Usa emojis de manera estratégica para mantener la conversación dinámica y amigable.
-- Mantén en todo momento un tono corporativo pero cercano, proyectando que estás disponible constantemente para ayudar.
-- Estructura de Precios y Planes: Debes manejar y ofrecer nuestro catálogo de planes, los cuales van desde el nivel Esencial por $149.900 COP hasta el nivel Empresa por $999.900 COP. Adapta la recomendación del plan según las necesidades que escuches del cliente.
-- Si el cliente pregunta por inventario, incluye un resumen breve de los productos disponibles: ${productos.slice(0, 3).map((p) => `'''${p.nombre}''' ($${p.precio.toLocaleString('es-CO')})`).join(', ')}.
-- Cierre y Pagos: Para cerrar la venta, indícale siempre al cliente que aceptamos pagos 100% seguros a través de Nequi, Bancolombia o Wompi.
-Mensaje del cliente: "${textoCliente}".`;
-        const result = await model.generateContent(prompt);
-        return result.response.text();
-      } catch (error) {
-        lastError = error;
-        console.warn(`Gemini no respondió con el modelo ${modelName}.`, error);
-      }
-    }
-
-    throw lastError ?? new Error('No hay un modelo de Gemini disponible en este momento.');
   } catch (error) {
     console.error('Error en la llamada a Gemini:', error);
     throw error;
@@ -62,10 +54,6 @@ async function enviarMensajePorWhatsApp(destino: string, mensaje: string) {
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
   if (!token || !phoneNumberId) {
-    console.error('Faltan variables de entorno para WhatsApp.', {
-      hasToken: Boolean(token),
-      hasPhoneNumberId: Boolean(phoneNumberId),
-    });
     throw new Error('WHATSAPP_TOKEN o WHATSAPP_PHONE_NUMBER_ID no están configuradas.');
   }
 
@@ -87,23 +75,10 @@ async function enviarMensajePorWhatsApp(destino: string, mensaje: string) {
       body: JSON.stringify(payload),
     });
 
-    const responseBody = await response.text();
-
     if (!response.ok) {
-      console.error('Error al enviar mensaje por WhatsApp.', {
-        status: response.status,
-        body: responseBody,
-        url,
-        payload,
-      });
       throw new Error(`WhatsApp API respondió con ${response.status}`);
     }
-
-    console.log('Mensaje enviado por WhatsApp correctamente.', {
-      destino,
-      status: response.status,
-      body: responseBody,
-    });
+    console.log('Mensaje enviado por WhatsApp a', destino);
   } catch (error) {
     console.error('Error en el fetch a la API de WhatsApp:', error);
     throw error;
@@ -123,14 +98,9 @@ export async function GET(req: Request) {
   return new NextResponse('Acceso denegado', { status: 403 });
 }
 
-// A small comment to trigger a new deploy for testing the Render webhook.
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    console.log('Webhook recibido.', {
-      object: body?.object,
-      entryCount: body?.entry?.length ?? 0,
-    });
 
     if (body?.object === 'whatsapp_business_account') {
       const entry = body.entry?.[0];
@@ -141,16 +111,13 @@ export async function POST(req: Request) {
         const numeroCliente = mensajeEntrante.from;
         const textoCliente = mensajeEntrante.text?.body ?? '';
 
-        console.log(`Mensaje recibido de ${numeroCliente}: ${textoCliente}`);
-
+        // 🛡️ BARRERA ANTIBUCLES: Respondemos OK a Meta inmediatamente
         const response = new NextResponse(null, { status: 200 });
 
         void (async () => {
           try {
             const productos = await listProducts('1172769935927318');
-            let respuesta = textoCliente.toLowerCase().includes('inventario')
-              ? `Gracias por preguntar por inventario. Te compartimos un resumen rápido: ${productos.slice(0, 3).map((p) => `${p.nombre} ($${p.precio.toLocaleString('es-CO')})`).join(', ')}.`
-              : `Gracias por escribir a Upway. Te confirmamos que recibimos: “${textoCliente || 'tu mensaje'}”. Pronto un agente especializado responderá.`;
+            let respuesta = `Gracias por escribir a Upway. Recibimos tu mensaje.`;
 
             try {
               respuesta = await generarRespuestaConGemini(textoCliente, productos);
