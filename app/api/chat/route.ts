@@ -1,3 +1,6 @@
+import { NextRequest, NextResponse } from 'next/server';
+import * as GenerativeAI from '@google/generative-ai';
+
 const API_KEY = process.env.GEMINI_API_KEY;
 
 // --- Configuración del Agente Supremo --- //
@@ -5,29 +8,29 @@ const AGENTE_SUPREMO_PROMPT = `Rol: Eres un cerrador de ventas de alto nivel, pe
 
 const safetySettings = [
   {
-    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-    threshold: HarmBlockThreshold.BLOCK_NONE,
+    category: GenerativeAI.HarmCategory.HARM_CATEGORY_HARASSMENT,
+    threshold: GenerativeAI.HarmBlockThreshold.BLOCK_NONE,
   },
   {
-    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-    threshold: HarmBlockThreshold.BLOCK_NONE,
+    category: GenerativeAI.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+    threshold: GenerativeAI.HarmBlockThreshold.BLOCK_NONE,
   },
   {
-    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-    threshold: HarmBlockThreshold.BLOCK_NONE,
+    category: GenerativeAI.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+    threshold: GenerativeAI.HarmBlockThreshold.BLOCK_NONE,
   },
   {
-    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-    threshold: HarmBlockThreshold.BLOCK_NONE,
+    category: GenerativeAI.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+    threshold: GenerativeAI.HarmBlockThreshold.BLOCK_NONE,
   },
 ];
 
-let model: GenerativeModel | null = null;
+let model: GenerativeAI.GenerativeModel | null = null;
 
 if (!API_KEY) {
   console.error("GEMINI_API_KEY no está definida. La API de Gemini no funcionará.");
 } else {
-  const genAI = new GoogleGenerativeAI(API_KEY);
+  const genAI = new GenerativeAI.GoogleGenerativeAI(API_KEY);
   model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", systemInstruction: AGENTE_SUPREMO_PROMPT });
 }
 
