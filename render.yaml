@@ -3,7 +3,7 @@ services:
     name: upway-app
     env: node
     plan: free
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --include=dev && npm run build
     preDeployCommand: npx prisma db push
     startCommand: npm run start
     envVars:
@@ -11,3 +11,5 @@ services:
         value: production
       - key: PORT
         value: 10000
+      - key: NPM_CONFIG_PRODUCTION
+        value: false
