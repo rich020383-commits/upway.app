@@ -31,7 +31,7 @@ if (!API_KEY) {
   console.error("GEMINI_API_KEY no está definida. La API de Gemini no funcionará.");
 } else {
   const genAI = new GenerativeAI.GoogleGenerativeAI(API_KEY);
-  model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", systemInstruction: AGENTE_SUPREMO_PROMPT });
+  model = genAI.getGenerativeModel({ model: "gemini-2.5-flash", systemInstruction: AGENTE_SUPREMO_PROMPT });
 }
 
 export async function POST(req: NextRequest) {
@@ -63,3 +63,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
