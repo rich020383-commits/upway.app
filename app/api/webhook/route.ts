@@ -13,11 +13,46 @@ async function generarRespuestaConGemini(textoCliente: string, productos: Array<
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
-    const prompt = `Eres el asistente de Upway Business. Responde en español, breve y útil. El cliente dijo: "${textoCliente}". Si menciona inventario, incluye este resumen de productos: ${productos.slice(0, 3).map((p) => `${p.nombre} ($${p.precio.toLocaleString('es-CO')})`).join(', ')}. Si no hay inventario, responde con una confirmación amable.`;
+    const preferredModels = [
+      process.env.GEMINI_MODEL,
+      'gemini-2.5-flash',
+      'gemini-2.5-pro',
+      'gemini-2.0-flash',
+      'gemini-2.0-flash-001',
+      'gemini-1.5-flash',
+      'gemini-3.1-flash',
+    ].filter((value, index, arr) => Boolean(value) && arr.indexOf(value) === index) as string[];
 
-    const result = await model.generateContent(prompt);
-    return result.response.text();
+    let lastError: unknown;
+
+    for (const modelName of preferredModels) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const prompt = `Eres el asistente ejecutivo de Upway Business. Responde en español, con tono profesional, claro y cercano, como si fueras un representante de una empresa premium de tecnología y automatización.
+
+Tu misión es ayudar al cliente a entender qué ofrece Upway Business:
+- Diseño, estrategia y branding premium para marcas y negocios.
+- Desarrollo de productos digitales, landing pages, aplicaciones y soluciones a medida.
+- Automatización empresarial con IA, chatbots, WhatsApp, CRM e integraciones.
+- Optimización de operaciones, inventarios y procesos para escalar con eficiencia.
+
+Reglas:
+- Mantén las respuestas cortas, útiles y profesionales.
+- Si el cliente pregunta por inventario, incluye un resumen breve de los productos disponibles: ${productos.slice(0, 3).map((p) => `${p.nombre} ($${p.precio.toLocaleString('es-CO')})`).join(', ')}.
+- Si el cliente pregunta por servicios, explica que Upway ayuda a convertir ideas en productos, marcas y operaciones escalables.
+- Si el cliente muestra interés en trabajar con Upway, invita de forma elegante a agendar una reunión o una demo.
+- No uses lenguaje vulgar, exagerado ni poco profesional.
+
+Mensaje del cliente: "${textoCliente}".`;
+        const result = await model.generateContent(prompt);
+        return result.response.text();
+      } catch (error) {
+        lastError = error;
+        console.warn(`Gemini no respondió con el modelo ${modelName}.`, error);
+      }
+    }
+
+    throw lastError ?? new Error('No hay un modelo de Gemini disponible en este momento.');
   } catch (error) {
     console.error('Error en la llamada a Gemini:', error);
     throw error;
