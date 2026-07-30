@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { hashPassword } from '@/lib/auth-utils';
+import { createUser, findUserByEmail } from '@/lib/app-state';
 
 export async function POST(req: Request) {
   try {
@@ -9,23 +9,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Faltan datos obligatorios.' }, { status: 400 });
     }
 
-    if (!process.env.DATABASE_URL) {
-      return NextResponse.json({ error: 'La base de datos aún no está configurada.' }, { status: 503 });
-    }
-
-    const { prisma } = await import('@/lib/prisma');
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await findUserByEmail(email);
     if (existingUser) {
       return NextResponse.json({ error: 'Ya existe una cuenta con este correo.' }, { status: 409 });
     }
 
-    const newUser = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashPassword(password),
-      },
-    });
+    const newUser = await createUser({ name, email, password });
+    if (!newUser) {
+      return NextResponse.json({ error: 'No se pudo crear la cuenta.' }, { status: 500 });
+    }
 
     return NextResponse.json({
       id: newUser.id,

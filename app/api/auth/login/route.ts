@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { signIn } from '@/auth';
-import { verifyPassword } from '@/lib/auth-utils';
+import { authenticateUser } from '@/lib/app-state';
 
 export async function POST(req: Request) {
   try {
@@ -10,19 +10,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Faltan datos obligatorios.' }, { status: 400 });
     }
 
-    if (!process.env.DATABASE_URL) {
-      return NextResponse.json({ error: 'La base de datos aún no está configurada.' }, { status: 503 });
-    }
-
-    const { prisma } = await import('@/lib/prisma');
-    const user = await prisma.user.findUnique({ where: { email } });
-
-    if (!user?.password) {
-      return NextResponse.json({ error: 'Correo o contraseña incorrectos.' }, { status: 401 });
-    }
-
-    const isValid = verifyPassword(password, user.password);
-    if (!isValid) {
+    const user = await authenticateUser(email, password);
+    if (!user) {
       return NextResponse.json({ error: 'Correo o contraseña incorrectos.' }, { status: 401 });
     }
 
