@@ -1,6 +1,3 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI, GenerativeModel, HarmBlockThreshold, HarmCategory } from '@google/generative-ai';
-
 const API_KEY = process.env.GEMINI_API_KEY;
 
 // --- Configuración del Agente Supremo --- //
@@ -25,8 +22,15 @@ const safetySettings = [
   },
 ];
 
-const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", systemInstruction: AGENTE_SUPREMO_PROMPT });
+let model: GenerativeModel | null = null;
+
+if (!API_KEY) {
+  console.error("GEMINI_API_KEY no está definida. La API de Gemini no funcionará.");
+} else {
+  const genAI = new GoogleGenerativeAI(API_KEY);
+  model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", systemInstruction: AGENTE_SUPREMO_PROMPT });
+}
+
 export async function POST(req: NextRequest) {
   if (!model) {
     return NextResponse.json(
@@ -56,4 +60,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
