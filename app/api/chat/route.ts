@@ -25,16 +25,8 @@ const safetySettings = [
   },
 ];
 
-let genAI: GoogleGenerativeAI | null = null;
-let model: GenerativeModel | null = null;
-
-if (API_KEY) {
-  genAI = new GoogleGenerativeAI(API_KEY);
-  model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", systemInstruction: AGENTE_SUPREMO_PROMPT });
-} else {
-  console.error("GEMINI_API_KEY no está definida. La API de Gemini no funcionará.");
-}
-
+const genAI = new GoogleGenerativeAI(API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", systemInstruction: AGENTE_SUPREMO_PROMPT });
 export async function POST(req: NextRequest) {
   if (!model) {
     return NextResponse.json(
@@ -64,3 +56,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
