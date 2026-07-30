@@ -123,6 +123,7 @@ export async function GET(req: Request) {
   return new NextResponse('Acceso denegado', { status: 403 });
 }
 
+// A small comment to trigger a new deploy for testing the Render webhook.
 export async function POST(req: Request) {
   try {
     const body = await req.json();
