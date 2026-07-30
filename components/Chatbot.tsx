@@ -36,7 +36,8 @@ export default function Chatbot() {
     if (!input.trim()) return;
     
     const userMessage = { role: "user", content: input };
-    setMessages((prev) => [...prev, userMessage]);
+    const updatedMessages = [...messages, userMessage]; // Usamos updatedMessages para la solicitud
+    setMessages(updatedMessages); // Actualizamos el estado del frontend
     setInput("");
     setIsLoading(true);
 
@@ -46,7 +47,7 @@ export default function Chatbot() {
       const res = await fetch(`${baseUrl}/api/chat/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ messages: updatedMessages }), // 🔥 ACTUALIZADO: Enviamos todo el historial
       });
       const data = await res.json();
       

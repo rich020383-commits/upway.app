@@ -43,11 +43,17 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { message } = await req.json();
-    console.log('Mensaje recibido en el chat web:', message);
+    const { messages } = await req.json(); // 🔥 ACTUALIZADO: Recibimos el historial completo
+    console.log('Historial de mensajes recibido en el chat web:', messages);
+
+    // Formatear el historial para Gemini
+    const contents = messages.map((m: { role: string; content: string }) => ({
+      role: m.role === 'bot' ? 'model' : m.role, // Gemini espera 'model' en lugar de 'bot'
+      parts: [{ text: m.content }],
+    }));
 
     const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: message }] }],
+      contents: contents, // 🔥 ACTUALIZADO: Enviamos el historial completo
       safetySettings,
     });
     const response = result.response;
