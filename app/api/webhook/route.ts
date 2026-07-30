@@ -15,11 +15,14 @@ async function generarRespuestaConGemini(textoCliente: string, productos: Array<
     const genAI = new GoogleGenerativeAI(apiKey);
     const preferredModels = [
       process.env.GEMINI_MODEL,
-      'gemini-1.5-flash',
-      'gemini-1.5-pro',
+      'gemini-2.5-flash',
       'gemini-2.0-flash',
       'gemini-2.0-flash-001',
-      'gemini-2.5-flash',
+      'gemini-1.5-flash',
+      'gemini-1.5-pro',
+      'gemini-2.5-pro',
+      'gemini-3.1-flash-lite',
+      'gemini-3.1-flash',
     ].filter((value, index, arr) => Boolean(value) && arr.indexOf(value) === index) as string[];
 
     let lastError: unknown;
