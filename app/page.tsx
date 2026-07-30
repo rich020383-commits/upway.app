@@ -125,6 +125,21 @@ export default function Home() {
             </button>
           </div>
         </div>
+
+        <div className="flex items-center justify-end gap-2 px-6 pb-4 md:hidden">
+          <a
+            href="/login"
+            className="rounded-full border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+          >
+            Iniciar sesión
+          </a>
+          <a
+            href="/dashboard"
+            className="rounded-full border border-violet-400/30 bg-violet-500/10 px-3 py-2 text-xs font-semibold text-violet-100 transition hover:bg-violet-500/20"
+          >
+            Panel
+          </a>
+        </div>
       </nav>
 
       <section id="top" className="relative overflow-hidden">
