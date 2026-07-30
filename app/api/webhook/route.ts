@@ -13,7 +13,7 @@ async function generarRespuestaConGemini(textoCliente: string, productos: Array<
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-001' });
     const prompt = `Eres el asistente de Upway Business. Responde en español, breve y útil. El cliente dijo: "${textoCliente}". Si menciona inventario, incluye este resumen de productos: ${productos.slice(0, 3).map((p) => `${p.nombre} ($${p.precio.toLocaleString('es-CO')})`).join(', ')}. Si no hay inventario, responde con una confirmación amable.`;
 
     const result = await model.generateContent(prompt);
@@ -109,16 +109,21 @@ export async function POST(req: Request) {
 
         console.log(`Mensaje recibido de ${numeroCliente}: ${textoCliente}`);
 
-        const respuestaBase = textoCliente.toLowerCase().includes('inventario')
-          ? `Gracias por preguntar por inventario. Te responderemos con un resumen breve.`
-          : `Gracias por escribir a Upway. Te confirmamos que recibimos: “${textoCliente || 'tu mensaje'}”. Pronto un agente especializado responderá.`;
-
         const response = new NextResponse(null, { status: 200 });
 
         void (async () => {
           try {
             const productos = await listProducts('1172769935927318');
-            const respuesta = await generarRespuestaConGemini(textoCliente, productos);
+            let respuesta = textoCliente.toLowerCase().includes('inventario')
+              ? `Gracias por preguntar por inventario. Te compartimos un resumen rápido: ${productos.slice(0, 3).map((p) => `${p.nombre} ($${p.precio.toLocaleString('es-CO')})`).join(', ')}.`
+              : `Gracias por escribir a Upway. Te confirmamos que recibimos: “${textoCliente || 'tu mensaje'}”. Pronto un agente especializado responderá.`;
+
+            try {
+              respuesta = await generarRespuestaConGemini(textoCliente, productos);
+            } catch (geminiError) {
+              console.warn('Gemini no pudo responder; usando fallback local.', geminiError);
+            }
+
             await enviarMensajePorWhatsApp(numeroCliente, respuesta);
           } catch (error) {
             console.error('Fallo al procesar y enviar la respuesta del bot.', error);
