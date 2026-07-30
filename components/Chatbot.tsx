@@ -8,7 +8,7 @@ export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   
   const [messages, setMessages] = useState([
-    { role: "bot", content: "¡Hola! Veo que estás listo para llevar tu empresa al siguiente nivel con Upway Business. Para entender mejor tu operación y asignarte el especialista adecuado, cuéntame: ¿Cuál es el proceso que más tiempo le consume a tu equipo actualmente?" }
+    { role: "bot", content: "🧠 ¡Hola! Soy tu Empleado Digital de Upway. Mi misión es ayudarte a llevar tu empresa al siguiente nivel con nuestras soluciones de IA. Estoy aquí para explicarte el valor de nuestros servicios de inteligencia artificial y cómo podemos escalar tu negocio. ¿En qué te puedo asistir hoy?" }
   ]);
   
   const [input, setInput] = useState("");
@@ -58,7 +58,7 @@ export default function Chatbot() {
 
     } catch (error) {
       setTimeout(() => {
-        setMessages((prev) => [...prev, { role: "bot", content: "Lo siento, mis servidores están en mantenimiento. Por favor, intenta de nuevo en unos minutos." }]);
+        setMessages((prev) => [...prev, { role: "bot", content: "¡Hola! Soy tu Empleado Digital de Upway y estoy siempre disponible para ti. Parece que hay un pequeño problema de conexión en este momento. Por favor, intenta enviarme tu mensaje de nuevo en unos instantes. ¡Gracias por tu paciencia! 😉" }]);
         setIsLoading(false);
       }, 1500);
     }
