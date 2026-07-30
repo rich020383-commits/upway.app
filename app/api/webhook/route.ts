@@ -13,7 +13,7 @@ async function generarRespuestaConGemini(textoCliente: string, productos: Array<
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
     const prompt = `Eres el asistente de Upway Business. Responde en español, breve y útil. El cliente dijo: "${textoCliente}". Si menciona inventario, incluye este resumen de productos: ${productos.slice(0, 3).map((p) => `${p.nombre} ($${p.precio.toLocaleString('es-CO')})`).join(', ')}. Si no hay inventario, responde con una confirmación amable.`;
 
     const result = await model.generateContent(prompt);
