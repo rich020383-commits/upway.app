@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 // 🚀 Metadatos Premium para SEO y compartir en Redes/WhatsApp
 export const metadata: Metadata = {
-  title: "Upward AI | Transformación Empresarial con Inteligencia Artificial",
+  title: "Upway Business",
   description: "Diseñamos agentes inteligentes y automatizaciones a la medida que optimizan tus procesos, reducen costos corporativos y multiplican tus ventas.",
 };
 
