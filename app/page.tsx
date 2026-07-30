@@ -1,212 +1,266 @@
 "use client";
 
-import { useState, useEffect } from "react"; 
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Lightbulb, Building2, Palette, MonitorSmartphone, Video, Bot, TrendingUp, CheckCircle2 } from "lucide-react";
+import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  Bot,
+  Building2,
+  CheckCircle2,
+  Lightbulb,
+  MonitorSmartphone,
+  Palette,
+  Rocket,
+  Sparkles,
+  TrendingUp,
+  Video,
+} from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
-import Chatbot from "@/components/Chatbot"; 
-import LeadModal from "@/components/LeadModal"; 
+import Chatbot from "@/components/Chatbot";
+import LeadModal from "@/components/LeadModal";
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    const abrirModal = () => setIsModalOpen(true); 
-    window.addEventListener('abrir-modal-lead', abrirModal);
-    return () => window.removeEventListener('abrir-modal-lead', abrirModal);
+    const abrirModal = () => setIsModalOpen(true);
+    window.addEventListener("abrir-modal-lead", abrirModal);
+    return () => window.removeEventListener("abrir-modal-lead", abrirModal);
   }, []);
 
-  const { scrollY } = useScroll();
-  const navBackground = useTransform(scrollY, [0, 50], ["rgba(3, 7, 18, 0)", "rgba(3, 7, 18, 0.85)"]);
-  const navBackdrop = useTransform(scrollY, [0, 50], ["blur(0px)", "blur(12px)"]);
-  const navBorder = useTransform(scrollY, [0, 50], ["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 0.1)"]);
-
   const stages = [
-    { icon: Lightbulb, title: "Tengo una idea", desc: "Te ayudamos a convertir una idea en una empresa.", tags: ["Modelo de negocio", "Plan del proyecto", "Roadmap", "Validación", "Estrategia"] },
-    { icon: Building2, title: "Necesito crear mi empresa", desc: "Contamos con especialistas aliados para la estructuración formal.", tags: ["Constitución", "Asesoría legal", "Contabilidad", "Tributación", "Registro de marca"] },
-    { icon: Palette, title: "Quiero una marca profesional", desc: "Diseño premium para destacar en tu industria.", tags: ["Logo", "Branding", "Manual de marca", "Presentaciones", "Identidad visual"] },
-    { icon: MonitorSmartphone, title: "Necesito presencia digital", desc: "Desarrollo de alto nivel técnico y visual.", tags: ["Página web", "Landing Page", "Tienda Online", "App móvil", "Software a medida"] },
-    { icon: Video, title: "Upway Studio", desc: "Transformamos productos comunes en marcas visualmente espectaculares.", tags: ["Comerciales IA", "Videos publicitarios", "Fotografía de producto", "Reels / TikTok", "Meta Ads"], isPremium: true },
-    { icon: Bot, title: "Quiero automatizar mi empresa", desc: "Eficiencia operativa mediante inteligencia artificial.", tags: ["Agentes IA", "Chatbots", "WhatsApp IA", "Agentes de Voz", "CRM", "Integraciones APIs"] },
-    { icon: TrendingUp, title: "Quiero crecer", desc: "Estrategias de adquisición de clientes basadas en datos.", tags: ["Marketing", "Meta & Google Ads", "SEO", "Consultoría", "Escalamiento"] },
+    {
+      icon: Lightbulb,
+      title: "Tengo una idea",
+      description: "Convertimos una intuición en una propuesta clara, valida y accionable.",
+      tags: ["Validación", "Roadmap", "Estrategia", "Modelo de negocio"],
+    },
+    {
+      icon: Building2,
+      title: "Quiero crear mi empresa",
+      description: "Acompañamos la estructuración legal, comercial y operativa desde cero.",
+      tags: ["Constitución", "Operación", "Contabilidad", "Registro"],
+    },
+    {
+      icon: Palette,
+      title: "Necesito una marca premium",
+      description: "Diseñamos identidad visual con presencia, elegancia y alto impacto.",
+      tags: ["Branding", "Logo", "Manual", "Presentaciones"],
+    },
+    {
+      icon: MonitorSmartphone,
+      title: "Quiero una presencia digital sólida",
+      description: "Construimos productos digitales que venden, convencen y escalan.",
+      tags: ["Landing Page", "Web", "App", "Software a medida"],
+    },
+    {
+      icon: Video,
+      title: "Upway Studio",
+      description: "Transformamos productos y mensajes en experiencias visuales memorables.",
+      tags: ["Videos IA", "Reels", "Ads", "Fotografía"],
+    },
+    {
+      icon: Bot,
+      title: "Quiero automatizar mi empresa",
+      description: "Integramos IA y flujos para reducir tiempos operativos y mejorar la experiencia.",
+      tags: ["Chatbot", "WhatsApp IA", "CRM", "Integraciones"],
+    },
   ];
 
-  const processSteps = ["Tienes una idea", "Planeamos", "Creamos tu empresa", "Diseñamos tu marca", "Creamos tu página", "Creamos tu aplicación", "Creamos tu publicidad", "Automatizamos", "Escalamos"];
+  const pillars = [
+    {
+      title: "Diseño de alto impacto",
+      text: "Creamos experiencias visuales premium que hacen que cada marca se vea distinta.",
+    },
+    {
+      title: "Automatización real",
+      text: "Conectamos procesos, herramientas y agentes para que tu negocio se mueva solo.",
+    },
+    {
+      title: "Estrategia de crecimiento",
+      text: "Ponemos marketing, ventas y tecnología en una sola dirección para escalar.",
+    },
+  ];
+
+  const steps = ["Tienes una idea", "La traducimos en estrategia", "Creamos tu experiencia", "Automatizamos y escalamos"];
 
   return (
-    <main className="bg-[#FFFFFF] text-[#111827] font-sans selection:bg-blue-100 selection:text-blue-900 relative overflow-hidden">
-      
-      <div className="fixed inset-0 z-40 pointer-events-none">
+    <main className="min-h-screen bg-[#050816] text-white selection:bg-violet-500/30 selection:text-white">
+      <div className="fixed inset-0 z-0 pointer-events-none">
         <ParticleBackground />
       </div>
 
-      <motion.nav 
-        style={{ backgroundColor: navBackground, backdropFilter: navBackdrop, borderColor: navBorder }}
-        className="fixed top-0 w-full z-50 border-b transition-colors duration-300 px-6 py-3 flex justify-between items-center"
-      >
-        <div className="flex items-center gap-4">
-          <Image 
-            src="/upway.png" 
-            alt="Logo Upway Business" 
-            width={45} 
-            height={45} 
-            className="object-contain drop-shadow-md"
-          />
-          <span className="font-medium text-lg tracking-widest text-white">UPWAY BUSINESS</span>
-        </div>
-        
-        <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
-          <a href="/dashboard/bots" className="hover:text-white transition-colors duration-200">
-            Agente IA
+      <nav className="sticky top-0 z-50 border-b border-white/10 bg-[#050816]/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
+          <a href="#top" className="flex items-center gap-3">
+            <Image src="/upway.png" alt="Logo Upway" width={42} height={42} className="rounded-full object-contain" />
+            <span className="text-sm font-semibold uppercase tracking-[0.25em] text-white/90">Upway Business</span>
           </a>
-          <a href="/dashboard/inventario" className="hover:text-white transition-colors duration-200">
-            Inventario
-          </a>
-        </div>
 
-        <button 
-          onClick={() => window.dispatchEvent(new Event('abrir-chat'))}
-          className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-[0_0_15px_rgba(37,99,235,0.4)]"
-        >
-          Agendar llamada
-        </button>
-      </motion.nav>
-
-      <section className="relative min-h-screen bg-[#030712] flex flex-col justify-center overflow-hidden">
-        
-        <div className="container mx-auto px-6 text-center relative z-10 pt-32 pb-20">
-          <div className="max-w-5xl mx-auto">
-            
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-              
-              <h1 className="text-5xl md:text-7xl font-medium tracking-tight text-white leading-[1.15] mb-8">
-                Convertimos{" "}
-                <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-cyan-400">
-                  ideas en empresas
-                </span>{" "}
-                <br className="hidden md:block"/>
-                y transformamos empresas en{" "}
-                <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-                  líderes.
-                </span>
-              </h1>
-              
-              <p className="text-lg md:text-xl font-light text-slate-300 mb-12 max-w-2xl mx-auto leading-relaxed">
-                Potenciamos tu visión mediante infraestructura operativa automatizada e inteligencia artificial de vanguardia.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-5 justify-center relative z-50">
-                <button 
-                  onClick={() => window.dispatchEvent(new Event('abrir-chat'))}
-                  className="group bg-blue-600 text-white px-8 py-4 rounded-full font-medium flex items-center justify-center gap-2 hover:bg-blue-500 hover:shadow-[0_0_30px_rgba(37,99,235,0.4)] transition-all duration-300"
-                >
-                  Agenda una demostración
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </button>
-              </div>
-
-              <div className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto opacity-80">
-                {[
-                  { val: "24/7", label: "Disponibilidad" },
-                  { val: "100%", label: "Escalabilidad" },
-                  { val: "IA", label: "Nativa" },
-                  { val: "∞", label: "Automatización" }
-                ].map((stat, i) => (
-                  <div key={i}>
-                    <div className="text-3xl font-medium text-white">{stat.val}</div>
-                    <div className="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-2">{stat.label}</div>
-                  </div>
-                ))}
-              </div>
-
-            </motion.div>
+          <div className="hidden items-center gap-6 text-sm text-white/70 md:flex">
+            <a href="#servicios" className="transition hover:text-white">Servicios</a>
+            <a href="#proceso" className="transition hover:text-white">Proceso</a>
+            <a href="#contacto" className="transition hover:text-white">Contacto</a>
           </div>
-        </div>
 
-        <div className="absolute inset-0 z-20 pointer-events-none">
-           <ParticleBackground />
-        </div>
-        
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-white z-30 pointer-events-none"></div>
-      </section>
-
-      <section id="soluciones" className="py-32 bg-white relative z-10">
-        <div className="container mx-auto px-6 relative z-50">
-          <h2 className="text-4xl md:text-5xl font-semibold tracking-tight text-center mb-20 text-[#111827]">¿En qué etapa está tu negocio?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {stages.map((stage, i) => (
-              <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} key={i} className="p-8 rounded-3xl border border-gray-100 bg-white hover:shadow-lg transition-shadow">
-                <stage.icon className="w-8 h-8 text-[#2563EB] mb-6" />
-                <h3 className="text-xl font-semibold mb-3">{stage.title}</h3>
-                <p className="text-[#6B7280] text-sm mb-6">{stage.desc}</p>
-                <ul className="space-y-2">
-                  {stage.tags.map((tag, j) => <li key={j} className="flex items-center gap-2 text-sm text-[#111827]"><CheckCircle2 className="w-4 h-4 text-[#60A5FA]" /> {tag}</li>)}
-                </ul>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="proceso" className="py-32 bg-[#111827] text-white relative z-10 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#2563EB] blur-[120px] rounded-full opacity-20 pointer-events-none"></div>
-        <div className="container mx-auto px-6 relative z-50 text-center">
-          <h2 className="text-4xl font-bold tracking-tight mb-20">Nuestro Proceso</h2>
-          <div className="flex flex-wrap justify-center items-center max-w-5xl mx-auto gap-4 md:gap-8">
-            {processSteps.map((step, i) => (
-              <div key={i} className="flex items-center gap-4 md:gap-8">
-                <motion.div initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="flex flex-col items-center group cursor-default">
-                  <div className="w-4 h-4 rounded-full bg-[#3B82F6] group-hover:bg-white group-hover:shadow-[0_0_20px_rgba(96,165,250,0.8)] transition-all duration-300 mb-4 ring-4 ring-[#111827]"></div>
-                  <span className="text-sm md:text-base font-medium text-gray-400 group-hover:text-white transition-colors">{step}</span>
-                </motion.div>
-                {i !== processSteps.length - 1 && <div className="h-[1px] w-8 md:w-16 bg-gradient-to-r from-[#3B82F6] to-transparent opacity-50 mb-8"></div>}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="min-h-[60vh] bg-[#2563EB] flex items-center justify-center relative z-10 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10 pointer-events-none"></div>
-        <div className="container mx-auto px-6 text-center relative z-50">
-          <h2 className="text-5xl md:text-7xl font-extrabold text-white tracking-tight mb-10 leading-[1]">
-            El futuro de tu empresa <br className="hidden md:block"/> comienza hoy.
-          </h2>
-          <button 
-            onClick={() => window.dispatchEvent(new Event('abrir-chat'))}
-            className="bg-white text-[#111827] px-10 py-5 rounded-full text-lg font-bold hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.4)] transition-all duration-300"
+          <button
+            onClick={() => window.dispatchEvent(new Event("abrir-chat"))}
+            className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
           >
-            Agenda una demostración
+            Hablar con un experto
           </button>
         </div>
+      </nav>
+
+      <section id="top" className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(124,58,237,0.28),_transparent_55%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(120deg,_rgba(255,255,255,0.08),_transparent_45%)]" />
+
+        <div className="relative mx-auto flex max-w-7xl flex-col px-6 py-24 lg:px-8 lg:py-32">
+          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="max-w-4xl">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-500/10 px-3 py-1 text-sm text-violet-200">
+              <Sparkles className="h-4 w-4" />
+              Diseño, estrategia, automatización y crecimiento
+            </div>
+
+            <h1 className="text-4xl font-semibold leading-tight text-white sm:text-5xl lg:text-7xl">
+              Tu empresa, con la escala y la presencia de una marca premium.
+            </h1>
+
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-white/70 sm:text-xl">
+              Creamos experiencias digitales, productos inteligentes y procesos automatizados para negocios que quieren crecer sin perder identidad.
+            </p>
+
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+              <button
+                onClick={() => window.dispatchEvent(new Event("abrir-chat"))}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:scale-[1.02]"
+              >
+                Agendar una demo
+                <ArrowRight className="h-4 w-4" />
+              </button>
+              <a
+                href="#servicios"
+                className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                Explorar servicios
+              </a>
+            </div>
+
+            <div className="mt-12 grid gap-4 sm:grid-cols-3">
+              {[
+                { value: "24/7", label: "automatización" },
+                { value: "100%", label: "escalabilidad" },
+                { value: "IA", label: "nativa" },
+              ].map((item) => (
+                <div key={item.label} className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+                  <p className="text-2xl font-semibold text-white">{item.value}</p>
+                  <p className="mt-1 text-sm text-white/60">{item.label}</p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
       </section>
 
-      <footer className="bg-white py-12 border-t border-gray-100 relative z-10">
-        <div className="container mx-auto px-6 flex flex-col items-center md:items-start md:flex-row justify-between text-sm text-[#6B7280] font-medium relative z-50">
-          
-          <div className="flex flex-col items-center md:items-start mb-8 md:mb-0">
-            <div className="flex items-center gap-4 mb-4 text-[#111827]">
-              <Image 
-                src="/upway.png" 
-                alt="Logo Upway Business" 
-                width={45} 
-                height={45} 
-                className="object-contain"
-              />
-              <span className="font-bold text-xl tracking-tighter">UPWAY BUSINESS</span>
-            </div>
-            
-            <p className="text-slate-500 font-light mt-1 text-center md:text-left">
-              Convertimos <span className="text-blue-600 font-medium">ideas</span> en empresas y transformamos empresas en <span className="text-blue-600 font-medium">líderes</span>.
+      <section id="servicios" className="relative border-t border-white/10 bg-[#060913]">
+        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
+          <div className="max-w-3xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-violet-300">Servicios</p>
+            <h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">
+              Soluciones pensadas para empresas que quieren avanzar con identidad.
+            </h2>
+          </div>
+
+          <div className="mt-12 grid gap-6 lg:grid-cols-3">
+            {stages.map((stage, index) => {
+              const Icon = stage.icon;
+              return (
+                <motion.div
+                  key={stage.title}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.35, delay: index * 0.08 }}
+                  className="rounded-3xl border border-white/10 bg-white/5 p-6"
+                >
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-500/15 text-violet-200">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="mt-5 text-xl font-semibold text-white">{stage.title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-white/70">{stage.description}</p>
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {stage.tags.map((tag) => (
+                      <span key={tag} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section id="proceso" className="relative border-t border-white/10 bg-[#050816]">
+        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
+          <div className="max-w-3xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-violet-300">Proceso</p>
+            <h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">
+              Un camino claro para pasar de la idea a la ejecución.
+            </h2>
+          </div>
+
+          <div className="mt-12 grid gap-6 md:grid-cols-4">
+            {steps.map((step, index) => (
+              <div key={step} className="rounded-3xl border border-white/10 bg-white/5 p-6">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-500/15 text-sm font-semibold text-violet-200">
+                  {index + 1}
+                </div>
+                <p className="mt-4 text-lg font-semibold text-white">{step}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="contacto" className="relative border-t border-white/10 bg-[#060913]">
+        <div className="mx-auto flex max-w-7xl flex-col gap-10 px-6 py-24 lg:flex-row lg:items-end lg:justify-between lg:px-8">
+          <div className="max-w-2xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-violet-300">Contacto</p>
+            <h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">
+              Tu próximo movimiento puede ser el más importante para tu negocio.
+            </h2>
+            <p className="mt-5 text-lg leading-8 text-white/70">
+              Si quieres una propuesta más concreta, agendamos una llamada y diseñamos juntas el siguiente paso.
             </p>
           </div>
 
-          <div className="flex gap-8 mt-4 md:mt-0">
-            <a href="#" className="hover:text-[#111827] transition-colors">Contacto</a>
-            <a href="#" className="hover:text-[#111827] transition-colors">LinkedIn</a>
-            <a href="#" className="hover:text-[#111827] transition-colors">Políticas de Privacidad</a>
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur">
+            <div className="flex items-center gap-3 text-white">
+              <Rocket className="h-5 w-5 text-violet-300" />
+              <p className="text-sm font-semibold uppercase tracking-[0.24em]">Listo para empezar</p>
+            </div>
+            <button
+              onClick={() => window.dispatchEvent(new Event("abrir-chat"))}
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:scale-[1.02]"
+            >
+              Agendar una llamada
+              <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
+        </div>
+      </section>
+
+      <footer className="border-t border-white/10 bg-[#050816] py-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 text-sm text-white/60 md:flex-row md:items-center md:justify-between lg:px-8">
+          <div className="flex items-center gap-3">
+            <Image src="/upway.png" alt="Logo Upway" width={36} height={36} className="rounded-full object-contain" />
+            <span className="font-semibold uppercase tracking-[0.24em] text-white/80">Upway Business</span>
+          </div>
+          <p>© 2026 Upway Business. Todos los derechos reservados.</p>
         </div>
       </footer>
 
@@ -217,7 +271,6 @@ export default function Home() {
       <div className="relative z-[60]">
         <LeadModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       </div>
-
     </main>
   );
 }
