@@ -72,6 +72,10 @@ model Tienda {
   phone_number_id String?  
   meta_token      String?  @db.Text 
   
+  // 🤖 NUEVO: Personalidad del Bot
+  agentName       String?
+  systemPrompt    String?  @db.Text
+  
   user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   productos       Producto[]
 }
