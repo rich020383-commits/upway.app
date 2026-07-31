@@ -7,14 +7,14 @@ import {
   ArrowRight,
   Bot,
   Building2,
-  CheckCircle2,
   Lightbulb,
   MonitorSmartphone,
   Palette,
   Rocket,
   Sparkles,
-  TrendingUp,
   Video,
+  Activity,
+  Cpu
 } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import Chatbot from "@/components/Chatbot";
@@ -68,135 +68,153 @@ export default function Home() {
     },
   ];
 
-  const pillars = [
-    {
-      title: "Diseño de alto impacto",
-      text: "Creamos experiencias visuales premium que hacen que cada marca se vea distinta.",
-    },
-    {
-      title: "Automatización real",
-      text: "Conectamos procesos, herramientas y agentes para que tu negocio se mueva solo.",
-    },
-    {
-      title: "Estrategia de crecimiento",
-      text: "Ponemos marketing, ventas y tecnología en una sola dirección para escalar.",
-    },
-  ];
-
   const steps = ["Tienes una idea", "La traducimos en estrategia", "Creamos tu experiencia", "Automatizamos y escalamos"];
 
   return (
-    <main className="min-h-screen bg-[#050816] text-white selection:bg-violet-500/30 selection:text-white">
-      <div className="fixed inset-0 z-0 pointer-events-none">
+    <main className="min-h-screen bg-[#03050a] text-white selection:bg-cyan-500/30 selection:text-white">
+      <div className="fixed inset-0 z-0 pointer-events-none opacity-60">
         <ParticleBackground />
       </div>
 
-      <nav className="sticky top-0 z-50 border-b border-white/10 bg-[#050816]/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
+      {/* NAVEGACIÓN (Adaptada a tonos oscuros y cyan) */}
+      <nav className="fixed w-full top-0 z-50 border-b border-white/5 bg-[#03050a]/60 backdrop-blur-2xl">
+        <div className="mx-auto flex max-w-[90rem] items-center justify-between px-6 py-4 lg:px-8">
           <a href="#top" className="flex items-center gap-3">
             <Image src="/upway.png" alt="Logo Upway" width={42} height={42} className="rounded-full object-contain" />
-            <span className="text-sm font-semibold uppercase tracking-[0.25em] text-white/90">Upway Business</span>
+            <span className="text-sm font-semibold uppercase tracking-[0.25em] text-white/90">Upway</span>
           </a>
 
-          <div className="hidden items-center gap-6 text-sm text-white/70 md:flex">
-            <a href="#servicios" className="transition hover:text-white">Servicios</a>
-            <a href="#proceso" className="transition hover:text-white">Proceso</a>
-            <a href="#contacto" className="transition hover:text-white">Contacto</a>
+          <div className="hidden items-center gap-8 text-sm text-white/50 md:flex font-medium tracking-wide">
+            <a href="#servicios" className="transition hover:text-cyan-400">Servicios</a>
+            <a href="#proceso" className="transition hover:text-cyan-400">Proceso</a>
+            <a href="#contacto" className="transition hover:text-cyan-400">Contacto</a>
           </div>
 
-          <div className="hidden items-center gap-3 md:flex">
-            <a
-              href="/login"
-              className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
-            >
+          <div className="hidden items-center gap-4 md:flex">
+            <a href="/login" className="text-sm font-semibold text-white/60 transition hover:text-white">
               Iniciar sesión
             </a>
-            <a
-              href="/dashboard"
-              className="rounded-full border border-violet-400/30 bg-violet-500/10 px-4 py-2 text-sm font-semibold text-violet-100 transition hover:bg-violet-500/20"
-            >
-              Panel
+            <a href="/dashboard" className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-5 py-2 text-sm font-semibold text-cyan-300 transition hover:bg-cyan-500/20 hover:shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+              Panel IA
             </a>
-            <button
-              onClick={() => window.dispatchEvent(new Event("abrir-chat"))}
-              className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
-            >
-              Hablar con un experto
-            </button>
           </div>
-        </div>
-
-        <div className="flex items-center justify-end gap-2 px-6 pb-4 md:hidden">
-          <a
-            href="/login"
-            className="rounded-full border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
-          >
-            Iniciar sesión
-          </a>
-          <a
-            href="/dashboard"
-            className="rounded-full border border-violet-400/30 bg-violet-500/10 px-3 py-2 text-xs font-semibold text-violet-100 transition hover:bg-violet-500/20"
-          >
-            Panel
-          </a>
         </div>
       </nav>
 
-      <section id="top" className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(124,58,237,0.28),_transparent_55%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(120deg,_rgba(255,255,255,0.08),_transparent_45%)]" />
+      {/* ========================================== */}
+      {/* SECCIÓN PRINCIPAL: EL DOMINIO DE SOPHIE */}
+      {/* ========================================== */}
+      <section id="top" className="relative min-h-screen pt-24 pb-12 flex items-center overflow-hidden">
+        
+        {/* Luces volumétricas Cyberpunk */}
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[60%] bg-blue-700/20 blur-[150px] rounded-full pointer-events-none" />
+        <div className="absolute top-[20%] right-[-10%] w-[50%] h-[70%] bg-cyan-500/10 blur-[150px] rounded-full pointer-events-none" />
 
-        <div className="relative mx-auto flex max-w-7xl flex-col px-6 py-24 lg:px-8 lg:py-32">
-          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="max-w-4xl">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-500/10 px-3 py-1 text-sm text-violet-200">
-              <Sparkles className="h-4 w-4" />
-              Diseño, estrategia, automatización y crecimiento
+        <div className="relative mx-auto flex w-full max-w-[90rem] flex-col px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8 h-full gap-12">
+          
+          {/* MITAD IZQUIERDA (40%): Textos e Interfaz */}
+          <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} className="lg:w-[45%] z-10 pt-10 lg:pt-0">
+            
+            <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm font-mono text-cyan-300 backdrop-blur-md">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+              </span>
+              SOPHIE_OS V2.0 ACTIVA
             </div>
 
-            <h1 className="text-4xl font-semibold leading-tight text-white sm:text-5xl lg:text-7xl">
-              Tu empresa, con la escala y la presencia de una marca premium.
+            <h1 className="text-5xl font-bold leading-[1.1] tracking-tight text-white sm:text-6xl lg:text-[5rem]">
+              La inteligencia <br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">detrás de tu éxito.</span>
             </h1>
 
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-white/70 sm:text-xl">
-              Creamos experiencias digitales, productos inteligentes y procesos automatizados para negocios que quieren crecer sin perder identidad.
+            <p className="mt-6 max-w-lg text-lg leading-relaxed text-slate-400 font-light">
+              Despierta el potencial de tu negocio. Automatiza tus ventas y operaciones con agentes de inteligencia artificial que piensan, responden y escalan con la identidad de tu marca.
             </p>
 
-            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-10 flex flex-col gap-4 sm:flex-row">
               <button
                 onClick={() => window.dispatchEvent(new Event("abrir-chat"))}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:scale-[1.02]"
+                className="group relative inline-flex items-center justify-center gap-3 rounded-full bg-cyan-500 px-8 py-4 text-sm font-bold text-slate-950 transition-all hover:bg-cyan-400 hover:shadow-[0_0_30px_rgba(6,182,212,0.4)]"
               >
-                Agendar una demo
-                <ArrowRight className="h-4 w-4" />
+                <Cpu className="h-4 w-4" />
+                Desplegar mi bot
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </button>
-              <a
-                href="#servicios"
-                className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-              >
-                Explorar servicios
-              </a>
             </div>
 
-            <div className="mt-12 grid gap-4 sm:grid-cols-3">
-              {[
-                { value: "24/7", label: "automatización" },
-                { value: "100%", label: "escalabilidad" },
-                { value: "IA", label: "nativa" },
-              ].map((item) => (
-                <div key={item.label} className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
-                  <p className="text-2xl font-semibold text-white">{item.value}</p>
-                  <p className="mt-1 text-sm text-white/60">{item.label}</p>
-                </div>
-              ))}
+            {/* Métricas de Diagnóstico (Estilo HUD) */}
+            <div className="mt-16 grid grid-cols-2 gap-4 border-t border-white/10 pt-8 max-w-md">
+              <div>
+                <p className="text-xs font-mono text-cyan-500/70 mb-1">LATENCIA_API</p>
+                <p className="text-2xl font-light tracking-wide text-white flex items-center gap-2">
+                  0.8s <Activity className="h-4 w-4 text-cyan-400" />
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-mono text-cyan-500/70 mb-1">UPTIME_RED</p>
+                <p className="text-2xl font-light tracking-wide text-white">99.9%</p>
+              </div>
             </div>
           </motion.div>
+
+          {/* MITAD DERECHA (60%): El Video Monumental de Sophie */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }} 
+            animate={{ opacity: 1, scale: 1 }} 
+            transition={{ duration: 1, delay: 0.3 }}
+            className="lg:w-[55%] relative h-[60vh] lg:h-[85vh] w-full"
+          >
+            {/* Contenedor del video con diseño de cápsula cibernética */}
+            <div className="absolute inset-0 rounded-[2.5rem] border border-cyan-500/20 bg-slate-900/40 p-2 backdrop-blur-md shadow-[0_0_50px_rgba(6,182,212,0.1)]">
+              <div className="relative h-full w-full overflow-hidden rounded-[2rem] bg-black">
+                
+                {/* Sombra interna para dar profundidad */}
+                <div className="absolute inset-0 z-10 shadow-[inset_0_0_100px_rgba(0,0,0,0.8)] pointer-events-none"></div>
+
+                <video 
+                  autoPlay 
+                  loop 
+                  muted 
+                  playsInline 
+                  className="absolute inset-0 h-full w-full object-cover opacity-90 scale-105"
+                >
+                  <source src="/sophie-animada.mp4" type="video/mp4" />
+                </video>
+                
+                {/* HUD Overlay Flotante */}
+                <div className="absolute top-8 right-8 z-20 flex flex-col gap-2">
+                  <div className="flex items-center gap-2 bg-black/50 backdrop-blur px-3 py-1.5 rounded-md border border-cyan-500/30">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                    <span className="text-[10px] font-mono text-cyan-300">BIOMETRIC_SYNC</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-black/50 backdrop-blur px-3 py-1.5 rounded-md border border-white/10">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                    <span className="text-[10px] font-mono text-white/70">NLP_ENGINE: READY</span>
+                  </div>
+                </div>
+
+                <div className="absolute bottom-8 left-8 z-20 max-w-[200px]">
+                   <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                      <div className="h-full bg-cyan-400 w-[85%] animate-pulse"></div>
+                   </div>
+                   <p className="text-[10px] font-mono text-cyan-400 mt-2">PROCESSING_NEURAL_PATHWAYS...</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
         </div>
       </section>
 
-      <section id="servicios" className="relative border-t border-white/10 bg-[#060913]">
+      {/* ========================================== */}
+      {/* SECCIONES SECUNDARIAS (Regresando a tu diseño original elegante) */}
+      {/* ========================================== */}
+
+      <section id="servicios" className="relative border-t border-white/5 bg-[#050816]">
         <div className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
           <div className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-violet-300">Servicios</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-400">Servicios</p>
             <h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">
               Soluciones pensadas para empresas que quieren avanzar con identidad.
             </h2>
@@ -212,16 +230,16 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.35, delay: index * 0.08 }}
-                  className="rounded-3xl border border-white/10 bg-white/5 p-6"
+                  className="rounded-3xl border border-white/5 bg-white/5 p-6 transition hover:border-cyan-500/30"
                 >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-500/15 text-violet-200">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-500/10 text-cyan-400">
                     <Icon className="h-5 w-5" />
                   </div>
                   <h3 className="mt-5 text-xl font-semibold text-white">{stage.title}</h3>
-                  <p className="mt-3 text-sm leading-7 text-white/70">{stage.description}</p>
+                  <p className="mt-3 text-sm leading-7 text-white/50">{stage.description}</p>
                   <div className="mt-5 flex flex-wrap gap-2">
                     {stage.tags.map((tag) => (
-                      <span key={tag} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
+                      <span key={tag} className="rounded-full border border-white/5 bg-black/30 px-3 py-1 text-xs text-white/50">
                         {tag}
                       </span>
                     ))}
@@ -233,10 +251,10 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="proceso" className="relative border-t border-white/10 bg-[#050816]">
+      <section id="proceso" className="relative border-t border-white/5 bg-[#03050a]">
         <div className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
           <div className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-violet-300">Proceso</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-400">Proceso</p>
             <h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">
               Un camino claro para pasar de la idea a la ejecución.
             </h2>
@@ -244,8 +262,11 @@ export default function Home() {
 
           <div className="mt-12 grid gap-6 md:grid-cols-4">
             {steps.map((step, index) => (
-              <div key={step} className="rounded-3xl border border-white/10 bg-white/5 p-6">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-500/15 text-sm font-semibold text-violet-200">
+              <div key={step} className="rounded-3xl border border-white/5 bg-white/5 p-6 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                   <Bot className="h-16 w-16" />
+                </div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-500/10 text-sm font-semibold text-cyan-400">
                   {index + 1}
                 </div>
                 <p className="mt-4 text-lg font-semibold text-white">{step}</p>
@@ -255,26 +276,26 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="contacto" className="relative border-t border-white/10 bg-[#060913]">
+      <section id="contacto" className="relative border-t border-white/5 bg-[#050816]">
         <div className="mx-auto flex max-w-7xl flex-col gap-10 px-6 py-24 lg:flex-row lg:items-end lg:justify-between lg:px-8">
           <div className="max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-violet-300">Contacto</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-400">Contacto</p>
             <h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">
               Tu próximo movimiento puede ser el más importante para tu negocio.
             </h2>
-            <p className="mt-5 text-lg leading-8 text-white/70">
+            <p className="mt-5 text-lg leading-8 text-white/50">
               Si quieres una propuesta más concreta, agendamos una llamada y diseñamos juntas el siguiente paso.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur">
+          <div className="rounded-3xl border border-white/5 bg-white/5 p-8 backdrop-blur shadow-2xl">
             <div className="flex items-center gap-3 text-white">
-              <Rocket className="h-5 w-5 text-violet-300" />
+              <Rocket className="h-5 w-5 text-cyan-400" />
               <p className="text-sm font-semibold uppercase tracking-[0.24em]">Listo para empezar</p>
             </div>
             <button
               onClick={() => window.dispatchEvent(new Event("abrir-chat"))}
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:scale-[1.02]"
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-cyan-500 px-6 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-400"
             >
               Agendar una llamada
               <ArrowRight className="h-4 w-4" />
@@ -283,11 +304,11 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="border-t border-white/10 bg-[#050816] py-8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 text-sm text-white/60 md:flex-row md:items-center md:justify-between lg:px-8">
+      <footer className="border-t border-white/5 bg-[#03050a] py-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 text-sm text-white/40 md:flex-row md:items-center md:justify-between lg:px-8">
           <div className="flex items-center gap-3">
-            <Image src="/upway.png" alt="Logo Upway" width={36} height={36} className="rounded-full object-contain" />
-            <span className="font-semibold uppercase tracking-[0.24em] text-white/80">Upway Business</span>
+            <Image src="/upway.png" alt="Logo Upway" width={36} height={36} className="rounded-full object-contain grayscale opacity-70" />
+            <span className="font-semibold uppercase tracking-[0.24em] text-white/60">Upway Business</span>
           </div>
           <p>© 2026 Upway Business. Todos los derechos reservados.</p>
         </div>

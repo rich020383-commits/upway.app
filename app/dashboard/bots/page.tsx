@@ -62,7 +62,11 @@ export default function AgentesBotPage() {
       const res = await fetch('/api/simulador', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ promptMaestro, mensajeUsuario: mensajeEnviado })
+        body: JSON.stringify({ 
+          promptMaestro, 
+          mensajeUsuario: mensajeEnviado,
+          historial: historialChat // <-- ¡Agregamos esta línea clave!
+        })
       });
 
       const data = await res.json();

@@ -3,8 +3,8 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export async function POST(req: Request) {
   try {
-    // Recibimos el prompt que el cliente escribió y el mensaje que quiere probar
-    const { promptMaestro, mensajeUsuario } = await req.json();
+    // 1. Ahora también recibimos el "historial" completo de la conversación
+    const { promptMaestro, mensajeUsuario, historial } = await req.json();
 
     const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
     if (!apiKey) {
@@ -12,24 +12,26 @@ export async function POST(req: Request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    // Usamos Flash para que las pruebas sean ultrarrápidas y económicas
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ 
+      model: 'gemini-2.5-flash',
+      systemInstruction: `ESTÁS EN MODO SIMULADOR DE PRUEBAS INTERNO. 
+      Comportate ESTRICTAMENTE según estas instrucciones de tu jefe: 
+      ${promptMaestro || 'Eres un asistente cordial.'}`
+    });
 
-    // Armamos la instrucción mezclando las reglas del cliente y el mensaje de prueba
-    const promptContexto = `
-      ESTÁS EN MODO SIMULADOR DE PRUEBAS INTERNO.
-      Eres un Agente IA. Debes comportarte ESTRICTAMENTE según las siguientes instrucciones dadas por tu jefe (el usuario):
-      
-      --- INICIO DE INSTRUCCIONES DEL CLIENTE ---
-      ${promptMaestro || 'Eres un asistente cordial. Saluda y di que estás listo para ayudar.'}
-      --- FIN DE INSTRUCCIONES DEL CLIENTE ---
-      
-      Responde al siguiente mensaje del cliente simulado, adoptando la personalidad exacta que se te ordenó arriba. Usa un lenguaje natural para WhatsApp.
-      
-      Mensaje: "${mensajeUsuario}"
-    `;
+    // 2. Formateamos el historial de nuestra web al formato que entiende Gemini
+    const historialFormateado = historial.map((msg: any) => ({
+      role: msg.rol === 'usuario' ? 'user' : 'model',
+      parts: [{ text: msg.texto }],
+    }));
 
-    const result = await model.generateContent(promptContexto);
+    // 3. Iniciamos un chat con memoria
+    const chat = model.startChat({
+      history: historialFormateado,
+    });
+
+    // 4. Enviamos solo el nuevo mensaje
+    const result = await chat.sendMessage(mensajeUsuario);
     const respuestaIA = result.response.text();
 
     return NextResponse.json({ respuesta: respuestaIA });
