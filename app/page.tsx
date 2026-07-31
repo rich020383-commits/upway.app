@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
   Bot,
@@ -13,7 +13,9 @@ import {
   Rocket,
   Video,
   Cpu,
-  Terminal
+  Terminal,
+  X,
+  Menu
 } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import Chatbot from "@/components/Chatbot";
@@ -21,6 +23,7 @@ import LeadModal from "@/components/LeadModal";
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isHudOpen, setIsHudOpen] = useState(false); // <--- Controla el menú desplegable derecho
 
   useEffect(() => {
     const abrirModal = () => setIsModalOpen(true);
@@ -72,15 +75,14 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#03050a] text-white selection:bg-cyan-500/30 selection:text-white">
       
-      {/* Fondo de Partículas global para las secciones de abajo */}
       <div className="fixed inset-0 z-0 pointer-events-none opacity-40">
         <ParticleBackground />
       </div>
 
       {/* ========================================== */}
-      {/* NAVEGACIÓN (Flotante e invisible al tope) */}
+      {/* NAVEGACIÓN SUPERIOR */}
       {/* ========================================== */}
-      <nav className="fixed w-full top-0 z-50 border-b border-white/5 bg-black/20 backdrop-blur-xl transition-all duration-300">
+      <nav className="fixed w-full top-0 z-40 border-b border-white/5 bg-black/10 backdrop-blur-md transition-all duration-300">
         <div className="mx-auto flex max-w-[95rem] items-center justify-between px-6 py-4 lg:px-12">
           <a href="#top" className="flex items-center gap-3">
             <Image src="/upway.png" alt="Logo Upway" width={40} height={40} className="rounded-full object-contain" />
@@ -97,7 +99,7 @@ export default function Home() {
             <a href="/login" className="text-sm font-mono text-white/70 transition hover:text-white">
               [login]
             </a>
-            <a href="/dashboard" className="rounded-lg border border-cyan-500/40 bg-cyan-500/20 px-5 py-2 text-sm font-mono text-cyan-200 transition hover:bg-cyan-500/40 hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] backdrop-blur-md">
+            <a href="/dashboard" className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-5 py-2 text-sm font-mono text-cyan-300 transition hover:bg-cyan-500/30 hover:shadow-[0_0_15px_rgba(6,182,212,0.3)] backdrop-blur-md">
               PANEL_IA →
             </a>
           </div>
@@ -105,11 +107,11 @@ export default function Home() {
       </nav>
 
       {/* ========================================== */}
-      {/* HERO SECTION: VIDEO DE SOPHIE FULL SCREEN  */}
+      {/* HERO SECTION: VIDEO LIMPIO Y MENÚ LATERAL  */}
       {/* ========================================== */}
-      <section id="top" className="relative h-screen w-full flex items-end justify-end overflow-hidden pb-12 lg:pb-20 pt-32">
+      <section id="top" className="relative h-screen w-full overflow-hidden">
         
-        {/* 1. El Video Gigante */}
+        {/* EL VIDEO (Sin nada que lo tape por defecto) */}
         <video 
           autoPlay 
           loop 
@@ -120,57 +122,112 @@ export default function Home() {
           <source src="/sophie-animada.mp4" type="video/mp4" />
         </video>
 
-        {/* 2. Filtros Gradientes para fundir el video con la web */}
-        <div className="absolute inset-0 z-10 bg-[linear-gradient(to_right,rgba(3,5,10,0.6)_0%,transparent_40%,transparent_60%,rgba(3,5,10,0.4)_100%)] pointer-events-none" />
-        <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#03050a] via-[#03050a]/40 to-transparent pointer-events-none" />
-
-        {/* 3. Panel de Textos Corporativos (Ubicado Abajo a la Derecha) */}
-        <div className="relative z-20 mx-auto w-full max-w-[95rem] px-6 lg:px-12 flex justify-end">
-          
-          <motion.div 
-            initial={{ opacity: 0, y: 30, filter: "blur(10px)" }} 
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} 
-            transition={{ duration: 1, delay: 0.5 }}
-            className="w-full max-w-xl rounded-3xl border border-white/10 bg-black/40 p-8 shadow-2xl backdrop-blur-xl"
+        {/* Viñeta sutil de sombras en los bordes */}
+        <div className="absolute inset-0 z-10 shadow-[inset_0_0_150px_rgba(3,5,10,0.8)] pointer-events-none" />
+        
+        {/* ========================================== */}
+        {/* BOTÓN FLOTANTE: "INICIAR SISTEMA" */}
+        {/* ========================================== */}
+        <div className="absolute right-6 top-1/2 z-20 -translate-y-1/2">
+          <button
+            onClick={() => setIsHudOpen(true)}
+            className={`group flex flex-col items-center gap-3 rounded-full border border-cyan-500/40 bg-black/40 p-4 backdrop-blur-md transition-all hover:bg-cyan-900/40 hover:shadow-[0_0_30px_rgba(6,182,212,0.4)] ${isHudOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
           >
-            <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-cyan-500/30 bg-cyan-500/10 px-3 py-1.5 text-[10px] font-mono text-cyan-300">
-              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping"></span>
-              SISTEMA OPERATIVO ACTIVO
-            </div>
-
-            <h1 className="text-4xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl">
-              Inteligencia artificial que mueve <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">tu negocio.</span>
-            </h1>
-
-            <p className="mt-5 text-base leading-relaxed text-slate-300 font-light">
-              Despliega agentes virtuales que no solo responden, sino que dominan tus procesos corporativos, ventas y operaciones con la identidad de tu marca.
-            </p>
-
-            <div className="mt-8 flex flex-col sm:flex-row gap-4">
-              <button
-                onClick={() => window.dispatchEvent(new Event("abrir-chat"))}
-                className="group relative flex items-center justify-center gap-3 rounded-xl bg-cyan-400 px-6 py-3.5 text-sm font-bold text-slate-950 transition-all hover:bg-cyan-300 hover:shadow-[0_0_25px_rgba(6,182,212,0.5)]"
-              >
-                <Cpu className="h-4 w-4" />
-                Desplegar mi IA
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </button>
-              <a
-                href="#servicios"
-                className="flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10 backdrop-blur-md"
-              >
-                Conocer más
-              </a>
-            </div>
-          </motion.div>
-          
+            <Menu className="h-6 w-6 text-cyan-400" />
+            <span className="writing-vertical text-[10px] font-mono tracking-[0.3em] text-cyan-300" style={{ writingMode: 'vertical-rl' }}>
+              INICIAR_SISTEMA
+            </span>
+          </button>
         </div>
+
+        {/* DATOS DE SISTEMA (Abajo a la izquierda, para equilibrar) */}
+        <div className="absolute bottom-8 left-8 z-20 hidden md:block">
+          <div className="flex flex-col gap-1.5 border-l-2 border-cyan-500/50 pl-3">
+             <p className="text-[10px] font-mono text-cyan-400 tracking-widest">ESTADO: ONLINE</p>
+             <p className="text-[10px] font-mono text-white/50 tracking-widest">MODELO: SOPHIE_V2</p>
+          </div>
+        </div>
+
+        {/* ========================================== */}
+        {/* EL PANEL DESPLEGABLE (HUD) DESDE LA DERECHA */}
+        {/* ========================================== */}
+        <AnimatePresence>
+          {isHudOpen && (
+            <>
+              {/* Overlay oscuro para darle foco al panel */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsHudOpen(false)}
+                className="absolute inset-0 z-30 bg-black/20 backdrop-blur-[2px]"
+              />
+
+              {/* El Panel de Cristal */}
+              <motion.div
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="absolute right-0 top-0 bottom-0 z-40 w-full max-w-md border-l border-cyan-500/30 bg-[#03050a]/80 p-8 pt-32 shadow-[0_0_50px_rgba(0,0,0,0.8)] backdrop-blur-2xl flex flex-col justify-center"
+              >
+                {/* Botón Cerrar */}
+                <button
+                  onClick={() => setIsHudOpen(false)}
+                  className="absolute top-24 right-8 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/50 transition hover:bg-white/10 hover:text-white"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+
+                {/* Contenido del Panel */}
+                <div className="mb-4 inline-flex items-center gap-2 border-r-2 border-cyan-500 pr-3 text-[10px] font-mono text-cyan-400 tracking-widest w-fit">
+                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                  SISTEMA OPERATIVO ACTIVO
+                </div>
+
+                <h1 className="mt-4 text-4xl font-extrabold leading-[1.1] tracking-tight text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.15)]">
+                  Inteligencia artificial que mueve <br/>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-l from-cyan-400 to-blue-400">tu negocio.</span>
+                </h1>
+
+                <p className="mt-6 text-sm leading-relaxed text-slate-300 font-light">
+                  Despliega agentes virtuales que no solo responden, sino que dominan tus procesos corporativos, ventas y operaciones con la identidad de tu marca.
+                </p>
+
+                <div className="mt-10 flex flex-col gap-4">
+                  <button
+                    onClick={() => {
+                      setIsHudOpen(false);
+                      window.dispatchEvent(new Event("abrir-chat"));
+                    }}
+                    className="group relative flex w-full items-center justify-center gap-3 border border-cyan-500/50 bg-cyan-500/20 px-6 py-4 text-sm font-mono tracking-widest text-cyan-300 transition-all hover:bg-cyan-500 hover:text-slate-950 hover:shadow-[0_0_25px_rgba(6,182,212,0.6)]"
+                  >
+                    <Cpu className="h-4 w-4" />
+                    DESPLEGAR AGENTE
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </button>
+
+                  <a
+                    href="#servicios"
+                    onClick={() => setIsHudOpen(false)}
+                    className="flex w-full items-center justify-center rounded-none border border-white/10 bg-white/5 px-6 py-4 text-sm font-mono tracking-widest text-white/70 transition hover:bg-white/10 hover:text-white"
+                  >
+                    EXPLORAR MÓDULOS
+                  </a>
+                </div>
+
+                <div className="mt-auto border-t border-white/10 pt-6">
+                  <p className="text-[10px] font-mono text-white/40 tracking-widest">UPWAY BUSINESS // COLOMBIA HQ</p>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
       </section>
 
       {/* ========================================== */}
-      {/* SECCIONES SECUNDARIAS (El diseño oscuro encaja perfecto al hacer scroll) */}
+      {/* SECCIONES SECUNDARIAS (Se mantienen iguales) */}
       {/* ========================================== */}
-
       <section id="servicios" className="relative bg-[#03050a]">
         <div className="mx-auto max-w-7xl px-6 py-24 lg:px-12">
           <div className="max-w-3xl">
@@ -190,7 +247,7 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.35, delay: index * 0.08 }}
-                  className="rounded-2xl border border-white/5 bg-white/[0.02] p-6 transition hover:border-cyan-500/30 hover:bg-cyan-950/20"
+                  className="rounded-2xl border border-white/5 bg-white/[0.02] p-6 transition hover:border-cyan-500/30 hover:bg-cyan-950/10"
                 >
                   <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-400">
                     <Icon className="h-5 w-5" />
