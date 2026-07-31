@@ -138,10 +138,13 @@ export default function AgentesBotPage() {
                   <p className="text-sm text-slate-500">Conecta inventario, políticas y documentos para que el bot resuelva mejor.</p>
                 </div>
               </div>
-              <button className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-sm font-semibold text-slate-600 transition hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700">
-                <ArrowRight className="h-4 w-4"/>
-                Sincronizar inventario y documentos
-              </button>
+              <button 
+  onClick={() => window.location.href = '/dashboard/inventario'}
+  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-sm font-semibold text-slate-600 transition hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700"
+>
+  <ArrowRight className="h-4 w-4"/>
+  Sincronizar inventario y documentos
+</button>
             </div>
           </div>
 

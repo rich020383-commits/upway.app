@@ -7,11 +7,11 @@ import { listProducts } from '@/lib/app-state';
 // EL MOTOR RAG: Búsqueda súper ligera en memoria
 // ==========================================
 function buscarEnInventarioLocal(mensaje: string, todosLosProductos: any[]) {
-  const palabrasClave = mensaje.toLowerCase().split(' ').filter(p => p.length > 3);
+  const palabrasClave = mensaje.toLowerCase().split(' ').filter((p: string) => p.length > 3);
   if (palabrasClave.length === 0) return []; 
   
   return todosLosProductos.filter(prod => 
-    palabrasClave.some(palabra => 
+    palabrasClave.some((palabra: string) => 
       prod.nombre.toLowerCase().includes(palabra) || 
       (prod.categoria && prod.categoria.toLowerCase().includes(palabra))
     )
@@ -20,10 +20,21 @@ function buscarEnInventarioLocal(mensaje: string, todosLosProductos: any[]) {
 
 export async function POST(req: Request) {
   try {
-    const { promptMaestro, mensajeUsuario, historial, tienda_id = '1172769935927318' } = await req.json();
+    // 🛡️ Agregamos un fallback "historial = []" por seguridad
+    const { promptMaestro, mensajeUsuario, historial = [], tienda_id = '1172769935927318' } = await req.json();
 
-    // 1. EXTRACCIÓN NINJA (RAG): Filtramos el inventario
-    const inventarioCompleto = await listProducts(tienda_id);
+    // 1. EXTRACCIÓN NINJA (RAG): Declaramos la variable como any[] para que TypeScript no moleste con el formato
+    let inventarioCompleto: any[] = await listProducts(tienda_id);
+    
+    // 🪄 MAGIA DE VENTAS: Si la tienda es nueva y no tiene inventario, inyectamos datos de prueba limpios
+    if (!inventarioCompleto || inventarioCompleto.length === 0) {
+      inventarioCompleto = [
+        { nombre: "Zapatos Nike de Prueba", categoria: "Calzado", precio: 250000 },
+        { nombre: "Camiseta Polo de Prueba", categoria: "Ropa", precio: 60000 },
+        { nombre: "Gorra Deportiva de Prueba", categoria: "Accesorios", precio: 35000 }
+      ];
+    }
+
     const productosRelevantes = buscarEnInventarioLocal(mensajeUsuario, inventarioCompleto);
     
     let contextoInventario = "No se encontraron coincidencias directas en el inventario con lo que pregunta el cliente.";
