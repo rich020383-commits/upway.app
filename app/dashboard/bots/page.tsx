@@ -47,7 +47,7 @@ export default function AgentesBotPage() {
     }
   };
 
-  // Simulador Interno
+  // Simulador Interno con Visión de Rayos X 🕵️‍♂️
   const enviarMensajePrueba = async () => {
     if (!mensajePrueba.trim()) return;
 
@@ -65,15 +65,35 @@ export default function AgentesBotPage() {
         body: JSON.stringify({ 
           promptMaestro, 
           mensajeUsuario: mensajeEnviado,
-          historial: historialChat // <-- ¡Agregamos esta línea clave!
+          historial: historialChat 
         })
       });
 
-      const data = await res.json();
+      // 1. Leemos el texto tal cual viene del servidor antes de forzarlo a JSON
+      const textResponse = await res.text();
+
+      // 2. Si el servidor mandó un código de error (ej. 500), lanzamos la alarma con el texto real
+      if (!res.ok) {
+        throw new Error(`Fallo del servidor (${res.status}): ${textResponse}`);
+      }
+
+      // 3. Si todo está bien, convertimos a JSON
+      const data = JSON.parse(textResponse);
+
+      // 4. Si nuestro propio backend mandó un error controlado
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
       setHistorialChat([...nuevoHistorial, { rol: 'ia', texto: data.respuesta }]);
+      
     } catch (error) {
-      console.error(error);
-      setHistorialChat([...nuevoHistorial, { rol: 'ia', texto: '⚠️ Error de conexión con el simulador.' }]);
+      console.error('Error detallado del simulador:', error);
+      // 🚨 AHORA EL CHAT TE MOSTRARÁ EXACTAMENTE QUÉ SE ROMPIÓ
+      setHistorialChat([...nuevoHistorial, { 
+        rol: 'ia', 
+        texto: `⚠️ Fallo exacto: ${error instanceof Error ? error.message : 'Error desconocido'}` 
+      }]);
     } finally {
       setCargandoPrueba(false);
     }
