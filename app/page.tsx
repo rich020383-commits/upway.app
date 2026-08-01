@@ -119,6 +119,31 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHudOpen, setIsHudOpen] = useState(false); 
 
+  // Estados para el Menú Móvil y la Instalación de la App (PWA)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  // Escuchar cuando el navegador permite instalar la app
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault(); // Evita que salga el cartel automático feo de Google
+      setDeferredPrompt(e); // Guardamos el evento para usarlo en nuestro propio botón
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, []);
+
+  const instalarApp = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        console.log('¡App instalada con éxito!');
+      }
+      setDeferredPrompt(null);
+    }
+  };
+
   // Estados para la sección de Precios (SaaS)
   const [contract, setContract] = useState<ContractOption>(2);
   const [checkoutPlan, setCheckoutPlan] = useState<Plan | null>(null);
@@ -167,15 +192,17 @@ export default function Home() {
       </div>
 
       {/* ========================================== */}
-      {/* NAVEGACIÓN SUPERIOR */}
+      {/* NAVEGACIÓN SUPERIOR Y MENÚ MÓVIL */}
       {/* ========================================== */}
-      <nav className="fixed w-full top-0 z-40 border-b border-white/5 bg-black/10 backdrop-blur-md transition-all duration-300">
+      <nav className="fixed w-full top-0 z-[60] border-b border-white/5 bg-black/10 backdrop-blur-md transition-all duration-300">
         <div className="mx-auto flex max-w-[95rem] items-center justify-between px-6 py-4 lg:px-12">
+          {/* Logo (Visible siempre) */}
           <a href="#top" className="flex items-center gap-3">
             <Image src="/upway.png" alt="Logo Upway" width={40} height={40} className="rounded-full object-contain" />
-            <span className="text-xs font-mono uppercase tracking-[0.3em] text-white/90">Upway_OS</span>
+            <span className="text-xs font-mono uppercase tracking-[0.3em] text-white/90 hidden sm:block">Upway_OS</span>
           </a>
 
+          {/* Menú Desktop (Oculto en celular) */}
           <div className="hidden items-center gap-8 text-sm text-white/60 md:flex font-mono tracking-wider">
             <a href="#planes" className="transition text-cyan-400 hover:text-cyan-300">/planes</a>
             <a href="#servicios" className="transition hover:text-cyan-400">/servicios</a>
@@ -183,7 +210,14 @@ export default function Home() {
             <a href="#contacto" className="transition hover:text-cyan-400">/contacto</a>
           </div>
 
+          {/* Botones Desktop (Oculto en celular) */}
           <div className="hidden items-center gap-4 md:flex">
+            {/* Si el navegador soporta instalación, mostramos el botón PWA en desktop también */}
+            {deferredPrompt && (
+              <button onClick={instalarApp} className="text-sm font-mono text-[#00D1FF] transition hover:text-white flex items-center gap-2 border border-[#00D1FF]/30 px-3 py-1.5 rounded-full bg-[#00D1FF]/10">
+                ↓ Instalar App
+              </button>
+            )}
             <a href="/login" className="text-sm font-mono text-white/70 transition hover:text-white">
               [login]
             </a>
@@ -191,7 +225,49 @@ export default function Home() {
               PANEL_IA →
             </a>
           </div>
+
+          {/* Botón Hamburguesa (Solo visible en celular) */}
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden text-white/70 hover:text-white p-2 rounded-lg bg-white/5 border border-white/10"
+          >
+            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
+
+        {/* Desplegable del Menú Móvil */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden bg-[#0A0E14]/95 backdrop-blur-xl border-b border-white/10 overflow-hidden"
+            >
+              <div className="flex flex-col px-6 py-6 gap-6 font-mono text-sm tracking-widest">
+                <a href="#planes" onClick={() => setIsMobileMenuOpen(false)} className="text-[#00D1FF]">/planes_upway</a>
+                <a href="#servicios" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white">/servicios</a>
+                <a href="#proceso" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white">/proceso</a>
+                <a href="#contacto" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white">/contacto</a>
+                
+                <div className="h-[1px] bg-white/10 w-full my-2" />
+
+                {deferredPrompt && (
+                  <button onClick={() => { instalarApp(); setIsMobileMenuOpen(false); }} className="w-full text-center py-3 rounded-lg border border-[#00D1FF]/40 bg-[#00D1FF]/10 text-[#00D1FF] font-bold">
+                    ↓ DESCARGAR APP UPWAY
+                  </button>
+                )}
+                
+                <a href="/login" className="w-full text-center py-3 rounded-lg border border-white/20 bg-white/5 text-white/80">
+                  INICIAR SESIÓN
+                </a>
+                <a href="/dashboard" className="w-full text-center py-3 rounded-lg bg-[#00D1FF] text-black font-bold shadow-[0_0_15px_rgba(0,209,255,0.4)]">
+                  ENTRAR AL PANEL →
+                </a>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* ========================================== */}
@@ -201,7 +277,13 @@ export default function Home() {
         <video autoPlay loop muted playsInline className="absolute inset-0 z-0 h-full w-full object-cover scale-[1.02]">
           <source src="/sophie-animada.mp4" type="video/mp4" />
         </video>
+        
+        {/* Sombra interna original que ya tenías */}
         <div className="absolute inset-0 z-10 shadow-[inset_0_0_150px_rgba(3,5,10,0.8)] pointer-events-none" />
+        
+        {/* 🚀 NUEVO: Degradado mágico para fundir a Sophie con la sección de abajo */}
+        <div className="absolute bottom-0 left-0 w-full h-56 bg-gradient-to-t from-[#03050a] via-[#03050a]/80 to-transparent z-20 pointer-events-none" />
+        
         
         {/* BOTÓN FLOTANTE HUD */}
         <div className="absolute right-6 top-1/2 z-20 -translate-y-1/2">

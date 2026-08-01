@@ -2,13 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, X, Send, Bot, Sparkles } from "lucide-react";
+import { X, Send, Terminal, Cpu, Activity, Zap, ShieldCheck } from "lucide-react";
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   
   const [messages, setMessages] = useState([
-    { role: "bot", content: "🧠 ¡Hola! Soy tu Empleado Digital de Upway. Mi misión es ayudarte a llevar tu empresa al siguiente nivel con nuestras soluciones de IA. Estoy aquí para explicarte el valor de nuestros servicios de inteligencia artificial y cómo podemos escalar tu negocio. ¿En qué te puedo asistir hoy?" }
+    { role: "bot", content: "🧠 PROTOCOLO DE INICIO COMPLETO. Soy Sophie, Inteligencia Artificial de Upway. Analizo procesos, automatizo operaciones y escalo ventas. ¿Qué directriz o consulta tienes para tu negocio hoy?" }
   ]);
   
   const [input, setInput] = useState("");
@@ -36,18 +36,17 @@ export default function Chatbot() {
     if (!input.trim()) return;
     
     const userMessage = { role: "user", content: input };
-    const updatedMessages = [...messages, userMessage]; // Usamos updatedMessages para la solicitud
-    setMessages(updatedMessages); // Actualizamos el estado del frontend
+    const updatedMessages = [...messages, userMessage]; 
+    setMessages(updatedMessages); 
     setInput("");
     setIsLoading(true);
 
     try {
-      // 🔥 ACTUALIZADO: Apunta al nuevo dominio unificado
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://upway.business";
       const res = await fetch(`${baseUrl}/api/chat/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: updatedMessages }), // 🔥 ACTUALIZADO: Enviamos todo el historial
+        body: JSON.stringify({ messages: updatedMessages }), 
       });
       const data = await res.json();
       
@@ -59,7 +58,7 @@ export default function Chatbot() {
 
     } catch (error) {
       setTimeout(() => {
-        setMessages((prev) => [...prev, { role: "bot", content: "¡Hola! Soy tu Empleado Digital de Upway y estoy siempre disponible para ti. Parece que hay un pequeño problema de conexión en este momento. Por favor, intenta enviarme tu mensaje de nuevo en unos instantes. ¡Gracias por tu paciencia! 😉" }]);
+        setMessages((prev) => [...prev, { role: "bot", content: "⚠️ ERROR DE SISTEMA: Interrupción en la red neuronal. Intenta enviar el comando nuevamente." }]);
         setIsLoading(false);
       }, 1500);
     }
@@ -67,102 +66,97 @@ export default function Chatbot() {
 
   return (
     <>
+      {/* BOTÓN FLOTANTE (ESTILO NODO DE RED) */}
       <motion.button 
         animate={{ 
-          scale: isOpen ? 1 : [1, 1.05, 1],
           boxShadow: isOpen 
-            ? "0px 0px 15px rgba(0,0,0,0.2)" 
-            : ["0px 0px 15px rgba(37,99,235,0.4)", "0px 0px 25px rgba(34,211,238,0.7)", "0px 0px 15px rgba(37,99,235,0.4)"]
+            ? "0px 0px 0px rgba(0,0,0,0)" 
+            : ["0px 0px 15px rgba(0,209,255,0.4)", "0px 0px 30px rgba(0,209,255,0.8)", "0px 0px 15px rgba(0,209,255,0.4)"]
         }}
-        transition={{ duration: isOpen ? 0.2 : 2.5, repeat: isOpen ? 0 : Infinity, ease: "easeInOut" }}
-        whileHover={{ scale: 1.1 }}
+        transition={{ duration: 2, repeat: isOpen ? 0 : Infinity, ease: "easeInOut" }}
+        whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`fixed bottom-6 right-6 p-4 rounded-full transition-colors z-50 flex items-center justify-center ${
-          isOpen ? 'bg-slate-900 text-white' : 'bg-blue-600 text-white'
+        className={`fixed bottom-6 right-6 w-14 h-14 rounded-full border border-[#00D1FF]/50 backdrop-blur-md transition-all z-50 flex items-center justify-center overflow-hidden ${
+          isOpen ? 'bg-[#0A0E14] text-white opacity-0 pointer-events-none' : 'bg-[#00D1FF]/10 text-[#00D1FF]'
         }`}
       >
-        {isOpen ? <X className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
+        <div className="absolute inset-0 bg-gradient-to-tr from-[#00D1FF]/20 to-transparent pointer-events-none" />
+        <Terminal className="w-6 h-6 relative z-10" />
       </motion.button>
 
+      {/* PANEL DE COMANDO SOPHIE V2 */}
       <AnimatePresence>
         {isOpen && (
           <motion.div 
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            className="fixed bottom-24 right-6 w-[350px] md:w-[400px] h-[550px] bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-slate-200 z-50 flex flex-col overflow-hidden"
+            initial={{ opacity: 0, y: 30, scale: 0.95, filter: "blur(10px)" }}
+            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: 20, scale: 0.95, filter: "blur(10px)" }}
+            transition={{ type: "spring", stiffness: 200, damping: 25 }}
+            className="fixed bottom-6 right-6 w-[360px] md:w-[420px] h-[600px] bg-[#0A0E14]/90 backdrop-blur-2xl rounded-2xl shadow-[0_0_50px_rgba(0,209,255,0.15)] border border-[#00D1FF]/20 z-50 flex flex-col overflow-hidden ring-1 ring-white/5"
           >
-            <div className="bg-slate-950 p-5 text-white flex items-center justify-between shrink-0 border-b border-slate-800 shadow-sm">
-              <div className="flex items-center space-x-4">
-                
+            {/* CABECERA (HUD TECH) */}
+            <div className="bg-[#03050a]/80 p-4 border-b border-[#00D1FF]/20 flex items-center justify-between shrink-0 relative overflow-hidden">
+              {/* Scanline effect en cabecera */}
+              <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,209,255,0.05)_50%)] bg-[length:100%_4px] pointer-events-none" />
+              
+              <div className="flex items-center gap-4 relative z-10">
+                {/* NÚCLEO DE SOPHIE (Visualizador) */}
                 <div className="relative w-12 h-12 flex items-center justify-center">
                   <motion.div
-                    animate={{ 
-                      scale: isLoading ? [1, 1.3, 1] : [1, 1.15, 1], 
-                      opacity: isLoading ? [0.6, 1, 0.6] : [0.2, 0.6, 0.2],
-                      rotate: isLoading ? 180 : 0
-                    }}
-                    transition={{ duration: isLoading ? 1 : 3, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-0 rounded-full border-2 border-cyan-400/50 border-t-transparent"
+                    animate={{ rotate: isLoading ? 360 : 0, scale: isLoading ? [1, 1.1, 1] : 1 }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-0 rounded-full border border-[#00D1FF]/30 border-t-[#00D1FF] border-b-[#00D1FF]"
                   />
                   <motion.div
-                    animate={{ 
-                      scale: isLoading ? [1, 1.5, 1] : [1, 1.3, 1], 
-                      opacity: isLoading ? [0.3, 0.7, 0.3] : [0.1, 0.3, 0.1],
-                      rotate: isLoading ? -180 : 0
-                    }}
-                    transition={{ duration: isLoading ? 1.5 : 4, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-0 rounded-full border border-blue-500/40 border-b-transparent"
+                    animate={{ rotate: isLoading ? -360 : 0 }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-2 rounded-full border border-blue-500/30 border-l-blue-500 border-r-blue-500"
                   />
-                  <motion.div 
-                    animate={{ boxShadow: isLoading ? "0 0 25px rgba(34,211,238,1)" : "0 0 10px rgba(34,211,238,0.5)" }}
-                    className="relative w-8 h-8 bg-gradient-to-tr from-blue-600 to-cyan-300 rounded-full flex items-center justify-center z-10"
-                  >
-                    <Bot className="w-4 h-4 text-white" />
-                  </motion.div>
-                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-slate-950 rounded-full z-20 shadow-[0_0_8px_rgba(34,197,94,0.8)]"></span>
+                  <div className={`w-4 h-4 rounded-full transition-all duration-300 ${isLoading ? 'bg-cyan-300 shadow-[0_0_15px_rgba(103,232,249,1)]' : 'bg-[#00D1FF] shadow-[0_0_10px_rgba(0,209,255,0.6)]'}`} />
                 </div>
 
                 <div>
-                  <h3 className="font-bold text-sm tracking-wide flex items-center gap-1 text-slate-100">
-                    Upway System <Sparkles className="w-3 h-3 text-cyan-400" />
+                  <h3 className="font-display font-bold text-[14px] text-white tracking-wide flex items-center gap-1.5">
+                    SOPHIE_V2 <ShieldCheck className="w-3.5 h-3.5 text-[#00D1FF]" />
                   </h3>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <motion.div 
-                      animate={{ opacity: isLoading ? [1, 0.2, 1] : [0.4, 1, 0.4] }} 
-                      transition={{ duration: isLoading ? 0.5 : 1.5, repeat: Infinity }}
-                      className="w-1.5 h-1.5 bg-cyan-400 rounded-full"
-                    />
-                    <p className="text-[10px] text-cyan-400 uppercase tracking-widest font-semibold">
-                      {isLoading ? "Procesando Datos..." : "Sistema Operativo"}
-                    </p>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="flex items-center gap-1 text-[9px] font-mono text-[#00D1FF]/70 uppercase tracking-widest">
+                      <Cpu className="w-3 h-3" /> {isLoading ? "98%" : "12%"}
+                    </span>
+                    <span className="flex items-center gap-1 text-[9px] font-mono text-[#00D1FF]/70 uppercase tracking-widest">
+                      <Activity className="w-3 h-3" /> {isLoading ? "PROCESANDO" : "IDLE"}
+                    </span>
                   </div>
                 </div>
               </div>
               
-              <button onClick={() => setIsOpen(false)} className="text-slate-500 hover:text-white hover:rotate-90 transition-all duration-300">
+              <button onClick={() => setIsOpen(false)} className="text-white/40 hover:text-white hover:bg-white/10 p-2 rounded-lg transition-all relative z-10">
                 <X className="w-5 h-5" />
               </button>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50/50 scroll-smooth">
+            {/* ÁREA DE MENSAJES (TERMINAL) */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-gradient-to-b from-[#03050a]/50 to-[#0A0E14]/80 scroll-smooth">
               {messages.map((m, i) => (
                 <motion.div 
-                  initial={{ opacity: 0, scale: 0.9, originY: 1 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: "spring", stiffness: 250, damping: 20 }}
+                  initial={{ opacity: 0, x: m.role === 'user' ? 20 : -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ type: "spring", stiffness: 250, damping: 25 }}
                   key={i} 
                   className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div 
-                    className={`max-w-[85%] p-4 text-sm leading-relaxed ${
+                    className={`max-w-[85%] p-4 text-[13px] leading-relaxed relative ${
                       m.role === 'user' 
-                        ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm shadow-md' 
-                        : 'bg-white text-slate-700 rounded-2xl rounded-tl-sm shadow-sm border border-slate-100'
+                        ? 'bg-[#00D1FF]/10 text-white border border-[#00D1FF]/30 rounded-lg rounded-tr-none shadow-[0_0_15px_rgba(0,209,255,0.1)]' 
+                        : 'bg-white/[0.03] text-slate-300 border border-white/10 rounded-lg rounded-tl-none'
                     }`}
                   >
+                    {/* Detalles Cyberpunk en los mensajes */}
+                    <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/30" />
+                    <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/30" />
+
                     {m.content.includes('[ABRIR_FORMULARIO]') ? (
                       <div className="flex flex-col gap-3">
                         <span>{m.content.replace('[ABRIR_FORMULARIO]', '')}</span>
@@ -170,13 +164,13 @@ export default function Chatbot() {
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => window.dispatchEvent(new Event('abrir-modal-lead'))}
-                          className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2.5 rounded-lg font-semibold shadow-md flex items-center justify-center gap-2 mt-2"
+                          className="bg-[#00D1FF]/20 border border-[#00D1FF]/50 text-[#00D1FF] px-4 py-2.5 rounded text-[12px] font-mono tracking-widest uppercase hover:bg-[#00D1FF] hover:text-black transition-all flex items-center justify-center gap-2 mt-2"
                         >
-                          📋 Llenar Formulario
+                          <Zap className="w-4 h-4" /> INICIAR PROTOCOLO
                         </motion.button>
                       </div>
                     ) : (
-                      <span>{m.content}</span>
+                      <span className="font-body">{m.content}</span>
                     )}
                   </div>
                 </motion.div>
@@ -185,15 +179,14 @@ export default function Chatbot() {
               <AnimatePresence>
                 {isLoading && (
                   <motion.div 
-                    initial={{ opacity: 0, y: 10 }} 
-                    animate={{ opacity: 1, y: 0 }} 
-                    exit={{ opacity: 0, scale: 0.9 }}
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     className="flex justify-start"
                   >
-                    <div className="bg-white p-4 rounded-2xl rounded-tl-sm shadow-sm border border-slate-100 flex items-center space-x-2">
-                      <motion.div animate={{ y: [0, -5, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0 }} className="w-2 h-2 bg-cyan-500 rounded-full" />
-                      <motion.div animate={{ y: [0, -5, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }} className="w-2 h-2 bg-blue-500 rounded-full" />
-                      <motion.div animate={{ y: [0, -5, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }} className="w-2 h-2 bg-blue-700 rounded-full" />
+                    <div className="bg-white/[0.03] border border-white/10 p-3.5 rounded-lg rounded-tl-none flex items-center space-x-2">
+                      <span className="text-[10px] font-mono text-[#00D1FF]/50 uppercase tracking-widest mr-2">Calculando</span>
+                      <motion.div animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 1, repeat: Infinity, delay: 0 }} className="w-1.5 h-3 bg-[#00D1FF] skew-x-[-20deg]" />
+                      <motion.div animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 1, repeat: Infinity, delay: 0.2 }} className="w-1.5 h-3 bg-[#00D1FF] skew-x-[-20deg]" />
+                      <motion.div animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 1, repeat: Infinity, delay: 0.4 }} className="w-1.5 h-3 bg-[#00D1FF] skew-x-[-20deg]" />
                     </div>
                   </motion.div>
                 )}
@@ -201,31 +194,26 @@ export default function Chatbot() {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-4 bg-white border-t border-slate-100 shrink-0">
-              <motion.div 
-                animate={{ 
-                  boxShadow: input.length > 0 ? "0px 0px 12px rgba(34,211,238,0.4)" : "0px 0px 0px rgba(34,211,238,0)",
-                  borderColor: input.length > 0 ? "rgba(34,211,238,0.5)" : "rgba(226,232,240,1)"
-                }}
-                className="relative flex items-center rounded-full border transition-colors bg-slate-50"
-              >
+            {/* INPUT DE TERMINAL */}
+            <div className="p-4 bg-[#03050a] border-t border-[#00D1FF]/20 shrink-0">
+              <div className="relative flex items-center bg-[#0A0E14] border border-white/10 focus-within:border-[#00D1FF]/50 rounded text-white overflow-hidden transition-colors">
+                <div className="pl-3 text-[#00D1FF] font-mono text-[14px]">{'>'}</div>
                 <input 
                   value={input} 
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                  placeholder="Escribe tu consulta aquí..."
+                  placeholder="Ingresa un comando o pregunta..."
                   disabled={isLoading}
-                  className="w-full bg-transparent pl-5 pr-12 py-3.5 text-sm text-slate-900 outline-none disabled:opacity-50 rounded-full"
+                  className="w-full bg-transparent pl-3 pr-12 py-3.5 text-[13px] font-mono text-white placeholder-white/30 outline-none disabled:opacity-50"
                 />
-                <motion.button 
-                  whileTap={{ scale: 0.9 }}
+                <button 
                   onClick={sendMessage} 
                   disabled={isLoading || !input.trim()}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-cyan-500 disabled:bg-slate-300 text-white p-2 rounded-full transition-colors flex items-center justify-center shadow-sm"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/5 hover:bg-[#00D1FF]/20 disabled:bg-transparent text-[#00D1FF] disabled:text-white/20 p-2 rounded transition-colors flex items-center justify-center"
                 >
                   <Send className="w-4 h-4" />
-                </motion.button>
-              </motion.div>
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
