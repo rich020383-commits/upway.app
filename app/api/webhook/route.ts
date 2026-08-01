@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai'; 
 import Groq from 'groq-sdk'; 
-import { listProducts } from '@/lib/app-state'; // INVENTARIO (RAG)
+import { prisma } from '@/lib/prisma'; // Conexión corregida
 
 const VERIFY_TOKEN = 'upway_webhook_secreto';
 const UPWAY_PHONE_ID = '1172769935927318'; // 👑 EL NÚMERO VIP DE UPWAY
@@ -36,25 +36,49 @@ function buscarEnInventarioLocal(mensaje: string, todosLosProductos: Producto[])
 // GENERACIÓN DE RESPUESTA (EL ENRUTADOR MAESTRO)
 // ==========================================
 async function generarRespuesta(textoCliente: string, phoneId: string) {
-    // 1. CARGAR INVENTARIO SEGÚN EL NÚMERO QUE RECIBE EL MENSAJE
-    let inventarioCompleto: Producto[] = [];
-    try {
-        // Busca el inventario real de la tienda (sea Upway o de un cliente)
-        inventarioCompleto = await listProducts(phoneId); 
-    } catch (e) {
-        console.error("Error cargando inventario:", e);
+    // 1. CONEXIÓN A PRISMA: Buscar la tienda y su inventario
+    const tienda = await prisma.tienda.findFirst({
+        where: { phone_number_id: phoneId },
+        include: { productos: true } 
+    });
+
+    if (!tienda) {
+        console.warn(`⚠️ Mensaje a un número no registrado en BD: ${phoneId}`);
+        return "Hola. Este número aún no tiene un agente de Upway activo. Regístrate en https://upway.business";
     }
 
+    // 2. FORMATEAR EL INVENTARIO PARA EL RAG
+    const inventarioCompleto: Producto[] = tienda.productos.map((p: any) => ({
+        nombre: String(p.nombre),
+        categoria: p.categoria ? String(p.categoria) : "General",
+        precio: Number(p.precio)
+    }));
+
+    // 3. EJECUTAR EL BUSCADOR RAG
     const productosRelevantes = buscarEnInventarioLocal(textoCliente, inventarioCompleto);
     let contextoInventario = "No hay stock directo en el inventario para esta consulta.";
     if (productosRelevantes.length > 0) {
        contextoInventario = `PRODUCTOS ENCONTRADOS:\n${productosRelevantes.map(p => `- ${p.nombre} - Precio: $${p.precio}`).join('\n')}`;
     }
 
-    // TODO: En producción, obtén el prompt dinámicamente desde Prisma según el phoneId
-    const promptMaestro = `Eres un cerrador de ventas persuasivo. Responde corto y con emojis. Vendes productos del inventario y asistes al cliente.`;
+    // 4. OBTENER EL PROMPT DINÁMICO (LA REGLA NINJA O EL DEL CLIENTE)
+    let promptMaestro = "";
     
-    const systemPromptText = `${promptMaestro}\n=== BASE DE DATOS (SISTEMA RAG) ===\n${contextoInventario}\nRegla RAG: Ofrécele al cliente solo lo que está en la base de datos.`;
+    if (phoneId === UPWAY_PHONE_ID) {
+        // 👑 RUTA VIP: Regla Ninja estricta para Sophie vendiendo tu SaaS
+        promptMaestro = `Eres Sophie, la asistente virtual experta en ventas y automatización de Upway. Tu tono es persuasivo, tecnológico, amigable y muy directo. Tus respuestas deben ser cortas (ideales para WhatsApp) y usar emojis.
+        
+        REGLA DE ORO (NINJA): NUNCA ofrezcas agendar llamadas, reuniones o demos con un humano. Eres un SaaS de autoservicio.
+        
+        TU OBJETIVO PRINCIPAL: Tu misión es guiar al cliente a la acción inmediata. Convéncelos de registrarse en la plataforma por sí mismos.
+        
+        CALL TO ACTION (CTA): Tu cierre de ventas siempre debe ser invitarlos a crear su cuenta en https://upway.business/registro para que entren al panel de control y prueben el simulador en vivo con los datos de su propio negocio. Haz que suene fácil, rápido y automático.`;
+    } else {
+        // 🤝 RUTA CLIENTES: Prompt personalizado que el cliente configuró en su panel
+        promptMaestro = tienda.systemPrompt || "Eres un asistente de ventas amigable. Vendes productos del inventario y asistes al cliente. Responde corto y con emojis.";
+    }
+    
+    const systemPromptText = `${promptMaestro}\n\n=== BASE DE DATOS (SISTEMA RAG) ===\n${contextoInventario}\nRegla RAG: Basa tus respuestas de inventario SOLO en la información de la base de datos entregada arriba.`;
 
     // =================================================================
     // LA MAGIA DEL NEGOCIO: ENRUTAMIENTO DE COSTOS
@@ -157,8 +181,8 @@ export async function POST(req: Request) {
         const numeroCliente = mensajeEntrante.from;
         const textoCliente = mensajeEntrante.text?.body ?? '';
         
-        // El ID del número que recibió el mensaje (Tú o tu cliente)
-        const phoneIdDestino = changes.metadata?.phone_number_id; 
+        // Corregido: Evitar que sea 'undefined' si Meta no lo envía
+        const phoneIdDestino = changes.metadata?.phone_number_id || ""; 
 
         // 🛡️ BARRERA ANTIBUCLES: Respondemos OK a Meta inmediatamente
         const response = new NextResponse(null, { status: 200 });
