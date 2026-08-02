@@ -177,7 +177,7 @@ export default function Chatbot() {
                         <motion.button 
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => window.location.href = '/registro'} 
+                          onClick={() => window.location.href = '/register'} 
                           className="bg-[#00D1FF]/20 border border-[#00D1FF]/50 text-[#00D1FF] px-4 py-2.5 rounded text-[12px] font-mono tracking-widest uppercase hover:bg-[#00D1FF] hover:text-black transition-all flex items-center justify-center gap-2 mt-2"
                         >
                           <Zap className="w-4 h-4" /> INICIAR PROTOCOLO

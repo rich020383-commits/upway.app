@@ -87,23 +87,24 @@ const PLANS: Plan[] = [
 // 2. ACTUALIZA LAS FUNCIONES (El "Feature Gating")
 // ==========================================
 const INCLUDED_BASE = [
-  "Atención 24/7 (Solo Texto - Sin Audios)",
-  "Toma de pedidos automatizada",
-  "Catálogo e Inventario",
-  "Reporte diario de ventas",
+  "Atención automatizada 24/7",
+  "Toma de pedidos inteligente",
+  "Conexión con Catálogo e Inventario",
+  "Reporte diario de métricas",
 ];
 
 const EXTRA_NEGOCIO = [
   "Procesamiento de Notas de Voz",
-  "Lectura de Imágenes y Recibos",
-  "Análisis de Documentos (PDF)",
-  "Confirmación de pagos",
+  "Lectura de Imágenes y Recibos (PDF)",
+  "Links de Pago automáticos (Bold/Nequi)",
+  "Memoria de cliente (Contexto de chat)",
 ];
 
 const EXTRA_PRO = [
-  "Dashboards y reportes avanzados",
-  "Comparativas diarias y semanales",
-  "Soporte técnico prioritario",
+  "Transferencia a Asesor Humano (Handoff)",
+  "Conexión Webhooks (Zapier/Make/CRM)",
+  "Análisis de Sentimiento del cliente",
+  "Agentes Múltiples (Ventas/Soporte)",
 ];
 
 const fmt = (n: number) => `$${n.toLocaleString("es-CO")}`;
@@ -428,30 +429,58 @@ export default function Home() {
                     <div className="h-[1px] bg-gradient-to-r from-white/10 to-transparent mb-5" />
 
                     <div className="mb-6">
-                      <div className="font-body text-[10px] font-semibold tracking-[0.16em] uppercase text-white/30 mb-3">Incluye empleado digital completo</div>
+                      <div className="font-body text-[10px] font-semibold tracking-[0.16em] uppercase text-white/30 mb-3">
+                        Incluye empleado digital completo
+                      </div>
+                      
+                      {/* 1. LISTA BASE (Común para todos, en blanco) */}
                       <div className="space-y-2">
                         {INCLUDED_BASE.map((feat) => (
                           <div key={feat} className="flex items-center gap-2.5 font-body text-[13px] text-white/70 leading-snug">
-                            <div className="w-[18px] h-[18px] rounded-full bg-[#00D1FF]/12 border border-[#00D1FF]/18 flex items-center justify-center shrink-0">
-                              <div className="w-[5px] h-[5px] rounded-full bg-[#00D1FF]" />
+                            <div className="w-[18px] h-[18px] rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                              <div className="w-[5px] h-[5px] rounded-full bg-white/50" />
                             </div>
                             {feat}
                           </div>
                         ))}
+                        
+                        {/* 🔥 LIMITANTE VISUAL (Solo se pinta en el plan Emprendedor) */}
+                        {plan.id === "emprendedor" && (
+                          <div className="flex items-center gap-2.5 font-body text-[13px] text-red-400/80 leading-snug mt-2">
+                             <div className="w-[18px] h-[18px] rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0 text-[10px]">✕</div>
+                             Limitado a solo texto (Sin audios)
+                          </div>
+                        )}
                       </div>
-                      {plan.id === "negocio" && (
+
+                      {/* 2. LISTA NEGOCIO (Azul en Negocio, Blanco en PRO) */}
+                      {(plan.id === "negocio" || plan.id === "pro") && (
                         <div className="mt-5">
-                          <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase text-[#00D1FF]/80 mb-2.5">+ Capacidad crecimiento</div>
+                          <div className={`font-body text-[10px] font-bold tracking-[0.14em] uppercase mb-2.5 ${plan.id === "negocio" ? "text-[#00D1FF]/90" : "text-white/50"}`}>
+                            + Capacidades Multimodales
+                          </div>
                           <div className="space-y-1.5">
-                            {EXTRA_NEGOCIO.map((e) => (<div key={e} className="flex gap-2 font-body text-[12px] text-[#00D1FF]/80 leading-snug"><span className="text-[#00D1FF]/60">•</span> {e}</div>))}
+                            {EXTRA_NEGOCIO.map((e) => (
+                              <div key={e} className={`flex gap-2 font-body text-[12px] leading-snug ${plan.id === "negocio" ? "text-[#00D1FF]/90" : "text-white/70"}`}>
+                                <span className={plan.id === "negocio" ? "text-[#00D1FF]/60" : "text-white/30"}>•</span> {e}
+                              </div>
+                            ))}
                           </div>
                         </div>
                       )}
+
+                      {/* 3. LISTA PRO (Exclusiva del PRO, resaltada en Azul Brillante) */}
                       {plan.id === "pro" && (
                         <div className="mt-5">
-                          <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase text-[#00D1FF]/80 mb-2.5">+ Capacidad empresarial max</div>
+                          <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase text-[#00D1FF] mb-2.5">
+                            + Capacidad Empresarial Max
+                          </div>
                           <div className="space-y-1.5">
-                            {EXTRA_PRO.map((e) => (<div key={e} className="flex gap-2 font-body text-[12px] text-[#00D1FF]/80 leading-snug"><span className="text-[#00D1FF]/60">•</span> {e}</div>))}
+                            {EXTRA_PRO.map((e) => (
+                              <div key={e} className="flex gap-2 font-body text-[12.5px] text-[#00D1FF] font-medium leading-snug">
+                                <span className="text-[#00D1FF] drop-shadow-[0_0_5px_rgba(0,209,255,0.8)]">✦</span> {e}
+                              </div>
+                            ))}
                           </div>
                         </div>
                       )}
