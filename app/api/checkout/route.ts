@@ -4,12 +4,11 @@ export async function POST(req: NextRequest) {
   try {
     const { plan, precio, descripcion } = await req.json();
 
-    // 🚀 Llave directa de producción
+    // 🚀 Llave directa de producción (Asegúrate de que BOLD_API_KEY esté en Render)
     const apiKey = process.env.BOLD_API_KEY;
     
     if (!apiKey) throw new Error("Falta la llave de Bold en el entorno.");
 
-    // Payload de cobro
     const payload = {
       amount: {
         currency: "COP",
@@ -34,8 +33,6 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await response.json();
-    
-    // Devolvemos la URL al frontend
     return NextResponse.json({ payment_url: data.payment_url });
 
   } catch (error: any) {
