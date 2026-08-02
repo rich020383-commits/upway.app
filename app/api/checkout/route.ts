@@ -4,12 +4,10 @@ export async function POST(req: NextRequest) {
   try {
     const { plan, precio, descripcion } = await req.json();
 
-    // 🚀 Llave de identidad en Render
     const apiKey = process.env.BOLD_API_KEY;
     
     if (!apiKey) throw new Error("Falta la llave de Bold en el entorno.");
 
-    // 🎯 Payload adaptado a la documentación oficial (amount_type CLOSE para montos fijos)
     const payload = {
       amount_type: "CLOSE",
       amount: {
@@ -19,12 +17,11 @@ export async function POST(req: NextRequest) {
       description: descripcion,
     };
 
-    // 🌐 URL Base y endpoint oficial de Bold
     const response = await fetch('https://integrations.api.bold.co/online/link/v1', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey // 🔑 Cabecera oficial requerida por Bold
+        'Authorization': `x-api-key ${apiKey}` // 🔑 Formato exacto requerido por Bold
       },
       body: JSON.stringify(payload)
     });
@@ -36,8 +33,6 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await response.json();
-    
-    // 🔗 La URL de pago oficial viene dentro del objeto payload de Bold
     return NextResponse.json({ payment_url: data.payload.url });
 
   } catch (error: any) {
