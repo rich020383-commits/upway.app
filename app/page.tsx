@@ -81,33 +81,26 @@ const PLANS: Plan[] = [
 ];
 
 const INCLUDED_BASE = [
-  "WhatsApp",
-  "texto",
-  "audio",
-  "imágenes",
-  "documentos",
-  "pedidos",
-  "productos y precios",
-  "inventario",
-  "confirmación de pagos",
-  "reportes",
-  "personalidad y reglas del negocio",
+  "Atención WhatsApp (Solo Texto)",
+  "Toma de pedidos automatizada",
+  "Catálogo de productos y precios",
+  "Personalidad y reglas del negocio",
 ];
 
 const EXTRA_NEGOCIO = [
-  "mayor concurrencia y simultaneidad",
-  "análisis de ventas y productos",
-  "comparaciones y alertas inteligentes",
-  "frecuencia de procesamiento elevada",
+  "Procesamiento de Notas de Voz",
+  "Lectura de Imágenes y Recibos",
+  "Análisis de Documentos (PDF)",
+  "Inventario sincronizado en tiempo real",
+  "Confirmación de pagos",
 ];
 
 const EXTRA_PRO = [
-  "concurrencia y pedidos simultáneos max",
-  "procesamiento multimodal ilimitado",
-  "dashboards avanzados",
-  "comparativos diarios / semanales / mensuales",
-  "recomendaciones + tendencias",
-  "indicadores empresariales",
+  "Dashboards y reportes avanzados",
+  "Análisis de tendencias de ventas",
+  "Comparativos diarios / semanales",
+  "Concurrencia y procesamiento máximo",
+  "Soporte técnico prioritario",
 ];
 
 const fmt = (n: number) => `$${n.toLocaleString("es-CO")}`;
