@@ -122,12 +122,15 @@ export default function Home() {
   // Estados para el Menú Móvil y la Instalación de la App (PWA)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  
+  // 🔥 NUEVO: Estado para procesar el pago con Bold
+  const [procesandoPago, setProcesandoPago] = useState(false);
 
   // Escuchar cuando el navegador permite instalar la app
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
-      e.preventDefault(); // Evita que salga el cartel automático feo de Google
-      setDeferredPrompt(e); // Guardamos el evento para usarlo en nuestro propio botón
+      e.preventDefault(); 
+      setDeferredPrompt(e); 
     };
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -147,13 +150,42 @@ export default function Home() {
   // Estados para la sección de Precios (SaaS)
   const [contract, setContract] = useState<ContractOption>(2);
   const [checkoutPlan, setCheckoutPlan] = useState<Plan | null>(null);
-  const [showCustom, setShowCustom] = useState(false);
 
   useEffect(() => {
     const abrirModal = () => setIsModalOpen(true);
     window.addEventListener("abrir-modal-lead", abrirModal);
     return () => window.removeEventListener("abrir-modal-lead", abrirModal);
   }, []);
+
+  // 🔥 NUEVO: Función para iniciar el pago con la API de Bold
+  const iniciarPago = async (nombrePlan: string, totalPagar: number) => {
+    setProcesandoPago(true);
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan: nombrePlan,
+          precio: totalPagar,
+          descripcion: `Suscripción Upway - Plan ${nombrePlan}`
+        })
+      });
+
+      const data = await res.json();
+      
+      if (data.payment_url) {
+        // Redirigir al cliente a la pasarela de Bold
+        window.location.href = data.payment_url; 
+      } else {
+        alert("Hubo un error al generar el link de pago. Revisa tu backend.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Error de conexión con la pasarela de pagos.");
+    } finally {
+      setProcesandoPago(false);
+    }
+  };
 
   // Lógica de precios de implementación
   const getImplLabel = (plan: Plan) => {
@@ -178,7 +210,6 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#03050a] text-white selection:bg-cyan-500/30 selection:text-white relative overflow-x-hidden antialiased">
       
-      {/* Estilos inyectados de la nueva UI de precios */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
         .font-display { font-family: "Sora", "Inter", system-ui, sans-serif; }
@@ -196,13 +227,11 @@ export default function Home() {
       {/* ========================================== */}
       <nav className="fixed w-full top-0 z-[60] border-b border-white/5 bg-black/10 backdrop-blur-md transition-all duration-300">
         <div className="mx-auto flex max-w-[95rem] items-center justify-between px-6 py-4 lg:px-12">
-          {/* Logo (Visible siempre) */}
           <a href="#top" className="flex items-center gap-3">
             <Image src="/upway.png" alt="Logo Upway" width={40} height={40} className="rounded-full object-contain" />
             <span className="text-xs font-mono uppercase tracking-[0.3em] text-white/90 hidden sm:block">Upway_OS</span>
           </a>
 
-          {/* Menú Desktop (Oculto en celular) */}
           <div className="hidden items-center gap-8 text-sm text-white/60 md:flex font-mono tracking-wider">
             <a href="#planes" className="transition text-cyan-400 hover:text-cyan-300">/planes</a>
             <a href="#servicios" className="transition hover:text-cyan-400">/servicios</a>
@@ -210,9 +239,7 @@ export default function Home() {
             <a href="#contacto" className="transition hover:text-cyan-400">/contacto</a>
           </div>
 
-          {/* Botones Desktop (Oculto en celular) */}
           <div className="hidden items-center gap-4 md:flex">
-            {/* Si el navegador soporta instalación, mostramos el botón PWA en desktop también */}
             {deferredPrompt && (
               <button onClick={instalarApp} className="text-sm font-mono text-[#00D1FF] transition hover:text-white flex items-center gap-2 border border-[#00D1FF]/30 px-3 py-1.5 rounded-full bg-[#00D1FF]/10">
                 ↓ Instalar App
@@ -226,7 +253,6 @@ export default function Home() {
             </a>
           </div>
 
-          {/* Botón Hamburguesa (Solo visible en celular) */}
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden text-white/70 hover:text-white p-2 rounded-lg bg-white/5 border border-white/10"
@@ -235,7 +261,6 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Desplegable del Menú Móvil */}
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div 
@@ -271,21 +296,16 @@ export default function Home() {
       </nav>
 
       {/* ========================================== */}
-      {/* HERO SECTION: SOPHIE V2 (INTACTA)  */}
+      {/* HERO SECTION: SOPHIE V2 */}
       {/* ========================================== */}
       <section id="top" className="relative h-screen w-full overflow-hidden z-10">
         <video autoPlay loop muted playsInline className="absolute inset-0 z-0 h-full w-full object-cover scale-[1.02]">
           <source src="/sophie-animada.mp4" type="video/mp4" />
         </video>
         
-        {/* Sombra interna original que ya tenías */}
         <div className="absolute inset-0 z-10 shadow-[inset_0_0_150px_rgba(3,5,10,0.8)] pointer-events-none" />
-        
-        {/* 🚀 NUEVO: Degradado mágico para fundir a Sophie con la sección de abajo */}
         <div className="absolute bottom-0 left-0 w-full h-56 bg-gradient-to-t from-[#03050a] via-[#03050a]/80 to-transparent z-20 pointer-events-none" />
         
-        
-        {/* BOTÓN FLOTANTE HUD */}
         <div className="absolute right-6 top-1/2 z-20 -translate-y-1/2">
           <button
             onClick={() => setIsHudOpen(true)}
@@ -338,10 +358,9 @@ export default function Home() {
       </section>
 
       {/* ========================================== */}
-      {/* NUEVA SECCIÓN DE PRECIOS (Diseño Premium)  */}
+      {/* NUEVA SECCIÓN DE PRECIOS */}
       {/* ========================================== */}
       <section id="planes" className="relative z-20 py-20 bg-gradient-to-b from-transparent to-[#03050a]">
-        {/* Luces de ambiente sutiles */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute -top-[10%] left-[20%] w-[60%] h-[30%] bg-[#00D1FF]/[0.05] blur-[140px] rounded-full" />
         </div>
@@ -353,7 +372,6 @@ export default function Home() {
             <h2 className="text-4xl font-display font-bold text-white mb-4">Un empleado digital de élite,<br/>para cada nivel de operación.</h2>
           </div>
 
-          {/* Toggle de Contratación */}
           <div className="mb-10 max-w-2xl mx-auto">
             <div className="glass-strong border border-white/10 rounded-[16px] p-1.5 flex flex-col sm:flex-row gap-1.5">
               <button onClick={() => setContract(1)} className={`flex-1 text-left rounded-[12px] px-4 py-3.5 transition-all border ${contract === 1 ? "bg-white text-black border-white shadow-[0_4px_20px_rgba(255,255,255,0.15)]" : "bg-transparent text-white/60 border-transparent hover:bg-white/[0.05] hover:text-white/90"}`}>
@@ -375,7 +393,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Tarjetas de Precios */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5 mb-12">
             {PLANS.map((plan) => {
               const impl = getImplLabel(plan);
@@ -480,7 +497,7 @@ export default function Home() {
       </section>
 
       {/* ========================================== */}
-      {/* SECCIONES SECUNDARIAS (ANTIGUAS) */}
+      {/* SECCIONES SECUNDARIAS */}
       {/* ========================================== */}
       <section id="servicios" className="relative bg-[#03050a]">
         <div className="mx-auto max-w-7xl px-6 py-24 lg:px-12">
@@ -542,14 +559,15 @@ export default function Home() {
       </footer>
 
       {/* ========================================= */}
-      {/* MODAL DE CHECKOUT (BOLD) SOBREPUESTO      */}
+      {/* MODAL DE CHECKOUT (BOLD) CON LÓGICA ACTIVA */}
       {/* ========================================= */}
       <AnimatePresence>
         {checkoutPlan && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setCheckoutPlan(null)} />
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative w-full max-w-md bg-[#0A0E14] border border-[#00D1FF]/30 rounded-[24px] shadow-[0_0_50px_rgba(0,209,255,0.15)] overflow-hidden">
-              <button onClick={() => setCheckoutPlan(null)} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/50 hover:bg-white/10 hover:text-white transition-colors">✕</button>
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => !procesandoPago && setCheckoutPlan(null)} />
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative w-full max-w-md bg-[#0A0E14] border border-[#00D1FF]/30 rounded-[24px] shadow-[0_0_50px_rgba(0,209,255,0.15)] overflow-hidden z-10">
+              <button disabled={procesandoPago} onClick={() => setCheckoutPlan(null)} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/50 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50">✕</button>
+              
               <div className="p-6 sm:p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <span className="text-[28px]">{checkoutPlan.emoji}</span>
@@ -558,16 +576,46 @@ export default function Home() {
                     <p className="font-body text-[12px] text-white/50">Completar activación</p>
                   </div>
                 </div>
-                <div className="glass rounded-[16px] p-4 mb-6 border border-white/5">
-                  <div className="flex justify-between items-center mb-2"><span className="font-body text-[13px] text-white/70">Mensualidad</span><span className="font-display text-[14px] font-semibold">{fmt(checkoutPlan.price)}</span></div>
-                  <div className="flex justify-between items-center mb-4"><span className="font-body text-[13px] text-white/70">{contract === 2 ? "Implementación (Cuota 1/4)" : contract === 3 ? "Implementación (Gratis)" : "Implementación (Full)"}</span><span className="font-display text-[14px] font-semibold text-[#00D1FF]">{contract === 2 ? fmt(checkoutPlan.cuota) : contract === 3 ? "$0" : fmt(checkoutPlan.implFull)}</span></div>
-                  <div className="h-[1px] bg-white/10 w-full my-3" />
-                  <div className="flex justify-between items-center"><span className="font-display font-bold text-[14px] text-white">Total a pagar hoy</span><span className="font-display font-bold text-[20px] text-white">{fmt(checkoutPlan.price + (contract === 2 ? checkoutPlan.cuota : contract === 3 ? 0 : checkoutPlan.implFull))}</span></div>
-                </div>
-                {/* BOTÓN DE BOLD */}
-                <a href="AQUI_VA_TU_LINK_DE_PAGO_BOLD" target="_blank" rel="noopener noreferrer" className="w-full h-[50px] rounded-[12px] bg-gradient-to-r from-[#FF424D] to-[#FF6B74] text-white font-display font-bold text-[15px] hover:shadow-[0_0_20px_rgba(255,66,77,0.4)] transition-all flex items-center justify-center gap-2">
-                  🔒 Pagar de forma segura con Bold
-                </a>
+
+                {(() => {
+                  // 🔥 Calculamos el valor exacto a cobrar según el plan y el tipo de contrato seleccionado
+                  const valorImplementacion = contract === 2 ? checkoutPlan.cuota : contract === 3 ? 0 : checkoutPlan.implFull;
+                  const totalApagar = checkoutPlan.price + valorImplementacion;
+
+                  return (
+                    <>
+                      <div className="glass rounded-[16px] p-4 mb-6 border border-white/5">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-body text-[13px] text-white/70">Mensualidad</span>
+                          <span className="font-display text-[14px] font-semibold">{fmt(checkoutPlan.price)}</span>
+                        </div>
+                        <div className="flex justify-between items-center mb-4">
+                          <span className="font-body text-[13px] text-white/70">
+                            {contract === 2 ? "Implementación (Cuota 1/4)" : contract === 3 ? "Implementación (Gratis)" : "Implementación (Full)"}
+                          </span>
+                          <span className="font-display text-[14px] font-semibold text-[#00D1FF]">
+                            {contract === 3 ? "$0" : fmt(valorImplementacion)}
+                          </span>
+                        </div>
+                        <div className="h-[1px] bg-white/10 w-full my-3" />
+                        <div className="flex justify-between items-center">
+                          <span className="font-display font-bold text-[14px] text-white">Total a pagar hoy</span>
+                          <span className="font-display font-bold text-[20px] text-white">{fmt(totalApagar)}</span>
+                        </div>
+                      </div>
+
+                      {/* BOTÓN CONECTADO A BOLD */}
+                      <button 
+                        onClick={() => iniciarPago(checkoutPlan.name, totalApagar)}
+                        disabled={procesandoPago}
+                        className="w-full h-[50px] rounded-[12px] bg-gradient-to-r from-[#FF424D] to-[#FF6B74] text-white font-display font-bold text-[15px] hover:shadow-[0_0_20px_rgba(255,66,77,0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                      >
+                        {procesandoPago ? 'Conectando con Bold...' : '🔒 Pagar de forma segura con Bold'}
+                      </button>
+                    </>
+                  );
+                })()}
+
                 <p className="text-center font-body text-[10px] text-white/30 mt-4">Se abrirá una pestaña segura de Bold. Tu progreso aquí no se perderá.</p>
               </div>
             </motion.div>
