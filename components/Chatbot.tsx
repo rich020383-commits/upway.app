@@ -32,10 +32,10 @@ export default function Chatbot() {
     return () => window.removeEventListener('abrir-chat', escucharBoton);
   }, []);
 
-  // 🔥 NUEVA FUNCIÓN: Cierre a prueba de balas
+  // 🔥 Función: Cierre a prueba de balas
   const cerrarChat = (e: React.MouseEvent) => {
     e.preventDefault();
-    e.stopPropagation(); // Evita que otros elementos bloqueen el clic
+    e.stopPropagation(); 
     setIsOpen(false);
   };
 
@@ -50,7 +50,7 @@ export default function Chatbot() {
 
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://upway.business";
-      const res = await fetch(`${baseUrl}/api/chat/`, {
+      const res = await fetch(`${baseUrl}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: updatedMessages }), 
@@ -167,13 +167,17 @@ export default function Chatbot() {
                     <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/30" />
                     <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/30" />
 
-                    {m.content.includes('[ABRIR_FORMULARIO]') ? (
+                    {/* 🔥 LA MAGIA OCURRE AQUÍ: Interceptamos la palabra clave */}
+                    {m.content.includes('[BOTON_REGISTRO]') ? (
                       <div className="flex flex-col gap-3">
-                        <span>{m.content.replace('[ABRIR_FORMULARIO]', '')}</span>
+                        {/* Imprimimos el mensaje sin la palabra secreta */}
+                        <span>{m.content.replace('[BOTON_REGISTRO]', '')}</span>
+                        
+                        {/* Renderizamos el botón que redirige al registro */}
                         <motion.button 
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => window.dispatchEvent(new Event('abrir-modal-lead'))}
+                          onClick={() => window.location.href = '/registro'} 
                           className="bg-[#00D1FF]/20 border border-[#00D1FF]/50 text-[#00D1FF] px-4 py-2.5 rounded text-[12px] font-mono tracking-widest uppercase hover:bg-[#00D1FF] hover:text-black transition-all flex items-center justify-center gap-2 mt-2"
                         >
                           <Zap className="w-4 h-4" /> INICIAR PROTOCOLO

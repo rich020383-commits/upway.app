@@ -40,13 +40,16 @@ interface Plan {
   popular?: boolean;
 }
 
+// ==========================================
+// 1. ACTUALIZA EL ARRAY DE PLANES (Para las conversaciones)
+// ==========================================
 const PLANS: Plan[] = [
   {
     id: "emprendedor",
     emoji: "🌱",
     name: "Emprendedor",
-    capacityLabel: "Capacidad Emprendedora",
-    capacityDesc: "Ideal para pequeños negocios.",
+    capacityLabel: "Capacidad Básica",
+    capacityDesc: "Ideal para iniciar tu automatización.",
     price: 149900,
     implFull: 399900,
     implDiscount: 199900,
@@ -58,7 +61,7 @@ const PLANS: Plan[] = [
     emoji: "⭐",
     name: "Negocio",
     capacityLabel: "Capacidad de Crecimiento",
-    capacityDesc: "Para negocios con mayor movimiento.",
+    capacityDesc: "Hasta 5.000 conversaciones / mes.",
     price: 299900,
     implFull: 699900,
     implDiscount: 349900,
@@ -71,7 +74,7 @@ const PLANS: Plan[] = [
     emoji: "🚀",
     name: "PRO",
     capacityLabel: "Capacidad Empresarial",
-    capacityDesc: "Para operaciones de alto volumen.",
+    capacityDesc: "Hasta 15.000 conversaciones / mes.",
     price: 499900,
     implFull: 899900,
     implDiscount: 449900,
@@ -80,26 +83,26 @@ const PLANS: Plan[] = [
   },
 ];
 
+// ==========================================
+// 2. ACTUALIZA LAS FUNCIONES (El "Feature Gating")
+// ==========================================
 const INCLUDED_BASE = [
-  "Atención WhatsApp (Solo Texto)",
+  "Atención 24/7 (Solo Texto - Sin Audios)",
   "Toma de pedidos automatizada",
-  "Catálogo de productos y precios",
-  "Personalidad y reglas del negocio",
+  "Catálogo e Inventario",
+  "Reporte diario de ventas",
 ];
 
 const EXTRA_NEGOCIO = [
   "Procesamiento de Notas de Voz",
   "Lectura de Imágenes y Recibos",
   "Análisis de Documentos (PDF)",
-  "Inventario sincronizado en tiempo real",
   "Confirmación de pagos",
 ];
 
 const EXTRA_PRO = [
   "Dashboards y reportes avanzados",
-  "Análisis de tendencias de ventas",
-  "Comparativos diarios / semanales",
-  "Concurrencia y procesamiento máximo",
+  "Comparativas diarias y semanales",
   "Soporte técnico prioritario",
 ];
 
