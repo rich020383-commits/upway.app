@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai'; 
 import Groq from 'groq-sdk'; 
-import { prisma } from '@/lib/prisma'; // Conexión corregida
+import { prisma } from '@/lib/prisma';
 
 const VERIFY_TOKEN = 'upway_webhook_secreto';
 const UPWAY_PHONE_ID = '1172769935927318'; // 👑 EL NÚMERO VIP DE UPWAY
@@ -36,58 +36,74 @@ function buscarEnInventarioLocal(mensaje: string, todosLosProductos: Producto[])
 // GENERACIÓN DE RESPUESTA (EL ENRUTADOR MAESTRO)
 // ==========================================
 async function generarRespuesta(textoCliente: string, phoneId: string) {
-    // 1. CONEXIÓN A PRISMA: Buscar la tienda y su inventario
-    const tienda = await prisma.tienda.findFirst({
-        where: { phone_number_id: phoneId },
-        include: { productos: true } 
-    });
+    let systemPromptText = "";
 
-    if (!tienda) {
-        console.warn(`⚠️ Mensaje a un número no registrado en BD: ${phoneId}`);
-        return "Hola. Este número aún no tiene un agente de Upway activo. Regístrate en https://upway.business";
-    }
-
-    // 2. FORMATEAR EL INVENTARIO PARA EL RAG
-    const inventarioCompleto: Producto[] = tienda.productos.map((p: any) => ({
-        nombre: String(p.nombre),
-        categoria: p.categoria ? String(p.categoria) : "General",
-        precio: Number(p.precio)
-    }));
-
-    // 3. EJECUTAR EL BUSCADOR RAG
-    const productosRelevantes = buscarEnInventarioLocal(textoCliente, inventarioCompleto);
-    let contextoInventario = "No hay stock directo en el inventario para esta consulta.";
-    if (productosRelevantes.length > 0) {
-       contextoInventario = `PRODUCTOS ENCONTRADOS:\n${productosRelevantes.map(p => `- ${p.nombre} - Precio: $${p.precio}`).join('\n')}`;
-    }
-
-    // 4. OBTENER EL PROMPT DINÁMICO (LA REGLA NINJA O EL DEL CLIENTE)
-    let promptMaestro = "";
+    // ==========================================================
+    // 🚀 BIFURCACIÓN ESTRATÉGICA SAAS: ¿ES UPWAY O ES UN CLIENTE?
+    // ==========================================================
     
     if (phoneId === UPWAY_PHONE_ID) {
-        // 👑 RUTA VIP: Regla Ninja estricta para Sophie vendiendo tu SaaS
-        promptMaestro = `Eres Sophie, la asistente virtual experta en ventas y automatización de Upway. Tu tono es persuasivo, tecnológico, amigable y muy directo. Tus respuestas deben ser cortas (ideales para WhatsApp) y usar emojis.
+        // ==========================================================
+        // 👑 RUTA VIP: EL NÚMERO OFICIAL DE UPWAY (SOPHIE)
+        // ==========================================================
+        console.log("👑 Entró mensaje al canal de Upway. Activando a Sophie...");
         
-        REGLA DE ORO (NINJA): NUNCA ofrezcas agendar llamadas, reuniones o demos con un humano. Eres un SaaS de autoservicio.
+        const promptSophie = `Rol: Eres Sophie, la asistente virtual y cerradora de ventas estrella de Upway. Tu tono es persuasivo, tecnológico, amigable y muy directo. Tus respuestas deben ser cortas (ideales para WhatsApp) y usar emojis.
         
-        TU OBJETIVO PRINCIPAL: Tu misión es guiar al cliente a la acción inmediata. Convéncelos de registrarse en la plataforma por sí mismos.
+        Objetivo Principal: Tu misión es diagnosticar el tamaño del negocio del cliente y recetar el plan exacto que necesitan.
         
-        CALL TO ACTION (CTA): Tu cierre de ventas siempre debe ser invitarlos a crear su cuenta en https://upway.business/registro para que entren al panel de control y prueben el simulador en vivo con los datos de su propio negocio. Haz que suene fácil, rápido y automático.`;
+        Planes y Precios:
+        🔵 PLAN EMPRENDEDOR ($149.900 COP/mes): Atención por texto. Hasta 500 productos.
+        🔵 PLAN NEGOCIO ($299.900 COP/mes) - EL MÁS POPULAR: Capacidad de procesar audios. Toma de pedidos automatizada. 2.000 productos.
+        🟣 PLAN EMPRESA ($499.900 COP/mes): Lectura de PDFs. 10.000 productos.
+        
+        REGLA NINJA: NUNCA ofrezcas agendar llamadas con humanos. Eres un SaaS de autoservicio.
+        CALL TO ACTION: Tu cierre de ventas siempre debe ser invitarlos a crear su cuenta en https://upway.business. Aceptamos Nequi, Bancolombia, Bold o Wompi.`;
+        
+        systemPromptText = promptSophie;
+
     } else {
-        // 🤝 RUTA CLIENTES: Prompt personalizado que el cliente configuró en su panel
-        promptMaestro = tienda.systemPrompt || "Eres un asistente de ventas amigable. Vendes productos del inventario y asistes al cliente. Responde corto y con emojis.";
+        // ==========================================================
+        // 🏢 RUTA MULTITENANT: NÚMERO DE UN CLIENTE (FERRETERÍA, ETC)
+        // ==========================================================
+        console.log(`🏢 Buscando base de datos del cliente para el número: ${phoneId}`);
+        
+        const tienda = await prisma.tienda.findFirst({
+            where: { phone_number_id: phoneId },
+            include: { productos: true } 
+        });
+
+        if (!tienda) {
+            console.warn(`⚠️ Mensaje a un número no registrado en BD: ${phoneId}`);
+            return "Hola. Este número aún no tiene un agente de Upway activo. Regístrate en https://upway.business para activar el tuyo.";
+        }
+
+        const inventarioCompleto: Producto[] = tienda.productos.map((p: any) => ({
+            nombre: String(p.nombre),
+            categoria: p.categoria ? String(p.categoria) : "General",
+            precio: Number(p.precio)
+        }));
+
+        const productosRelevantes = buscarEnInventarioLocal(textoCliente, inventarioCompleto);
+        let contextoInventario = "No hay stock directo en el inventario para esta consulta.";
+        
+        if (productosRelevantes.length > 0) {
+           contextoInventario = `PRODUCTOS ENCONTRADOS:\n${productosRelevantes.map(p => `- ${p.nombre} - Precio: $${p.precio}`).join('\n')}`;
+        }
+
+        const promptCliente = tienda.systemPrompt || "Eres un asistente de ventas. Responde corto y con emojis.";
+        systemPromptText = `${promptCliente}\n\n=== BASE DE DATOS (SISTEMA RAG) ===\n${contextoInventario}\nRegla RAG: Basa tus respuestas de inventario SOLO en la información de la base de datos entregada arriba.`;
     }
-    
-    const systemPromptText = `${promptMaestro}\n\n=== BASE DE DATOS (SISTEMA RAG) ===\n${contextoInventario}\nRegla RAG: Basa tus respuestas de inventario SOLO en la información de la base de datos entregada arriba.`;
 
     // =================================================================
-    // LA MAGIA DEL NEGOCIO: ENRUTAMIENTO DE COSTOS
+    // EJECUCIÓN DE IA SEGÚN EL ENRUTAMIENTO
     // =================================================================
     if (phoneId === UPWAY_PHONE_ID) {
-        // 👑 RUTA VIP: UPWAY (GEMINI PREMIUM)
-        console.log("👑 Entró mensaje a Upway. Usando GEMINI PREMIUM...");
-        const apiKey = process.env.GEMINI_PREMIUM_API_KEY;
-        if (!apiKey) throw new Error('Falta GEMINI_PREMIUM_API_KEY');
+        // 👑 RUTA VIP: UPWAY (Usando tu modelo Premium para ventas)
+        console.log("🧠 Generando respuesta comercial (Gemini Premium)...");
+        // Aseguramos compatibilidad si guardaste la llave con otro nombre
+        const apiKey = process.env.GEMINI_PREMIUM_API_KEY || process.env.GEMINI_API_KEY;
+        if (!apiKey) throw new Error('Falta llave de Gemini Premium en el .env');
 
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash', systemInstruction: systemPromptText });
@@ -97,7 +113,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
 
     } else {
         // 🤝 RUTA CLIENTES: COSTO CERO (GEMINI FREE -> GROQ)
-        console.log(`🤝 Entró mensaje a cliente (${phoneId}). Usando RUTA GRATUITA...`);
+        console.log(`🤝 Generando respuesta para cliente de tienda. Usando RUTA GRATUITA...`);
         try {
             const freeApiKey = process.env.GEMINI_FREE_API_KEY;
             if (!freeApiKey) throw new Error('Falta GEMINI_FREE_API_KEY');
@@ -106,7 +122,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
             const modelFree = genAIFree.getGenerativeModel({ model: 'gemini-1.5-flash', systemInstruction: systemPromptText });
             
             const result = await modelFree.generateContent(textoCliente);
-            console.log("✅ Respondido con Gemini Free");
+            console.log("✅ Respondido con Gemini Free (Cliente)");
             return result.response.text();
 
         } catch (errorGemini) {
@@ -181,10 +197,9 @@ export async function POST(req: Request) {
         const numeroCliente = mensajeEntrante.from;
         const textoCliente = mensajeEntrante.text?.body ?? '';
         
-        // Corregido: Evitar que sea 'undefined' si Meta no lo envía
         const phoneIdDestino = changes.metadata?.phone_number_id || ""; 
 
-        // 🛡️ BARRERA ANTIBUCLES: Respondemos OK a Meta inmediatamente
+        // 🛡️ BARRERA ANTIBUCLES
         const response = new NextResponse(null, { status: 200 });
 
         void (async () => {
