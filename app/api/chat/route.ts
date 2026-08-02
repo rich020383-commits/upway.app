@@ -1,138 +1,141 @@
 import { NextRequest, NextResponse } from 'next/server';
+import OpenAI from 'openai';
 import * as GenerativeAI from '@google/generative-ai';
 
-const API_KEY = process.env.GEMINI_API_KEY;
+// --- INICIALIZACIÓN DE LOS 4 PROVEEDORES --- //
+const cerebrasClient = process.env.CEREBRAS_API_KEY 
+  ? new OpenAI({ apiKey: process.env.CEREBRAS_API_KEY, baseURL: 'https://api.cerebras.ai/v1' }) 
+  : null;
 
-// --- Configuración del Agente Supremo --- //
-const AGENTE_SUPREMO_PROMPT = `Rol: Eres un cerrador de ventas de alto nivel, persuasivo, profesional y educado. Trabajas y te identificas orgullosamente como un "Empleado Digital de Upway". El secreto de nuestro servicio es que TODOS los clientes obtienen las funciones principales completas; lo que cambia es su capacidad de procesamiento y volumen operativo.
+const groqClient = process.env.GROQ_API_KEY 
+  ? new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' }) 
+  : null;
 
-Objetivo Principal: Tu misión es asistir a los clientes en el chat, hacer preguntas estratégicas para diagnosticar el tamaño de su operación (ej. cantidad de productos en su catálogo o volumen de chats diarios) y recetar el plan exacto que necesitan.
+const geminiApiKey = process.env.GEMINI_API_KEY || process.env.GEMINI_FREE_API_KEY;
+const geminiGenAI = geminiApiKey ? new GenerativeAI.GoogleGenerativeAI(geminiApiKey) : null;
 
-Reglas de Interacción:
-- IMPORTANTE: Preséntate como "Empleado Digital de Upway" ÚNICAMENTE en tu primer mensaje. Luego, responde de forma natural y conversacional sin volver a saludar.
-- Si el usuario usa respuestas cortas ("sí", "cómo"), revisa el historial para mantener el contexto de la conversación.
-- Usa viñetas para que la información sea fácil de leer y usa emojis estratégicamente.
+const mistralClient = process.env.MISTRAL_API_KEY 
+  ? new OpenAI({ apiKey: process.env.MISTRAL_API_KEY, baseURL: 'https://api.mistral.ai/v1' }) 
+  : null;
 
-Funciones Incluidas en TODOS los planes:
-Indícale al cliente que, sin importar el plan que elija, SIEMPRE tendrá acceso a procesar Audios, Imágenes, Documentos, tomar Pedidos, recibir Pagos y obtener un Reporte Diario. No limitamos las funciones principales.
+// --- CONFIGURACIÓN DEL AGENTE SUPREMO --- //
+const AGENTE_SUPREMO_PROMPT = `Rol: Eres un cerrador de ventas de alto nivel, persuasivo, profesional y educado. Trabajas y te identificas orgullosamente como un "Empleado Digital de Upway". 
 
-Descripción de Capacidades (para cuando el cliente pregunte "¿Qué significa Capacidad Estándar?" o similar):
-🔵 CAPACIDAD ESTÁNDAR (Plan Emprendedor):
-El Empleado Digital tiene todas las funciones esenciales, pero trabaja con un volumen diseñado para un negocio pequeño. Puede:
-* Atender WhatsApp.
-* Entender texto.
-* 🎙️ Procesar audios.
-* 🖼️ Analizar imágenes.
-* 📄 Leer documentos.
-* Tomar pedidos.
-* Consultar productos y precios.
-* Confirmar pagos.
-* Consultar inventario.
-* Generar reporte diario.
-* Mantener la personalidad configurada por el negocio.
-La limitación no es inteligencia, es volumen.
+Objetivo Principal: Tu misión es asistir a los clientes en el chat, hacer preguntas estratégicas para diagnosticar el tamaño de su operación y recetar el plan exacto que necesitan.
 
-🔵 CAPACIDAD AMPLIADA (Plan Negocio):
-Aquí el Empleado Digital puede manejar una operación considerablemente mayor. Además de todo lo anterior:
-* Mayor volumen de mensajes procesados simultáneos.
-* Más procesamiento de audio.
-* Más imágenes.
-* Más documentos.
-* Mayor cantidad de pedidos.
-* Mayor cantidad de consultas de inventario.
-* Análisis de ventas.
-* Análisis de productos.
-* Comparaciones.
-* Alertas inteligentes.
-* Mayor frecuencia de procesamiento.
-Es decir: El mismo cerebro, pero con más capacidad de trabajo.
-
-🟣 CAPACIDAD ALTA (Plan Empresa):
-Este es para una empresa con bastante movimiento. El Empleado Digital puede manejar:
-* Grandes volúmenes de mensajes procesados.
-* Mayor concurrencia.
-* Más pedidos simultáneos.
-* Mayor procesamiento multimodal.
-* Mayor cantidad de documentos.
-* Mayor análisis de información.
-* Dashboards gerenciales.
-* Comparativos diarios, semanales y mensuales.
-* Recomendaciones inteligentes.
-* Análisis de tendencias.
-* Indicadores empresariales.
-Aquí ya no estamos hablando simplemente de atención al cliente, sino de un Empleado Digital que participa activamente en la operación empresarial.
-
-Proceso de Calificación y Venta (Los Planes):
-Pregúntale al cliente sobre el tamaño de su negocio y recomiéndale UNO de estos planes:
-1. Plan Emprendedor ($149.900 COP/mes): Para operaciones iniciales. Capacidad para 500 productos, volumen de mensajes procesados básico, analítica básica y capacidad de IA estándar.
-2. Plan Negocio ($299.900 COP/mes): Para negocios en crecimiento. Capacidad para 2.000 productos, volumen de mensajes procesados alto, analítica avanzada y capacidad de IA ampliada.
-3. Plan Empresa ($499.900 COP/mes): Para operaciones grandes. Capacidad para 10.000 productos, volumen de mensajes procesados muy alto, analítica gerencial y alta capacidad de IA.
-4. Plan Personalizado (Desde $999.900 COP/mes): Sin límites operativos ni de procesamiento para corporaciones que requieren soluciones a la medida.
+🚨 REGLA SUPREMA DE DIRECCIONAMIENTO (DEMO Y PRUEBAS):
+Si el usuario menciona palabras como: "probar", "simulador", "demo", "cómo se vería", "crear cuenta" o "ver cómo funciona":
+1. CORTA INMEDIATAMENTE CUALQUIER EXPLICACIÓN LARGA.
+2. NO le hagas preguntas de calificación.
+3. TU ÚNICA RESPUESTA DEBE SER enviarlo al panel de control gratis usando este comando exacto al final de su mensaje: [ABRIR_FORMULARIO]
+4. Dile algo corto y persuasivo como: "¡Claro que sí! La mejor forma de verlo es en acción. Entra a nuestro panel gratis ahora mismo y mira cómo respondería tu agente en tiempo real. 👇"
 
 Cierre y Pagos:
-Justifica el precio demostrando que el cliente pagará exactamente por la capacidad que consume, conservando todo el poder del sistema desde el plan más bajo. Para cerrar la venta o agendar una demo, indica que aceptamos pagos 100% seguros vía Nequi, Bancolombia o Wompi.`;
-const safetySettings = [
-  {
-    category: GenerativeAI.HarmCategory.HARM_CATEGORY_HARASSMENT,
-    threshold: GenerativeAI.HarmBlockThreshold.BLOCK_NONE,
-  },
-  {
-    category: GenerativeAI.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-    threshold: GenerativeAI.HarmBlockThreshold.BLOCK_NONE,
-  },
-  {
-    category: GenerativeAI.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-    threshold: GenerativeAI.HarmBlockThreshold.BLOCK_NONE,
-  },
-  {
-    category: GenerativeAI.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-    threshold: GenerativeAI.HarmBlockThreshold.BLOCK_NONE,
-  },
-];
-
-let model: GenerativeAI.GenerativeModel | null = null;
-
-if (!API_KEY) {
-  console.error("GEMINI_API_KEY no está definida. La API de Gemini no funcionará.");
-} else {
-  const genAI = new GenerativeAI.GoogleGenerativeAI(API_KEY);
-  model = genAI.getGenerativeModel({ model: "gemini-2.5-flash", systemInstruction: AGENTE_SUPREMO_PROMPT });
-}
+Para cerrar la venta o agendar una demo, indica que el proceso se realiza directamente en nuestro panel, aceptando pagos seguros vía Bold, Nequi, Bancolombia o Wompi.`;
 
 export async function POST(req: NextRequest) {
-  if (!model) {
-    return NextResponse.json(
-      { reply: "Lo siento, el sistema de IA no está configurado correctamente. Por favor, inténtalo más tarde." },
-      { status: 500 }
-    );
-  }
-
   try {
-    const { messages } = await req.json(); // 🔥 ACTUALIZADO: Recibimos el historial completo
-    console.log('Historial de mensajes recibido en el chat web:', messages);
+    const { messages } = await req.json();
+    
+    let botReply = '';
+    let usedProvider = '';
 
-    // Formatear el historial para Gemini
-    const contents = messages.map((m: { role: string; content: string }) => ({
-      role: m.role === 'bot' ? 'model' : m.role, // Gemini espera 'model' en lugar de 'bot'
-      parts: [{ text: m.content }],
-    }));
+    const formattedMessages = [
+      { role: 'system', content: AGENTE_SUPREMO_PROMPT },
+      ...messages.map((m: { role: string; content: string }) => ({
+        role: m.role === 'bot' ? 'assistant' : m.role, 
+        content: m.content,
+      })),
+    ];
 
-    const result = await model.generateContent({
-      contents: contents, // 🔥 ACTUALIZADO: Enviamos el historial completo
-      safetySettings,
-    });
-    const response = result.response;
-    const botReply = response.text();
+    // ==========================================
+    // 🥇 1. CEREBRAS AI (Motor Principal Ultra Rápido)
+    // ==========================================
+    try {
+      if (!cerebrasClient) throw new Error('Falta CEREBRAS_API_KEY');
+      
+      const completion = await cerebrasClient.chat.completions.create({
+        model: 'gpt-oss-120b',
+        messages: formattedMessages,
+        temperature: 0.7,
+      });
 
-    return NextResponse.json({ reply: botReply });
+      botReply = completion.choices[0]?.message?.content || '';
+      usedProvider = 'Cerebras AI (GPT-OSS) ⚡';
+    } catch (errCerebras: any) {
+      console.warn(`⚠️ Cerebras al límite. Activando 1er relevo (Groq)...`);
 
-  } catch (error) {
-    console.error('Error en el endpoint /api/chat con Gemini:', error);
+      // ==========================================
+      // 🥈 2. GROQ (Primer Relevo de Alta Capacidad)
+      // ==========================================
+      try {
+        if (!groqClient) throw new Error('Falta GROQ_API_KEY');
+
+        const completionGroq = await groqClient.chat.completions.create({
+          model: 'llama-3.1-8b-instant',
+          messages: formattedMessages,
+          temperature: 0.7,
+        });
+
+        botReply = completionGroq.choices[0]?.message?.content || '';
+        usedProvider = 'Groq 🚀';
+      } catch (errGroq: any) {
+        console.warn(`⚠️ Groq al límite. Activando 2do relevo (Google Gemini)...`);
+
+        // ==========================================
+        // 🥉 3. GOOGLE GEMINI FLASH (Segundo Relevo)
+        // ==========================================
+        try {
+          if (!geminiGenAI) throw new Error('Falta llave de Gemini');
+
+          const geminiModel = geminiGenAI.getGenerativeModel({ 
+            model: 'gemini-2.5-flash', 
+            systemInstruction: AGENTE_SUPREMO_PROMPT 
+          });
+
+          const contents = messages.map((m: { role: string; content: string }) => ({
+            role: m.role === 'bot' ? 'model' : m.role,
+            parts: [{ text: m.content }],
+          }));
+
+          const result = await geminiModel.generateContent({ contents });
+          botReply = result.response.text();
+          usedProvider = 'Google Gemini Flash 🛡️';
+        } catch (errGemini: any) {
+          console.warn(`⚠️ Gemini al límite. Activando 3er relevo (Mistral AI)...`);
+
+          // ==========================================
+          // 🛡️ 4. MISTRAL AI (Escudo Definitivo Masivo)
+          // ==========================================
+          try {
+            if (!mistralClient) throw new Error('Falta MISTRAL_API_KEY');
+
+            const completionMistral = await mistralClient.chat.completions.create({
+              model: 'ministral-3b-2512',
+              messages: formattedMessages,
+              temperature: 0.7,
+            });
+
+            botReply = completionMistral.choices[0]?.message?.content || '';
+            usedProvider = 'Mistral AI (Ministral) 🔥';
+          } catch (errMistral: any) {
+            console.error(`🔴 CRÍTICO: Los 4 proveedores fallaron.`, errMistral.message);
+            throw new Error('Sistemas de IA temporalmente no disponibles.');
+          }
+        }
+      }
+    }
+
+    console.log(`✅ Mensaje respondido exitosamente usando: ${usedProvider}`);
+    return NextResponse.json({ reply: botReply, provider: usedProvider });
+
+  } catch (error: any) {
+    console.error('Error general en el endpoint /api/chat:', error);
     return NextResponse.json(
-      { reply: "¡Hola! Soy tu Empleado Digital de Upway y estoy siempre disponible para ti. Parece que hay un pequeño problema en este momento al contactar a la IA. Por favor, intenta enviarme tu mensaje de nuevo en unos instantes. ¡Gracias por tu paciencia! 😉" },
+      { 
+        reply: "¡Hola! Soy tu Empleado Digital de Upway. En este momento estamos experimentando un alto tráfico de operaciones, pero ya estoy activo de nuevo. ¡Inténtalo otra vez en unos instantes! 😉" 
+      },
       { status: 500 }
     );
   }
 }
-
-
