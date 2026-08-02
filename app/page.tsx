@@ -245,7 +245,7 @@ export default function Home() {
             <a href="/login" className="text-sm font-mono text-white/70 transition hover:text-white">
               [login]
             </a>
-            <a href="/dashboard" className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-5 py-2 text-sm font-mono text-cyan-300 transition hover:bg-cyan-500/30 hover:shadow-[0_0_15px_rgba(6,182,212,0.3)] backdrop-blur-md">
+            <a href="/dashboard/bots" className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-5 py-2 text-sm font-mono text-cyan-300 transition hover:bg-cyan-500/30 hover:shadow-[0_0_15px_rgba(6,182,212,0.3)] backdrop-blur-md">
               PANEL_IA →
             </a>
           </div>
@@ -283,7 +283,7 @@ export default function Home() {
                 <a href="/login" className="w-full text-center py-3 rounded-lg border border-white/20 bg-white/5 text-white/80">
                   INICIAR SESIÓN
                 </a>
-                <a href="/dashboard" className="w-full text-center py-3 rounded-lg bg-[#00D1FF] text-black font-bold shadow-[0_0_15px_rgba(0,209,255,0.4)]">
+                <a href="/dashboard/bots" className="w-full text-center py-3 rounded-lg bg-[#00D1FF] text-black font-bold shadow-[0_0_15px_rgba(0,209,255,0.4)]">
                   ENTRAR AL PANEL →
                 </a>
               </div>
