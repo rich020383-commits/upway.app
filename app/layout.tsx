@@ -1,7 +1,8 @@
-import type { Metadata, Viewport } from "next"; // ← Importamos Viewport para el color de la app
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Chatbot from "@/components/Chatbot"; 
+import PwaRegister from "@/components/PwaRegister";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,12 +18,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Upway Business",
   description: "Diseñamos agentes inteligentes y automatizaciones a la medida que optimizan tus procesos, reducen costos corporativos y multiplican tus ventas.",
-  manifest: "/manifest.json", // ← ¡Aquí conectamos tu app instalable!
+  manifest: "/manifest.json",
 };
 
 // 🎨 Configuración visual para dispositivos móviles
 export const viewport: Viewport = {
-  themeColor: "#00D1FF", // Pinta la barra superior del celular con tu cian neón
+  themeColor: "#00D1FF",
 };
 
 export default function RootLayout({
@@ -38,6 +39,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         {children}
         <Chatbot /> 
+        <PwaRegister />
       </body>
     </html>
   );

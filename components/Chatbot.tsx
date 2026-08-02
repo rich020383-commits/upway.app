@@ -32,6 +32,13 @@ export default function Chatbot() {
     return () => window.removeEventListener('abrir-chat', escucharBoton);
   }, []);
 
+  // 🔥 NUEVA FUNCIÓN: Cierre a prueba de balas
+  const cerrarChat = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation(); // Evita que otros elementos bloqueen el clic
+    setIsOpen(false);
+  };
+
   const sendMessage = async () => {
     if (!input.trim()) return;
     
@@ -66,7 +73,7 @@ export default function Chatbot() {
 
   return (
     <>
-      {/* BOTÓN FLOTANTE (ESTILO NODO DE RED) */}
+      {/* BOTÓN FLOTANTE */}
       <motion.button 
         animate={{ 
           boxShadow: isOpen 
@@ -77,7 +84,7 @@ export default function Chatbot() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`fixed bottom-6 right-6 w-14 h-14 rounded-full border border-[#00D1FF]/50 backdrop-blur-md transition-all z-50 flex items-center justify-center overflow-hidden ${
+        className={`fixed bottom-6 right-6 w-14 h-14 rounded-full border border-[#00D1FF]/50 backdrop-blur-md transition-all z-[999] flex items-center justify-center overflow-hidden ${
           isOpen ? 'bg-[#0A0E14] text-white opacity-0 pointer-events-none' : 'bg-[#00D1FF]/10 text-[#00D1FF]'
         }`}
       >
@@ -93,11 +100,10 @@ export default function Chatbot() {
             animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
             exit={{ opacity: 0, y: 20, scale: 0.95, filter: "blur(10px)" }}
             transition={{ type: "spring", stiffness: 200, damping: 25 }}
-            className="fixed bottom-6 right-6 w-[360px] md:w-[420px] h-[600px] bg-[#0A0E14]/90 backdrop-blur-2xl rounded-2xl shadow-[0_0_50px_rgba(0,209,255,0.15)] border border-[#00D1FF]/20 z-50 flex flex-col overflow-hidden ring-1 ring-white/5"
+            className="fixed bottom-6 right-6 w-[360px] md:w-[420px] h-[600px] bg-[#0A0E14]/90 backdrop-blur-2xl rounded-2xl shadow-[0_0_50px_rgba(0,209,255,0.15)] border border-[#00D1FF]/20 z-[1000] flex flex-col overflow-hidden ring-1 ring-white/5"
           >
             {/* CABECERA (HUD TECH) */}
             <div className="bg-[#03050a]/80 p-4 border-b border-[#00D1FF]/20 flex items-center justify-between shrink-0 relative overflow-hidden">
-              {/* Scanline effect en cabecera */}
               <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,209,255,0.05)_50%)] bg-[length:100%_4px] pointer-events-none" />
               
               <div className="flex items-center gap-4 relative z-10">
@@ -131,7 +137,12 @@ export default function Chatbot() {
                 </div>
               </div>
               
-              <button onClick={() => setIsOpen(false)} className="text-white/40 hover:text-white hover:bg-white/10 p-2 rounded-lg transition-all relative z-10">
+              {/* 🔥 BOTÓN DE CIERRE REFORZADO */}
+              <button 
+                onClick={cerrarChat} 
+                className="text-white/60 hover:text-white hover:bg-white/10 p-2.5 rounded-xl transition-all relative z-[9999] cursor-pointer flex items-center justify-center bg-black/20"
+                title="Cerrar chat"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -153,7 +164,6 @@ export default function Chatbot() {
                         : 'bg-white/[0.03] text-slate-300 border border-white/10 rounded-lg rounded-tl-none'
                     }`}
                   >
-                    {/* Detalles Cyberpunk en los mensajes */}
                     <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/30" />
                     <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/30" />
 
