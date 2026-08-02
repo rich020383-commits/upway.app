@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
-import { Bot, MessageCircleMore, Sparkles, ShieldCheck, ArrowRight, Send, Signal, Wifi, Battery } from 'lucide-react';
+import { Bot, MessageCircleMore, Sparkles, ShieldCheck, ArrowRight, Send, Signal, Wifi, Battery, Check } from 'lucide-react';
 
 export default function AgentesBotPage() {
   const [nombreAgente, setNombreAgente] = useState('');
@@ -346,7 +346,7 @@ export default function AgentesBotPage() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }} 
               animate={{ opacity: 1, scale: 1, y: 0 }} 
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-2xl bg-[#0A0E14] border border-white/10 rounded-[32px] p-8 shadow-2xl z-10 text-white overflow-hidden"
+              className="relative w-full max-w-4xl bg-[#0A0E14] border border-white/10 rounded-[32px] p-8 shadow-2xl z-10 text-white overflow-hidden"
             >
               {/* Botón de cierre superior (X) */}
               <button 
@@ -356,62 +356,85 @@ export default function AgentesBotPage() {
                 ✕
               </button>
 
-              <div className="mb-6">
+              <div className="mb-6 text-center md:text-left">
                 <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-cyan-400">
                   <Sparkles className="h-3.5 w-3.5"/>
                   Planes de Activación Oficial
                 </div>
-                <h2 className="text-2xl font-bold mt-3">Escoge tu plan para conectar WhatsApp</h2>
-                <p className="text-sm text-gray-400 mt-1">Despliega tu Empleado Digital 24/7 con pagos seguros vía Bold, Nequi o Bancolombia.</p>
+                <h2 className="text-3xl font-bold mt-3">Escoge tu plan para conectar WhatsApp</h2>
+                <p className="text-sm text-gray-400 mt-2">Despliega tu Empleado Digital 24/7 con pagos seguros vía Bold, Nequi o Bancolombia.</p>
               </div>
 
-              {/* Tarjetas de planes */}
-              <div className="grid gap-4 md:grid-cols-2 my-6">
+              {/* Tarjetas de planes con características lógicas */}
+              <div className="grid gap-6 md:grid-cols-2 my-8">
                 
                 {/* TARJETA EMPRENDEDOR */}
-                <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
+                <div className="p-6 rounded-3xl bg-white/[0.03] border border-white/10 flex flex-col justify-between hover:bg-white/[0.05] transition-colors">
                   <div>
                     <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Plan Emprendedor</span>
-                    <h3 className="text-xl font-bold mt-1">$149.900 <span className="text-xs text-gray-400 font-normal">COP/mes</span></h3>
-                    <p className="text-xs text-gray-400 mt-2">Ideal para negocios que inician con atención automatizada por texto.</p>
+                    <h3 className="text-3xl font-bold mt-2">$149.900 <span className="text-sm text-gray-400 font-normal">COP/mes</span></h3>
+                    <p className="text-sm text-gray-400 mt-3 border-b border-white/10 pb-5 mb-5">Ideal para negocios que inician con atención automatizada básica.</p>
+                    
+                    <ul className="space-y-3 mb-6">
+                      <li className="flex items-center gap-3 text-sm text-gray-300">
+                        <Check className="w-5 h-5 text-cyan-400 shrink-0" /> Chatbot de texto 24/7
+                      </li>
+                      <li className="flex items-center gap-3 text-sm text-gray-300">
+                        <Check className="w-5 h-5 text-cyan-400 shrink-0" /> Reglas de personalidad básicas
+                      </li>
+                      <li className="flex items-center gap-3 text-sm text-gray-300">
+                        <Check className="w-5 h-5 text-cyan-400 shrink-0" /> Soporte por correo
+                      </li>
+                    </ul>
                   </div>
+                  
                   <button 
                     onClick={() => iniciarPago('Plan Emprendedor', 149900)}
                     disabled={procesandoPago}
-                    className="mt-6 w-full py-3 bg-[#00D1FF] hover:bg-cyan-400 text-black font-bold text-sm rounded-xl transition disabled:opacity-50"
+                    className="mt-4 w-full py-3.5 bg-white/10 hover:bg-white/20 text-white font-bold text-sm rounded-xl transition disabled:opacity-50"
                   >
                     {procesandoPago ? 'Conectando con Bold...' : 'Seleccionar Emprendedor'}
                   </button>
                 </div>
 
-                {/* TARJETA NEGOCIO */}
-                <div className="p-5 rounded-2xl bg-gradient-to-b from-blue-900/30 to-white/[0.03] border border-blue-500/40 flex flex-col justify-between relative">
-                  <span className="absolute -top-3 right-4 bg-cyan-400 text-black text-[10px] font-bold px-3 py-0.5 rounded-full uppercase">Más popular</span>
+                {/* TARJETA NEGOCIO (Upselling) */}
+                <div className="p-6 rounded-3xl bg-gradient-to-b from-blue-900/40 to-[#0A0E14] border-2 border-cyan-500/50 flex flex-col justify-between relative shadow-[0_0_30px_rgba(0,209,255,0.15)]">
+                  <span className="absolute -top-3 right-6 bg-cyan-400 text-black text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg">Más popular</span>
+                  
                   <div>
                     <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Plan Negocio</span>
-                    <h3 className="text-xl font-bold mt-1">$299.900 <span className="text-xs text-gray-400 font-normal">COP/mes</span></h3>
-                    <p className="text-xs text-gray-400 mt-2">Incluye notas de voz, imágenes y toma de pedidos automática.</p>
+                    <h3 className="text-3xl font-bold mt-2">$299.900 <span className="text-sm text-gray-400 font-normal">COP/mes</span></h3>
+                    <p className="text-sm text-gray-400 mt-3 border-b border-white/10 pb-5 mb-5">La experiencia completa con IA avanzada e integración de multimedia.</p>
+                    
+                    <ul className="space-y-3 mb-6">
+                      <li className="flex items-center gap-3 text-sm text-white font-medium">
+                        <Check className="w-5 h-5 text-cyan-400 shrink-0" /> <b>Todo lo del Plan Emprendedor</b>
+                      </li>
+                      <li className="flex items-center gap-3 text-sm text-gray-200">
+                        <Check className="w-5 h-5 text-cyan-400 shrink-0" /> Procesamiento de <b>notas de voz</b>
+                      </li>
+                      <li className="flex items-center gap-3 text-sm text-gray-200">
+                        <Check className="w-5 h-5 text-cyan-400 shrink-0" /> Lectura de <b>imágenes y recibos</b>
+                      </li>
+                      <li className="flex items-center gap-3 text-sm text-gray-200">
+                        <Check className="w-5 h-5 text-cyan-400 shrink-0" /> Toma de pedidos 100% automática
+                      </li>
+                      <li className="flex items-center gap-3 text-sm text-gray-200">
+                        <Check className="w-5 h-5 text-cyan-400 shrink-0" /> Conexión con base de inventario
+                      </li>
+                    </ul>
                   </div>
+                  
                   <button 
                     onClick={() => iniciarPago('Plan Negocio', 299900)}
                     disabled={procesandoPago}
-                    className="mt-6 w-full py-3 bg-white hover:bg-gray-100 text-slate-900 font-bold text-sm rounded-xl transition disabled:opacity-50"
+                    className="mt-4 w-full py-3.5 bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-sm rounded-xl transition shadow-lg disabled:opacity-50"
                   >
                     {procesandoPago ? 'Conectando con Bold...' : 'Seleccionar Negocio'}
                   </button>
                 </div>
 
               </div>
-
-              <div className="flex justify-end">
-                <button 
-                  onClick={() => setMostrarPlanes(false)}
-                  className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 text-sm transition"
-                >
-                  Cerrar ventana
-                </button>
-              </div>
-
             </motion.div>
           </div>
         )}
