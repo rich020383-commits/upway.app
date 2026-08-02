@@ -106,7 +106,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
         if (!apiKey) throw new Error('Falta llave de Gemini Premium en el .env');
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash', systemInstruction: systemPromptText });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', systemInstruction: systemPromptText });
         
         const result = await model.generateContent(textoCliente);
         return result.response.text();
@@ -119,7 +119,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
             if (!freeApiKey) throw new Error('Falta GEMINI_FREE_API_KEY');
 
             const genAIFree = new GoogleGenerativeAI(freeApiKey);
-            const modelFree = genAIFree.getGenerativeModel({ model: 'gemini-1.5-flash', systemInstruction: systemPromptText });
+            const modelFree = genAIFree.getGenerativeModel({ model: 'gemini-2.5-flash', systemInstruction: systemPromptText });
             
             const result = await modelFree.generateContent(textoCliente);
             console.log("✅ Respondido con Gemini Free (Cliente)");
