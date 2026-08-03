@@ -66,15 +66,16 @@ model Tienda {
   userId          String
   nombre          String
   
-  // Datos para la integración automática con Meta (Embedded Signup)
-  telefono        String?  
-  waba_id         String?  
-  phone_number_id String?  
-  meta_token      String?  @db.Text 
-  
-  // 🤖 NUEVO: Personalidad del Bot
+  // 🤖 Personalidad del Bot
   agentName       String?
   systemPrompt    String?  @db.Text
+  
+  // 🔥 CAMPOS META WHATSAPP (Unificados y dentro del modelo)
+  telefono          String?  
+  metaPhoneNumberId String?  
+  metaWabaId        String?  
+  metaAccessToken   String?  @db.Text
+  isWhatsAppActive  Boolean  @default(false)
   
   user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   productos       Producto[]
