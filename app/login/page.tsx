@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
+// IMPORTAMOS LA FUNCIÓN MÁGICA DE NEXTAUTH
+import { signIn } from 'next-auth/react'; 
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,21 +19,24 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+    // LLAMAMOS DIRECTO AL MOTOR DE NEXTAUTH (Credenciales)
+    const res = await signIn('credentials', {
+      redirect: false, // Evita que la página recargue de golpe si hay error
+      email,
+      password,
     });
 
     setLoading(false);
 
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error || 'Correo o contraseña incorrectos.');
+    // Si NextAuth nos devuelve un error (ej. contraseña incorrecta)
+    if (res?.error) {
+      setError(res.error === "CredentialsSignin" ? "Correo o contraseña incorrectos." : res.error);
       return;
     }
 
+    // Si todo sale bien, NextAuth ya creó la sesión y te mandamos al panel
     router.push('/dashboard/bots');
+    router.refresh(); // Refrescamos para que el layout detecte la nueva sesión
   }
 
   return (
