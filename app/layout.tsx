@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Chatbot from "@/components/Chatbot"; 
 import PwaRegister from "@/components/PwaRegister";
+import Footer from "@/components/Footer"; // <--- 1. Importamos el Footer
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,8 +37,15 @@ export default function RootLayout({
       lang="es" 
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        {children}
+      <body className="min-h-full flex flex-col bg-slate-950 text-white">
+        {/* Contenedor principal que empuja el footer hacia abajo */}
+        <main className="flex-grow">
+          {children}
+        </main>
+        
+        {/* 2. El Footer global visible en todo el sitio web */}
+        <Footer />
+
         <Chatbot /> 
         <PwaRegister />
       </body>
