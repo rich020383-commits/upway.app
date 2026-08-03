@@ -38,7 +38,7 @@ export default function ActivacionWhatsAppPage() {
 
     setConectando(true);
     
-    // Llamada oficial al Login de Facebook
+    // Llamada oficial al Login de Facebook con el Config ID definitivo
     window.FB.login((response: any) => {
       setConectando(false);
       
@@ -53,7 +53,11 @@ export default function ActivacionWhatsAppPage() {
       }
     }, {
       scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging',
-      extras: { feature: 'whatsapp_embedded_signup' }
+      extras: { 
+        feature: 'whatsapp_embedded_signup',
+        config_id: '1102963018817404',
+        sessionInfoVersion: '3'
+      }
     });
   };
 
