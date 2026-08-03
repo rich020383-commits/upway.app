@@ -1,6 +1,7 @@
 import Link from 'next/link';
-import { MessageCircleMore, Package, Bot, LogOut, Sparkles } from 'lucide-react';
-import { auth, signOut } from '@/auth';
+import { MessageCircleMore, Package, Bot, Sparkles } from 'lucide-react';
+import { auth } from '@/auth'; // Ya no necesitas importar signOut aquí
+import LogoutButton from '@/components/LogoutButton'; // <-- Importamos el botón nuevo
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -27,15 +28,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
           <div className="flex items-center gap-3">
             {session ? <span className="text-sm text-slate-600">Hola, {session.user.name || session.user.email}</span> : null}
-            <form action={async () => {
-              'use server';
-              await signOut();
-            }}>
-              <button type="submit" className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
-                <LogOut className="h-4 w-4" />
-                Salir
-              </button>
-            </form>
+            
+            {/* Aquí metemos el botón mágico y limpio */}
+            <LogoutButton />
+            
           </div>
         </div>
       </header>
