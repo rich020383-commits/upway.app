@@ -69,7 +69,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
         console.log(`🏢 Buscando base de datos del cliente para el número: ${phoneId}`);
         
         const tienda = await prisma.tienda.findFirst({
-            where: { phone_number_id: phoneId },
+            where: { metaPhoneNumberId: phoneId },
             include: { productos: true } 
         });
 
