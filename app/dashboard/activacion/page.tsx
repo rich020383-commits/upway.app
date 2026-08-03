@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle2, Smartphone, ShieldCheck, ArrowRight, Loader2, Sparkles, MessageCircle } from 'lucide-react';
 import Script from 'next/script';
+import { useRouter } from 'next/navigation'; // <-- Agregado para redireccionar
 
-// Declaración para que TypeScript no arroje error con el SDK de Facebook
 declare global {
   interface Window {
     FB: any;
@@ -15,8 +15,8 @@ declare global {
 export default function ActivacionWhatsAppPage() {
   const [conectando, setConectando] = useState(false);
   const [sdkCargado, setSdkCargado] = useState(false);
+  const router = useRouter(); 
 
-  // 1. Inicializar el SDK de Facebook cuando la página cargue
   useEffect(() => {
     window.fbAsyncInit = function() {
       window.FB.init({
@@ -29,8 +29,7 @@ export default function ActivacionWhatsAppPage() {
     };
   }, []);
 
-  // 2. Función que abre el Popup de Meta Embedded Signup
-  const iniciarConexionMeta = () => {
+  const iniciarConexionMeta = async () => {
     if (!sdkCargado || !window.FB) {
       alert("El sistema de Meta se está cargando. Por favor, intenta en unos segundos.");
       return;
@@ -38,18 +37,40 @@ export default function ActivacionWhatsAppPage() {
 
     setConectando(true);
     
-    // Llamada oficial al Login de Facebook con el Config ID definitivo
-    window.FB.login((response: any) => {
-      setConectando(false);
-      
+    window.FB.login(async (response: any) => {
       if (response.authResponse) {
-        console.log("✅ ¡Conexión exitosa! Tokens recibidos:", response.authResponse);
+        console.log("✅ ¡Conexión exitosa! Enviando token al backend...");
         const { accessToken } = response.authResponse;
         
-        alert("¡Permisos otorgados exitosamente! Revisa la consola (F12) para ver tu token.");
-        
+        try {
+          // 🚀 AQUÍ ESTÁ EL PUENTE FRONTEND -> BACKEND
+          const res = await fetch('/api/callback', { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              // TODO: Cambiar esto por el ID real de la tienda/usuario logueado
+              tienda_id: "ID_DE_PRUEBA_O_SESION", 
+              metaAccessToken: accessToken,
+            }),
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) throw new Error(data.error || 'Error al guardar credenciales');
+
+          alert("🎉 ¡Línea de WhatsApp conectada y activada con éxito!");
+          
+          // Redirigir al cliente a su panel principal
+          router.push('/dashboard');
+
+        } catch (error) {
+          console.error("❌ Error enviando datos al backend:", error);
+          alert("Hubo un problema vinculando la cuenta. Intenta de nuevo.");
+          setConectando(false);
+        }
       } else {
         console.log("❌ El usuario canceló la conexión o cerró la ventana.");
+        setConectando(false);
       }
     }, {
       scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging',
@@ -63,10 +84,7 @@ export default function ActivacionWhatsAppPage() {
 
   return (
     <>
-      <Script 
-        src="https://connect.facebook.net/es_LA/sdk.js" 
-        strategy="lazyOnload" 
-      />
+      <Script src="https://connect.facebook.net/es_LA/sdk.js" strategy="lazyOnload" />
 
       <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.15),_transparent_55%)] bg-slate-950 px-4 py-12 text-white sm:px-6 lg:px-8 flex items-center justify-center">
         <div className="w-full max-w-3xl overflow-hidden rounded-[32px] border border-white/10 bg-[#0A0E14] shadow-2xl relative transition-all duration-700 ease-out translate-y-0 opacity-100">
@@ -74,18 +92,14 @@ export default function ActivacionWhatsAppPage() {
 
           <div className="grid md:grid-cols-2">
             
-            {/* COLUMNA IZQUIERDA: Mensaje de éxito */}
             <div className="p-10 flex flex-col justify-center border-b md:border-b-0 md:border-r border-white/10 bg-white/[0.02]">
               <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
                 <CheckCircle2 className="h-8 w-8" />
               </div>
-              <h1 className="text-3xl font-bold tracking-tight text-white mb-4">
-                ¡Pago confirmado!
-              </h1>
+              <h1 className="text-3xl font-bold tracking-tight text-white mb-4">¡Pago confirmado!</h1>
               <p className="text-slate-400 text-sm leading-relaxed mb-6">
                 Tu plan ha sido activado con éxito. Ahora solo falta el último paso: darle permisos a la IA para que tome el control de tu línea comercial.
               </p>
-              
               <ul className="space-y-4">
                 <li className="flex items-start gap-3 text-sm text-slate-300">
                   <ShieldCheck className="h-5 w-5 text-cyan-400 shrink-0 mt-0.5" />
@@ -98,20 +112,14 @@ export default function ActivacionWhatsAppPage() {
               </ul>
             </div>
 
-            {/* COLUMNA DERECHA: Botón de conexión Meta */}
             <div className="p-10 flex flex-col justify-center items-center text-center relative overflow-hidden">
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
-              
               <div className="relative z-10 w-full">
                 <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-400 mb-6">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  Activación Oficial
+                  <Sparkles className="h-3.5 w-3.5" /> Activación Oficial
                 </div>
-                
                 <h2 className="text-xl font-semibold text-white mb-2">Conecta tu WhatsApp</h2>
-                <p className="text-sm text-slate-400 mb-8">
-                  Inicia sesión con la cuenta de Facebook que administra tu negocio.
-                </p>
+                <p className="text-sm text-slate-400 mb-8">Inicia sesión con la cuenta de Facebook que administra tu negocio.</p>
 
                 <button 
                   onClick={iniciarConexionMeta}
@@ -121,7 +129,7 @@ export default function ActivacionWhatsAppPage() {
                   {conectando ? (
                     <>
                       <Loader2 className="h-5 w-5 animate-spin" />
-                      <span>Conectando con Meta...</span>
+                      <span>Configurando bot...</span>
                     </>
                   ) : (
                     <>
