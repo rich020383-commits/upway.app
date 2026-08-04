@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation';
 declare global {
   interface Window {
     FB: any;
-    fbAsyncInit: any;
   }
 }
 
@@ -17,30 +16,58 @@ export default function ActivacionWhatsAppPage() {
   const [sdkCargado, setSdkCargado] = useState(false);
   const router = useRouter(); 
 
-  // 🔥 1. Función para inicializar Facebook de forma segura
   const inicializarFacebook = () => {
-    if (window.FB && !sdkCargado) {
-      window.FB.init({
-        appId      : process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '1768431177666982',
-        cookie     : true,
-        xfbml      : true,
-        version    : 'v20.0'
-      });
-      setSdkCargado(true);
-      console.log("✅ SDK de Facebook inicializado correctamente.");
+    if (window.FB) {
+      try {
+        window.FB.init({
+          appId      : process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '1768431177666982',
+          cookie     : true,
+          xfbml      : true,
+          version    : 'v20.0'
+        });
+        setSdkCargado(true);
+        console.log("✅ SDK de Facebook inicializado con éxito.");
+      } catch (e) {
+        console.error("Error al inicializar FB:", e);
+      }
     }
   };
 
-  // 🔥 2. Por si el script ya estaba en memoria al navegar
+  // 🔥 Sistema de sondeo (Polling) súper robusto para detectar el SDK de Meta
   useEffect(() => {
-    if (typeof window !== "undefined" && window.FB) {
+    if (typeof window === "undefined") return;
+
+    if (window.FB) {
       inicializarFacebook();
+      return;
     }
+
+    const interval = setInterval(() => {
+      if (window.FB) {
+        inicializarFacebook();
+        clearInterval(interval);
+      }
+    }, 200);
+
+    // Timeout de seguridad por si el script es bloqueado totalmente por un adblocker
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+      if (!window.FB) {
+        console.warn("⚠️ El SDK de Facebook tardó en cargar o fue bloqueado. Forzando estado...");
+        // Fallback visual para que el botón no se quede colgado eternamente si hay un adblocker
+        setSdkCargado(true);
+      }
+    }, 4000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
   }, []);
 
   const iniciarConexionMeta = async () => {
-    if (!sdkCargado || !window.FB) {
-      alert("El sistema de Meta se está cargando. Por favor, intenta en unos segundos.");
+    if (!window.FB) {
+      alert("El sistema de Meta está tardando en responder o un bloqueador de anuncios está interfiriendo. Por favor, deshabilite bloqueadores temporalmente.");
       return;
     }
 
@@ -48,7 +75,6 @@ export default function ActivacionWhatsAppPage() {
     
     window.FB.login(async (response: any) => {
       if (response.authResponse) {
-        console.log("✅ ¡Conexión exitosa! Enviando token al backend...");
         const { accessToken } = response.authResponse;
         
         try {
@@ -62,7 +88,6 @@ export default function ActivacionWhatsAppPage() {
           });
 
           const data = await res.json();
-
           if (!res.ok) throw new Error(data.error || 'Error al guardar credenciales');
 
           alert("🎉 ¡Línea de WhatsApp conectada y activada con éxito!");
@@ -74,7 +99,6 @@ export default function ActivacionWhatsAppPage() {
           setConectando(false);
         }
       } else {
-        console.log("❌ El usuario canceló la conexión o cerró la ventana.");
         setConectando(false);
       }
     }, {
@@ -89,11 +113,10 @@ export default function ActivacionWhatsAppPage() {
 
   return (
     <>
-      {/* 🔥 3. Aseguramos la carga del SDK de Facebook */}
       <Script 
         src="https://connect.facebook.net/es_LA/sdk.js" 
         strategy="afterInteractive" 
-        onReady={inicializarFacebook}
+        onLoad={inicializarFacebook}
       />
 
       <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.15),_transparent_55%)] bg-slate-950 px-4 py-12 text-white sm:px-6 lg:px-8 flex items-center justify-center">
