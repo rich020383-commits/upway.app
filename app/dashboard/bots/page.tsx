@@ -3,14 +3,24 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { Bot, MessageCircleMore, Sparkles, ShieldCheck, ArrowRight, Send, Signal, Wifi, Battery, Check } from 'lucide-react';
-// 🔥 1. IMPORTAMOS LOS HOOKS DE NAVEGACIÓN Y SESIÓN
+// 🔥 IMPORTAMOS HOOKS DE RUTAS Y SESIÓN (Usamos getSession para evitar el error del servidor)
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react'; 
+import { getSession } from 'next-auth/react'; 
 
 export default function AgentesBotPage() {
-  // 🔥 2. INICIALIZAMOS LOS HOOKS
   const router = useRouter();
-  const { data: session } = useSession();
+  
+  // 🔥 ESTADO PARA GUARDAR EL CORREO DEL USUARIO ACTUAL
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  // 🔥 BUSCAMOS LA SESIÓN EN EL CLIENTE SIN ROMPER EL SSR
+  useEffect(() => {
+    getSession().then((session) => {
+      if (session?.user?.email) {
+        setUserEmail(session.user.email);
+      }
+    });
+  }, []);
 
   const [nombreAgente, setNombreAgente] = useState('');
   const [promptMaestro, setPromptMaestro] = useState('');
@@ -99,10 +109,10 @@ export default function AgentesBotPage() {
     }
   };
 
-  // 🔥 3. LA FUNCIÓN INTERCEPTORA DEL PASE VIP
+  // 🔥 FUNCIÓN INTERCEPTORA DEL PASE VIP (INCLUYE AMBOS CORREOS)
   const handleActivarWhatsApp = () => {
-    if (session?.user?.email === 'rich020383@gmail.com') {
-      console.log("¡Pase VIP detectado! Saltando pagos...");
+    if (userEmail === 'rich020383@gmail.com' || userEmail === 'revisor_meta@upway.business') {
+      console.log("¡Pase VIP detectado! Saltando pagos directo a la activación de Meta...");
       router.push('/dashboard/activacion'); 
     } else {
       setMostrarPlanes(true); 
@@ -332,7 +342,7 @@ export default function AgentesBotPage() {
                 {guardando ? "Guardando..." : "💾 Guardar cambios"}
               </button>
 
-              {/* 🔥 4. CONECTAMOS EL BOTÓN 2 AL PASE VIP */}
+              {/* 🔥 CONECTAMOS EL BOTÓN 2 AL PASE VIP */}
               <button 
                 onClick={handleActivarWhatsApp} 
                 className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-3.5 font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-blue-500"
