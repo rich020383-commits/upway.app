@@ -99,10 +99,12 @@ export default function ActivacionWhatsAppPage() {
         setConectando(false);
       }
     }, {
+      config_id: '2018640519013518', // 👈 ¡Tu ID de configuración oficial!
+      response_type: 'code',
+      override_default_response_type: true,
       scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging',
       extras: { 
         feature: 'whatsapp_embedded_signup',
-        config_id: '1102963018817404',
         sessionInfoVersion: '3'
       }
     });
