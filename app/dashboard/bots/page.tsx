@@ -3,8 +3,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { Bot, MessageCircleMore, Sparkles, ShieldCheck, ArrowRight, Send, Signal, Wifi, Battery, Check } from 'lucide-react';
+// 🔥 1. IMPORTAMOS LOS HOOKS DE NAVEGACIÓN Y SESIÓN
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react'; 
 
 export default function AgentesBotPage() {
+  // 🔥 2. INICIALIZAMOS LOS HOOKS
+  const router = useRouter();
+  const { data: session } = useSession();
+
   const [nombreAgente, setNombreAgente] = useState('');
   const [promptMaestro, setPromptMaestro] = useState('');
   const [guardando, setGuardando] = useState(false);
@@ -12,7 +19,7 @@ export default function AgentesBotPage() {
   // Estado para el modal de pagos (SaaS)
   const [mostrarPlanes, setMostrarPlanes] = useState(false);
   
-  // 🔥 NUEVO: Estado para procesar el pago con Bold
+  // Estado para procesar el pago con Bold
   const [procesandoPago, setProcesandoPago] = useState(false);
   
   // Estados para el Simulador
@@ -63,7 +70,7 @@ export default function AgentesBotPage() {
     }
   };
 
-  // 🔥 NUEVO: Función para iniciar el pago con la API de Bold
+  // Función para iniciar el pago con la API de Bold
   const iniciarPago = async (plan: string, precio: number) => {
     setProcesandoPago(true);
     try {
@@ -80,7 +87,6 @@ export default function AgentesBotPage() {
       const data = await res.json();
       
       if (data.payment_url) {
-        // Redirigir al cliente a la pasarela de Bold
         window.location.href = data.payment_url; 
       } else {
         alert("Hubo un error al generar el link de pago. Revisa tu backend de Bold.");
@@ -90,6 +96,16 @@ export default function AgentesBotPage() {
       alert("Error de conexión con la pasarela de pagos.");
     } finally {
       setProcesandoPago(false);
+    }
+  };
+
+  // 🔥 3. LA FUNCIÓN INTERCEPTORA DEL PASE VIP
+  const handleActivarWhatsApp = () => {
+    if (session?.user?.email === 'rich020383@gmail.com') {
+      console.log("¡Pase VIP detectado! Saltando pagos...");
+      router.push('/dashboard/activacion'); 
+    } else {
+      setMostrarPlanes(true); 
     }
   };
 
@@ -316,9 +332,9 @@ export default function AgentesBotPage() {
                 {guardando ? "Guardando..." : "💾 Guardar cambios"}
               </button>
 
-              {/* BOTÓN 2: ACTIVAR */}
+              {/* 🔥 4. CONECTAMOS EL BOTÓN 2 AL PASE VIP */}
               <button 
-                onClick={() => setMostrarPlanes(true)} 
+                onClick={handleActivarWhatsApp} 
                 className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-3.5 font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-blue-500"
               >
                 🚀 Activar en WhatsApp
