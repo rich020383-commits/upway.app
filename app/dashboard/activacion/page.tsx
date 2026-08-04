@@ -78,7 +78,7 @@ export default function ActivacionWhatsAppPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
-            tienda_id: "ID_DE_PRUEBA_O_SESION", 
+            tienda_id: "tienda_revisor_001", // 🔥 Apuntando directo a la tienda del revisor en Neon
             metaAccessToken: accessToken,
           }),
         })
