@@ -33,7 +33,6 @@ export default function ActivacionWhatsAppPage() {
     }
   };
 
-  // 🔥 Sistema de sondeo (Polling) súper robusto para detectar el SDK de Meta
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -49,12 +48,9 @@ export default function ActivacionWhatsAppPage() {
       }
     }, 200);
 
-    // Timeout de seguridad por si el script es bloqueado totalmente por un adblocker
     const timeout = setTimeout(() => {
       clearInterval(interval);
       if (!window.FB) {
-        console.warn("⚠️ El SDK de Facebook tardó en cargar o fue bloqueado. Forzando estado...");
-        // Fallback visual para que el botón no se quede colgado eternamente si hay un adblocker
         setSdkCargado(true);
       }
     }, 4000);
@@ -65,40 +61,41 @@ export default function ActivacionWhatsAppPage() {
     };
   }, []);
 
-  const iniciarConexionMeta = async () => {
+  const iniciarConexionMeta = () => {
     if (!window.FB) {
-      alert("El sistema de Meta está tardando en responder o un bloqueador de anuncios está interfiriendo. Por favor, deshabilite bloqueadores temporalmente.");
+      alert("El sistema de Meta está tardando en responder o un bloqueador de anuncios está interfiriendo.");
       return;
     }
 
     setConectando(true);
     
-    window.FB.login(async (response: any) => {
-      if (response.authResponse) {
+    // 🔥 ATENCIÓN: El callback de FB.login NO puede ser async por restricciones del SDK de Meta
+    window.FB.login((response: any) => {
+      if (response && response.authResponse) {
         const { accessToken } = response.authResponse;
         
-        try {
-          const res = await fetch('/api/callback', { 
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              tienda_id: "ID_DE_PRUEBA_O_SESION", 
-              metaAccessToken: accessToken,
-            }),
-          });
-
+        fetch('/api/callback', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            tienda_id: "ID_DE_PRUEBA_O_SESION", 
+            metaAccessToken: accessToken,
+          }),
+        })
+        .then(async (res) => {
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || 'Error al guardar credenciales');
 
           alert("🎉 ¡Línea de WhatsApp conectada y activada con éxito!");
           router.push('/dashboard');
-
-        } catch (error) {
+        })
+        .catch((error) => {
           console.error("❌ Error enviando datos al backend:", error);
           alert("Hubo un problema vinculando la cuenta. Intenta de nuevo.");
           setConectando(false);
-        }
+        });
       } else {
+        console.log("❌ El usuario canceló la conexión o cerró la ventana.");
         setConectando(false);
       }
     }, {
