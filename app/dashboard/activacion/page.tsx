@@ -74,7 +74,7 @@ export default function ActivacionWhatsAppPage() {
       if (response && response.authResponse) {
         const { accessToken } = response.authResponse;
         
-        fetch('/api/callback', { 
+        fetch('/api/meta/callback', { 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
