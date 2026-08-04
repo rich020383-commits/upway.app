@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle2, Smartphone, ShieldCheck, ArrowRight, Loader2, Sparkles, MessageCircle } from 'lucide-react';
 import Script from 'next/script';
-import { useRouter } from 'next/navigation'; // <-- Agregado para redireccionar
+import { useRouter } from 'next/navigation';
 
 declare global {
   interface Window {
@@ -17,8 +17,9 @@ export default function ActivacionWhatsAppPage() {
   const [sdkCargado, setSdkCargado] = useState(false);
   const router = useRouter(); 
 
-  useEffect(() => {
-    window.fbAsyncInit = function() {
+  // 🔥 1. Función para inicializar Facebook de forma segura
+  const inicializarFacebook = () => {
+    if (window.FB && !sdkCargado) {
       window.FB.init({
         appId      : process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '1768431177666982',
         cookie     : true,
@@ -26,7 +27,15 @@ export default function ActivacionWhatsAppPage() {
         version    : 'v20.0'
       });
       setSdkCargado(true);
-    };
+      console.log("✅ SDK de Facebook inicializado correctamente.");
+    }
+  };
+
+  // 🔥 2. Por si el script ya estaba en memoria al navegar
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.FB) {
+      inicializarFacebook();
+    }
   }, []);
 
   const iniciarConexionMeta = async () => {
@@ -43,12 +52,10 @@ export default function ActivacionWhatsAppPage() {
         const { accessToken } = response.authResponse;
         
         try {
-          // 🚀 AQUÍ ESTÁ EL PUENTE FRONTEND -> BACKEND
           const res = await fetch('/api/callback', { 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-              // TODO: Cambiar esto por el ID real de la tienda/usuario logueado
               tienda_id: "ID_DE_PRUEBA_O_SESION", 
               metaAccessToken: accessToken,
             }),
@@ -59,8 +66,6 @@ export default function ActivacionWhatsAppPage() {
           if (!res.ok) throw new Error(data.error || 'Error al guardar credenciales');
 
           alert("🎉 ¡Línea de WhatsApp conectada y activada con éxito!");
-          
-          // Redirigir al cliente a su panel principal
           router.push('/dashboard');
 
         } catch (error) {
@@ -84,7 +89,12 @@ export default function ActivacionWhatsAppPage() {
 
   return (
     <>
-      <Script src="https://connect.facebook.net/es_LA/sdk.js" strategy="lazyOnload" />
+      {/* 🔥 3. Aseguramos la carga del SDK de Facebook */}
+      <Script 
+        src="https://connect.facebook.net/es_LA/sdk.js" 
+        strategy="afterInteractive" 
+        onReady={inicializarFacebook}
+      />
 
       <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.15),_transparent_55%)] bg-slate-950 px-4 py-12 text-white sm:px-6 lg:px-8 flex items-center justify-center">
         <div className="w-full max-w-3xl overflow-hidden rounded-[32px] border border-white/10 bg-[#0A0E14] shadow-2xl relative transition-all duration-700 ease-out translate-y-0 opacity-100">
