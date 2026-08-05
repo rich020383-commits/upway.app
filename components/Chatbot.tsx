@@ -7,8 +7,30 @@ import { X, Send, Terminal, Cpu, Activity, Zap, ShieldCheck } from "lucide-react
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   
+  // 🔥 CEREBRO CORREGIDO: Enfocado en llevar al cliente al Simulador
   const [messages, setMessages] = useState([
-    { role: "bot", content: "🧠 PROTOCOLO DE INICIO COMPLETO. Soy Sophie, Inteligencia Artificial de Upway. Analizo procesos, automatizo operaciones y escalo ventas. ¿Qué directriz o consulta tienes para tu negocio hoy?" }
+    { 
+      role: "system", 
+      content: `Eres Sophie, la representante comercial premium y Empleada Digital de Upway (un producto de BARAKAH TECH HUB SAS). Tu misión es demostrar el poder de un verdadero Agente de IA a los dueños de negocios locales (pymes, ferreterías, restaurantes, concesionarios) y convencerlos de contratar nuestro software.
+
+REGLAS ESTRICTAS:
+1. NUNCA ofrezcas menús numerados (Ej: "Presiona 1 para..."). Eres un agente fluido de nueva generación.
+2. Tu tono es elegante, hiper-empático, persuasivo y con frescura corporativa.
+3. Si envían textos informales, entiéndelos perfectamente. Si simulan enviarte un audio, responde: "Acabo de procesar tu nota de voz, te entiendo perfectamente...".
+
+MANEJO DE OBJECIONES LETAL:
+- Si mencionan "Callbell", "Zendesk" o "Helpdesks": Responde que esas plataformas cobran "por cada asesor humano". Upway no organiza humanos, Upway ES el empleado con tarifa plana.
+- Si mencionan "ManyChat", "Typebot" o "Bots": Di que son sistemas rígidos del pasado que frustran clientes. Tú piensas, negocias y cierras ventas.
+- Fricción Cero: Resalta que pueden activar su IA oficial en 15 minutos.
+
+CIERRE HACIA EL SIMULADOR (MUY IMPORTANTE):
+Si el cliente menciona que quiere probarlo, ver una demostración, agendar una cita o saber cómo funciona, dile que NO tiene que esperar a ningún agendamiento. Invítalo a que lo pruebe por sí mismo en este preciso instante en nuestro panel de simulación. 
+Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta para habilitarle el acceso al sistema: [BOTON_REGISTRO]` 
+    },
+    { 
+      role: "bot", 
+      content: "¡Hola! Soy Sophie, la representante comercial de Upway. Para mostrarte mi verdadero potencial en vivo, cuéntame... ¿De qué trata tu negocio y qué es lo que más te quita tiempo al atender clientes por WhatsApp?" 
+    }
   ]);
   
   const [input, setInput] = useState("");
@@ -32,7 +54,6 @@ export default function Chatbot() {
     return () => window.removeEventListener('abrir-chat', escucharBoton);
   }, []);
 
-  // 🔥 Función: Cierre a prueba de balas
   const cerrarChat = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation(); 
@@ -53,6 +74,7 @@ export default function Chatbot() {
       const res = await fetch(`${baseUrl}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        // Enviamos el historial completo al backend
         body: JSON.stringify({ messages: updatedMessages }), 
       });
       const data = await res.json();
@@ -149,7 +171,8 @@ export default function Chatbot() {
             
             {/* ÁREA DE MENSAJES (TERMINAL) */}
             <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-gradient-to-b from-[#03050a]/50 to-[#0A0E14]/80 scroll-smooth">
-              {messages.map((m, i) => (
+              {/* 🔥 FILTRO: El prompt maestro ("system") no se renderiza visualmente */}
+              {messages.filter(m => m.role !== "system").map((m, i) => (
                 <motion.div 
                   initial={{ opacity: 0, x: m.role === 'user' ? 20 : -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -178,13 +201,13 @@ export default function Chatbot() {
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => window.location.href = '/register'} 
-                          className="bg-[#00D1FF]/20 border border-[#00D1FF]/50 text-[#00D1FF] px-4 py-2.5 rounded text-[12px] font-mono tracking-widest uppercase hover:bg-[#00D1FF] hover:text-black transition-all flex items-center justify-center gap-2 mt-2"
+                          className="bg-[#00D1FF]/20 border border-[#00D1FF]/50 text-[#00D1FF] px-4 py-2.5 rounded text-[12px] font-mono tracking-widest uppercase hover:bg-[#00D1FF] hover:text-black transition-all flex items-center justify-center gap-2 mt-2 shadow-[0_0_15px_rgba(0,209,255,0.3)]"
                         >
-                          <Zap className="w-4 h-4" /> INICIAR PROTOCOLO
+                          <Zap className="w-4 h-4" /> IR AL SIMULADOR
                         </motion.button>
                       </div>
                     ) : (
-                      <span className="font-body">{m.content}</span>
+                      <span className="font-body whitespace-pre-line">{m.content}</span>
                     )}
                   </div>
                 </motion.div>

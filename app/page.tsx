@@ -6,15 +6,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
   Bot,
-  Building2,
-  Lightbulb,
-  MonitorSmartphone,
-  Palette,
-  Video,
   Cpu,
-  Terminal,
-  X,
-  Menu
+  Menu,
+  X
 } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import Chatbot from "@/components/Chatbot";
@@ -193,15 +187,6 @@ export default function Home() {
     return { main: "GRATIS", sub: "Implementación", strike: fmt(plan.implFull), free: true };
   };
 
-  const stages = [
-    { icon: Lightbulb, title: "Tengo una idea", description: "Convertimos una intuición en una propuesta clara, valida y accionable.", tags: ["Validación", "Roadmap", "Estrategia", "Modelo de negocio"] },
-    { icon: Building2, title: "Quiero crear mi empresa", description: "Acompañamos la estructuración legal, comercial y operativa desde cero.", tags: ["Constitución", "Operación", "Contabilidad", "Registro"] },
-    { icon: Palette, title: "Necesito una marca premium", description: "Diseñamos identidad visual con presencia, elegancia y alto impacto.", tags: ["Branding", "Logo", "Manual", "Presentaciones"] },
-    { icon: MonitorSmartphone, title: "Quiero una presencia digital sólida", description: "Construimos productos digitales que venden, convencen y escalan.", tags: ["Landing Page", "Web", "App", "Software a medida"] },
-    { icon: Video, title: "Upway Studio", description: "Transformamos productos y mensajes en experiencias visuales memorables.", tags: ["Videos IA", "Reels", "Ads", "Fotografía"] },
-    { icon: Bot, title: "Quiero automatizar mi empresa", description: "Integramos IA y flujos para reducir tiempos operativos y mejorar la experiencia.", tags: ["Chatbot", "WhatsApp IA", "CRM", "Integraciones"] },
-  ];
-
   const steps = ["Tienes una idea", "La traducimos en estrategia", "Creamos tu experiencia", "Automatizamos y escalamos"];
 
   return (
@@ -230,8 +215,8 @@ export default function Home() {
           </a>
 
           <div className="hidden items-center gap-8 text-sm text-white/60 md:flex font-mono tracking-wider">
+            <a href="#ventajas" className="transition hover:text-cyan-400">/ventajas</a>
             <a href="#planes" className="transition text-cyan-400 hover:text-cyan-300">/planes</a>
-            <a href="#servicios" className="transition hover:text-cyan-400">/servicios</a>
             <a href="#proceso" className="transition hover:text-cyan-400">/proceso</a>
             <a href="#contacto" className="transition hover:text-cyan-400">/contacto</a>
           </div>
@@ -267,8 +252,8 @@ export default function Home() {
               className="md:hidden bg-[#0A0E14]/95 backdrop-blur-xl border-b border-white/10 overflow-hidden"
             >
               <div className="flex flex-col px-6 py-6 gap-6 font-mono text-sm tracking-widest">
-                <a href="#planes" onClick={() => setIsMobileMenuOpen(false)} className="text-[#00D1FF]">/planes_upway</a>
-                <a href="#servicios" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white">/servicios</a>
+                <a href="#ventajas" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white">/ventajas_upway</a>
+                <a href="#planes" onClick={() => setIsMobileMenuOpen(false)} className="text-[#00D1FF]">/planes</a>
                 <a href="#proceso" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white">/proceso</a>
                 <a href="#contacto" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white">/contacto</a>
                 
@@ -355,9 +340,81 @@ export default function Home() {
       </section>
 
       {/* ========================================== */}
-      {/* NUEVA SECCIÓN DE PRECIOS */}
+      {/* SECCIÓN LETAL: EL ARMAMENTO (COMPETITIVA) */}
       {/* ========================================== */}
-      <section id="planes" className="relative z-20 py-20 bg-gradient-to-b from-transparent to-[#03050a]">
+      <section id="ventajas" className="relative py-24 bg-[#0A0E14] border-t border-white/5 overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+        
+        <div className="relative z-10 max-w-[95rem] mx-auto px-6 lg:px-12">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400 mb-6">
+              El fin de los bots tradicionales
+            </div>
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 tracking-tight">
+              No organices a tus empleados. <br className="hidden md:block"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Contrata al mejor.</span>
+            </h2>
+            <p className="text-slate-400 text-lg leading-relaxed">
+              Las plataformas antiguas te cobran por cada persona que conectas para responder chats a mano. Upway te entrega un cerebro digital autónomo que hace el trabajo pesado por ti.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            {/* Ventaja 1 */}
+            <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-8 hover:bg-white/[0.04] transition-all group">
+              <div className="h-12 w-12 rounded-2xl bg-red-500/10 flex items-center justify-center mb-6 border border-red-500/20 group-hover:scale-110 transition-transform">
+                <span className="text-red-400 font-bold text-xl">❌</span>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-3">Cero menús aburridos</h3>
+              <p className="text-sm text-slate-400 leading-relaxed">
+                Olvídate del frustrante "Presione 1 para ventas". Nuestra IA procesa lenguaje natural, entiende el contexto y mantiene conversaciones fluidas.
+              </p>
+            </div>
+
+            {/* Ventaja 2 */}
+            <div className="rounded-3xl border border-cyan-500/20 bg-cyan-500/5 p-8 shadow-[0_0_30px_rgba(6,182,212,0.1)] hover:shadow-[0_0_40px_rgba(6,182,212,0.2)] transition-all group relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <svg className="w-24 h-24 text-cyan-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+              </div>
+              <div className="h-12 w-12 rounded-2xl bg-cyan-500/20 flex items-center justify-center mb-6 border border-cyan-500/40 group-hover:scale-110 transition-transform relative z-10">
+                <svg className="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-3 relative z-10">Entiende Notas de Voz</h3>
+              <p className="text-sm text-slate-400 leading-relaxed relative z-10">
+                Tus clientes aman enviar audios. Upway los escucha, los transcribe internamente y responde al instante con precisión milimétrica.
+              </p>
+            </div>
+
+            {/* Ventaja 3 */}
+            <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-8 hover:bg-white/[0.04] transition-all group">
+              <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6 border border-blue-500/20 group-hover:scale-110 transition-transform">
+                <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-3">Tarifa plana sin trampas</h3>
+              <p className="text-sm text-slate-400 leading-relaxed">
+                No cobramos "por asiento" ni te castigamos por crecer. Paga una suscripción única y deja que la IA haga el trabajo de 10 empleados a la vez.
+              </p>
+            </div>
+
+            {/* Ventaja 4 */}
+            <div className="rounded-3xl border border-emerald-500/20 bg-emerald-500/5 p-8 hover:bg-emerald-500/10 transition-all group">
+              <div className="h-12 w-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center mb-6 border border-emerald-500/40 group-hover:scale-110 transition-transform">
+                <svg className="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-3">Operando en 15 minutos</h3>
+              <p className="text-sm text-slate-400 leading-relaxed">
+                Olvida las tediosas llamadas de ventas. Paga con Bold, vincula tu WhatsApp oficial con Meta Embedded Signup y arranca hoy mismo.
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================== */}
+      {/* SECCIÓN DE PRECIOS */}
+      {/* ========================================== */}
+      <section id="planes" className="relative z-20 py-20 bg-gradient-to-b from-[#0A0E14] to-[#03050a]">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute -top-[10%] left-[20%] w-[60%] h-[30%] bg-[#00D1FF]/[0.05] blur-[140px] rounded-full" />
         </div>
@@ -524,30 +581,6 @@ export default function Home() {
       {/* ========================================== */}
       {/* SECCIONES SECUNDARIAS */}
       {/* ========================================== */}
-      <section id="servicios" className="relative bg-[#03050a]">
-        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-12">
-          <div className="max-w-3xl">
-            <p className="text-xs font-mono uppercase tracking-[0.3em] text-cyan-400">/01_servicios_adicionales</p>
-            <h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Soluciones integrales pensadas para empresas.</h2>
-          </div>
-          <div className="mt-12 grid gap-6 lg:grid-cols-3">
-            {stages.map((stage, index) => {
-              const Icon = stage.icon;
-              return (
-                <motion.div key={stage.title} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.35, delay: index * 0.08 }} className="rounded-2xl border border-white/5 bg-white/[0.02] p-6 transition hover:border-cyan-500/30 hover:bg-cyan-950/10">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-400"><Icon className="h-5 w-5" /></div>
-                  <h3 className="mt-5 text-xl font-semibold text-white">{stage.title}</h3>
-                  <p className="mt-3 text-sm leading-7 text-white/50">{stage.description}</p>
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    {stage.tags.map((tag) => (<span key={tag} className="rounded-md border border-white/5 bg-black/30 px-2.5 py-1 text-[11px] font-mono text-white/50">{tag}</span>))}
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
       <section id="proceso" className="relative border-t border-white/5 bg-[#03050a]">
         <div className="mx-auto max-w-7xl px-6 py-24 lg:px-12">
           <div className="max-w-3xl"><p className="text-xs font-mono uppercase tracking-[0.3em] text-cyan-400">/02_proceso</p><h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Un camino claro para pasar de la idea a la ejecución.</h2></div>
