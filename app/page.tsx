@@ -187,7 +187,7 @@ export default function Home() {
   // Lógica de precios de implementación
   const getImplLabel = (plan: Plan) => {
     if (contract === 1)
-      return { main: fmt(plan.implFull), sub: "Implementación", strike: null, free: false };
+      return { main: `+ ${fmt(plan.implFull)}`, sub: "pago único de implementación", strike: null, free: false };
     if (contract === 2)
       return { main: fmt(plan.implDiscount), sub: "Implementación 50% OFF", strike: fmt(plan.implFull), free: false };
     return { main: "GRATIS", sub: "Implementación", strike: fmt(plan.implFull), free: true };
