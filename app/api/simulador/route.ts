@@ -23,6 +23,42 @@ const kimiClient = kimiApiKey
   ? new OpenAI({ apiKey: kimiApiKey, baseURL: kimiApiUrl })
   : null;
 
+const ALERT_WEBHOOK_URL = process.env.ALERT_WEBHOOK_URL;
+const AUDIO_TRANSCRIPTION_TIMEOUT_MS = 5000;
+const PROVIDER_TIMEOUT_MS = 4000;
+
+const sendMonitorAlert = async (message: string) => {
+  if (!ALERT_WEBHOOK_URL) return;
+  try {
+    await fetch(ALERT_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: message })
+    });
+  } catch (alertError) {
+    console.warn('No se pudo enviar alerta de monitoreo:', alertError);
+  }
+};
+
+const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, providerName: string) => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(`${providerName} timeout after ${timeoutMs}ms`)), timeoutMs);
+  });
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+    }
+  }
+};
+
+const sendProviderAlert = async (provider: string, error: unknown) => {
+  const message = `⚠️ Relevo activado en Simulador: ${provider} falló. ${String(error)}`;
+  await sendMonitorAlert(message);
+};
+
 // 🛡️ Aquí usamos el audio de Groq con respaldo de Kimi/Moonshot si Groq falla.
 async function transcribirAudioUsuario(audioUsuario: string) {
   const base64Data = audioUsuario.split(',')[1] || audioUsuario;
@@ -37,29 +73,44 @@ async function transcribirAudioUsuario(audioUsuario: string) {
     formData.append('file', blob, 'nota_de_voz.webm');
     formData.append('model', 'whisper-large-v3');
     formData.append('language', 'es');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), AUDIO_TRANSCRIPTION_TIMEOUT_MS);
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${groqApiKey}` },
+        body: formData,
+        signal: controller.signal
+      });
 
-    const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${groqApiKey}` },
-      body: formData
-    });
+      const data = await response.json();
+      if (!response.ok || data.error) {
+        throw new Error(data.error?.message || 'Error en transcripción Groq Whisper');
+      }
 
-    const data = await response.json();
-    if (!response.ok || data.error) {
-      throw new Error(data.error?.message || 'Error en transcripción Groq Whisper');
+      return String(data.text || '');
+    } catch (error) {
+      if ((error as { name?: string })?.name === 'AbortError') {
+        throw new Error('Groq Whisper agotó el timeout de transcripción');
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
     }
-
-    return String(data.text || '');
   };
 
   const attemptKimi = async () => {
     if (!kimiClient) throw new Error('Kimi no configurado');
     const audioBlob = new Blob([buffer], { type: 'audio/webm' });
-    const result = await kimiClient.audio.transcriptions.create({
-      file: audioBlob,
-      model: 'whisper-1',
-      language: 'es'
-    });
+    const result = await withTimeout(
+      kimiClient.audio.transcriptions.create({
+        file: audioBlob,
+        model: 'whisper-1',
+        language: 'es'
+      }),
+      AUDIO_TRANSCRIPTION_TIMEOUT_MS,
+      'Kimi Transcripción'
+    );
     return String(result.text || '');
   };
 
@@ -298,7 +349,7 @@ export async function POST(req: NextRequest) {
     for (const provider of providers) {
       if (!provider.enabled) continue;
       try {
-        const reply = await provider.execute();
+        const reply = await withTimeout(provider.execute(), PROVIDER_TIMEOUT_MS, provider.name);
         if (!reply || !reply.trim()) {
           throw new Error(`${provider.name} devolvió respuesta vacía`);
         }
@@ -312,6 +363,7 @@ export async function POST(req: NextRequest) {
         } else {
           console.warn(`⚠️ ${provider.name} falló. Activando relevo siguiente... ${errorMessage}`);
         }
+        await sendProviderAlert(provider.name, providerError);
         console.warn(providerError);
         lastError = providerError;
       }

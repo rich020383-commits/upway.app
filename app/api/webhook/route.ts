@@ -55,14 +55,16 @@ const sendMonitorAlert = async (message: string) => {
 };
 
 const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, providerName: string) => {
-  let timeoutId: ReturnType<typeof setTimeout>;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
   const timeoutPromise = new Promise<never>((_, reject) => {
     timeoutId = setTimeout(() => reject(new Error(`${providerName} timeout after ${timeoutMs}ms`)), timeoutMs);
   });
   try {
     return await Promise.race([promise, timeoutPromise]);
   } finally {
-    clearTimeout(timeoutId);
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+    }
   }
 };
 
@@ -125,7 +127,7 @@ function buscarEnInventarioLocal(mensaje: string, todosLosProductos: Producto[])
 // ==========================================
 async function generarRespuesta(textoCliente: string, phoneId: string) {
     let systemPromptText = "";
-    let tiendaRecord: { direccion?: string } | null = null;
+    let tiendaRecord: any = null;
 
     // ==========================================================
     // 🚀 BIFURCACIÓN ESTRATÉGICA SAAS: ¿ES UPWAY O ES UN CLIENTE?
