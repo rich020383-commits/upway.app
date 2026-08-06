@@ -92,6 +92,18 @@ async function transcribirAudioUsuario(audioUsuario: string) {
 const geminiFlashApiKey = process.env.GEMINI_FLASH_API_KEY;
 const geminiGenAI = geminiFlashApiKey ? new GenerativeAI.GoogleGenerativeAI(geminiFlashApiKey) : null;
 
+const formatProviderError = (error: unknown) => {
+  const anyError = error as { status?: number; message?: string; code?: string };
+  const status = anyError?.status;
+  const message = anyError?.message || String(error);
+  return status ? `HTTP ${status} — ${message}` : message;
+};
+
+const isBillingOrAuthError = (error: unknown) => {
+  const status = (error as { status?: number })?.status;
+  return status === 401 || status === 402 || status === 403;
+};
+
 // --- LÓGICA RAG (INVENTARIO) --- //
 const limpiarTexto = (txt: string) => 
   txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -294,7 +306,12 @@ export async function POST(req: NextRequest) {
         usedProvider = provider.name;
         break;
       } catch (providerError) {
-        console.warn(`⚠️ ${provider.name} falló. Activando relevo siguiente...`);
+        const errorMessage = formatProviderError(providerError);
+        if (isBillingOrAuthError(providerError)) {
+          console.warn(`⚠️ ${provider.name} no disponible por error de autorización/facturación: ${errorMessage}. Usando relevo siguiente...`);
+        } else {
+          console.warn(`⚠️ ${provider.name} falló. Activando relevo siguiente... ${errorMessage}`);
+        }
         console.warn(providerError);
         lastError = providerError;
       }
