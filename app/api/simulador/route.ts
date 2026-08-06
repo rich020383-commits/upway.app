@@ -1,45 +1,32 @@
-import { NextResponse } from 'next/server';
-import Groq from 'groq-sdk'; // 🥷 EL ÚNICO MOTOR: GROQ
+import { NextRequest, NextResponse } from 'next/server';
+import OpenAI from 'openai';
+import * as GenerativeAI from '@google/generative-ai';
 import { listProducts } from '@/lib/app-state';
 
-// ==========================================
-// INTERFACES DE TYPESCRIPT
-// ==========================================
-interface Producto {
-  nombre: string;
-  categoria?: string;
-  precio: number;
-}
+// --- INICIALIZACIÓN DE LOS 4 NIVELES (SaaS) --- //
+const cerebrasClient = process.env.CEREBRAS_API_KEY 
+  ? new OpenAI({ apiKey: process.env.CEREBRAS_API_KEY, baseURL: 'https://api.cerebras.ai/v1' }) 
+  : null;
 
-interface MensajeHistorial {
-  rol: 'usuario' | 'asistente' | 'ia';
-  texto: string;
-}
+const groqClient = process.env.GROQ_API_KEY 
+  ? new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' }) 
+  : null;
 
-// ==========================================
-// INSTANCIACIÓN GLOBAL DE CLIENTE IA
-// ==========================================
-let groq: Groq | null = null;
+const mistralClient = process.env.MISTRAL_API_KEY 
+  ? new OpenAI({ apiKey: process.env.MISTRAL_API_KEY, baseURL: 'https://api.mistral.ai/v1' }) 
+  : null;
 
-const getGroq = () => {
-  if (!groq) {
-    const groqApiKey = process.env.GROQ_API_KEY;
-    if (groqApiKey) {
-      groq = new Groq({ apiKey: groqApiKey });
-    }
-  }
-  return groq;
-};
+// 🛡️ AQUÍ SOLO USAMOS LA VERSIÓN FLASH PARA CLIENTES
+const geminiFlashApiKey = process.env.GEMINI_FLASH_API_KEY;
+const geminiGenAI = geminiFlashApiKey ? new GenerativeAI.GoogleGenerativeAI(geminiFlashApiKey) : null;
 
-// ==========================================
-// EL MOTOR RAG: Búsqueda súper ligera en memoria
-// ==========================================
+// --- LÓGICA RAG (INVENTARIO) --- //
 const limpiarTexto = (txt: string) => 
   txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-function buscarEnInventarioLocal(mensaje: string, todosLosProductos: Producto[]): Producto[] {
+function buscarEnInventarioLocal(mensaje: string, todosLosProductos: any[]) {
   const mensajeLimpio = limpiarTexto(mensaje);
-  // > 2 letras para no ignorar productos cortos
+  // > 2 letras para no ignorar "pan", "ajo", "ron"
   const palabrasClave = mensajeLimpio.split(' ').filter(p => p.length > 2);
   
   if (palabrasClave.length === 0) return []; 
@@ -55,35 +42,30 @@ function buscarEnInventarioLocal(mensaje: string, todosLosProductos: Producto[])
   });
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { 
       promptMaestro = 'Eres un asistente cordial.', 
       mensajeUsuario, 
-      audioUsuario, // 🎤 EL CAMPO CLAVE PARA EL AUDIO
+      audioUsuario, 
       historial = [], 
       tienda_id = '1172769935927318' 
-    } = body as { 
-      promptMaestro?: string; 
-      mensajeUsuario?: string; 
-      audioUsuario?: string;
-      historial: MensajeHistorial[]; 
-      tienda_id?: string; 
-    };
+    } = body;
 
     let textoProcesado = mensajeUsuario || '';
+    let botReply = '';
+    let usedProvider = '';
 
     // ==========================================
-    // 1. CEREBRO AUDITIVO: Transcripción Whisper V3
+    // 🎧 1. TRANSCRIPCIÓN DE AUDIO VÍA GROQ (WHISPER)
     // ==========================================
     if (audioUsuario) {
-      console.log("🎤 Audio detectado en Base64, procesando con Whisper V3...");
+      console.log("🎤 Audio detectado en agente de cliente, procesando con Whisper V3 (Groq)...");
       try {
         const groqApiKey = process.env.GROQ_API_KEY;
         if (!groqApiKey) throw new Error('Falta GROQ_API_KEY');
 
-        // Limpiar el encabezado Base64
         const base64Data = audioUsuario.split(',')[1] || audioUsuario;
         const buffer = Buffer.from(base64Data, 'base64');
         const blob = new Blob([buffer], { type: 'audio/webm' });
@@ -103,29 +85,28 @@ export async function POST(req: Request) {
         if (data.error) throw new Error(data.error.message);
 
         textoProcesado = data.text;
-        console.log(`✅ Audio transcrito exitosamente: "${textoProcesado}"`);
-        
+        console.log(`✅ Transcripción exitosa (Whisper): "${textoProcesado}"`);
       } catch (errorAudio) {
         console.error("🔴 Error en transcripción de audio:", errorAudio);
-        return NextResponse.json({ respuesta: 'Lo siento, hay mucho ruido en la red y no logré escuchar bien tu nota de voz. ¿Podrías escribirlo?' });
+        return NextResponse.json({ respuesta: 'Lo siento, no logré escuchar bien tu nota de voz. ¿Podrías escribirlo?' });
       }
     }
 
     if (!textoProcesado) {
-       return NextResponse.json({ error: 'Se requiere un mensaje de texto o audio' }, { status: 400 });
+       return NextResponse.json({ error: 'Se requiere texto o audio para procesar' }, { status: 400 });
     }
 
     // ==========================================
-    // 2. EXTRACCIÓN NINJA (RAG)
+    // 📦 2. EXTRACCIÓN NINJA (RAG - INVENTARIO)
     // ==========================================
-    let inventarioCompleto: Producto[];
+    let inventarioCompleto: any[] = [];
     try {
       inventarioCompleto = await listProducts(tienda_id);
     } catch (dbError) {
       console.error("Error al obtener inventario de la DB:", dbError);
-      inventarioCompleto = []; 
     }
     
+    // Inyectamos datos de prueba limpios si está vacío
     if (!inventarioCompleto || inventarioCompleto.length === 0) {
       inventarioCompleto = [
         { nombre: "Zapatos Nike de Prueba", categoria: "Calzado", precio: 250000 },
@@ -136,72 +117,105 @@ export async function POST(req: Request) {
 
     const productosRelevantes = buscarEnInventarioLocal(textoProcesado, inventarioCompleto);
     
-    let contextoInventario = "No se encontraron coincidencias directas en el inventario.";
+    let contextoInventario = "No se encontraron coincidencias directas en el inventario con lo que pregunta el cliente.";
     if (productosRelevantes.length > 0) {
-       contextoInventario = `PRODUCTOS ENCONTRADOS:\n${productosRelevantes.map(p => `- ${p.nombre} (Categoría: ${p.categoria || 'N/A'}) - Precio: $${p.precio}`).join('\n')}`;
+       contextoInventario = `PRODUCTOS ENCONTRADOS RELEVANTES A LA CONSULTA ACTUAL:\n${productosRelevantes.map(p => `- ${p.nombre} (Categoría: ${p.categoria || 'N/A'}) - Precio: $${p.precio}`).join('\n')}`;
     }
 
-    const systemPromptText = `ESTÁS EN MODO SIMULADOR DE PRUEBAS INTERNO. 
-    Comportate ESTRICTAMENTE según estas instrucciones de tu jefe: 
+    const systemPromptText = `Comportate ESTRICTAMENTE según estas instrucciones de tu jefe: 
     ${promptMaestro}
     
     === BASE DE DATOS (SISTEMA RAG) ===
     ${contextoInventario}
     
-    Regla RAG: Si el cliente pregunta por un producto y aparece en la Base de Datos arriba, ofrécelo. Si no aparece, dile que no hay stock actual.
-    El cliente acaba de decir esto: ${textoProcesado}`;
+    Regla RAG: Si el cliente pregunta por un producto y aparece en la Base de Datos arriba, ofrécelo. Si no aparece, dile elegantemente que no hay stock actual de ese artículo.`;
 
-    let respuestaIA = "";
-
-    // ==========================================
-    // 3. CEREBRO DE TEXTO: Llama 3 (Titular) / Mixtral (Relevo)
-    // ==========================================
-    const groqClient = getGroq();
-    if (!groqClient) throw new Error('Falta GROQ_API_KEY');
-
-    const mensajesGroq = [
+    const formattedMessages = [
       { role: 'system', content: systemPromptText },
-      ...historial.map(msg => ({
-        role: msg.rol === 'usuario' ? 'user' : 'assistant',
-        content: msg.texto
+      ...historial.map((msg: any) => ({
+        role: (msg.rol === 'ia' || msg.rol === 'asistente' || msg.rol === 'bot') ? 'assistant' : 'user',
+        content: msg.texto || msg.content
       })),
       { role: 'user', content: textoProcesado }
     ];
 
+    // ==========================================
+    // 🚀 3. EL CASCADEO DE 4 NIVELES (CEREBRAS -> GROQ -> GEMINI FLASH -> MISTRAL)
+    // ==========================================
     try {
-       console.log("🚀 Generando respuesta con Llama 3...");
-       const chatCompletion = await groqClient.chat.completions.create({
-         messages: mensajesGroq as any,
-         model: "llama-3.1-8b-instant", 
-         temperature: 0.3, 
-       });
+      // 🥇 Nivel 1: Cerebras
+      if (!cerebrasClient) throw new Error('Cerebras no configurado');
+      const completion = await cerebrasClient.chat.completions.create({
+        model: 'gpt-oss-120b',
+        messages: formattedMessages as any,
+        temperature: 0.3,
+      });
+      botReply = completion.choices[0]?.message?.content || '';
+      usedProvider = 'Cerebras AI ⚡';
 
-       respuestaIA = chatCompletion.choices[0]?.message?.content || "Error en la generación.";
-       console.log("✅ Respondido con Llama 3");
+    } catch (errCerebras) {
+      console.warn(`⚠️ Cerebras falló. Activando relevo Groq...`);
+      
+      try {
+        // 🥈 Nivel 2: Groq (Llama 3)
+        if (!groqClient) throw new Error('Groq no configurado');
+        const completionGroq = await groqClient.chat.completions.create({
+          model: 'llama-3.1-8b-instant',
+          messages: formattedMessages as any,
+          temperature: 0.3,
+        });
+        botReply = completionGroq.choices[0]?.message?.content || '';
+        usedProvider = 'Groq 🚀';
 
-    } catch (errorLlama) {
-       console.warn("⚠️ Llama 3 falló. Activando relevo Mixtral...", errorLlama);
-       
-       try {
-          const chatCompletionFallback = await groqClient.chat.completions.create({
-            messages: mensajesGroq as any,
-            model: "mixtral-8x7b-32768", 
-            temperature: 0.3, 
+      } catch (errGroq) {
+        console.warn(`⚠️ Groq falló. Activando relevo Gemini Flash...`);
+        
+        try {
+          // 🥉 Nivel 3: Gemini Flash (Versión ligera/gratis)
+          if (!geminiGenAI) throw new Error('Gemini Flash no configurado');
+          const geminiModel = geminiGenAI.getGenerativeModel({ 
+            model: 'gemini-2.5-flash', 
+            systemInstruction: systemPromptText 
           });
 
-          respuestaIA = chatCompletionFallback.choices[0]?.message?.content || "Error en la generación.";
-          console.log("✅ Respondido con Mixtral");
+          const contents = formattedMessages
+            .filter(m => m.role !== 'system')
+            .map(m => ({
+              role: m.role === 'assistant' ? 'model' : 'user',
+              parts: [{ text: m.content }]
+            }));
 
-       } catch (errorMixtral) {
-          console.error("🔴 Ambos motores de Groq fallaron:", errorMixtral);
-          respuestaIA = "⚠️ Error crítico: Los motores de IA están experimentando alta demanda.";
-       }
+          const result = await geminiModel.generateContent({ contents });
+          botReply = result.response.text();
+          usedProvider = 'Gemini Flash 🛡️';
+
+        } catch (errGemini) {
+          console.warn(`⚠️ Gemini Flash falló. Activando relevo Mistral...`);
+          
+          try {
+            // 🛡️ Nivel 4: Mistral (El Escudo Final)
+            if (!mistralClient) throw new Error('Mistral no configurado');
+            const completionMistral = await mistralClient.chat.completions.create({
+              model: 'ministral-3b-2512',
+              messages: formattedMessages as any,
+              temperature: 0.3,
+            });
+            botReply = completionMistral.choices[0]?.message?.content || '';
+            usedProvider = 'Mistral 🔥';
+
+          } catch (errMistral) {
+            console.error(`🔴 CRÍTICO: Todos los motores fallaron.`);
+            botReply = "⚠️ Error crítico: Los sistemas de IA están experimentando alta demanda. Intenta en un momento.";
+            usedProvider = 'Ninguno (Fallo en Cascada)';
+          }
+        }
+      }
     }
 
-    return NextResponse.json({ respuesta: respuestaIA });
+    return NextResponse.json({ respuesta: botReply, provider: usedProvider });
 
   } catch (error) {
-    console.error('Error general en el simulador:', error);
-    return NextResponse.json({ error: 'Fallo interno del servidor' }, { status: 500 });
+    console.error('Error en el simulador:', error);
+    return NextResponse.json({ error: 'Fallo al procesar la simulación' }, { status: 500 });
   }
 }

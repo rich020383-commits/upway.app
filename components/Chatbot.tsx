@@ -2,12 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, Terminal, Cpu, Activity, Zap, ShieldCheck } from "lucide-react";
+import { X, Send, Terminal, Cpu, Activity, Zap, ShieldCheck, Mic, Square } from "lucide-react";
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
+  const [aiProvider, setAiProvider] = useState("SISTEMA_EN_ESPERA");
   
-  // 🔥 CEREBRO CORREGIDO: Enfocado en llevar al cliente al Simulador
   const [messages, setMessages] = useState([
     { 
       role: "system", 
@@ -16,7 +16,7 @@ export default function Chatbot() {
 REGLAS ESTRICTAS:
 1. NUNCA ofrezcas menús numerados (Ej: "Presiona 1 para..."). Eres un agente fluido de nueva generación.
 2. Tu tono es elegante, hiper-empático, persuasivo y con frescura corporativa.
-3. Si envían textos informales, entiéndelos perfectamente. Si simulan enviarte un audio, responde: "Acabo de procesar tu nota de voz, te entiendo perfectamente...".
+3. Si el cliente te envía un audio (lo sabrás porque dice "🎤 Nota de voz enviada"), responde con total naturalidad al contenido de ese mensaje, destacando lo genial que es que Upway pueda procesar voz.
 
 MANEJO DE OBJECIONES LETAL:
 - Si mencionan "Callbell", "Zendesk" o "Helpdesks": Responde que esas plataformas cobran "por cada asesor humano". Upway no organiza humanos, Upway ES el empleado con tarifa plana.
@@ -36,6 +36,11 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
+  // 🔥 ESTADOS PARA AUDIO
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -44,7 +49,7 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isLoading]);
+  }, [messages, isLoading, isRecording]);
 
   useEffect(() => {
     const escucharBoton = () => {
@@ -60,6 +65,86 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
     setIsOpen(false);
   };
 
+  // ==========================================
+  // LÓGICA DE GRABACIÓN DE AUDIO
+  // ==========================================
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = () => {
+          const base64Audio = reader.result;
+          enviarAudio(base64Audio as string);
+        };
+
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error("Error al acceder al micrófono:", error);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const enviarAudio = async (base64Audio: string) => {
+    const userMessage = { role: "user", content: "🎤 Nota de voz enviada" };
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
+    setIsLoading(true);
+    setAiProvider("ESCUCHANDO_AUDIO..."); 
+
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+      // 🔥 APUNTAMOS A LA RUTA PREMIUM DE SOPHIE
+      const res = await fetch(`${baseUrl}/api/sophie`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: updatedMessages, audioUsuario: base64Audio }), 
+      });
+      const data = await res.json();
+      
+      if (data.provider) setAiProvider(data.provider);
+      
+      const organicDelay = Math.floor(Math.random() * 800) + 500;
+      setTimeout(() => {
+        setMessages((prev) => [...prev, { role: "bot", content: data.reply }]);
+        setIsLoading(false);
+      }, organicDelay);
+
+    } catch (error) {
+      setAiProvider("ERROR_DE_RED");
+      setTimeout(() => {
+        setMessages((prev) => [...prev, { role: "bot", content: "⚠️ ERROR DE SISTEMA: Interrupción en la red neuronal al procesar tu audio." }]);
+        setIsLoading(false);
+      }, 1500);
+    }
+  };
+
+  // ==========================================
+  // LÓGICA DE TEXTO
+  // ==========================================
   const sendMessage = async () => {
     if (!input.trim()) return;
     
@@ -68,26 +153,30 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
     setMessages(updatedMessages); 
     setInput("");
     setIsLoading(true);
+    setAiProvider("ENRUTANDO_PETICIÓN...");
 
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://upway.business";
-      const res = await fetch(`${baseUrl}/api/chat`, {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+      // 🔥 APUNTAMOS A LA RUTA PREMIUM DE SOPHIE
+      const res = await fetch(`${baseUrl}/api/sophie`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Enviamos el historial completo al backend
         body: JSON.stringify({ messages: updatedMessages }), 
       });
       const data = await res.json();
       
-      const organicDelay = Math.floor(Math.random() * 1000) + 1000;
+      if (data.provider) setAiProvider(data.provider);
+      
+      const organicDelay = Math.floor(Math.random() * 800) + 500;
       setTimeout(() => {
         setMessages((prev) => [...prev, { role: "bot", content: data.reply }]);
         setIsLoading(false);
       }, organicDelay);
 
     } catch (error) {
+      setAiProvider("ERROR_DE_RED");
       setTimeout(() => {
-        setMessages((prev) => [...prev, { role: "bot", content: "⚠️ ERROR DE SISTEMA: Interrupción en la red neuronal. Intenta enviar el comando nuevamente." }]);
+        setMessages((prev) => [...prev, { role: "bot", content: "⚠️ ERROR DE SISTEMA: Interrupción en la red neuronal." }]);
         setIsLoading(false);
       }, 1500);
     }
@@ -129,7 +218,6 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
               <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,209,255,0.05)_50%)] bg-[length:100%_4px] pointer-events-none" />
               
               <div className="flex items-center gap-4 relative z-10">
-                {/* NÚCLEO DE SOPHIE (Visualizador) */}
                 <div className="relative w-12 h-12 flex items-center justify-center">
                   <motion.div
                     animate={{ rotate: isLoading ? 360 : 0, scale: isLoading ? [1, 1.1, 1] : 1 }}
@@ -149,17 +237,16 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
                     SOPHIE_V2 <ShieldCheck className="w-3.5 h-3.5 text-[#00D1FF]" />
                   </h3>
                   <div className="flex items-center gap-3 mt-1">
-                    <span className="flex items-center gap-1 text-[9px] font-mono text-[#00D1FF]/70 uppercase tracking-widest">
-                      <Cpu className="w-3 h-3" /> {isLoading ? "98%" : "12%"}
+                    <span className="flex items-center gap-1 text-[9px] font-mono text-[#00D1FF]/70 uppercase tracking-widest truncate max-w-[150px]" title={aiProvider}>
+                      <Cpu className="w-3 h-3 shrink-0" /> {aiProvider}
                     </span>
-                    <span className="flex items-center gap-1 text-[9px] font-mono text-[#00D1FF]/70 uppercase tracking-widest">
-                      <Activity className="w-3 h-3" /> {isLoading ? "PROCESANDO" : "IDLE"}
+                    <span className="flex items-center gap-1 text-[9px] font-mono text-[#00D1FF]/70 uppercase tracking-widest shrink-0">
+                      <Activity className="w-3 h-3 shrink-0" /> {isLoading ? "PROCESANDO" : "IDLE"}
                     </span>
                   </div>
                 </div>
               </div>
               
-              {/* 🔥 BOTÓN DE CIERRE REFORZADO */}
               <button 
                 onClick={cerrarChat} 
                 className="text-white/60 hover:text-white hover:bg-white/10 p-2.5 rounded-xl transition-all relative z-[9999] cursor-pointer flex items-center justify-center bg-black/20"
@@ -171,7 +258,6 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
             
             {/* ÁREA DE MENSAJES (TERMINAL) */}
             <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-gradient-to-b from-[#03050a]/50 to-[#0A0E14]/80 scroll-smooth">
-              {/* 🔥 FILTRO: El prompt maestro ("system") no se renderiza visualmente */}
               {messages.filter(m => m.role !== "system").map((m, i) => (
                 <motion.div 
                   initial={{ opacity: 0, x: m.role === 'user' ? 20 : -20 }}
@@ -190,13 +276,9 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
                     <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/30" />
                     <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/30" />
 
-                    {/* 🔥 LA MAGIA OCURRE AQUÍ: Interceptamos la palabra clave */}
                     {m.content.includes('[BOTON_REGISTRO]') ? (
                       <div className="flex flex-col gap-3">
-                        {/* Imprimimos el mensaje sin la palabra secreta */}
                         <span>{m.content.replace('[BOTON_REGISTRO]', '')}</span>
-                        
-                        {/* Renderizamos el botón que redirige al registro */}
                         <motion.button 
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
@@ -228,28 +310,63 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
                   </motion.div>
                 )}
               </AnimatePresence>
+              
+              <AnimatePresence>
+                {isRecording && (
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="flex justify-end">
+                    <div className="flex items-center gap-2 rounded-[20px] rounded-tr-[4px] border border-red-500/30 bg-red-500/10 p-3 backdrop-blur-md text-red-400 text-[11px] font-mono tracking-widest uppercase">
+                      <span className="animate-pulse h-1.5 w-1.5 rounded-full bg-red-500 block"></span> Grabando...
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
               <div ref={messagesEndRef} />
             </div>
 
-            {/* INPUT DE TERMINAL */}
-            <div className="p-4 bg-[#03050a] border-t border-[#00D1FF]/20 shrink-0">
+            {/* INPUT DE TERMINAL CON BOTONERA MULTIMEDIA */}
+            <div className="p-4 bg-[#03050a] border-t border-[#00D1FF]/20 shrink-0 relative z-20">
               <div className="relative flex items-center bg-[#0A0E14] border border-white/10 focus-within:border-[#00D1FF]/50 rounded text-white overflow-hidden transition-colors">
                 <div className="pl-3 text-[#00D1FF] font-mono text-[14px]">{'>'}</div>
                 <input 
                   value={input} 
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                  placeholder="Ingresa un comando o pregunta..."
-                  disabled={isLoading}
-                  className="w-full bg-transparent pl-3 pr-12 py-3.5 text-[13px] font-mono text-white placeholder-white/30 outline-none disabled:opacity-50"
+                  placeholder={isRecording ? "Grabando audio..." : "Ingresa un comando o audio..."}
+                  disabled={isLoading || isRecording}
+                  className="w-full bg-transparent pl-3 pr-14 py-3.5 text-[13px] font-mono text-white placeholder-white/30 outline-none disabled:opacity-50"
                 />
-                <button 
-                  onClick={sendMessage} 
-                  disabled={isLoading || !input.trim()}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/5 hover:bg-[#00D1FF]/20 disabled:bg-transparent text-[#00D1FF] disabled:text-white/20 p-2 rounded transition-colors flex items-center justify-center"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
+                
+                {/* 🔥 BOTONERA DINÁMICA DE SOFÍA */}
+                <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  {input.trim() ? (
+                    <motion.button 
+                      whileTap={{ scale: 0.9 }}
+                      onClick={sendMessage} 
+                      disabled={isLoading}
+                      className="bg-white/5 hover:bg-[#00D1FF]/20 disabled:bg-transparent text-[#00D1FF] disabled:text-white/20 p-2.5 rounded transition-colors flex items-center justify-center"
+                    >
+                      <Send className="w-4 h-4" />
+                    </motion.button>
+                  ) : isRecording ? (
+                    <motion.button 
+                      whileTap={{ scale: 0.9 }}
+                      onClick={stopRecording} 
+                      className="bg-red-500/20 hover:bg-red-500/40 text-red-500 p-2.5 rounded transition-colors flex items-center justify-center shadow-[0_0_10px_rgba(239,68,68,0.3)] animate-pulse"
+                    >
+                      <Square className="w-4 h-4 fill-current" />
+                    </motion.button>
+                  ) : (
+                    <motion.button 
+                      whileTap={{ scale: 0.9 }}
+                      onClick={startRecording} 
+                      disabled={isLoading}
+                      className="bg-white/5 hover:bg-[#00D1FF]/20 text-[#00D1FF] p-2.5 rounded transition-colors flex items-center justify-center disabled:opacity-50"
+                    >
+                      <Mic className="w-4 h-4" />
+                    </motion.button>
+                  )}
+                </div>
               </div>
             </div>
           </motion.div>
