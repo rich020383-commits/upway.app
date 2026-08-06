@@ -7,13 +7,18 @@ import { useRouter } from 'next/navigation';
 
 declare global {
   interface Window {
-    FB: any;
+    FB?: {
+      init: (params: Record<string, unknown>) => void;
+      login: (callback: (response: unknown) => void, options?: Record<string, unknown>) => void;
+    };
   }
 }
 
 export default function ActivacionWhatsAppPage() {
   const [conectando, setConectando] = useState(false);
   const [sdkCargado, setSdkCargado] = useState(false);
+  const [sdkError, setSdkError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter(); 
 
   const inicializarFacebook = () => {
@@ -26,9 +31,11 @@ export default function ActivacionWhatsAppPage() {
           version    : 'v20.0'
         });
         setSdkCargado(true);
+        setSdkError(null);
         console.log("✅ SDK de Facebook inicializado con éxito.");
       } catch (e) {
         console.error("Error al inicializar FB:", e);
+        setSdkError("No se pudo inicializar el SDK de Meta.");
       }
     }
   };
@@ -37,7 +44,7 @@ export default function ActivacionWhatsAppPage() {
     if (typeof window === "undefined") return;
 
     if (window.FB) {
-      inicializarFacebook();
+      setTimeout(() => inicializarFacebook(), 0);
       return;
     }
 
@@ -51,7 +58,7 @@ export default function ActivacionWhatsAppPage() {
     const timeout = setTimeout(() => {
       clearInterval(interval);
       if (!window.FB) {
-        setSdkCargado(true);
+        setSdkError("El SDK de Meta no se cargó. Verifica tu conexión o desactiva bloqueadores.");
       }
     }, 4000);
 
@@ -63,17 +70,23 @@ export default function ActivacionWhatsAppPage() {
 
   const iniciarConexionMeta = () => {
     if (!window.FB) {
-      alert("El sistema de Meta está tardando en responder o un bloqueador de anuncios está interfiriendo.");
+      setError("El sistema de Meta no está listo. Intenta recargar la página o verifica tu conexión.");
       return;
     }
 
+    setError(null);
     setConectando(true);
     
     // 🔥 ATENCIÓN: El callback de FB.login NO puede ser async por restricciones del SDK de Meta
-    window.FB.login((response: any) => {
-      if (response && response.authResponse) {
-        const { accessToken } = response.authResponse;
-        
+    window.FB.login((response: unknown) => {
+      const typedResponse = response as {
+        authResponse?: { accessToken?: string };
+        status?: string;
+      };
+      const authResponse = typedResponse.authResponse;
+      const accessToken = authResponse?.accessToken;
+
+      if (authResponse && accessToken) {
         fetch('/api/meta/callback', { 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -91,18 +104,24 @@ export default function ActivacionWhatsAppPage() {
         })
         .catch((error) => {
           console.error("❌ Error enviando datos al backend:", error);
-          alert("Hubo un problema vinculando la cuenta. Intenta de nuevo.");
+          setError("Hubo un problema vinculando la cuenta. Intenta de nuevo más tarde.");
           setConectando(false);
         });
+      } else if (typedResponse.status === 'not_authorized' || typedResponse.status === 'unknown') {
+        console.log("❌ El usuario no autorizó la aplicación de Meta.");
+        setError("No se completó la autorización de Meta. Verifica los permisos de tu aplicación y vuelve a intentarlo.");
+        setConectando(false);
       } else {
         console.log("❌ El usuario canceló la conexión o cerró la ventana.");
+        setError("La conexión con Meta fue cancelada. Si el problema persiste, revisa los permisos de tu app.");
         setConectando(false);
       }
     }, {
       config_id: '2018640519013518', // 👈 ¡Tu ID de configuración oficial!
-      response_type: 'code',
-      override_default_response_type: true,
       scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging',
+      return_scopes: true,
+      display: 'popup',
+      auth_type: 'rerequest',
       extras: { 
         feature: 'whatsapp_embedded_signup',
         sessionInfoVersion: '3'
@@ -116,6 +135,7 @@ export default function ActivacionWhatsAppPage() {
         src="https://connect.facebook.net/es_LA/sdk.js" 
         strategy="afterInteractive" 
         onLoad={inicializarFacebook}
+        onError={() => setSdkError("No se pudo cargar el SDK de Meta. Intenta recargar la página.")}
       />
 
       <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.15),_transparent_55%)] bg-slate-950 px-4 py-12 text-white sm:px-6 lg:px-8 flex items-center justify-center">
@@ -155,7 +175,7 @@ export default function ActivacionWhatsAppPage() {
 
                 <button 
                   onClick={iniciarConexionMeta}
-                  disabled={conectando || !sdkCargado}
+                  disabled={conectando || !sdkCargado || !!sdkError}
                   className="group relative w-full flex items-center justify-center gap-3 overflow-hidden rounded-2xl bg-[#1877F2] px-6 py-4 font-semibold text-white shadow-[0_0_20px_rgba(24,119,242,0.3)] transition-all hover:bg-[#166FE5] hover:shadow-[0_0_30px_rgba(24,119,242,0.5)] disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {conectando ? (
@@ -171,6 +191,18 @@ export default function ActivacionWhatsAppPage() {
                     </>
                   )}
                 </button>
+
+                {sdkError ? (
+                  <p className="mt-4 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-left text-xs text-red-200">
+                    {sdkError}
+                  </p>
+                ) : null}
+
+                {error ? (
+                  <p className="mt-4 rounded-2xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-left text-xs text-amber-100">
+                    {error}
+                  </p>
+                ) : null}
               </div>
             </div>
 
