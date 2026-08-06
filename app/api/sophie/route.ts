@@ -5,25 +5,23 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 const geminiApiKey = process.env.GEMINI_PREMIUM_API_KEY;
 const genAI = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
 
-const AGENTE_SUPREMO_PROMPT = `Rol: Eres un cerrador de ventas de alto nivel, persuasivo, profesional y educado. Trabajas y te identificas orgullosamente como un "Empleado Digital de Upway". 
+// 🔥 PROMPT AFILADO, ANTIRREPETICIÓN Y OPTIMIZADO PARA CONVERSIÓN
+const AGENTE_SUPREMO_PROMPT = `Rol: Eres Sophie, representante comercial prémium y Empleada Digital de Upway (BARAKAH TECH HUB SAS). Tu estilo es elegante, sumamente persuasivo, directo y corporativo.
 
-Objetivo Principal: Tu misión es asistir a los clientes en el chat, hacer preguntas estratégicas para diagnosticar el tamaño de su operación y recetar el plan exacto que necesitan.
+DIRECTRICES DE CONVERSIÓN (CERO REPETICIÓN):
+1. Sé concisa y letal. Ve directo al grano. No des explicaciones aburridas ni repitas lo que el usuario ya sabe.
+2. Diagnostica rápido: pregunta qué proceso quieren automatizar en su negocio (pymes, restaurantes, ferreterías).
+3. Conecta las necesidades con los planes de inmediato:
+   - Plan Emprendedor ($149.900 COP/mes): Texto y catálogo básico.
+   - Plan Negocio ($299.900 COP/mes - El estrella): Desbloquea IA multimodal, notas de voz, imágenes y RAG de inventario. (Si mencionan audios o pagos, recétalo de una vez).
+   - Plan PRO ($499.900 COP/mes): Alto volumen y reportes avanzados.
+4. Manejo de objeciones: Si mencionan Zendesk/Callbell, diles que cobran por asesor humano; Upway es un empleado digital con tarifa plana. Si mencionan ManyChat, diles que son bots rígidos del pasado; tú piensas y cierras ventas.
 
-ESTRATEGIA DE VENTAS Y PLANES (SaaS):
-No ofrezcas todo de golpe. Pregunta primero qué necesitan automatizar. Usa estos planes para cerrar la venta:
-1. Plan Emprendedor ($149.900 COP/mes): El básico. SOLO incluye atención por texto, toma de pedidos automatizada, catálogo estático y personalidad. (No incluye audios ni imágenes).
-2. Plan Negocio ($299.900 COP/mes - Nuestro plan estrella y más vendido): Desbloquea la IA multimodal. Incluye procesamiento de Notas de Voz, lectura de Imágenes y Recibos, PDFs, inventario en tiempo real y confirmación de pagos. (Si el cliente menciona audios o pagos, recomiéndale este de inmediato).
-3. Plan PRO ($499.900 COP/mes): Para alto volumen. Suma dashboards, reportes avanzados, análisis de tendencias y máxima concurrencia.
-
-🚨 REGLA SUPREMA DE DIRECCIONAMIENTO (DEMO Y PRUEBAS):
-Si el usuario menciona palabras como: "probar", "simulador", "demo", "cómo se vería", "crear cuenta" o "ver cómo funciona":
-1. CORTA INMEDIATAMENTE CUALQUIER EXPLICACIÓN LARGA.
-2. NO le hagas preguntas de calificación.
-3. TU ÚNICA RESPUESTA DEBE SER enviarlo al panel usando la palabra clave.
-4. Dile exactamente esto: "¡Claro que sí! La mejor forma de verlo es en acción. Entra a nuestro panel gratis ahora mismo y mira cómo respondería tu agente en tiempo real. [BOTON_REGISTRO]"
-
-Cierre y Pagos:
-Para cerrar la venta o agendar una demo, indica que el proceso se realiza directamente en nuestro panel, aceptando pagos seguros vía Bold, Nequi, Bancolombia o Wompi.`;
+🚨 REGLA SUPREMA DE DIRECCIONAMIENTO AL SIMULADOR:
+Si el cliente dice que quiere "probar", "ver demo", "simular" o "cómo funciona":
+- CORTA cualquier explicación.
+- No hagas más preguntas.
+- Tu respuesta DEBE incluir exactamente este texto al final: "¡Claro que sí! La mejor forma de verlo es en acción. Entra a nuestro panel gratis ahora mismo y mira cómo respondería tu agente en tiempo real. [BOTON_REGISTRO]"`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,13 +29,17 @@ export async function POST(req: NextRequest) {
     
     if (!genAI) throw new Error('Falta GEMINI_PREMIUM_API_KEY en el .env');
 
-    // Usando Gemini 2.0 Flash (Soporte nativo de audio total, rápido y sin errores 404)
+    // 🚀 Usamos gemini-2.5-flash (o gemini-1.5-pro) con parámetros de control de costos
     const model = genAI.getGenerativeModel({ 
-      model: 'gemini-2.0-flash', 
-      systemInstruction: AGENTE_SUPREMO_PROMPT 
+      model: 'gemini-2.5-flash', 
+      systemInstruction: AGENTE_SUPREMO_PROMPT,
+      generationConfig: {
+        temperature: 0.6,      // Más precisa, menos divagación y repetición
+        maxOutputTokens: 400,  // 💰 Límite estricto de tokens para ahorrar dinero por respuesta
+      }
     });
 
-    // 🔥 FILTRAR EL ROL 'system': Gemini contents solo permite 'user' y 'model'
+    // Filtrar el rol 'system' del historial del cliente
     const chatMessages = messages.filter((m: any) => m.role !== 'system');
 
     let formattedContents = chatMessages.map((m: any) => ({
@@ -45,17 +47,16 @@ export async function POST(req: NextRequest) {
       parts: [{ text: m.content }]
     }));
 
-    // 🎧 SI HAY AUDIO, LO AGREGAMOS COMO MULTIMEDIA NATIVA AL FINAL
+    // 🎧 SI HAY AUDIO, LO PROCESAMOS NATIVAMENTE
     if (audioUsuario) {
-      console.log("🎤 Audio detectado en Sophie. Procesando nativamente con Gemini...");
+      console.log("🎤 Audio detectado en Sophie (Modo Ahorro y Alta Conversión)...");
       const base64Data = audioUsuario.split(',')[1] || audioUsuario;
       
-      // Si el último mensaje del usuario era el texto genérico "🎤 Nota de voz enviada", lo reemplazamos por el contenido de audio real
       if (formattedContents.length > 0 && formattedContents[formattedContents.length - 1].role === 'user') {
         formattedContents[formattedContents.length - 1] = {
           role: 'user',
           parts: [
-            { text: "El cliente ha enviado esta nota de voz. Escúchala con atención y responde de acuerdo a tu rol comercial:" },
+            { text: "El cliente envió esta nota de voz. Escúchala y responde con tu estilo comercial afilado y directo:" },
             { inlineData: { data: base64Data, mimeType: "audio/webm" } }
           ]
         };
@@ -65,11 +66,11 @@ export async function POST(req: NextRequest) {
     const result = await model.generateContent({ contents: formattedContents });
     const botReply = result.response.text();
 
-    console.log(`✅ Sophie respondió con éxito (Gemini Premium)`);
+    console.log(`✅ Sophie respondió con éxito bajo control de tokens`);
     return NextResponse.json({ reply: botReply, provider: 'Gemini Premium 💎' });
 
   } catch (error: any) {
     console.error('Error crítico en Sophie:', error);
-    return NextResponse.json({ reply: `⚠️ Error en servidor Sophie: ${error.message || 'Desconocido'}` }, { status: 500 });
+    return NextResponse.json({ reply: `⚠️ Error temporal en el sistema de Sophie. ¡Inténtalo de nuevo!` }, { status: 500 });
   }
 }
