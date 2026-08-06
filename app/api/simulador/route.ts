@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai'; // 🔵 EL TITULAR (Mantenido por si decides reactivarlo en el futuro)
-import Groq from 'groq-sdk'; // 🥷 EL RELEVO (Ahora será nuestro Titular y Relevo)
-import { listProducts } from '@/lib/app-state'; // IMPORTACIÓN DEL ESTADO DE LA APLICACIÓN
+import Groq from 'groq-sdk'; // 🥷 EL ÚNICO MOTOR: GROQ
+import { listProducts } from '@/lib/app-state';
 
 // ==========================================
 // INTERFACES DE TYPESCRIPT
@@ -13,26 +12,14 @@ interface Producto {
 }
 
 interface MensajeHistorial {
-  rol: 'usuario' | 'asistente' | 'ia'; // Añadido 'ia' por compatibilidad con el front
+  rol: 'usuario' | 'asistente' | 'ia';
   texto: string;
 }
 
 // ==========================================
-// INSTANCIACIÓN GLOBAL DE CLIENTES IA
+// INSTANCIACIÓN GLOBAL DE CLIENTE IA
 // ==========================================
-// Evita crear nuevas instancias en cada petición
-let genAI: GoogleGenerativeAI | null = null;
 let groq: Groq | null = null;
-
-const getGenAI = () => {
-  if (!genAI) {
-    const geminiApiKey = process.env.GEMINI_FREE_API_KEY;
-    if (geminiApiKey) {
-      genAI = new GoogleGenerativeAI(geminiApiKey);
-    }
-  }
-  return genAI;
-};
 
 const getGroq = () => {
   if (!groq) {
@@ -47,13 +34,12 @@ const getGroq = () => {
 // ==========================================
 // EL MOTOR RAG: Búsqueda súper ligera en memoria
 // ==========================================
-// Función para limpiar texto (quitar acentos y pasar a minúsculas)
 const limpiarTexto = (txt: string) => 
   txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 function buscarEnInventarioLocal(mensaje: string, todosLosProductos: Producto[]): Producto[] {
   const mensajeLimpio = limpiarTexto(mensaje);
-  // 🔥 CORRECCIÓN: > 2 letras para que encuentre "pan", "ajo", "ron"
+  // > 2 letras para no ignorar productos cortos
   const palabrasClave = mensajeLimpio.split(' ').filter(p => p.length > 2);
   
   if (palabrasClave.length === 0) return []; 
@@ -75,7 +61,7 @@ export async function POST(req: Request) {
     const { 
       promptMaestro = 'Eres un asistente cordial.', 
       mensajeUsuario, 
-      audioUsuario, // 🔥 NUEVO: Recibimos audio en Base64
+      audioUsuario, // 🎤 EL CAMPO CLAVE PARA EL AUDIO
       historial = [], 
       tienda_id = '1172769935927318' 
     } = body as { 
@@ -89,15 +75,15 @@ export async function POST(req: Request) {
     let textoProcesado = mensajeUsuario || '';
 
     // ==========================================
-    // 🎧 CEREBRO AUDITIVO: Transcripción Whisper V3 (Groq)
+    // 1. CEREBRO AUDITIVO: Transcripción Whisper V3
     // ==========================================
     if (audioUsuario) {
-      console.log("🎤 Audio detectado, procesando con Whisper V3...");
+      console.log("🎤 Audio detectado en Base64, procesando con Whisper V3...");
       try {
         const groqApiKey = process.env.GROQ_API_KEY;
-        if (!groqApiKey) throw new Error('Falta GROQ_API_KEY en variables de entorno');
+        if (!groqApiKey) throw new Error('Falta GROQ_API_KEY');
 
-        // Limpiar el encabezado Base64 de webm
+        // Limpiar el encabezado Base64
         const base64Data = audioUsuario.split(',')[1] || audioUsuario;
         const buffer = Buffer.from(base64Data, 'base64');
         const blob = new Blob([buffer], { type: 'audio/webm' });
@@ -105,13 +91,11 @@ export async function POST(req: Request) {
         const formData = new FormData();
         formData.append('file', blob, 'nota_de_voz.webm');
         formData.append('model', 'whisper-large-v3');
-        formData.append('language', 'es'); // Forzamos español
+        formData.append('language', 'es'); 
 
         const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${groqApiKey}`
-          },
+          headers: { 'Authorization': `Bearer ${groqApiKey}` },
           body: formData
         });
 
@@ -119,28 +103,29 @@ export async function POST(req: Request) {
         if (data.error) throw new Error(data.error.message);
 
         textoProcesado = data.text;
-        console.log(`✅ Transcripción exitosa: "${textoProcesado}"`);
+        console.log(`✅ Audio transcrito exitosamente: "${textoProcesado}"`);
         
       } catch (errorAudio) {
-        console.error("🔴 Error al transcribir audio:", errorAudio);
-        return NextResponse.json({ respuesta: 'Lo siento, no logré escuchar bien tu nota de voz. ¿Podrías escribirlo o enviarlo de nuevo?' });
+        console.error("🔴 Error en transcripción de audio:", errorAudio);
+        return NextResponse.json({ respuesta: 'Lo siento, hay mucho ruido en la red y no logré escuchar bien tu nota de voz. ¿Podrías escribirlo?' });
       }
     }
 
     if (!textoProcesado) {
-       return NextResponse.json({ error: 'Mensaje de usuario requerido' }, { status: 400 });
+       return NextResponse.json({ error: 'Se requiere un mensaje de texto o audio' }, { status: 400 });
     }
 
-    // 1. EXTRACCIÓN NINJA (RAG)
+    // ==========================================
+    // 2. EXTRACCIÓN NINJA (RAG)
+    // ==========================================
     let inventarioCompleto: Producto[];
     try {
       inventarioCompleto = await listProducts(tienda_id);
     } catch (dbError) {
       console.error("Error al obtener inventario de la DB:", dbError);
-      inventarioCompleto = []; // Fallback a array vacío si falla la DB
+      inventarioCompleto = []; 
     }
     
-    // Inyectamos datos de prueba limpios si está vacío
     if (!inventarioCompleto || inventarioCompleto.length === 0) {
       inventarioCompleto = [
         { nombre: "Zapatos Nike de Prueba", categoria: "Calzado", precio: 250000 },
@@ -151,9 +136,9 @@ export async function POST(req: Request) {
 
     const productosRelevantes = buscarEnInventarioLocal(textoProcesado, inventarioCompleto);
     
-    let contextoInventario = "No se encontraron coincidencias directas en el inventario con lo que pregunta el cliente.";
+    let contextoInventario = "No se encontraron coincidencias directas en el inventario.";
     if (productosRelevantes.length > 0) {
-       contextoInventario = `PRODUCTOS ENCONTRADOS RELEVANTES A LA CONSULTA ACTUAL:\n${productosRelevantes.map(p => `- ${p.nombre} (Categoría: ${p.categoria || 'N/A'}) - Precio: $${p.precio}`).join('\n')}`;
+       contextoInventario = `PRODUCTOS ENCONTRADOS:\n${productosRelevantes.map(p => `- ${p.nombre} (Categoría: ${p.categoria || 'N/A'}) - Precio: $${p.precio}`).join('\n')}`;
     }
 
     const systemPromptText = `ESTÁS EN MODO SIMULADOR DE PRUEBAS INTERNO. 
@@ -163,29 +148,28 @@ export async function POST(req: Request) {
     === BASE DE DATOS (SISTEMA RAG) ===
     ${contextoInventario}
     
-    Regla RAG: Si el cliente pregunta por un producto y aparece en la Base de Datos arriba, ofrécelo. Si no aparece, dile elegantemente que no hay stock actual de ese artículo.`;
+    Regla RAG: Si el cliente pregunta por un producto y aparece en la Base de Datos arriba, ofrécelo. Si no aparece, dile que no hay stock actual.
+    El cliente acaba de decir esto: ${textoProcesado}`;
 
     let respuestaIA = "";
 
     // ==========================================
-    // CEREBRO DE TEXTO: TITULAR (Llama 3) Y RELEVO (Mixtral)
-    // Desactivamos Gemini por problemas de bloqueo
+    // 3. CEREBRO DE TEXTO: Llama 3 (Titular) / Mixtral (Relevo)
     // ==========================================
+    const groqClient = getGroq();
+    if (!groqClient) throw new Error('Falta GROQ_API_KEY');
+
+    const mensajesGroq = [
+      { role: 'system', content: systemPromptText },
+      ...historial.map(msg => ({
+        role: msg.rol === 'usuario' ? 'user' : 'assistant',
+        content: msg.texto
+      })),
+      { role: 'user', content: textoProcesado }
+    ];
+
     try {
-       const groqClient = getGroq();
-       if (!groqClient) throw new Error('Falta GROQ_API_KEY en variables de entorno');
-
-       console.log("🚀 Generando respuesta con Llama 3 (Titular)...");
-
-       const mensajesGroq = [
-         { role: 'system', content: systemPromptText },
-         ...historial.map(msg => ({
-           role: msg.rol === 'usuario' ? 'user' : 'assistant',
-           content: msg.texto
-         })),
-         { role: 'user', content: textoProcesado } // Pasamos el texto (o la transcripción)
-       ];
-
+       console.log("🚀 Generando respuesta con Llama 3...");
        const chatCompletion = await groqClient.chat.completions.create({
          messages: mensajesGroq as any,
          model: "llama-3.1-8b-instant", 
@@ -196,40 +180,28 @@ export async function POST(req: Request) {
        console.log("✅ Respondido con Llama 3");
 
     } catch (errorLlama) {
-       console.warn("⚠️ Llama 3 falló o está saturado. Activando relevo Mixtral...", errorLlama);
+       console.warn("⚠️ Llama 3 falló. Activando relevo Mixtral...", errorLlama);
        
        try {
-          const groqClient = getGroq();
-          if (!groqClient) throw new Error('Falta GROQ_API_KEY');
-
-          const mensajesGroq = [
-            { role: 'system', content: systemPromptText },
-            ...historial.map(msg => ({
-              role: msg.rol === 'usuario' ? 'user' : 'assistant',
-              content: msg.texto
-            })),
-            { role: 'user', content: textoProcesado }
-          ];
-
           const chatCompletionFallback = await groqClient.chat.completions.create({
             messages: mensajesGroq as any,
-            model: "mixtral-8x7b-32768", // 🔥 EL RELEVO DE EMERGENCIA
+            model: "mixtral-8x7b-32768", 
             temperature: 0.3, 
           });
 
           respuestaIA = chatCompletionFallback.choices[0]?.message?.content || "Error en la generación.";
-          console.log("✅ Mixtral salvó la respuesta");
+          console.log("✅ Respondido con Mixtral");
 
        } catch (errorMixtral) {
           console.error("🔴 Ambos motores de Groq fallaron:", errorMixtral);
-          respuestaIA = "⚠️ Error crítico: Ambos motores de IA están caídos o las API Keys son inválidas.";
+          respuestaIA = "⚠️ Error crítico: Los motores de IA están experimentando alta demanda.";
        }
     }
 
     return NextResponse.json({ respuesta: respuestaIA });
 
   } catch (error) {
-    console.error('Error en el simulador:', error);
-    return NextResponse.json({ error: 'Fallo al procesar la simulación' }, { status: 500 });
+    console.error('Error general en el simulador:', error);
+    return NextResponse.json({ error: 'Fallo interno del servidor' }, { status: 500 });
   }
 }

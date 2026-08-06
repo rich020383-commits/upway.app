@@ -351,10 +351,10 @@ export default function Home() {
               El fin de los bots tradicionales
             </div>
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 tracking-tight">
-              No organices a tus empleados. <br className="hidden md:block"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Contrata al mejor.</span>
+              Deja de pagar nóminas para responder chats. <br className="hidden lg:block"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Despliega un Empleado Digital 24/7.</span>
             </h2>
             <p className="text-slate-400 text-lg leading-relaxed">
-              Las plataformas antiguas te cobran por cada persona que conectas para responder chats a mano. Upway te entrega un cerebro digital autónomo que hace el trabajo pesado por ti.
+              Las plataformas antiguas te cobran por cada asesor humano conectado. Upway te entrega un cerebro digital autónomo que atiende, negocia y cierra ventas sin cansarse.
             </p>
           </div>
 
