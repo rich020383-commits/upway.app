@@ -23,6 +23,70 @@ const kimiClient = kimiApiKey
   ? new OpenAI({ apiKey: kimiApiKey, baseURL: kimiApiUrl })
   : null;
 
+// 🛡️ Aquí usamos el audio de Groq con respaldo de Kimi/Moonshot si Groq falla.
+async function transcribirAudioUsuario(audioUsuario: string) {
+  const base64Data = audioUsuario.split(',')[1] || audioUsuario;
+  const buffer = Buffer.from(base64Data, 'base64');
+
+  const attemptGroq = async () => {
+    const groqApiKey = process.env.GROQ_API_KEY;
+    if (!groqApiKey) throw new Error('Falta GROQ_API_KEY');
+
+    const blob = new Blob([buffer], { type: 'audio/webm' });
+    const formData = new FormData();
+    formData.append('file', blob, 'nota_de_voz.webm');
+    formData.append('model', 'whisper-large-v3');
+    formData.append('language', 'es');
+
+    const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${groqApiKey}` },
+      body: formData
+    });
+
+    const data = await response.json();
+    if (!response.ok || data.error) {
+      throw new Error(data.error?.message || 'Error en transcripción Groq Whisper');
+    }
+
+    return String(data.text || '');
+  };
+
+  const attemptKimi = async () => {
+    if (!kimiClient) throw new Error('Kimi no configurado');
+    const result = await kimiClient.audio.transcriptions.create({
+      file: buffer,
+      model: 'whisper-1',
+      language: 'es'
+    });
+    return String(result.text || '');
+  };
+
+  let lastError: unknown;
+
+  try {
+    const texto = await attemptGroq();
+    if (!texto.trim()) throw new Error('Transcripción Groq devolvió texto vacío');
+    return texto;
+  } catch (groqError) {
+    console.warn('⚠️ Groq Whisper falló. Intentando respaldo Kimi/Moonshot...');
+    console.warn(groqError);
+    lastError = groqError;
+  }
+
+  try {
+    const texto = await attemptKimi();
+    if (!texto.trim()) throw new Error('Transcripción Kimi devolvió texto vacío');
+    return texto;
+  } catch (kimiError) {
+    console.warn('⚠️ Kimi/Moonshot falló en la transcripción de audio.');
+    console.warn(kimiError);
+    lastError = kimiError;
+  }
+
+  throw new Error(`Transcripción de audio falló: ${lastError}`);
+}
+
 // 🛡️ AQUÍ SOLO USAMOS LA VERSIÓN FLASH PARA CLIENTES
 const geminiFlashApiKey = process.env.GEMINI_FLASH_API_KEY;
 const geminiGenAI = geminiFlashApiKey ? new GenerativeAI.GoogleGenerativeAI(geminiFlashApiKey) : null;
@@ -89,29 +153,8 @@ export async function POST(req: NextRequest) {
     if (audioUsuario) {
       console.log("🎤 Audio detectado en agente de cliente, procesando con Whisper V3 (Groq)...");
       try {
-        const groqApiKey = process.env.GROQ_API_KEY;
-        if (!groqApiKey) throw new Error('Falta GROQ_API_KEY');
-
-        const base64Data = audioUsuario.split(',')[1] || audioUsuario;
-        const buffer = Buffer.from(base64Data, 'base64');
-        const blob = new Blob([buffer], { type: 'audio/webm' });
-
-        const formData = new FormData();
-        formData.append('file', blob, 'nota_de_voz.webm');
-        formData.append('model', 'whisper-large-v3');
-        formData.append('language', 'es'); 
-
-        const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${groqApiKey}` },
-          body: formData
-        });
-
-        const data = await response.json();
-        if (data.error) throw new Error(data.error.message);
-
-        textoProcesado = data.text;
-        console.log(`✅ Transcripción exitosa (Whisper): "${textoProcesado}"`);
+        textoProcesado = await transcribirAudioUsuario(audioUsuario);
+        console.log(`✅ Transcripción exitosa: "${textoProcesado}"`);
       } catch (errorAudio) {
         console.error("🔴 Error en transcripción de audio:", errorAudio);
         return NextResponse.json({ respuesta: 'Lo siento, no logré escuchar bien tu nota de voz. ¿Podrías escribirlo?' });
