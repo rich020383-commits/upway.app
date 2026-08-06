@@ -54,8 +54,9 @@ async function transcribirAudioUsuario(audioUsuario: string) {
 
   const attemptKimi = async () => {
     if (!kimiClient) throw new Error('Kimi no configurado');
+    const audioBlob = new Blob([buffer], { type: 'audio/webm' });
     const result = await kimiClient.audio.transcriptions.create({
-      file: buffer,
+      file: audioBlob,
       model: 'whisper-1',
       language: 'es'
     });
