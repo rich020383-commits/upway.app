@@ -5,13 +5,11 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
-  Bot,
   Cpu,
   Menu,
   X
 } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
-import Chatbot from "@/components/Chatbot";
 import LeadModal from "@/components/LeadModal";
 
 // ==========================================
@@ -32,6 +30,11 @@ interface Plan {
   cuota: number;
   first4: number;
   popular?: boolean;
+}
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
 // ==========================================
@@ -112,16 +115,16 @@ export default function Home() {
 
   // Estados para el Menú Móvil y la Instalación de la App (PWA)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   
   // 🔥 NUEVO: Estado para procesar el pago con Bold
   const [procesandoPago, setProcesandoPago] = useState(false);
 
   // Escuchar cuando el navegador permite instalar la app
   useEffect(() => {
-    const handleBeforeInstallPrompt = (e: any) => {
-      e.preventDefault(); 
-      setDeferredPrompt(e); 
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -163,13 +166,15 @@ export default function Home() {
       });
 
       const data = await res.json();
-      
-      if (data.payment_url) {
-        // Redirigir al cliente a la pasarela de Bold
-        window.location.href = data.payment_url; 
-      } else {
-        alert("Hubo un error al generar el link de pago. Revisa tu backend.");
+
+      if (!res.ok || !data?.payment_url) {
+        const message = data?.message || 'Hubo un error al generar el link de pago. Revisa tu backend.';
+        throw new Error(message);
       }
+
+      // Redirigir al cliente a la pasarela de Bold
+      const paymentUrl = data.payment_url;
+      window.location.assign(paymentUrl);
     } catch (error) {
       console.error("Error:", error);
       alert("Error de conexión con la pasarela de pagos.");
@@ -367,7 +372,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold text-white mb-3">Cero menús aburridos</h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Olvídate del frustrante "Presione 1 para ventas". Nuestra IA procesa lenguaje natural, entiende el contexto y mantiene conversaciones fluidas.
+                Olvídate del frustrante “Presione 1 para ventas”. Nuestra IA procesa lenguaje natural, entiende el contexto y mantiene conversaciones fluidas.
               </p>
             </div>
 
@@ -392,7 +397,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold text-white mb-3">Tarifa plana sin trampas</h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                No cobramos "por asiento" ni te castigamos por crecer. Paga una suscripción única y deja que la IA haga el trabajo de 10 empleados a la vez.
+                No cobramos “por asiento” ni te castigamos por crecer. Paga una suscripción única y deja que la IA haga el trabajo de 10 empleados a la vez.
               </p>
             </div>
 
@@ -680,10 +685,6 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      <div className="relative z-[90]">
-        <Chatbot />
-      </div>
 
       <div className="relative z-[110]">
         <LeadModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />

@@ -11,6 +11,88 @@ const kimiApiKey = process.env.KIMI_API_KEY;
 const kimiApiUrl = process.env.KIMI_API_URL || 'https://api.moonshot.ai/v1';
 const kimiModelName = process.env.KIMI_MODEL || 'moonshot-v1-8k';
 const kimiClient = kimiApiKey ? new OpenAI({ apiKey: kimiApiKey, baseURL: kimiApiUrl }) : null;
+const ALERT_WEBHOOK_URL = process.env.ALERT_WEBHOOK_URL;
+
+const FAQ_CACHE = new Map<string, string>();
+
+const BASIC_FAQ_LOOKUPS: Array<{
+  pattern: RegExp;
+  reply: string;
+}> = [
+  {
+    pattern: /\b(hola|buenas|buenos días|buenas tardes|buenas noches|qué tal|hey)\b/i,
+    reply: '¡Hola! 👋 Soy el asistente digital de Upway. ¿Quieres conocer los planes o ver cómo funciona el panel en vivo?'
+  },
+  {
+    pattern: /\b(precio|plan|costo|cuesta|valor)\b/i,
+    reply: 'Nuestros planes van desde $149.900 COP/mes para texto y catálogo básico, hasta $499.900 COP/mes para automación avanzada, audio y reportes. ¿Quieres que te recomiende el mejor según tu negocio?'
+  },
+  {
+    pattern: /\b(direcci[oó]n|d[oó]nde est[aá]|ubicaci[oó]n)\b/i,
+    reply: 'Estamos listos para ayudarte desde nuestro panel de Upway. Para conocer la dirección exacta de la tienda, responde con el nombre del local o el tipo de negocio.'
+  },
+  {
+    pattern: /\b(horario|horarios|abre|abren|atenci[oó]n)\b/i,
+    reply: 'Atendemos por WhatsApp y nuestro asistente virtual está disponible 24/7 para responder tus consultas comerciales.'
+  },
+  {
+    pattern: /\b(demo|probar|ver demo|simular|cómo funciona)\b/i,
+    reply: '¡Claro que sí! La mejor forma de verlo es en acción. Entra a nuestro panel gratis ahora mismo y mira cómo respondería tu agente en tiempo real. [BOTON_REGISTRO]'
+  }
+];
+
+const sendMonitorAlert = async (message: string) => {
+  if (!ALERT_WEBHOOK_URL) return;
+  try {
+    await fetch(ALERT_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: message })
+    });
+  } catch (alertError) {
+    console.warn('No se pudo enviar alerta de monitoreo:', alertError);
+  }
+};
+
+const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, providerName: string) => {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(`${providerName} timeout after ${timeoutMs}ms`)), timeoutMs);
+  });
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
+
+const sendProviderAlert = async (provider: string, error: unknown) => {
+  const message = `⚠️ Relevo activado en Upway: ${provider} falló. ${String(error)}`;
+  await sendMonitorAlert(message);
+};
+
+const normalizeFaqText = (text: string) => limpiarTexto(text).replace(/\s+/g, ' ').trim();
+
+const resolveStaticFaqResponse = (texto: string, tienda?: { direccion?: string }) => {
+  const key = normalizeFaqText(texto);
+  if (FAQ_CACHE.has(key)) return FAQ_CACHE.get(key) || null;
+
+  const found = BASIC_FAQ_LOOKUPS.find(entry => entry.pattern.test(texto));
+  if (found) {
+    let response = found.reply;
+    if (found.pattern.source.includes('direcci')) {
+      if (tienda?.direccion) {
+        response = `La dirección es: ${tienda.direccion}.`; 
+      } else {
+        response = 'Puedo ayudarte con la dirección si me dices el nombre de la tienda o el tipo de negocio.';
+      }
+    }
+    FAQ_CACHE.set(key, response);
+    if (FAQ_CACHE.size > 200) FAQ_CACHE.clear();
+    return response;
+  }
+  return null;
+};
 
 // ==========================================
 // INTERFACES DE TYPESCRIPT
@@ -43,6 +125,7 @@ function buscarEnInventarioLocal(mensaje: string, todosLosProductos: Producto[])
 // ==========================================
 async function generarRespuesta(textoCliente: string, phoneId: string) {
     let systemPromptText = "";
+    let tiendaRecord: { direccion?: string } | null = null;
 
     // ==========================================================
     // 🚀 BIFURCACIÓN ESTRATÉGICA SAAS: ¿ES UPWAY O ES UN CLIENTE?
@@ -76,14 +159,16 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
         
         const tienda = await prisma.tienda.findFirst({
             where: { metaPhoneNumberId: phoneId },
-            include: { productos: true } 
+            include: { productos: true }
         });
-
+ 
         if (!tienda) {
             console.warn(`⚠️ Mensaje a un número no registrado en BD: ${phoneId}`);
             return "Hola. Este número aún no tiene un agente de Upway activo. Regístrate en https://upway.business para activar el tuyo.";
         }
-
+ 
+        tiendaRecord = tienda;
+ 
         const inventarioCompleto: Producto[] = tienda.productos.map((p: { nombre?: unknown; categoria?: unknown; precio?: unknown }) => ({
             nombre: String(p.nombre),
             categoria: p.categoria ? String(p.categoria) : "General",
@@ -100,7 +185,13 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
         const promptCliente = tienda.systemPrompt || "Eres un asistente de ventas. Responde corto y con emojis.";
         systemPromptText = `${promptCliente}\n\n=== BASE DE DATOS (SISTEMA RAG) ===\n${contextoInventario}\nRegla RAG: Basa tus respuestas de inventario SOLO en la información de la base de datos entregada arriba.`;
     }
-
+ 
+    const faqStaticResponse = resolveStaticFaqResponse(textoCliente, tiendaRecord ? { direccion: tiendaRecord.direccion } : undefined);
+    if (faqStaticResponse) {
+      console.log('🔍 Respuesta rápida desde caché FAQ o reglas estáticas.');
+      return faqStaticResponse;
+    }
+ 
     // =================================================================
     // EJECUCIÓN DE IA SEGÚN EL ENRUTAMIENTO
     // =================================================================
@@ -124,7 +215,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
           const result = await model.generateContent(textoCliente);
           return result.response.text();
         };
-
+ 
         const generateWithKimiFallback = async () => {
           if (!kimiClient) throw new Error('Falta KIMI_API_KEY para fallback de Upway');
           const completion = await kimiClient.chat.completions.create({
@@ -138,45 +229,105 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
           });
           return completion.choices[0]?.message?.content || '';
         };
-
+ 
         try {
-          return await generateWithGemini();
+          return await withTimeout(generateWithGemini(), 4000, 'Gemini Premium');
         } catch (geminiError) {
           console.warn('⚠️ Gemini Premium falló para Upway. Intentando fallback con Kimi...', geminiError);
-          return await generateWithKimiFallback();
+          await sendProviderAlert('Gemini Premium', geminiError);
+          try {
+            return await withTimeout(generateWithKimiFallback(), 4000, 'Kimi Fallback');
+          } catch (kimiError) {
+            console.warn('⚠️ Kimi falló en el fallback de Upway.', kimiError);
+            await sendProviderAlert('Kimi', kimiError);
+            throw kimiError;
+          }
         }
 
     } else {
         // 🤝 RUTA CLIENTES: COSTO CERO (GEMINI FREE -> GROQ)
         console.log(`🤝 Generando respuesta para cliente de tienda. Usando RUTA GRATUITA...`);
-        try {
+        const generateWithGeminiFree = async () => {
             const freeApiKey = process.env.GEMINI_FREE_API_KEY;
             if (!freeApiKey) throw new Error('Falta GEMINI_FREE_API_KEY');
-
+ 
             const genAIFree = new GoogleGenerativeAI(freeApiKey);
             const modelFree = genAIFree.getGenerativeModel({ model: 'gemini-2.5-flash', systemInstruction: systemPromptText });
-            
             const result = await modelFree.generateContent(textoCliente);
-            console.log("✅ Respondido con Gemini Free (Cliente)");
             return result.response.text();
+        };
+ 
+        const generateWithGeminiPremium = async () => {
+            const premiumApiKey = process.env.GEMINI_PREMIUM_API_KEY || process.env.GEMINI_API_KEY;
+            if (!premiumApiKey) throw new Error('Falta GEMINI_PREMIUM_API_KEY o GEMINI_API_KEY');
 
-        } catch {
-            console.warn("⚠️ Gemini Free falló. Activando relevo Groq (Llama 3)...");
-            
+            const genAIPremium = new GoogleGenerativeAI(premiumApiKey);
+            const modelPremium = genAIPremium.getGenerativeModel({ model: 'gemini-2.5-flash', systemInstruction: systemPromptText });
+            const result = await modelPremium.generateContent(textoCliente);
+            return result.response.text();
+        };
+
+        const generateWithGroq = async () => {
             const groqApiKey = process.env.GROQ_API_KEY;
             if (!groqApiKey) throw new Error('Falta GROQ_API_KEY');
-
             const groqClient = new Groq({ apiKey: groqApiKey });
             const chatCompletion = await groqClient.chat.completions.create({
                 messages: [
                     { role: 'system', content: systemPromptText },
                     { role: 'user', content: textoCliente }
                 ],
-                model: "llama3-8b-8192", 
-                temperature: 0.3, 
+                model: "llama3-8b-8192",
+                temperature: 0.3,
             });
-            console.log("✅ Groq salvó la venta del cliente");
             return chatCompletion.choices[0]?.message?.content || "No pude generar respuesta.";
+        };
+
+        const generateWithKimi = async () => {
+            if (!kimiClient) throw new Error('Falta KIMI_API_KEY para fallback gratuito');
+            const completion = await kimiClient.chat.completions.create({
+                model: kimiModelName,
+                messages: [
+                    { role: 'system', content: systemPromptText },
+                    { role: 'user', content: textoCliente }
+                ],
+                temperature: 0.3,
+                max_tokens: 280,
+            });
+            return completion.choices[0]?.message?.content || "No pude generar respuesta.";
+        };
+ 
+        try {
+            const result = await withTimeout(generateWithGeminiFree(), 3500, 'Gemini Free');
+            console.log("✅ Respondido con Gemini Free (Cliente)");
+            return result;
+        } catch (freeError) {
+            console.warn("⚠️ Gemini Free falló. Activando relevo Groq (Llama 3)...", freeError);
+            await sendProviderAlert('Gemini Free', freeError);
+            try {
+                const groqResult = await withTimeout(generateWithGroq(), 3500, 'Groq Llama 3');
+                console.log("✅ Groq salvó la venta del cliente");
+                return groqResult;
+            } catch (groqError) {
+                console.warn('⚠️ Groq también falló. Intentando fallback gratuito con Kimi...', groqError);
+                await sendProviderAlert('Groq', groqError);
+                try {
+                    const kimiResult = await withTimeout(generateWithKimi(), 3500, 'Kimi');
+                    console.log('✅ Kimi respondió como fallback gratuito.');
+                    return kimiResult;
+                } catch (kimiError) {
+                    console.warn('❌ Kimi también falló. Activando Gemini Premium como respaldo final.', kimiError);
+                    await sendProviderAlert('Kimi', kimiError);
+                    try {
+                        const premiumResult = await withTimeout(generateWithGeminiPremium(), 4000, 'Gemini Premium Fallback');
+                        console.log('✅ Gemini Premium pago respondió como respaldo final.');
+                        return premiumResult;
+                    } catch (premiumError) {
+                        console.warn('❌ Gemini Premium también falló en el fallback final.', premiumError);
+                        await sendProviderAlert('Gemini Premium', premiumError);
+                        throw premiumError;
+                    }
+                }
+            }
         }
     }
 }
@@ -255,3 +406,4 @@ export async function POST(req: Request) {
     return new NextResponse('Error Interno', { status: 500 });
   }
 }
+
