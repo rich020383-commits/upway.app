@@ -16,6 +16,13 @@ const mistralClient = process.env.MISTRAL_API_KEY
   ? new OpenAI({ apiKey: process.env.MISTRAL_API_KEY, baseURL: 'https://api.mistral.ai/v1' }) 
   : null;
 
+const kimiApiKey = process.env.KIMI_API_KEY;
+const kimiApiUrl = process.env.KIMI_API_URL;
+const kimiModelName = process.env.KIMI_MODEL || 'k3';
+const kimiClient = kimiApiKey && kimiApiUrl
+  ? new OpenAI({ apiKey: kimiApiKey, baseURL: kimiApiUrl })
+  : null;
+
 // 🛡️ AQUÍ SOLO USAMOS LA VERSIÓN FLASH PARA CLIENTES
 const geminiFlashApiKey = process.env.GEMINI_FLASH_API_KEY;
 const geminiGenAI = geminiFlashApiKey ? new GenerativeAI.GoogleGenerativeAI(geminiFlashApiKey) : null;
@@ -24,7 +31,26 @@ const geminiGenAI = geminiFlashApiKey ? new GenerativeAI.GoogleGenerativeAI(gemi
 const limpiarTexto = (txt: string) => 
   txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-function buscarEnInventarioLocal(mensaje: string, todosLosProductos: any[]) {
+type InventoryItem = {
+  nombre: string;
+  categoria?: string;
+  precio?: number;
+  [key: string]: unknown;
+};
+
+type HistoryMessage = {
+  rol?: string;
+  texto?: string;
+  content?: string;
+  [key: string]: unknown;
+};
+
+type ChatMessage = {
+  role: 'system' | 'assistant' | 'user';
+  content: string;
+};
+
+function buscarEnInventarioLocal(mensaje: string, todosLosProductos: InventoryItem[]) {
   const mensajeLimpio = limpiarTexto(mensaje);
   // > 2 letras para no ignorar "pan", "ajo", "ron"
   const palabrasClave = mensajeLimpio.split(' ').filter(p => p.length > 2);
@@ -49,7 +75,7 @@ export async function POST(req: NextRequest) {
       promptMaestro = 'Eres un asistente cordial.', 
       mensajeUsuario, 
       audioUsuario, 
-      historial = [], 
+      historial = [] as HistoryMessage[], 
       tienda_id = '1172769935927318' 
     } = body;
 
@@ -99,7 +125,7 @@ export async function POST(req: NextRequest) {
     // ==========================================
     // 📦 2. EXTRACCIÓN NINJA (RAG - INVENTARIO)
     // ==========================================
-    let inventarioCompleto: any[] = [];
+    let inventarioCompleto: InventoryItem[] = [];
     try {
       inventarioCompleto = await listProducts(tienda_id);
     } catch (dbError) {
@@ -130,54 +156,63 @@ export async function POST(req: NextRequest) {
     
     Regla RAG: Si el cliente pregunta por un producto y aparece en la Base de Datos arriba, ofrécelo. Si no aparece, dile elegantemente que no hay stock actual de ese artículo.`;
 
-    const formattedMessages = [
+    const formattedMessages: ChatMessage[] = [
       { role: 'system', content: systemPromptText },
-      ...historial.map((msg: any) => ({
+      ...historial.map((msg: HistoryMessage) => ({
         role: (msg.rol === 'ia' || msg.rol === 'asistente' || msg.rol === 'bot') ? 'assistant' : 'user',
-        content: msg.texto || msg.content
+        content: String(msg.texto || msg.content || '')
       })),
       { role: 'user', content: textoProcesado }
     ];
 
     // ==========================================
-    // 🚀 3. EL CASCADEO DE 4 NIVELES (CEREBRAS -> GROQ -> GEMINI FLASH -> MISTRAL)
+    // 🚀 3. EL CASCADEO DE 5 NIVELES (CEREBRAS -> GROQ -> KIMI K3 -> GEMINI FLASH -> MISTRAL)
     // ==========================================
-    try {
-      // 🥇 Nivel 1: Cerebras
-      if (!cerebrasClient) throw new Error('Cerebras no configurado');
-      const completion = await cerebrasClient.chat.completions.create({
-        model: 'gpt-oss-120b',
-        messages: formattedMessages as any,
-        temperature: 0.3,
-      });
-      botReply = completion.choices[0]?.message?.content || '';
-      usedProvider = 'Cerebras AI ⚡';
-
-    } catch (errCerebras) {
-      console.warn(`⚠️ Cerebras falló. Activando relevo Groq...`);
-      
-      try {
-        // 🥈 Nivel 2: Groq (Llama 3)
-        if (!groqClient) throw new Error('Groq no configurado');
-        const completionGroq = await groqClient.chat.completions.create({
-          model: 'llama-3.1-8b-instant',
-          messages: formattedMessages as any,
-          temperature: 0.3,
-        });
-        botReply = completionGroq.choices[0]?.message?.content || '';
-        usedProvider = 'Groq 🚀';
-
-      } catch (errGroq) {
-        console.warn(`⚠️ Groq falló. Activando relevo Gemini Flash...`);
-        
-        try {
-          // 🥉 Nivel 3: Gemini Flash (Versión ligera/gratis)
-          if (!geminiGenAI) throw new Error('Gemini Flash no configurado');
-          const geminiModel = geminiGenAI.getGenerativeModel({ 
-            model: 'gemini-2.5-flash', 
-            systemInstruction: systemPromptText 
+    const providers = [
+      {
+        name: 'Cerebras AI ⚡',
+        enabled: !!cerebrasClient,
+        execute: async () => {
+          const completion = await cerebrasClient!.chat.completions.create({
+            model: 'gpt-oss-120b',
+            messages: formattedMessages,
+            temperature: 0.3,
           });
-
+          return completion.choices[0]?.message?.content || '';
+        }
+      },
+      {
+        name: 'Groq 🚀',
+        enabled: !!groqClient,
+        execute: async () => {
+          const completion = await groqClient!.chat.completions.create({
+            model: 'llama-3.1-8b-instant',
+            messages: formattedMessages,
+            temperature: 0.3,
+          });
+          return completion.choices[0]?.message?.content || '';
+        }
+      },
+      {
+        name: 'Kimi K3 ✨',
+        enabled: !!kimiClient,
+        execute: async () => {
+          const completion = await kimiClient!.chat.completions.create({
+            model: kimiModelName,
+            messages: formattedMessages,
+            temperature: 0.3,
+          });
+          return completion.choices[0]?.message?.content || '';
+        }
+      },
+      {
+        name: 'Gemini Flash 🛡️',
+        enabled: !!geminiGenAI,
+        execute: async () => {
+          const geminiModel = geminiGenAI!.getGenerativeModel({
+            model: 'gemini-2.5-flash',
+            systemInstruction: systemPromptText
+          });
           const contents = formattedMessages
             .filter(m => m.role !== 'system')
             .map(m => ({
@@ -186,30 +221,45 @@ export async function POST(req: NextRequest) {
             }));
 
           const result = await geminiModel.generateContent({ contents });
-          botReply = result.response.text();
-          usedProvider = 'Gemini Flash 🛡️';
-
-        } catch (errGemini) {
-          console.warn(`⚠️ Gemini Flash falló. Activando relevo Mistral...`);
-          
-          try {
-            // 🛡️ Nivel 4: Mistral (El Escudo Final)
-            if (!mistralClient) throw new Error('Mistral no configurado');
-            const completionMistral = await mistralClient.chat.completions.create({
-              model: 'ministral-3b-2512',
-              messages: formattedMessages as any,
-              temperature: 0.3,
-            });
-            botReply = completionMistral.choices[0]?.message?.content || '';
-            usedProvider = 'Mistral 🔥';
-
-          } catch (errMistral) {
-            console.error(`🔴 CRÍTICO: Todos los motores fallaron.`);
-            botReply = "⚠️ Error crítico: Los sistemas de IA están experimentando alta demanda. Intenta en un momento.";
-            usedProvider = 'Ninguno (Fallo en Cascada)';
-          }
+          return result.response.text();
+        }
+      },
+      {
+        name: 'Mistral 🔥',
+        enabled: !!mistralClient,
+        execute: async () => {
+          const completion = await mistralClient!.chat.completions.create({
+            model: 'ministral-3b-2512',
+            messages: formattedMessages,
+            temperature: 0.3,
+          });
+          return completion.choices[0]?.message?.content || '';
         }
       }
+    ];
+
+    let lastError: unknown;
+    for (const provider of providers) {
+      if (!provider.enabled) continue;
+      try {
+        const reply = await provider.execute();
+        if (!reply || !reply.trim()) {
+          throw new Error(`${provider.name} devolvió respuesta vacía`);
+        }
+        botReply = reply;
+        usedProvider = provider.name;
+        break;
+      } catch (providerError) {
+        console.warn(`⚠️ ${provider.name} falló. Activando relevo siguiente...`);
+        console.warn(providerError);
+        lastError = providerError;
+      }
+    }
+
+    if (!usedProvider) {
+      console.error('🔴 CRÍTICO: Todos los motores fallaron.', lastError);
+      botReply = "⚠️ Error crítico: Los sistemas de IA están experimentando alta demanda. Intenta en un momento.";
+      usedProvider = 'Ninguno (Fallo en Cascada)';
     }
 
     return NextResponse.json({ respuesta: botReply, provider: usedProvider });
