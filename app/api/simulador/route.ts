@@ -222,21 +222,9 @@ export async function POST(req: NextRequest) {
     ];
 
     // ==========================================
-    // 🚀 3. EL CASCADEO DE 5 NIVELES (CEREBRAS -> GROQ -> KIMI K3 -> GEMINI FLASH -> MISTRAL)
+    // 🚀 3. EL CASCADEO DE 5 NIVELES (GROQ -> KIMI K3 -> CEREBRAS -> GEMINI FLASH -> MISTRAL)
     // ==========================================
     const providers = [
-      {
-        name: 'Cerebras AI ⚡',
-        enabled: !!cerebrasClient,
-        execute: async () => {
-          const completion = await cerebrasClient!.chat.completions.create({
-            model: 'gpt-oss-120b',
-            messages: formattedMessages,
-            temperature: 0.3,
-          });
-          return completion.choices[0]?.message?.content || '';
-        }
-      },
       {
         name: 'Groq 🚀',
         enabled: !!groqClient,
@@ -255,6 +243,18 @@ export async function POST(req: NextRequest) {
         execute: async () => {
           const completion = await kimiClient!.chat.completions.create({
             model: kimiModelName,
+            messages: formattedMessages,
+            temperature: 0.3,
+          });
+          return completion.choices[0]?.message?.content || '';
+        }
+      },
+      {
+        name: 'Cerebras AI ⚡',
+        enabled: !!cerebrasClient,
+        execute: async () => {
+          const completion = await cerebrasClient!.chat.completions.create({
+            model: 'gpt-oss-120b',
             messages: formattedMessages,
             temperature: 0.3,
           });
