@@ -17,9 +17,9 @@ const mistralClient = process.env.MISTRAL_API_KEY
   : null;
 
 const kimiApiKey = process.env.KIMI_API_KEY;
-const kimiApiUrl = process.env.KIMI_API_URL;
-const kimiModelName = process.env.KIMI_MODEL || 'k3';
-const kimiClient = kimiApiKey && kimiApiUrl
+const kimiApiUrl = process.env.KIMI_API_URL || 'https://api.moonshot.ai/v1';
+const kimiModelName = process.env.KIMI_MODEL || 'moonshot-v1-8k';
+const kimiClient = kimiApiKey
   ? new OpenAI({ apiKey: kimiApiKey, baseURL: kimiApiUrl })
   : null;
 
