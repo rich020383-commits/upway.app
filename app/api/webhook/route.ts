@@ -1,10 +1,16 @@
 import { NextResponse } from 'next/server';
+import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai'; 
 import Groq from 'groq-sdk'; 
 import { prisma } from '@/lib/prisma';
 
 const VERIFY_TOKEN = 'upway_webhook_secreto';
 const UPWAY_PHONE_ID = '1172769935927318'; // 👑 EL NÚMERO VIP DE UPWAY
+
+const kimiApiKey = process.env.KIMI_API_KEY;
+const kimiApiUrl = process.env.KIMI_API_URL || 'https://api.moonshot.ai/v1';
+const kimiModelName = process.env.KIMI_MODEL || 'moonshot-v1-8k';
+const kimiClient = kimiApiKey ? new OpenAI({ apiKey: kimiApiKey, baseURL: kimiApiUrl }) : null;
 
 // ==========================================
 // INTERFACES DE TYPESCRIPT
@@ -78,7 +84,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
             return "Hola. Este número aún no tiene un agente de Upway activo. Regístrate en https://upway.business para activar el tuyo.";
         }
 
-        const inventarioCompleto: Producto[] = tienda.productos.map((p: any) => ({
+        const inventarioCompleto: Producto[] = tienda.productos.map((p: { nombre?: unknown; categoria?: unknown; precio?: unknown }) => ({
             nombre: String(p.nombre),
             categoria: p.categoria ? String(p.categoria) : "General",
             precio: Number(p.precio)
@@ -101,15 +107,44 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
     if (phoneId === UPWAY_PHONE_ID) {
         // 👑 RUTA VIP: UPWAY (Usando tu modelo Premium para ventas)
         console.log("🧠 Generando respuesta comercial (Gemini Premium)...");
-        // Aseguramos compatibilidad si guardaste la llave con otro nombre
         const apiKey = process.env.GEMINI_PREMIUM_API_KEY || process.env.GEMINI_API_KEY;
         if (!apiKey) throw new Error('Falta llave de Gemini Premium en el .env');
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', systemInstruction: systemPromptText });
-        
-        const result = await model.generateContent(textoCliente);
-        return result.response.text();
+        const model = genAI.getGenerativeModel({ 
+          model: 'gemini-2.5-flash', 
+          systemInstruction: systemPromptText,
+          generationConfig: {
+            temperature: 0.45,
+            maxOutputTokens: 280,
+          }
+        });
+
+        const generateWithGemini = async () => {
+          const result = await model.generateContent(textoCliente);
+          return result.response.text();
+        };
+
+        const generateWithKimiFallback = async () => {
+          if (!kimiClient) throw new Error('Falta KIMI_API_KEY para fallback de Upway');
+          const completion = await kimiClient.chat.completions.create({
+            model: kimiModelName,
+            messages: [
+              { role: 'system', content: systemPromptText },
+              { role: 'user', content: textoCliente }
+            ],
+            temperature: 0.45,
+            max_tokens: 280,
+          });
+          return completion.choices[0]?.message?.content || '';
+        };
+
+        try {
+          return await generateWithGemini();
+        } catch (geminiError) {
+          console.warn('⚠️ Gemini Premium falló para Upway. Intentando fallback con Kimi...', geminiError);
+          return await generateWithKimiFallback();
+        }
 
     } else {
         // 🤝 RUTA CLIENTES: COSTO CERO (GEMINI FREE -> GROQ)
@@ -125,7 +160,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
             console.log("✅ Respondido con Gemini Free (Cliente)");
             return result.response.text();
 
-        } catch (errorGemini) {
+        } catch {
             console.warn("⚠️ Gemini Free falló. Activando relevo Groq (Llama 3)...");
             
             const groqApiKey = process.env.GROQ_API_KEY;
@@ -204,7 +239,7 @@ export async function POST(req: Request) {
 
         void (async () => {
           try {
-            let respuesta = await generarRespuesta(textoCliente, phoneIdDestino);
+            const respuesta = await generarRespuesta(textoCliente, phoneIdDestino);
             await enviarMensajePorWhatsApp(numeroCliente, respuesta, phoneIdDestino);
           } catch (error) {
             console.error('Fallo general en la respuesta del bot.', error);

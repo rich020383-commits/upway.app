@@ -1,9 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server';
+import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // 💎 LLAVE PREMIUM EXCLUSIVA PARA SOPHIE
 const geminiApiKey = process.env.GEMINI_PREMIUM_API_KEY;
 const genAI = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
+
+const kimiApiKey = process.env.KIMI_API_KEY;
+const kimiApiUrl = process.env.KIMI_API_URL || 'https://api.moonshot.ai/v1';
+const kimiModelName = process.env.KIMI_MODEL || 'moonshot-v1-8k';
+const kimiClient = kimiApiKey ? new OpenAI({ apiKey: kimiApiKey, baseURL: kimiApiUrl }) : null;
+
+type SophieMessage = {
+  role?: string;
+  content?: string;
+};
+
+type SophieContentPart =
+  | { text: string }
+  | { inlineData: { data: string; mimeType: string } };
+
+type SophieContent = {
+  role: 'user' | 'model';
+  parts: SophieContentPart[];
+};
+
+const buildSophieContents = (messages: SophieMessage[], audioUsuario?: string): SophieContent[] => {
+  const contents: SophieContent[] = messages.map((m) => ({
+    role: m.role === 'bot' ? 'model' : 'user',
+    parts: [{ text: m.content || '' }]
+  }));
+
+  if (audioUsuario) {
+    const base64Data = audioUsuario.split(',')[1] || audioUsuario;
+    contents.push({
+      role: 'user',
+      parts: [
+        { text: 'El cliente envió esta nota de voz. Escúchala y responde con tu estilo comercial afilado y directo:' },
+        { inlineData: { data: base64Data, mimeType: 'audio/webm' } }
+      ]
+    });
+  }
+
+  if (contents.length === 0) {
+    contents.push({
+      role: 'user',
+      parts: [{ text: 'El cliente inició la conversación. Responde con un mensaje corto, comercial y directo.' }]
+    });
+  }
+
+  return contents;
+};
 
 // 🔥 PROMPT AFILADO, ANTIRREPETICIÓN Y OPTIMIZADO PARA CONVERSIÓN
 const AGENTE_SUPREMO_PROMPT = `Rol: Eres Sophie, representante comercial prémium y Empleada Digital de Upway (BARAKAH TECH HUB SAS). Tu estilo es elegante, sumamente persuasivo, directo y corporativo.
@@ -27,49 +74,56 @@ export async function POST(req: NextRequest) {
   try {
     const { messages, audioUsuario } = await req.json();
     
-    if (!genAI) throw new Error('Falta GEMINI_PREMIUM_API_KEY en el .env');
+    const contents = buildSophieContents(Array.isArray(messages) ? messages.filter((m: SophieMessage) => m.role !== 'system') : [], audioUsuario);
 
-    // 🚀 Usamos gemini-2.5-flash (o gemini-1.5-pro) con parámetros de control de costos
-    const model = genAI.getGenerativeModel({ 
-      model: 'gemini-2.5-flash', 
-      systemInstruction: AGENTE_SUPREMO_PROMPT,
-      generationConfig: {
-        temperature: 0.6,      // Más precisa, menos divagación y repetición
-        maxOutputTokens: 400,  // 💰 Límite estricto de tokens para ahorrar dinero por respuesta
-      }
-    });
+    const generateWithGemini = async () => {
+      if (!genAI) throw new Error('Falta GEMINI_PREMIUM_API_KEY en el .env');
+      const model = genAI.getGenerativeModel({ 
+        model: 'gemini-2.5-flash', 
+        systemInstruction: AGENTE_SUPREMO_PROMPT,
+        generationConfig: {
+          temperature: 0.45,
+          maxOutputTokens: 320,
+        }
+      });
+      const result = await model.generateContent({ contents });
+      return result.response.text();
+    };
 
-    // Filtrar el rol 'system' del historial del cliente
-    const chatMessages = messages.filter((m: any) => m.role !== 'system');
+    const generateWithKimiFallback = async () => {
+      if (!kimiClient) throw new Error('Falta KIMI_API_KEY para fallback de Sophie');
+      const mappedMessages: Array<{ role: 'user' | 'assistant'; content: string }> = contents.map((c) => ({
+        role: c.role === 'model' ? 'assistant' : 'user',
+        content: c.parts.map((p) => ('text' in p ? p.text : '')).join(' ').trim() || ' '
+      }));
 
-    let formattedContents = chatMessages.map((m: any) => ({
-      role: m.role === 'bot' ? 'model' : 'user',
-      parts: [{ text: m.content }]
-    }));
+      const fallbackMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+        { role: 'system', content: AGENTE_SUPREMO_PROMPT },
+        ...mappedMessages
+      ];
+      const completion = await kimiClient.chat.completions.create({
+        model: kimiModelName,
+        messages: fallbackMessages,
+        temperature: 0.45,
+        max_tokens: 320,
+      });
+      return completion.choices[0]?.message?.content || '';
+    };
 
-    // 🎧 SI HAY AUDIO, LO PROCESAMOS NATIVAMENTE
-    if (audioUsuario) {
-      console.log("🎤 Audio detectado en Sophie (Modo Ahorro y Alta Conversión)...");
-      const base64Data = audioUsuario.split(',')[1] || audioUsuario;
-      
-      if (formattedContents.length > 0 && formattedContents[formattedContents.length - 1].role === 'user') {
-        formattedContents[formattedContents.length - 1] = {
-          role: 'user',
-          parts: [
-            { text: "El cliente envió esta nota de voz. Escúchala y responde con tu estilo comercial afilado y directo:" },
-            { inlineData: { data: base64Data, mimeType: "audio/webm" } }
-          ]
-        };
-      }
+    let botReply = '';
+    let chosenProvider = 'Gemini Premium 💎';
+    try {
+      botReply = await generateWithGemini();
+    } catch (primaryError) {
+      console.warn('⚠️ Gemini Premium falló en Sophie. Intentando fallback con Kimi...', primaryError);
+      botReply = await generateWithKimiFallback();
+      chosenProvider = 'Kimi K3 ✨ (fallback)';
     }
 
-    const result = await model.generateContent({ contents: formattedContents });
-    const botReply = result.response.text();
+    console.log(`✅ Sophie respondió con éxito bajo control de tokens con ${chosenProvider}`);
+    return NextResponse.json({ reply: botReply, provider: chosenProvider });
 
-    console.log(`✅ Sophie respondió con éxito bajo control de tokens`);
-    return NextResponse.json({ reply: botReply, provider: 'Gemini Premium 💎' });
-
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error crítico en Sophie:', error);
     return NextResponse.json({ reply: `⚠️ Error temporal en el sistema de Sophie. ¡Inténtalo de nuevo!` }, { status: 500 });
   }
