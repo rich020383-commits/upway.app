@@ -161,8 +161,9 @@ export default function ActivacionWhatsAppPage() {
       override_default_response_type: true,
       redirect_uri: redirectUri,
       extras: {
-        feature: 'whatsapp_embedded_signup',
+        version: 'v4',
         sessionInfoVersion: '3',
+        featureType: 'whatsapp_business_app_onboarding',
       },
     });
   };
