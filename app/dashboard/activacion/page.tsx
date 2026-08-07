@@ -163,15 +163,19 @@ export default function ActivacionWhatsAppPage() {
             setConectando(false);
           });
       } else if (typedResponse.status === 'not_authorized' || typedResponse.status === 'unknown') {
-        // 🛡️ LA BALA DE PLATA: ¡Si el celular mató el SDK, lo mandamos a la fuerza por URL directa!
+        // 🛡️ LA BALA DE PLATA: Redirección limpia para móviles si el SDK es bloqueado
         setConectando(true);
-        const extrasStr = encodeURIComponent(JSON.stringify({
+        
+        const configId = process.env.NEXT_PUBLIC_META_CONFIG_ID || '2018640519013518';
+        
+        // Incluimos los extras de la v4 para forzar el flujo de WhatsApp Business correctamente
+        const extrasObj = encodeURIComponent(JSON.stringify({
           version: 'v4',
           sessionInfoVersion: '3',
           featureType: 'whatsapp_business_app_onboarding'
         }));
-        const configId = process.env.NEXT_PUBLIC_META_CONFIG_ID || '2018640519013518';
-        const fallbackUrl = `https://business.facebook.com/messaging/whatsapp/onboard/?app_id=${appId}&config_id=${configId}&extras=${extrasStr}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+
+        const fallbackUrl = `https://www.facebook.com/v20.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=business_management,whatsapp_business_management,whatsapp_business_messaging&config_id=${configId}&extras=${extrasObj}&display=page`;
         
         window.location.href = fallbackUrl;
       } else {
