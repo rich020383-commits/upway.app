@@ -107,11 +107,9 @@ export default function ActivacionWhatsAppPage() {
       return;
     }
 
-    setError(null);
-    setConectando(true);
-
     const redirectUri = `${window.location.origin}/dashboard/activacion`;
 
+    // 1. LLAMAMOS A META INMEDIATAMENTE (Sin esperas para que el celular no bloquee el pop-up)
     window.FB.login((response: unknown) => {
       const typedResponse = response as {
         authResponse?: { accessToken?: string; code?: string };
@@ -166,6 +164,10 @@ export default function ActivacionWhatsAppPage() {
         featureType: 'whatsapp_business_app_onboarding',
       },
     });
+
+    // 2. ACTUALIZAMOS LA INTERFAZ DESPUÉS DE LA LLAMADA A META
+    setError(null);
+    setConectando(true);
   };
 
   return (
