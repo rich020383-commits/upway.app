@@ -23,13 +23,11 @@ export default function ActivacionWhatsAppPage() {
   const router = useRouter();
 
   const inicializarFacebook = () => {
-    if (!window.FB) {
-      return;
-    }
+    if (!window.FB) return;
 
     const appId = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID;
     if (!appId) {
-      setSdkError('Falta NEXT_PUBLIC_FACEBOOK_APP_ID. Configúralo en el entorno de tu despliegue.');
+      setSdkError('Falta NEXT_PUBLIC_FACEBOOK_APP_ID en el entorno.');
       return;
     }
 
@@ -42,7 +40,7 @@ export default function ActivacionWhatsAppPage() {
       });
       setSdkCargado(true);
       setSdkError(null);
-      console.log('✅ SDK de Facebook inicializado con éxito.');
+      console.log('✅ SDK de Meta listo.');
     } catch (e) {
       console.error('Error al inicializar FB:', e);
       setSdkError('No se pudo inicializar el SDK de Meta.');
@@ -55,13 +53,9 @@ export default function ActivacionWhatsAppPage() {
     const cargarTiendaActual = async () => {
       try {
         const respuesta = await fetch('/api/tienda/me');
-        if (!respuesta.ok) {
-          return;
-        }
-
-        const datos = await respuesta.json();
-        if (datos?.tiendaId) {
-          setTiendaId(datos.tiendaId);
+        if (respuesta.ok) {
+          const datos = await respuesta.json();
+          if (datos?.tiendaId) setTiendaId(datos.tiendaId);
         }
       } catch (error) {
         console.warn('No se pudo obtener la tienda actual:', error);
@@ -85,7 +79,7 @@ export default function ActivacionWhatsAppPage() {
     const timeout = window.setTimeout(() => {
       window.clearInterval(interval);
       if (!window.FB) {
-        setSdkError('El SDK de Meta no se cargó. Verifica tu conexión o desactiva bloqueadores.');
+        setSdkError('El SDK de Meta no cargó. Revisa tu conexión.');
       }
     }, 4000);
 
@@ -96,34 +90,31 @@ export default function ActivacionWhatsAppPage() {
   }, []);
 
   const iniciarConexionMeta = () => {
+    // 1. VALIDACIÓN RÁPIDA
     if (!window.FB) {
-      setError('El sistema de Meta no está listo. Intenta recargar la página o verifica tu conexión.');
-      return;
-    }
-
-    const appId = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID;
-    if (!appId) {
-      setError('No hay un Facebook App ID configurado. Revisa la variable NEXT_PUBLIC_FACEBOOK_APP_ID.');
+      setError('Meta no está listo. Recarga la página.');
       return;
     }
 
     const redirectUri = `${window.location.origin}/dashboard/activacion`;
 
-    // 1. LLAMAMOS A META INMEDIATAMENTE (Sin esperas para que el celular no bloquee el pop-up)
+    // 2. LLAMADA INMEDIATA A META (ESTO EVITA EL BLOQUEO EN EL CELULAR)
     window.FB.login((response: unknown) => {
       const typedResponse = response as {
         authResponse?: { accessToken?: string; code?: string };
         status?: string;
       };
+      
       const authResponse = typedResponse.authResponse;
       const metaCode = authResponse?.code || authResponse?.accessToken;
 
       if (authResponse && metaCode) {
+        // Enviar a tu backend
         fetch('/api/meta/callback', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            tienda_id: 'tienda_revisor_001',
+            tienda_id: tiendaId || 'tienda_revisor_001',
             metaCode,
             redirectUri,
           }),
@@ -136,20 +127,19 @@ export default function ActivacionWhatsAppPage() {
             router.push('/dashboard');
           })
           .catch((error) => {
-            console.error('❌ Error enviando datos al backend:', error);
-            setError('Hubo un problema vinculando la cuenta. Intenta de nuevo más tarde.');
+            console.error('❌ Error enviando datos:', error);
+            setError('Problema vinculando la cuenta. Intenta de nuevo.');
             setConectando(false);
           });
       } else if (typedResponse.status === 'not_authorized' || typedResponse.status === 'unknown') {
-        console.log('❌ El usuario no autorizó la aplicación de Meta.');
-        setError('No se completó la autorización de Meta. Verifica los permisos de tu aplicación y vuelve a intentarlo.');
+        setError('No se completó la autorización de Meta. Intenta de nuevo.');
         setConectando(false);
       } else {
-        console.log('❌ El usuario canceló la conexión o cerró la ventana.');
-        setError('La conexión con Meta fue cancelada. Si el problema persiste, revisa los permisos de tu app.');
+        setError('La conexión con Meta fue cancelada.');
         setConectando(false);
       }
     }, {
+      // 3. PARÁMETROS V4 EXACTOS (La clave del éxito)
       config_id: process.env.NEXT_PUBLIC_META_CONFIG_ID || '2018640519013518',
       scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging',
       return_scopes: true,
@@ -165,7 +155,7 @@ export default function ActivacionWhatsAppPage() {
       },
     });
 
-    // 2. ACTUALIZAMOS LA INTERFAZ DESPUÉS DE LA LLAMADA A META
+    // 4. ACTUALIZAR UI (Se hace al final para no interrumpir el pop-up)
     setError(null);
     setConectando(true);
   };
@@ -176,11 +166,11 @@ export default function ActivacionWhatsAppPage() {
         src='https://connect.facebook.net/es_LA/sdk.js'
         strategy='afterInteractive'
         onLoad={inicializarFacebook}
-        onError={() => setSdkError('No se pudo cargar el SDK de Meta. Intenta recargar la página.')}
+        onError={() => setSdkError('Error cargando el SDK de Meta.')}
       />
 
       <div className='min-h-screen bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.15),_transparent_55%)] bg-slate-950 px-4 py-12 text-white sm:px-6 lg:px-8 flex items-center justify-center'>
-        <div className='w-full max-w-3xl overflow-hidden rounded-[32px] border border-white/10 bg-[#0A0E14] shadow-2xl relative transition-all duration-700 ease-out translate-y-0 opacity-100'>
+        <div className='w-full max-w-3xl overflow-hidden rounded-[32px] border border-white/10 bg-[#0A0E14] shadow-2xl relative'>
           <div className='absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-cyan-400 to-emerald-400'></div>
 
           <div className='grid md:grid-cols-2'>
@@ -190,7 +180,7 @@ export default function ActivacionWhatsAppPage() {
               </div>
               <h1 className='text-3xl font-bold tracking-tight text-white mb-4'>¡Pago confirmado!</h1>
               <p className='text-slate-400 text-sm leading-relaxed mb-6'>
-                Tu plan ha sido activado con éxito. Ahora solo falta el último paso: darle permisos a la IA para que tome el control de tu línea comercial.
+                Tu plan ha sido activado con éxito. Ahora solo falta el último paso: darle permisos a la IA para que tome el control de tu línea.
               </p>
               <ul className='space-y-4'>
                 <li className='flex items-start gap-3 text-sm text-slate-300'>
@@ -211,7 +201,7 @@ export default function ActivacionWhatsAppPage() {
                   <Sparkles className='h-3.5 w-3.5' /> Activación Oficial
                 </div>
                 <h2 className='text-xl font-semibold text-white mb-2'>Conecta tu WhatsApp</h2>
-                <p className='text-sm text-slate-400 mb-8'>Inicia sesión con la cuenta de Facebook que administra tu negocio.</p>
+                <p className='text-sm text-slate-400 mb-8'>Inicia sesión con la cuenta de Facebook de tu negocio.</p>
 
                 <button
                   onClick={iniciarConexionMeta}
@@ -221,28 +211,28 @@ export default function ActivacionWhatsAppPage() {
                   {conectando ? (
                     <>
                       <Loader2 className='h-5 w-5 animate-spin' />
-                      <span>Configurando bot...</span>
+                      <span>Conectando...</span>
                     </>
                   ) : (
                     <>
                       <MessageCircle className='h-5 w-5 fill-white' />
-                      <span>{sdkCargado ? 'Conectar con Meta' : 'Cargando seguridad...'}</span>
+                      <span>{sdkCargado ? 'Conectar con Meta' : 'Cargando...'}</span>
                       <ArrowRight className='absolute right-6 h-5 w-5 opacity-0 -translate-x-4 transition-all group-hover:opacity-100 group-hover:translate-x-0' />
                     </>
                   )}
                 </button>
 
-                {sdkError ? (
+                {sdkError && (
                   <p className='mt-4 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-left text-xs text-red-200'>
                     {sdkError}
                   </p>
-                ) : null}
+                )}
 
-                {error ? (
+                {error && (
                   <p className='mt-4 rounded-2xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-left text-xs text-amber-100'>
                     {error}
                   </p>
-                ) : null}
+                )}
               </div>
             </div>
           </div>
