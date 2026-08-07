@@ -1,73 +1,131 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma'; 
+﻿import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+
+type MetaTokenExchangeResponse = {
+  access_token?: string;
+  token_type?: string;
+  expires_in?: number;
+  error?: {
+    message?: string;
+    type?: string;
+    code?: number;
+    fbtrace_id?: string;
+  };
+};
+
+async function exchangeCodeForToken(code: string, redirectUri: string) {
+  const appId = process.env.META_APP_ID || process.env.FACEBOOK_APP_ID;
+  const appSecret = process.env.META_APP_SECRET || process.env.FACEBOOK_APP_SECRET;
+
+  if (!appId || !appSecret) {
+    throw new Error('Faltan las variables META_APP_ID o META_APP_SECRET para intercambiar el código de Meta.');
+  }
+
+  const tokenUrl = new URL('https://graph.facebook.com/v20.0/oauth/access_token');
+  tokenUrl.searchParams.set('client_id', appId);
+  tokenUrl.searchParams.set('client_secret', appSecret);
+  tokenUrl.searchParams.set('code', code);
+  tokenUrl.searchParams.set('redirect_uri', redirectUri);
+
+  const response = await fetch(tokenUrl.toString(), { method: 'GET' });
+  const data = (await response.json()) as MetaTokenExchangeResponse;
+
+  if (!response.ok || !data.access_token) {
+    const errorMessage = data.error?.message || 'No se pudo intercambiar el código de autorización de Meta.';
+    throw new Error(errorMessage);
+  }
+
+  return data.access_token;
+}
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    
-    const { metaAccessToken, metaPhoneNumberId = "ID_DEL_NUMERO", metaWabaId = "ID_DEL_WABA" } = body;
 
-    // 1. Validación de seguridad básica
-    if (!metaAccessToken) {
+    const {
+      metaAccessToken,
+      metaCode,
+      metaPhoneNumberId = 'ID_DEL_NUMERO',
+      metaWabaId = 'ID_DEL_WABA',
+      redirectUri,
+      tienda_id: tiendaIdFromBody,
+    } = body;
+
+    const code = metaCode || metaAccessToken;
+    const redirect = redirectUri || process.env.NEXT_PUBLIC_APP_URL || 'https://upway.business';
+    const tiendaId = tiendaIdFromBody || 'tienda_revisor_001';
+
+    if (!code) {
       return NextResponse.json(
-        { error: 'Falta el token de acceso de Meta' }, 
+        { error: 'Falta el código o token de acceso de Meta.' },
         { status: 400 }
       );
     }
 
-    // Usamos el ID fijo que creamos en SQL para el revisor y las pruebas
-    const tiendaIdSeguro = "tienda_revisor_001";
+    console.log(`Procesando callback de Meta para la tienda: ${tiendaId}`);
 
-    console.log(`Actualizando credenciales de Meta para la tienda: ${tiendaIdSeguro}`);
+    let accessToken = code;
 
-    // 2. REGISTRAR LA LÍNEA EN META (Opcional)
-    if (metaPhoneNumberId && metaPhoneNumberId !== "ID_DEL_NUMERO") {
+    if (metaAccessToken && metaAccessToken.startsWith('EA')) {
+      accessToken = metaAccessToken;
+    } else {
+      accessToken = await exchangeCodeForToken(code, redirect);
+    }
+
+    if (metaPhoneNumberId && metaPhoneNumberId !== 'ID_DEL_NUMERO') {
       try {
-        const pin_de_registro = '123456'; 
+        const pinDeRegistro = '123456';
 
         const registroMeta = await fetch(`https://graph.facebook.com/v20.0/${metaPhoneNumberId}/register`, {
           method: 'POST',
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${metaAccessToken}` 
+            Authorization: `Bearer ${accessToken}`,
           },
-          body: JSON.stringify({ 
-            messaging_product: 'whatsapp', 
-            pin: pin_de_registro 
-          })
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            pin: pinDeRegistro,
+          }),
         });
 
         if (!registroMeta.ok) {
-          const errorMeta = await registroMeta.json();
-          console.warn("⚠️ Aviso de Meta (no crítico para pruebas):", errorMeta);
+          const errorMeta = await registroMeta.json().catch(() => null);
+          console.warn('⚠️ Aviso de Meta (no crítico):', errorMeta);
         } else {
-          console.log("✅ Línea de WhatsApp registrada oficialmente en Meta.");
+          console.log('✅ Línea de WhatsApp registrada oficialmente en Meta.');
         }
-      } catch (e) {
-        console.error("Error menor al intentar registrar la línea en Graph API:", e);
+      } catch (error) {
+        console.error('Error menor al intentar registrar la línea en Graph API:', error);
       }
     }
 
-    // 3. ACTUALIZAR DIRECTAMENTE EN NEON / PRISMA
+    const tienda = await prisma.tienda.findUnique({ where: { id: tiendaId } });
+    if (!tienda) {
+      return NextResponse.json(
+        { error: `No existe la tienda ${tiendaId} en la base de datos.` },
+        { status: 404 }
+      );
+    }
+
     await prisma.tienda.update({
-      where: { id: tiendaIdSeguro },
+      where: { id: tiendaId },
       data: {
-        metaPhoneNumberId: metaPhoneNumberId,
-        metaWabaId: metaWabaId,
-        metaAccessToken: metaAccessToken,
+        metaPhoneNumberId,
+        metaWabaId,
+        metaAccessToken: accessToken,
         isWhatsAppActive: true,
       },
     });
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Línea de WhatsApp activada y conectada exitosamente' 
+    return NextResponse.json({
+      success: true,
+      message: 'Línea de WhatsApp activada y conectada exitosamente',
+      tiendaId,
     });
-
   } catch (error) {
     console.error('Error crítico guardando credenciales de Meta:', error);
     return NextResponse.json(
-      { error: 'Fallo interno del servidor al procesar el callback' }, 
+      { error: error instanceof Error ? error.message : 'Fallo interno del servidor al procesar el callback' },
       { status: 500 }
     );
   }
