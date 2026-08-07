@@ -143,7 +143,6 @@ export default function ActivacionWhatsAppPage() {
       config_id: process.env.NEXT_PUBLIC_META_CONFIG_ID || '2018640519013518',
       scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging',
       return_scopes: true,
-      display: 'popup',
       auth_type: 'rerequest',
       response_type: 'code',
       override_default_response_type: true,
