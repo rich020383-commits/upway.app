@@ -24,13 +24,11 @@ export default function ActivacionWhatsAppPage() {
 
   const inicializarFacebook = () => {
     if (!window.FB) return;
-
     const appId = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID;
     if (!appId) {
       setSdkError('Falta NEXT_PUBLIC_FACEBOOK_APP_ID en el entorno.');
       return;
     }
-
     try {
       window.FB.init({
         appId,
@@ -40,7 +38,6 @@ export default function ActivacionWhatsAppPage() {
       });
       setSdkCargado(true);
       setSdkError(null);
-      console.log('✅ SDK de Meta listo.');
     } catch (e) {
       console.error('Error al inicializar FB:', e);
       setSdkError('No se pudo inicializar el SDK de Meta.');
@@ -50,12 +47,43 @@ export default function ActivacionWhatsAppPage() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    // 🚀 EL RECEPTOR MÁGICO: Si Android nos obligó a usar la URL, aquí recibimos a Meta de vuelta
+    const procesarCodigoURL = (idTienda: string) => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const metaCode = urlParams.get('code');
+      
+      if (metaCode) {
+        setConectando(true);
+        const redirectUri = `${window.location.origin}/dashboard/activacion`;
+        
+        fetch('/api/meta/callback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tienda_id: idTienda, metaCode, redirectUri }),
+        })
+          .then(async (res) => {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Error al guardar credenciales');
+            alert('🎉 ¡Línea de WhatsApp conectada y activada con éxito!');
+            router.push('/dashboard');
+          })
+          .catch((err) => {
+            console.error('❌ Error enviando datos:', err);
+            setError('Problema vinculando la cuenta. Intenta de nuevo.');
+            setConectando(false);
+          });
+      }
+    };
+
     const cargarTiendaActual = async () => {
       try {
         const respuesta = await fetch('/api/tienda/me');
         if (respuesta.ok) {
           const datos = await respuesta.json();
-          if (datos?.tiendaId) setTiendaId(datos.tiendaId);
+          if (datos?.tiendaId) {
+            setTiendaId(datos.tiendaId);
+            procesarCodigoURL(datos.tiendaId); // Revisamos si venimos de Meta al cargar
+          }
         }
       } catch (error) {
         console.warn('No se pudo obtener la tienda actual:', error);
@@ -78,38 +106,42 @@ export default function ActivacionWhatsAppPage() {
 
     const timeout = window.setTimeout(() => {
       window.clearInterval(interval);
-      if (!window.FB) {
-        setSdkError('El SDK de Meta no cargó. Revisa tu conexión.');
-      }
+      if (!window.FB) setSdkError('El SDK de Meta no cargó. Revisa tu conexión.');
     }, 4000);
 
     return () => {
       window.clearInterval(interval);
       window.clearTimeout(timeout);
     };
-  }, []);
+  }, [router]);
 
   const iniciarConexionMeta = () => {
-    // 1. VALIDACIÓN RÁPIDA
     if (!window.FB) {
       setError('Meta no está listo. Recarga la página.');
       return;
     }
 
-    const redirectUri = `${window.location.origin}/dashboard/activacion`;
+    const appId = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID;
+    if (!appId) {
+      setError('Falta el ID de la App de Meta.');
+      return;
+    }
 
-    // 2. LLAMADA INMEDIATA A META (ESTO EVITA EL BLOQUEO EN EL CELULAR)
+    const redirectUri = `${window.location.origin}/dashboard/activacion`;
+    setError(null);
+
+    // 🚨 Llamamos a Meta INMEDIATAMENTE para que Android confíe en el clic 🚨
     window.FB.login((response: unknown) => {
       const typedResponse = response as {
         authResponse?: { accessToken?: string; code?: string };
         status?: string;
       };
-      
       const authResponse = typedResponse.authResponse;
       const metaCode = authResponse?.code || authResponse?.accessToken;
 
       if (authResponse && metaCode) {
-        // Enviar a tu backend
+        // Flujo normal (Computadoras o celulares amigables)
+        setConectando(true);
         fetch('/api/meta/callback', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -122,7 +154,6 @@ export default function ActivacionWhatsAppPage() {
           .then(async (res) => {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Error al guardar credenciales');
-
             alert('🎉 ¡Línea de WhatsApp conectada y activada con éxito!');
             router.push('/dashboard');
           })
@@ -132,14 +163,22 @@ export default function ActivacionWhatsAppPage() {
             setConectando(false);
           });
       } else if (typedResponse.status === 'not_authorized' || typedResponse.status === 'unknown') {
-        setError('No se completó la autorización de Meta. Intenta de nuevo.');
-        setConectando(false);
+        // 🛡️ LA BALA DE PLATA: ¡Si el celular mató el SDK, lo mandamos a la fuerza por URL directa!
+        setConectando(true);
+        const extrasStr = encodeURIComponent(JSON.stringify({
+          version: 'v4',
+          sessionInfoVersion: '3',
+          featureType: 'whatsapp_business_app_onboarding'
+        }));
+        const configId = process.env.NEXT_PUBLIC_META_CONFIG_ID || '2018640519013518';
+        const fallbackUrl = `https://business.facebook.com/messaging/whatsapp/onboard/?app_id=${appId}&config_id=${configId}&extras=${extrasStr}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+        
+        window.location.href = fallbackUrl;
       } else {
         setError('La conexión con Meta fue cancelada.');
         setConectando(false);
       }
     }, {
-      // 3. PARÁMETROS V4 EXACTOS (La clave del éxito)
       config_id: process.env.NEXT_PUBLIC_META_CONFIG_ID || '2018640519013518',
       scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging',
       return_scopes: true,
@@ -153,10 +192,6 @@ export default function ActivacionWhatsAppPage() {
         featureType: 'whatsapp_business_app_onboarding',
       },
     });
-
-    // 4. ACTUALIZAR UI (Se hace al final para no interrumpir el pop-up)
-    setError(null);
-    setConectando(true);
   };
 
   return (
