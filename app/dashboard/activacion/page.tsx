@@ -80,19 +80,20 @@ export default function ActivacionWhatsAppPage() {
     // 🔥 ATENCIÓN: El callback de FB.login NO puede ser async por restricciones del SDK de Meta
     window.FB.login((response: unknown) => {
       const typedResponse = response as {
-        authResponse?: { accessToken?: string };
+        authResponse?: { accessToken?: string; code?: string };
         status?: string;
       };
       const authResponse = typedResponse.authResponse;
-      const accessToken = authResponse?.accessToken;
+      // Capturamos el nuevo código de autorización que exige Meta
+      const metaCode = authResponse?.code || authResponse?.accessToken;
 
-      if (authResponse && accessToken) {
+      if (authResponse && metaCode) {
         fetch('/api/meta/callback', { 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             tienda_id: "tienda_revisor_001", // 🔥 Apuntando directo a la tienda del revisor en Neon
-            metaAccessToken: accessToken,
+            metaAccessToken: metaCode, // Mandamos el código al backend
           }),
         })
         .then(async (res) => {
@@ -117,11 +118,13 @@ export default function ActivacionWhatsAppPage() {
         setConectando(false);
       }
     }, {
-      config_id: '2018640519013518', // 👈 ¡Tu ID de configuración oficial!
+      config_id: '2018640519013518', 
       scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging',
       return_scopes: true,
       display: 'popup',
       auth_type: 'rerequest',
+      response_type: 'code',                 // 🔥 SOLUCIÓN AL ERROR DE META
+      override_default_response_type: true,  // 🔥 SOLUCIÓN AL ERROR DE META
       extras: { 
         feature: 'whatsapp_embedded_signup',
         sessionInfoVersion: '3'
