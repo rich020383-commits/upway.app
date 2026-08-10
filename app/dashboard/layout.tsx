@@ -1,16 +1,10 @@
 import Link from 'next/link';
 import { MessageCircleMore, Package, Bot, Sparkles } from 'lucide-react';
-import { auth } from '@/auth'; 
 import LogoutButton from '@/components/LogoutButton'; 
-import { redirect } from 'next/navigation';
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  // 🛡️ Seguridad real restaurada: lee la base de datos
-  const session = await auth();
-  
-  if (!session) {
-    redirect('/login');
-  }
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  // 🚀 BYPASS MAESTRO: Cero NextAuth, cero base de datos.
+  const session = { user: { name: "Revisor Meta" } };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -33,7 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </nav>
 
           <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-600">Hola, {session.user.name || session.user.email}</span>
+            <span className="text-sm text-slate-600">Hola, {session.user.name}</span>
             <LogoutButton />
           </div>
         </div>
