@@ -1,11 +1,10 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { withAuth } from "next-auth/middleware";
 
-export function middleware(request: NextRequest) {
-  // 🚀 SEGURIDAD APAGADA TEMPORALMENTE PARA LA REVISIÓN DE META
-  // Dejamos pasar todo el tráfico sin validar la cookie 'upway-session'
-  return NextResponse.next();
-}
+export default withAuth({
+  pages: {
+    signIn: '/login',
+  },
+});
 
 export const config = {
   matcher: ['/dashboard/:path*'],

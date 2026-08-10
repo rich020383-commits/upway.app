@@ -1,12 +1,16 @@
 import Link from 'next/link';
 import { MessageCircleMore, Package, Bot, Sparkles } from 'lucide-react';
-// 🚀 Quitamos la importación de auth temporalmente para que no bloquee
-// import { auth } from '@/auth'; 
+import { auth } from '@/auth'; 
 import LogoutButton from '@/components/LogoutButton'; 
+import { redirect } from 'next/navigation';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  // 🚀 BYPASS DE EMERGENCIA: Falsificamos la sesión. Cero consultas al servidor.
-  const session = { user: { name: "Revisor Meta", email: "revisor@meta.com" } };
+  // 🛡️ Seguridad real restaurada: lee la base de datos
+  const session = await auth();
+  
+  if (!session) {
+    redirect('/login');
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -29,11 +33,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </nav>
 
           <div className="flex items-center gap-3">
-            {session ? <span className="text-sm text-slate-600">Hola, {session.user.name || session.user.email}</span> : null}
-            
-            {/* Aquí metemos el botón mágico y limpio */}
+            <span className="text-sm text-slate-600">Hola, {session.user.name || session.user.email}</span>
             <LogoutButton />
-            
           </div>
         </div>
       </header>
