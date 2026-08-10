@@ -1,14 +1,11 @@
 "use client";
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
-// IMPORTAMOS LA FUNCIÓN MÁGICA DE NEXTAUTH
 import { signIn } from 'next-auth/react'; 
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -19,24 +16,24 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
-    // LLAMAMOS DIRECTO AL MOTOR DE NEXTAUTH (Credenciales)
+    // LLAMAMOS DIRECTO AL MOTOR DE NEXTAUTH
     const res = await signIn('credentials', {
       redirect: false, // Evita que la página recargue de golpe si hay error
       email,
       password,
     });
 
-    setLoading(false);
-
-    // Si NextAuth nos devuelve un error (ej. contraseña incorrecta)
+    // Si NextAuth nos devuelve un error
     if (res?.error) {
+      setLoading(false);
       setError(res.error === "CredentialsSignin" ? "Correo o contraseña incorrectos." : res.error);
       return;
     }
 
-    // Si todo sale bien, NextAuth ya creó la sesión y te mandamos al panel
-    router.push('/dashboard');
-    router.refresh(); // Refrescamos para que el layout detecte la nueva sesión
+    // 🚀 REDIRECCIÓN FORZADA (LA BALA DE PLATA)
+    // Esto obliga al navegador a saltar al dashboard recargando el entorno completo, 
+    // destruyendo cualquier pared invisible que tenga Next.js
+    window.location.href = '/dashboard';
   }
 
   return (
