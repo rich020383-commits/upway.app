@@ -75,7 +75,6 @@ model Tienda {
   metaPhoneNumberId String?  
   metaWabaId        String?  
   metaAccessToken   String?  @db.Text
-  metaUsername      String?  // 🚀 NUEVO: Para guardar el BSUID o Username
   isWhatsAppActive  Boolean  @default(false)
   
   user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)

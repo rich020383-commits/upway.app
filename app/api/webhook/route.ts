@@ -96,18 +96,12 @@ const resolveStaticFaqResponse = (texto: string, tienda?: { direccion?: string }
   return null;
 };
 
-// ==========================================
-// INTERFACES DE TYPESCRIPT
-// ==========================================
 interface Producto {
   nombre: string;
   categoria?: string;
   precio: number;
 }
 
-// ==========================================
-// EL MOTOR RAG: Búsqueda súper ligera en memoria
-// ==========================================
 const limpiarTexto = (txt: string) => txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 function buscarEnInventarioLocal(mensaje: string, todosLosProductos: Producto[]): Producto[] {
@@ -122,9 +116,6 @@ function buscarEnInventarioLocal(mensaje: string, todosLosProductos: Producto[])
   });
 }
 
-// ==========================================
-// GENERACIÓN DE RESPUESTA (EL ENRUTADOR MAESTRO)
-// ==========================================
 async function generarRespuesta(textoCliente: string, phoneId: string) {
     let systemPromptText = "";
     let tiendaRecord: any = null;
@@ -153,14 +144,14 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
             where: { metaPhoneNumberId: phoneId },
             include: { productos: true }
         });
- 
+
         if (!tienda) {
             console.warn(`⚠️ Mensaje a un número no registrado en BD: ${phoneId}`);
             return "Hola. Este número aún no tiene un agente de Upway activo. Regístrate en https://upway.business para activar el tuyo.";
         }
- 
+
         tiendaRecord = tienda;
- 
+
         const inventarioCompleto: Producto[] = tienda.productos.map((p: { nombre?: unknown; categoria?: unknown; precio?: unknown }) => ({
             nombre: String(p.nombre),
             categoria: p.categoria ? String(p.categoria) : "General",
@@ -177,13 +168,13 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
         const promptCliente = tienda.systemPrompt || "Eres un asistente de ventas. Responde corto y con emojis.";
         systemPromptText = `${promptCliente}\n\n=== BASE DE DATOS (SISTEMA RAG) ===\n${contextoInventario}\nRegla RAG: Basa tus respuestas de inventario SOLO en la información de la base de datos entregada arriba.`;
     }
- 
+
     const faqStaticResponse = resolveStaticFaqResponse(textoCliente, tiendaRecord ? { direccion: tiendaRecord.direccion } : undefined);
     if (faqStaticResponse) {
       console.log('🔍 Respuesta rápida desde caché FAQ o reglas estáticas.');
       return faqStaticResponse;
     }
- 
+
     if (phoneId === UPWAY_PHONE_ID) {
         console.log("🧠 Generando respuesta comercial (Gemini Premium)...");
         const apiKey = process.env.GEMINI_PREMIUM_API_KEY || process.env.GEMINI_API_KEY;
@@ -203,7 +194,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
           const result = await model.generateContent(textoCliente);
           return result.response.text();
         };
- 
+
         const generateWithKimiFallback = async () => {
           if (!kimiClient) throw new Error('Falta KIMI_API_KEY para fallback de Upway');
           const completion = await kimiClient.chat.completions.create({
@@ -217,7 +208,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
           });
           return completion.choices[0]?.message?.content || '';
         };
- 
+
         try {
           return await withTimeout(generateWithGemini(), 4000, 'Gemini Premium');
         } catch (geminiError) {
@@ -237,13 +228,13 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
         const generateWithGeminiFree = async () => {
             const freeApiKey = process.env.GEMINI_FREE_API_KEY;
             if (!freeApiKey) throw new Error('Falta GEMINI_FREE_API_KEY');
- 
+
             const genAIFree = new GoogleGenerativeAI(freeApiKey);
             const modelFree = genAIFree.getGenerativeModel({ model: 'gemini-2.5-flash', systemInstruction: systemPromptText });
             const result = await modelFree.generateContent(textoCliente);
             return result.response.text();
         };
- 
+
         const generateWithGeminiPremium = async () => {
             const premiumApiKey = process.env.GEMINI_PREMIUM_API_KEY || process.env.GEMINI_API_KEY;
             if (!premiumApiKey) throw new Error('Falta GEMINI_PREMIUM_API_KEY o GEMINI_API_KEY');
@@ -282,7 +273,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
             });
             return completion.choices[0]?.message?.content || "No pude generar respuesta.";
         };
- 
+
         try {
             const result = await withTimeout(generateWithGeminiFree(), 3500, 'Gemini Free');
             console.log("✅ Respondido con Gemini Free (Cliente)");
@@ -320,32 +311,22 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
 }
 
 // ==========================================
-// 🚀 NUEVO: ENVÍO DE MENSAJES META (ENRUTAMIENTO HÍBRIDO)
+// ENVÍO DE MENSAJES META (ESTÁNDAR V20.0)
 // ==========================================
-async function enviarMensajePorWhatsApp(destinoTelefono: string | undefined, destinoBsuid: string | undefined, mensaje: string, phoneId: string) {
+async function enviarMensajePorWhatsApp(destinoTelefono: string, mensaje: string, phoneId: string) {
   const token = process.env.WHATSAPP_TOKEN;
   const phoneNumberId = phoneId || process.env.WHATSAPP_PHONE_NUMBER_ID;
 
   if (!token || !phoneNumberId) throw new Error('Credenciales de WhatsApp no configuradas.');
 
-  // Subimos a la v26.0 para total compatibilidad con BSUIDs
-  const url = `https://graph.facebook.com/v26.0/${phoneNumberId}/messages`;
+  const url = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`;
   
   const payload: any = {
     messaging_product: 'whatsapp',
-    recipient_type: 'individual',
+    to: destinoTelefono,
     type: 'text',
     text: { body: mensaje }
   };
-
-  // Lógica de enrutamiento: Prioriza el número de teléfono, si viene oculto usa el BSUID
-  if (destinoTelefono) {
-    payload.to = destinoTelefono;
-  } else if (destinoBsuid) {
-    payload.recipient = destinoBsuid;
-  } else {
-    throw new Error("Se requiere al menos un número de teléfono o un BSUID válido para el envío.");
-  }
 
   try {
     const response = await fetch(url, {
@@ -356,13 +337,10 @@ async function enviarMensajePorWhatsApp(destinoTelefono: string | undefined, des
 
     const data = await response.json();
     if (!response.ok) {
-      if (data?.error?.code === 131062) {
-        console.error("⚠️ Alerta crítica Meta: BSUID no soportado o inválido.", data);
-      }
       throw new Error(`Error API WhatsApp: ${JSON.stringify(data)}`);
     }
     
-    console.log(`✅ Mensaje enviado exitosamente a ${destinoTelefono ? 'Teléfono: ' + destinoTelefono : 'BSUID: ' + destinoBsuid}`);
+    console.log(`✅ Mensaje enviado exitosamente a ${destinoTelefono}`);
   } catch (error) {
     console.error('❌ Error enviando a Meta:', error);
   }
@@ -380,7 +358,7 @@ export async function GET(req: Request) {
 }
 
 // ==========================================
-// 2. RECEPCIÓN DE MENSAJES Y EVENTOS (POST ACTUALIZADO)
+// 2. RECEPCIÓN DE MENSAJES Y EVENTOS (POST)
 // ==========================================
 export async function POST(req: Request) {
   try {
@@ -390,17 +368,13 @@ export async function POST(req: Request) {
       for (const entry of body.entry || []) {
         for (const change of entry.changes || []) {
 
-          // A. MANEJO DE MENSAJES Y BSUIDs
           if (change.field === 'messages') {
             const value = change.value;
             if (value?.messages?.length) {
               const mensajeEntrante = value.messages[0];
               
-              // 🚀 Extracción de la identidad híbrida
-              const userPhone = mensajeEntrante.from; // Número de teléfono (puede venir indefinido si hay privacidad)
-              const userBsuid = mensajeEntrante.from_user_id; // BSUID corporativo
+              const userPhone = mensajeEntrante.from; // Número de teléfono clásico
               const textoCliente = mensajeEntrante.text?.body ?? '';
-              
               const phoneIdDestino = value.metadata?.phone_number_id || ""; 
 
               // 🛡️ BARRERA ANTIBUCLES
@@ -409,8 +383,7 @@ export async function POST(req: Request) {
               void (async () => {
                 try {
                   const respuesta = await generarRespuesta(textoCliente, phoneIdDestino);
-                  // Disparamos la función con los dos parámetros de identidad
-                  await enviarMensajePorWhatsApp(userPhone, userBsuid, respuesta, phoneIdDestino);
+                  await enviarMensajePorWhatsApp(userPhone, respuesta, phoneIdDestino);
                 } catch (error) {
                   console.error('Fallo general en la respuesta del bot.', error);
                 }
@@ -418,13 +391,6 @@ export async function POST(req: Request) {
 
               return response;
             }
-          }
-
-          // B. NUEVO REQUISITO: CAPTURA DE CAMBIOS DE NOMBRE DE USUARIO
-          if (change.field === 'business_username_updates') {
-            const val = change.value;
-            console.log(`[Upway Webhook] Actualización de BSUID -> Número: ${val.display_phone_number}, Username: @${val.username}, Estado: ${val.status}`);
-            // Aquí en un futuro puedes cruzar esto con Prisma para actualizar el estado del cliente multitenant
           }
 
         }
