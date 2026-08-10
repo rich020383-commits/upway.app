@@ -35,7 +35,7 @@ export default function LoginPage() {
     }
 
     // Si todo sale bien, NextAuth ya creó la sesión y te mandamos al panel
-    router.push('/dashboard/bots');
+    router.push('/dashboard');
     router.refresh(); // Refrescamos para que el layout detecte la nueva sesión
   }
 

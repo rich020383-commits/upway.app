@@ -21,7 +21,7 @@ export default function TerminosPage() {
             </div>
             <h1 className="text-3xl font-bold text-white tracking-tight">Términos y Condiciones de Uso</h1>
           </div>
-          <p className="text-slate-500 text-sm">Última actualización: 6 de agosto de 2026</p>
+          <p className="text-slate-500 text-sm">Última actualización: 10 de agosto de 2026</p>
         </div>
 
         {/* Contenido Legal */}
@@ -45,6 +45,8 @@ export default function TerminosPage() {
             <ul className="list-disc pl-6 space-y-2 mb-6 text-slate-400 marker:text-blue-500">
               <li>El Cliente es el único responsable de la calidad, legalidad y veracidad de los mensajes enviados a través de Upway Business.</li>
               <li><strong>Prohibición de Spam:</strong> Queda estrictamente prohibido utilizar la plataforma para enviar mensajes masivos no solicitados (spam), contenido fraudulento, ilegal o que vulnere derechos de terceros.</li>
+              {/* 🚀 INYECCIÓN LEGAL BSUID - PROTECCIÓN CONTRA ABUSOS */}
+              <li><strong>Respeto al Anonimato y BSUIDs:</strong> El Cliente se compromete a respetar la configuración de privacidad de los usuarios finales que contacten a su línea mediante Nombres de Usuario de WhatsApp o BSUIDs (sin número telefónico visible). Queda terminantemente prohibido el uso de herramientas de terceros, scripts o técnicas de "scraping" para extraer, adivinar o vulnerar el anonimato de dichos usuarios.</li>
               <li><strong>Bloqueos de Línea:</strong> BARAKAH TECH HUB S.A.S. no se hace responsable por suspensiones, bloqueos o baneos de cuentas de WhatsApp aplicados por Meta debido a infracciones cometidas por el Cliente.</li>
             </ul>
 
@@ -55,10 +57,12 @@ export default function TerminosPage() {
               <li>BARAKAH TECH HUB S.A.S. no asume responsabilidad civil, comercial o penal por pérdidas, daños, reclamos o malos entendidos derivados de las respuestas emitidas por la Inteligencia Artificial a los usuarios finales del Cliente.</li>
             </ul>
 
-            <h3 className="text-xl font-semibold text-white mt-8 mb-4">4. Tratamiento de Datos Personales (Habeas Data)</h3>
+            <h3 className="text-xl font-semibold text-white mt-8 mb-4">4. Tratamiento de Datos Personales y Contacto Ético</h3>
             <p className="mb-4 text-slate-400">En cumplimiento de la Ley 1581 de 2012 de la República de Colombia, BARAKAH TECH HUB S.A.S. se compromete a proteger la privacidad de los datos suministrados en la plataforma.</p>
             <ul className="list-disc pl-6 space-y-2 mb-6 text-slate-400 marker:text-blue-500">
               <li>El Cliente actúa como el Responsable del Tratamiento de los datos de sus propios usuarios finales (sus clientes de WhatsApp). Upway Business actúa únicamente como Encargado del Tratamiento, procesando la información exclusivamente para permitir el funcionamiento del servicio.</li>
+              {/* 🚀 INYECCIÓN DE CONTACTO ÉTICO */}
+              <li><strong>Contacto Ético:</strong> La plataforma permite enrutar conversaciones mediante identificadores anónimos. El Cliente acepta que la única vía legítima para obtener el número de teléfono real de un usuario anónimo es mediante la solicitud oficial facilitada por la plataforma y con el consentimiento explícito del consumidor final.</li>
               <li>BARAKAH TECH HUB S.A.S. no comercializará, venderá ni compartirá los datos de las conversaciones del Cliente con terceros, salvo requerimiento de una autoridad judicial competente.</li>
             </ul>
 

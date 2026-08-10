@@ -32,7 +32,7 @@ export default function PrivacyPolicyPage() {
                 Política de Privacidad
               </h1>
               <p className="text-sm text-slate-400">
-                Upway Business (BARAKAH TECH HUB S.A.S.) — Última actualización: 3 de agosto de 2026
+                Upway Business (BARAKAH TECH HUB S.A.S.) — Última actualización: 10 de agosto de 2026
               </p>
             </div>
           </div>
@@ -53,6 +53,8 @@ export default function PrivacyPolicyPage() {
               <ul className="list-disc pl-6 space-y-2 text-slate-400">
                 <li>Datos de identificación del negocio (nombre de la empresa, correo electrónico corporativo y datos públicos del perfil comercial).</li>
                 <li>Identificadores de la cuenta de WhatsApp Business y tokens de acceso otorgados de forma voluntaria a través del flujo oficial de autenticación de Meta (<span className="text-slate-200">Embedded Signup</span>).</li>
+                {/* 🚀 INYECCIÓN LEGAL BSUID */}
+                <li><strong>Nombres de Usuario de WhatsApp y BSUIDs</strong> (Identificadores de usuario de ámbito comercial), recopilados automáticamente al interactuar con la plataforma utilizando las configuraciones de privacidad avanzadas de Meta.</li>
                 <li><strong>No recopilamos ni procesamos información personal sensible</strong> (como datos financieros privados, de salud, creencias u otros catalogados como confidenciales por las normativas de protección de datos).</li>
               </ul>
             </section>
@@ -67,6 +69,8 @@ export default function PrivacyPolicyPage() {
               </p>
               <ul className="list-disc pl-6 space-y-2 text-slate-400">
                 <li>Configurar y conectar de forma segura tu línea de WhatsApp Business con las herramientas de automatización e inteligencia artificial de Upway.</li>
+                {/* 🚀 INYECCIÓN LEGAL ENRUTAMIENTO ANÓNIMO */}
+                <li>Procesar y enrutar las conversaciones utilizando identificadores BSUID, garantizando que el agente de inteligencia artificial pueda interactuar <strong>sin exponer ni requerir el número telefónico real</strong> del usuario final.</li>
                 <li>Facilitar la gestión de interacciones comerciales dentro del panel de control de la plataforma (<span className="text-slate-200">Business Control</span>).</li>
                 <li>Enviar notificaciones técnicas relevantes sobre el estado de tu suscripción o servicio.</li>
               </ul>
@@ -79,10 +83,11 @@ export default function PrivacyPolicyPage() {
               </p>
             </section>
 
+            {/* 🚀 NUEVA SECCIÓN: REGLAS DE CONTACTO ÉTICO PARA BLINDARTE */}
             <section className="space-y-3">
-              <h2 className="text-xl font-semibold text-white">4. Buenas Prácticas y Seguridad</h2>
+              <h2 className="text-xl font-semibold text-white">4. Privacidad del Consumidor y Contacto Ético</h2>
               <p>
-                Implementamos medidas técnicas y organizativas de la industria para salvaguardar los accesos y mantener la integridad de la plataforma. Operamos bajo estrictos principios de minimización de datos, asegurando que solo se procese la información estrictamente necesaria para la operatividad del software.
+                Implementamos medidas técnicas y organizativas de la industria para salvaguardar la privacidad. <strong>Upway prohíbe estrictamente</strong> a las empresas usuarias el uso de tácticas, scripts o software de terceros para extraer (scrape) o intentar descubrir los números de teléfono ocultos detrás de un Nombre de Usuario o BSUID. La única forma válida de obtener el contacto directo de un usuario anónimo es mediante la solicitud explícita facilitada por la plataforma y aprobada por el consumidor.
               </p>
             </section>
 
@@ -106,7 +111,7 @@ export default function PrivacyPolicyPage() {
           <div className="mt-12 pt-6 border-t border-white/10 flex items-center justify-between text-xs text-slate-500 flex-wrap gap-4">
             <span className="flex items-center gap-1.5 text-emerald-400">
               <CheckCircle2 className="h-4 w-4" />
-              Cumple con los estándares de seguridad para desarrolladores de Meta
+              Cumple con los estándares de seguridad y BSUID de Meta
             </span>
             <span>© 2026 BARAKAH TECH HUB S.A.S. Todos los derechos reservados.</span>
           </div>
