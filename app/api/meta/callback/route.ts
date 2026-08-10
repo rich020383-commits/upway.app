@@ -21,7 +21,8 @@ async function exchangeCodeForToken(code: string, redirectUri: string) {
     throw new Error('Faltan las variables META_APP_ID o META_APP_SECRET para intercambiar el código de Meta.');
   }
 
-  const tokenUrl = new URL('https://graph.facebook.com/v20.0/oauth/access_token');
+  // 🚀 ACTUALIZADO: Subimos a la v26.0 para alinear con el Webhook híbrido
+  const tokenUrl = new URL('https://graph.facebook.com/v26.0/oauth/access_token');
   tokenUrl.searchParams.set('client_id', appId);
   tokenUrl.searchParams.set('client_secret', appSecret);
   tokenUrl.searchParams.set('code', code);
@@ -47,6 +48,7 @@ export async function POST(req: Request) {
       metaCode,
       metaPhoneNumberId = 'ID_DEL_NUMERO',
       metaWabaId = 'ID_DEL_WABA',
+      metaUsername, // 🚀 NUEVO: Recibimos el nombre de usuario (BSUID) desde el frontend
       redirectUri,
       tienda_id: tiendaIdFromBody,
     } = body;
@@ -76,7 +78,8 @@ export async function POST(req: Request) {
       try {
         const pinDeRegistro = '123456';
 
-        const registroMeta = await fetch(`https://graph.facebook.com/v20.0/${metaPhoneNumberId}/register`, {
+        // 🚀 ACTUALIZADO: Subimos a la v26.0 para el registro oficial de la línea
+        const registroMeta = await fetch(`https://graph.facebook.com/v26.0/${metaPhoneNumberId}/register`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -107,12 +110,14 @@ export async function POST(req: Request) {
       );
     }
 
+    // 🚀 ACTUALIZADO: Inyectamos el metaUsername en Prisma
     await prisma.tienda.update({
       where: { id: tiendaId },
       data: {
         metaPhoneNumberId,
         metaWabaId,
         metaAccessToken: accessToken,
+        ...(metaUsername && { metaUsername }), // Solo se actualiza si el frontend lo envió
         isWhatsAppActive: true,
       },
     });

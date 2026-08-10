@@ -62,23 +62,24 @@ model VerificationToken {
 // ==========================================
 
 model Tienda {
-  id              String   @id @default(cuid())
-  userId          String
-  nombre          String
+  id                String   @id @default(cuid())
+  userId            String
+  nombre            String
   
   // 🤖 Personalidad del Bot
-  agentName       String?
-  systemPrompt    String?  @db.Text
+  agentName         String?
+  systemPrompt      String?  @db.Text
   
   // 🔥 CAMPOS META WHATSAPP (Unificados y dentro del modelo)
   telefono          String?  
   metaPhoneNumberId String?  
   metaWabaId        String?  
   metaAccessToken   String?  @db.Text
+  metaUsername      String?  // 🚀 NUEVO: Para guardar el BSUID o Username
   isWhatsAppActive  Boolean  @default(false)
   
-  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  productos       Producto[]
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productos         Producto[]
 }
 
 model Producto {

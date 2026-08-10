@@ -129,14 +129,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
     let systemPromptText = "";
     let tiendaRecord: any = null;
 
-    // ==========================================================
-    // 🚀 BIFURCACIÓN ESTRATÉGICA SAAS: ¿ES UPWAY O ES UN CLIENTE?
-    // ==========================================================
-    
     if (phoneId === UPWAY_PHONE_ID) {
-        // ==========================================================
-        // 👑 RUTA VIP: EL NÚMERO OFICIAL DE UPWAY (SOPHIE)
-        // ==========================================================
         console.log("👑 Entró mensaje al canal de Upway. Activando a Sophie...");
         
         const promptSophie = `Rol: Eres Sophie, la asistente virtual y cerradora de ventas estrella de Upway. Tu tono es persuasivo, tecnológico, amigable y muy directo. Tus respuestas deben ser cortas (ideales para WhatsApp) y usar emojis.
@@ -154,9 +147,6 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
         systemPromptText = promptSophie;
 
     } else {
-        // ==========================================================
-        // 🏢 RUTA MULTITENANT: NÚMERO DE UN CLIENTE (FERRETERÍA, ETC)
-        // ==========================================================
         console.log(`🏢 Buscando base de datos del cliente para el número: ${phoneId}`);
         
         const tienda = await prisma.tienda.findFirst({
@@ -194,11 +184,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
       return faqStaticResponse;
     }
  
-    // =================================================================
-    // EJECUCIÓN DE IA SEGÚN EL ENRUTAMIENTO
-    // =================================================================
     if (phoneId === UPWAY_PHONE_ID) {
-        // 👑 RUTA VIP: UPWAY (Usando tu modelo Premium para ventas)
         console.log("🧠 Generando respuesta comercial (Gemini Premium)...");
         const apiKey = process.env.GEMINI_PREMIUM_API_KEY || process.env.GEMINI_API_KEY;
         if (!apiKey) throw new Error('Falta llave de Gemini Premium en el .env');
@@ -247,7 +233,6 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
         }
 
     } else {
-        // 🤝 RUTA CLIENTES: COSTO CERO (GEMINI FREE -> GROQ)
         console.log(`🤝 Generando respuesta para cliente de tienda. Usando RUTA GRATUITA...`);
         const generateWithGeminiFree = async () => {
             const freeApiKey = process.env.GEMINI_FREE_API_KEY;
@@ -335,24 +320,49 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
 }
 
 // ==========================================
-// ENVÍO DE MENSAJES META
+// 🚀 NUEVO: ENVÍO DE MENSAJES META (ENRUTAMIENTO HÍBRIDO)
 // ==========================================
-async function enviarMensajePorWhatsApp(destino: string, mensaje: string, phoneId: string) {
+async function enviarMensajePorWhatsApp(destinoTelefono: string | undefined, destinoBsuid: string | undefined, mensaje: string, phoneId: string) {
   const token = process.env.WHATSAPP_TOKEN;
   const phoneNumberId = phoneId || process.env.WHATSAPP_PHONE_NUMBER_ID;
 
   if (!token || !phoneNumberId) throw new Error('Credenciales de WhatsApp no configuradas.');
 
-  const url = `https://graph.facebook.com/v22.0/${phoneNumberId}/messages`;
+  // Subimos a la v26.0 para total compatibilidad con BSUIDs
+  const url = `https://graph.facebook.com/v26.0/${phoneNumberId}/messages`;
+  
+  const payload: any = {
+    messaging_product: 'whatsapp',
+    recipient_type: 'individual',
+    type: 'text',
+    text: { body: mensaje }
+  };
+
+  // Lógica de enrutamiento: Prioriza el número de teléfono, si viene oculto usa el BSUID
+  if (destinoTelefono) {
+    payload.to = destinoTelefono;
+  } else if (destinoBsuid) {
+    payload.recipient = destinoBsuid;
+  } else {
+    throw new Error("Se requiere al menos un número de teléfono o un BSUID válido para el envío.");
+  }
+
   try {
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ messaging_product: 'whatsapp', to: destino, type: 'text', text: { body: mensaje } }),
+      body: JSON.stringify(payload),
     });
 
-    if (!response.ok) throw new Error(`Error API WhatsApp: ${response.status}`);
-    console.log(`✅ Mensaje enviado exitosamente a ${destino}`);
+    const data = await response.json();
+    if (!response.ok) {
+      if (data?.error?.code === 131062) {
+        console.error("⚠️ Alerta crítica Meta: BSUID no soportado o inválido.", data);
+      }
+      throw new Error(`Error API WhatsApp: ${JSON.stringify(data)}`);
+    }
+    
+    console.log(`✅ Mensaje enviado exitosamente a ${destinoTelefono ? 'Teléfono: ' + destinoTelefono : 'BSUID: ' + destinoBsuid}`);
   } catch (error) {
     console.error('❌ Error enviando a Meta:', error);
   }
@@ -370,37 +380,56 @@ export async function GET(req: Request) {
 }
 
 // ==========================================
-// 2. RECEPCIÓN DE MENSAJES (POST)
+// 2. RECEPCIÓN DE MENSAJES Y EVENTOS (POST ACTUALIZADO)
 // ==========================================
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
     if (body?.object === 'whatsapp_business_account') {
-      const entry = body.entry?.[0];
-      const changes = entry?.changes?.[0]?.value;
+      for (const entry of body.entry || []) {
+        for (const change of entry.changes || []) {
 
-      if (changes?.messages?.length) {
-        const mensajeEntrante = changes.messages[0];
-        const numeroCliente = mensajeEntrante.from;
-        const textoCliente = mensajeEntrante.text?.body ?? '';
-        
-        const phoneIdDestino = changes.metadata?.phone_number_id || ""; 
+          // A. MANEJO DE MENSAJES Y BSUIDs
+          if (change.field === 'messages') {
+            const value = change.value;
+            if (value?.messages?.length) {
+              const mensajeEntrante = value.messages[0];
+              
+              // 🚀 Extracción de la identidad híbrida
+              const userPhone = mensajeEntrante.from; // Número de teléfono (puede venir indefinido si hay privacidad)
+              const userBsuid = mensajeEntrante.from_user_id; // BSUID corporativo
+              const textoCliente = mensajeEntrante.text?.body ?? '';
+              
+              const phoneIdDestino = value.metadata?.phone_number_id || ""; 
 
-        // 🛡️ BARRERA ANTIBUCLES
-        const response = new NextResponse(null, { status: 200 });
+              // 🛡️ BARRERA ANTIBUCLES
+              const response = new NextResponse(null, { status: 200 });
 
-        void (async () => {
-          try {
-            const respuesta = await generarRespuesta(textoCliente, phoneIdDestino);
-            await enviarMensajePorWhatsApp(numeroCliente, respuesta, phoneIdDestino);
-          } catch (error) {
-            console.error('Fallo general en la respuesta del bot.', error);
+              void (async () => {
+                try {
+                  const respuesta = await generarRespuesta(textoCliente, phoneIdDestino);
+                  // Disparamos la función con los dos parámetros de identidad
+                  await enviarMensajePorWhatsApp(userPhone, userBsuid, respuesta, phoneIdDestino);
+                } catch (error) {
+                  console.error('Fallo general en la respuesta del bot.', error);
+                }
+              })();
+
+              return response;
+            }
           }
-        })();
 
-        return response;
+          // B. NUEVO REQUISITO: CAPTURA DE CAMBIOS DE NOMBRE DE USUARIO
+          if (change.field === 'business_username_updates') {
+            const val = change.value;
+            console.log(`[Upway Webhook] Actualización de BSUID -> Número: ${val.display_phone_number}, Username: @${val.username}, Estado: ${val.status}`);
+            // Aquí en un futuro puedes cruzar esto con Prisma para actualizar el estado del cliente multitenant
+          }
+
+        }
       }
+      return new NextResponse(null, { status: 200 });
     }
     return new NextResponse(null, { status: 200 });
   } catch (error) {
@@ -408,4 +437,3 @@ export async function POST(req: Request) {
     return new NextResponse('Error Interno', { status: 500 });
   }
 }
-

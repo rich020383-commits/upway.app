@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, Smartphone, ShieldCheck, ArrowRight, Loader2, Sparkles, MessageCircle } from 'lucide-react';
+import { CheckCircle2, Smartphone, ShieldCheck, ArrowRight, Loader2, Sparkles, MessageCircle, AtSign } from 'lucide-react';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
 
@@ -20,6 +20,10 @@ export default function ActivacionWhatsAppPage() {
   const [sdkError, setSdkError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tiendaId, setTiendaId] = useState<string | null>(null);
+  
+  // 🚀 NUEVO: Estado para el Nombre de Usuario (BSUID)
+  const [metaUsername, setMetaUsername] = useState('');
+  
   const router = useRouter();
 
   const inicializarFacebook = () => {
@@ -34,7 +38,7 @@ export default function ActivacionWhatsAppPage() {
         appId,
         cookie: true,
         xfbml: true,
-        version: 'v20.0',
+        version: 'v26.0', // 🚀 Aseguramos versión reciente para compatibilidad BSUID
       });
       setSdkCargado(true);
       setSdkError(null);
@@ -47,7 +51,13 @@ export default function ActivacionWhatsAppPage() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // 🚀 EL RECEPTOR MÁGICO: Si Android nos obligó a usar la URL, aquí recibimos a Meta de vuelta
+    // 🚀 Recuperamos el username si venimos de una redirección móvil
+    const savedUsername = localStorage.getItem('upway_meta_username') || '';
+    if (savedUsername) {
+      setMetaUsername(savedUsername);
+    }
+
+    // EL RECEPTOR MÁGICO: Si Android nos obligó a usar la URL, aquí recibimos a Meta de vuelta
     const procesarCodigoURL = (idTienda: string) => {
       const urlParams = new URLSearchParams(window.location.search);
       const metaCode = urlParams.get('code');
@@ -56,14 +66,27 @@ export default function ActivacionWhatsAppPage() {
         setConectando(true);
         const redirectUri = `${window.location.origin}/dashboard/activacion`;
         
+        // Usamos el username guardado en localStorage para mandarlo al backend
+        const usernameToSubmit = localStorage.getItem('upway_meta_username') || metaUsername;
+
         fetch('/api/meta/callback', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tienda_id: idTienda, metaCode, redirectUri }),
+          // 🚀 INYECTADO: Se envía el metaUsername
+          body: JSON.stringify({ 
+            tienda_id: idTienda, 
+            metaCode, 
+            redirectUri,
+            metaUsername: usernameToSubmit 
+          }),
         })
           .then(async (res) => {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Error al guardar credenciales');
+            
+            // Limpiamos el localStorage tras el éxito
+            localStorage.removeItem('upway_meta_username');
+            
             alert('🎉 ¡Línea de WhatsApp conectada y activada con éxito!');
             router.push('/dashboard');
           })
@@ -113,7 +136,7 @@ export default function ActivacionWhatsAppPage() {
       window.clearInterval(interval);
       window.clearTimeout(timeout);
     };
-  }, [router]);
+  }, [router, metaUsername]);
 
   const iniciarConexionMeta = () => {
     if (!window.FB) {
@@ -130,7 +153,12 @@ export default function ActivacionWhatsAppPage() {
     const redirectUri = `${window.location.origin}/dashboard/activacion`;
     setError(null);
 
-    // 🚨 Llamamos a Meta INMEDIATAMENTE para que Android confíe en el clic 🚨
+    // 🚀 Guardamos el Username en localStorage por si Meta bloquea el popup y nos hace redirigir
+    if (metaUsername) {
+      localStorage.setItem('upway_meta_username', metaUsername);
+    }
+
+    // Llamamos a Meta INMEDIATAMENTE para que Android confíe en el clic
     window.FB.login((response: unknown) => {
       const typedResponse = response as {
         authResponse?: { accessToken?: string; code?: string };
@@ -140,7 +168,7 @@ export default function ActivacionWhatsAppPage() {
       const metaCode = authResponse?.code || authResponse?.accessToken;
 
       if (authResponse && metaCode) {
-        // Flujo normal (Computadoras o celulares amigables)
+        // Flujo normal (Computadoras o celulares amigables - Popup)
         setConectando(true);
         fetch('/api/meta/callback', {
           method: 'POST',
@@ -149,11 +177,14 @@ export default function ActivacionWhatsAppPage() {
             tienda_id: tiendaId || 'tienda_revisor_001',
             metaCode,
             redirectUri,
+            metaUsername, // 🚀 INYECTADO: Enviamos el Username directamente
           }),
         })
           .then(async (res) => {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Error al guardar credenciales');
+            
+            localStorage.removeItem('upway_meta_username');
             alert('🎉 ¡Línea de WhatsApp conectada y activada con éxito!');
             router.push('/dashboard');
           })
@@ -168,7 +199,6 @@ export default function ActivacionWhatsAppPage() {
         
         const configId = process.env.NEXT_PUBLIC_META_CONFIG_ID || '2018640519013518';
         
-        // Incluimos los extras de la v4 para forzar el flujo de WhatsApp Business correctamente
         const extrasObj = encodeURIComponent(JSON.stringify({
           version: 'v4',
           sessionInfoVersion: '3',
@@ -239,7 +269,31 @@ export default function ActivacionWhatsAppPage() {
                   <Sparkles className='h-3.5 w-3.5' /> Activación Oficial
                 </div>
                 <h2 className='text-xl font-semibold text-white mb-2'>Conecta tu WhatsApp</h2>
-                <p className='text-sm text-slate-400 mb-8'>Inicia sesión con la cuenta de Facebook de tu negocio.</p>
+                <p className='text-sm text-slate-400 mb-6'>Inicia sesión con la cuenta de Facebook de tu negocio.</p>
+
+                {/* 🚀 NUEVO INPUT: Nombre de Usuario inyectado antes del botón */}
+                <div className="mb-6 w-full text-left">
+                  <label htmlFor="metaUsername" className="block text-xs font-medium text-slate-300 mb-1.5 ml-1">
+                    Nombre de Usuario (Opcional)
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                      <AtSign className="h-4 w-4 text-slate-500" />
+                    </div>
+                    <input
+                      type="text"
+                      name="metaUsername"
+                      id="metaUsername"
+                      className="pl-10 block w-full bg-[#0A0E14] border border-white/10 rounded-xl py-3 text-sm text-white placeholder-slate-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                      placeholder="ej. upway_business"
+                      value={metaUsername}
+                      onChange={(e) => setMetaUsername(e.target.value.replace('@', ''))} 
+                    />
+                  </div>
+                  <p className="mt-2 text-[10px] text-slate-500 ml-1 leading-tight">
+                    Si Meta ya te aprobó un nombre de usuario BSUID, ingrésalo aquí para potenciar la privacidad de tus chats.
+                  </p>
+                </div>
 
                 <button
                   onClick={iniciarConexionMeta}

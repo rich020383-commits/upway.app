@@ -1,12 +1,18 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Bot, CheckCircle2, MessageSquare, ShieldCheck, Zap, RefreshCw, ExternalLink, Sparkles, Power, Download, Clock, BookOpen } from 'lucide-react';
+import { Bot, CheckCircle2, MessageSquare, ShieldCheck, Zap, RefreshCw, ExternalLink, Sparkles, Power, Download, Clock, BookOpen, AtSign } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DashboardHomePage() {
   // Estado para controlar el "Botón de Pánico" de la IA
   const [iaActiva, setIaActiva] = useState(true);
+  
+  // 🚀 SIMULACIÓN DE DATOS TRAÍDOS DE PRISMA (Sustituye esto por tu fetch real)
+  const [tiendaData] = useState({
+    telefono: "573001234567",
+    metaUsername: "upway_demo" // Si esto es null, el sistema vuelve a usar el teléfono
+  });
 
   return (
     <div className="max-w-5xl mx-auto py-6">
@@ -21,6 +27,7 @@ export default function DashboardHomePage() {
           <p className="text-slate-400 text-sm mt-1">Gestiona tu agente de inteligencia artificial y tu línea comercial.</p>
         </div>
         
+        {/* 🚀 AQUÍ ES DONDE ESTÁ EL FORMULARIO REAL PARA INGRESAR EL USERNAME */}
         <Link 
           href="/dashboard/activacion"
           className="inline-flex items-center gap-2 rounded-xl bg-blue-600/20 border border-blue-500/30 px-4 py-2 text-xs font-semibold text-blue-400 hover:bg-blue-600/30 transition-all"
@@ -64,7 +71,7 @@ export default function DashboardHomePage() {
           </button>
         </div>
 
-        {/* Tarjeta 2: Conexión Meta (Con Transparencia) */}
+        {/* 🚀 Tarjeta 2 ACTUALIZADA: Conexión Meta mostrando el BSUID */}
         <div className="rounded-3xl border border-white/10 bg-[#0A0E14] p-6 relative overflow-hidden shadow-xl flex flex-col justify-between">
           <div className="absolute top-0 left-0 right-0 h-1 bg-blue-600"></div>
           
@@ -79,11 +86,19 @@ export default function DashboardHomePage() {
             </p>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between">
-            <span className="text-xs text-slate-500">+57 300 *** ****</span>
-            <button className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors">
-              <Download className="h-3 w-3" /> Exportar Datos
-            </button>
+          <div className="mt-6 pt-4 border-t border-white/5 flex flex-col gap-2">
+            {tiendaData.metaUsername && (
+              <div className="flex items-center gap-1.5 text-sm font-semibold text-blue-400">
+                <AtSign className="h-3.5 w-3.5" />
+                {tiendaData.metaUsername}
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-slate-500">+{tiendaData.telefono.replace(/(\d{2})(\d{3})(\d{3})(\d{4})/, '$1 $2 *** ****')}</span>
+              <button className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors">
+                <Download className="h-3 w-3" /> Datos
+              </button>
+            </div>
           </div>
         </div>
 
@@ -99,7 +114,6 @@ export default function DashboardHomePage() {
             <div className="text-3xl font-bold text-white mb-1">
               0 <span className="text-xs font-normal text-slate-400">chats hoy</span>
             </div>
-            {/* Barra de progreso de resolución (Decorativa para la estética) */}
             <div className="flex items-center gap-2 mt-2">
               <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
                 <div className="h-full bg-cyan-400 rounded-full w-[0%]"></div>
@@ -118,7 +132,7 @@ export default function DashboardHomePage() {
       {/* Sección Inferior: Base de Conocimiento y Pruebas (Grid 2 Columnas) */}
       <div className="grid md:grid-cols-2 gap-6">
         
-        {/* Base de Conocimiento (Nueva) */}
+        {/* Base de Conocimiento */}
         <div className="rounded-3xl border border-white/10 bg-[#0A0E14] p-8 shadow-2xl relative overflow-hidden group">
           <div className="absolute top-1/2 left-0 -translate-y-1/2 w-72 h-72 bg-purple-500/5 rounded-full blur-3xl pointer-events-none"></div>
           
@@ -138,7 +152,7 @@ export default function DashboardHomePage() {
           </div>
         </div>
 
-        {/* Zona de Pruebas (La tuya, adaptada al grid) */}
+        {/* 🚀 Zona de Pruebas ACTUALIZADA: Enlace dinámico según BSUID o Teléfono */}
         <div className="rounded-3xl border border-white/10 bg-[#0A0E14] p-8 shadow-2xl relative overflow-hidden">
           <div className="absolute top-1/2 right-0 -translate-y-1/2 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
           
@@ -152,7 +166,7 @@ export default function DashboardHomePage() {
             </p>
             
             <a 
-              href="https://wa.me/" 
+              href={`https://wa.me/${tiendaData.metaUsername ? tiendaData.metaUsername : tiendaData.telefono}`} 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#25D366] px-6 py-3.5 font-semibold text-white shadow-lg hover:bg-[#20ba5a] transition-all text-sm"
