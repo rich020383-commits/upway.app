@@ -2,13 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const sessionCookie = request.cookies.get('upway-session')?.value;
-  const isProtectedRoute = request.nextUrl.pathname.startsWith('/dashboard');
-
-  if (isProtectedRoute && !sessionCookie) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
+  // 🚀 SEGURIDAD APAGADA TEMPORALMENTE PARA LA REVISIÓN DE META
+  // Dejamos pasar todo el tráfico sin validar la cookie 'upway-session'
   return NextResponse.next();
 }
 
