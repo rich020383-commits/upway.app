@@ -3,7 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
-// Singleton para reutilizar la misma conexión y evitar el error 503 en Render
+// Patrón Singleton para proteger las conexiones con Neon
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 const prisma = globalForPrisma.prisma || new PrismaClient();
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
@@ -17,29 +17,48 @@ const handler = NextAuth({
         password: { label: "Contraseña", type: "password" }
       },
       async authorize(credentials) {
+        console.log("🔍 [INFORMANTE] 1. Intento de login recibido para:", credentials?.email);
+
         if (!credentials?.email || !credentials?.password) {
+          console.log("❌ [INFORMANTE] Faltan credenciales");
           throw new Error("Por favor ingresa tu correo y contraseña");
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
-        });
+        try {
+          console.log("🔍 [INFORMANTE] 2. Consultando usuario en Neon...");
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email }
+          });
 
-        if (!user || !user.password) {
-          throw new Error("No se encontró ninguna cuenta con este correo");
+          if (!user) {
+            console.log("❌ [INFORMANTE] El correo no existe en la base de datos");
+            throw new Error("No se encontró ninguna cuenta con este correo");
+          }
+
+          if (!user.password) {
+            console.log("❌ [INFORMANTE] El usuario existe pero no tiene contraseña registrada");
+            throw new Error("Cuenta sin contraseña configurada");
+          }
+
+          console.log("🔍 [INFORMANTE] 3. Usuario encontrado. Verificando contraseña con bcrypt...");
+          const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+
+          if (!isPasswordValid) {
+            console.log("❌ [INFORMANTE] La contraseña es incorrecta");
+            throw new Error("Contraseña incorrecta");
+          }
+
+          console.log("✅ [INFORMANTE] 4. ¡Contraseña válida! Autenticación exitosa para:", user.email);
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+          };
+
+        } catch (error: any) {
+          console.error("🚨 [INFORMANTE] EXCEPCIÓN CAPTURADA EN AUTHORIZE:", error.message || error);
+          throw new Error(error.message || "Error interno al procesar el acceso");
         }
-
-        const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-
-        if (!isPasswordValid) {
-          throw new Error("Contraseña incorrecta");
-        }
-
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-        };
       }
     })
   ],
