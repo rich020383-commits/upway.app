@@ -23,7 +23,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex">
             <Link href="/dashboard/bots" className="flex items-center gap-2 transition hover:text-blue-700"><Bot className="h-4 w-4" /> Bots</Link>
             <Link href="/dashboard/inventario" className="flex items-center gap-2 transition hover:text-blue-700"><Package className="h-4 w-4" /> Inventario</Link>
-            <a href="#" className="flex items-center gap-2 transition hover:text-blue-700"><MessageCircleMore className="h-4 w-4" /> WhatsApp</a>
+            <Link href="/dashboard/activacion" className="flex items-center gap-2 transition hover:text-blue-700"><MessageCircleMore className="h-4 w-4" /> WhatsApp</Link>
           </nav>
 
           <div className="flex items-center gap-3">

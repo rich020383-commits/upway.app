@@ -33,9 +33,9 @@ export default function LoginPage() {
               </div>
               
               {/* 🚀 BOTÓN CONVERTIDO EN LINK DIRECTO AL SIMULADOR */}
-              <Link href="/dashboard/activacion" className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-500">
-                Entrar <ArrowRight className="h-4 w-4" />
-              </Link>
+              <Link href="/dashboard" className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-500">
+  Entrar <ArrowRight className="h-4 w-4" />
+</Link>
             </div>
           </div>
         </div>
