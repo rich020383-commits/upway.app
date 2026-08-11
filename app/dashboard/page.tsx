@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Bot, CheckCircle2, MessageSquare, ShieldCheck, Zap, RefreshCw, ExternalLink, Sparkles, Power, Download, Clock, BookOpen, AtSign } from 'lucide-react';
+import { Bot, CheckCircle2, MessageSquare, ShieldCheck, Zap, RefreshCw, ExternalLink, Sparkles, Power, Download, Clock, BookOpen, AtSign, Rocket } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DashboardHomePage() {
@@ -18,7 +18,7 @@ export default function DashboardHomePage() {
     <div className="max-w-5xl mx-auto py-6">
       
       {/* Header del Dashboard */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 pb-6 border-b border-white/10">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pb-6 border-b border-white/10">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400 mb-3">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span> Sistema Operativo
@@ -27,13 +27,34 @@ export default function DashboardHomePage() {
           <p className="text-slate-400 text-sm mt-1">Gestiona tu agente de inteligencia artificial y tu línea comercial.</p>
         </div>
         
-        {/* 🚀 AQUÍ ES DONDE ESTÁ EL FORMULARIO REAL PARA INGRESAR EL USERNAME */}
+        {/* 🚀 Botón superior secundario */}
         <Link 
           href="/dashboard/activacion"
           className="inline-flex items-center gap-2 rounded-xl bg-blue-600/20 border border-blue-500/30 px-4 py-2 text-xs font-semibold text-blue-400 hover:bg-blue-600/30 transition-all"
         >
           <RefreshCw className="h-3.5 w-3.5" /> Reconfigurar WhatsApp
         </Link>
+      </div>
+
+      {/* 🚀 NUEVO BANNER DE ONBOARDING PARA LA REVISIÓN DE META */}
+      <div className="mb-10 rounded-[32px] bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 p-8 text-white shadow-2xl relative overflow-hidden border border-white/10">
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="relative z-10">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white mb-4 backdrop-blur-md">
+            <Sparkles className="h-3.5 w-3.5" /> Paso 1 de 1
+          </div>
+          <h2 className="text-3xl font-bold mb-3">¡Bienvenido a Upway Business!</h2>
+          <p className="text-blue-100 mb-8 max-w-2xl text-sm md:text-base leading-relaxed">
+            Tu centro de control está casi listo para empezar a operar. Para conectar tu línea de WhatsApp oficial y habilitar la inteligencia artificial, por favor completa el proceso de vinculación.
+          </p>
+          <Link 
+            href="/dashboard/activacion" 
+            className="inline-flex items-center gap-3 bg-white text-blue-700 px-7 py-3.5 rounded-2xl font-bold hover:bg-blue-50 hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+          >
+            <Rocket className="h-5 w-5" />
+            Conectar WhatsApp con Meta
+          </Link>
+        </div>
       </div>
 
       {/* Tarjetas de Estado */}
@@ -71,7 +92,7 @@ export default function DashboardHomePage() {
           </button>
         </div>
 
-        {/* 🚀 Tarjeta 2 ACTUALIZADA: Conexión Meta mostrando el BSUID */}
+        {/* Tarjeta 2: Conexión Meta mostrando el BSUID */}
         <div className="rounded-3xl border border-white/10 bg-[#0A0E14] p-6 relative overflow-hidden shadow-xl flex flex-col justify-between">
           <div className="absolute top-0 left-0 right-0 h-1 bg-blue-600"></div>
           
@@ -82,20 +103,20 @@ export default function DashboardHomePage() {
             </div>
             <div className="text-lg font-bold text-white mb-1 truncate">WhatsApp Business</div>
             <p className="text-xs text-emerald-400 font-medium flex items-center gap-1">
-              <CheckCircle2 className="h-3 w-3" /> Vinculación oficial aprobada
+              <CheckCircle2 className="h-3 w-3" /> Vinculación pendiente / inactiva
             </p>
           </div>
 
           <div className="mt-6 pt-4 border-t border-white/5 flex flex-col gap-2">
             {tiendaData.metaUsername && (
-              <div className="flex items-center gap-1.5 text-sm font-semibold text-blue-400">
+              <div className="flex items-center gap-1.5 text-sm font-semibold text-slate-500">
                 <AtSign className="h-3.5 w-3.5" />
-                {tiendaData.metaUsername}
+                Pendiente de conexión
               </div>
             )}
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-500">+{tiendaData.telefono.replace(/(\d{2})(\d{3})(\d{3})(\d{4})/, '$1 $2 *** ****')}</span>
-              <button className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors">
+              <span className="text-xs text-slate-600">Conecta para ver datos</span>
+              <button className="flex items-center gap-1 text-xs text-slate-500 hover:text-white transition-colors">
                 <Download className="h-3 w-3" /> Datos
               </button>
             </div>
@@ -129,7 +150,7 @@ export default function DashboardHomePage() {
 
       </div>
 
-      {/* Sección Inferior: Base de Conocimiento y Pruebas (Grid 2 Columnas) */}
+      {/* Sección Inferior: Base de Conocimiento y Pruebas */}
       <div className="grid md:grid-cols-2 gap-6">
         
         {/* Base de Conocimiento */}
@@ -152,7 +173,7 @@ export default function DashboardHomePage() {
           </div>
         </div>
 
-        {/* 🚀 Zona de Pruebas ACTUALIZADA: Enlace dinámico según BSUID o Teléfono */}
+        {/* Zona de Pruebas */}
         <div className="rounded-3xl border border-white/10 bg-[#0A0E14] p-8 shadow-2xl relative overflow-hidden">
           <div className="absolute top-1/2 right-0 -translate-y-1/2 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
           
@@ -162,19 +183,16 @@ export default function DashboardHomePage() {
             </div>
             <h2 className="text-2xl font-bold text-white mb-3">Pon a prueba tu asistente</h2>
             <p className="text-slate-400 text-sm leading-relaxed mb-6">
-              Tu canal ya está enlazado a la base de datos. Puedes verificar el funcionamiento de las respuestas automáticas de prueba.
+              Una vez que conectes tu línea con Meta, podrás verificar aquí mismo el funcionamiento de las respuestas automáticas.
             </p>
             
-            <a 
-              href={`https://wa.me/${tiendaData.metaUsername ? tiendaData.metaUsername : tiendaData.telefono}`} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#25D366] px-6 py-3.5 font-semibold text-white shadow-lg hover:bg-[#20ba5a] transition-all text-sm"
+            <button 
+              disabled
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white/5 border border-white/5 px-6 py-3.5 font-semibold text-slate-500 cursor-not-allowed transition-all text-sm"
             >
-              <MessageSquare className="h-4 w-4 fill-white" />
-              <span>Abrir chat de prueba</span>
-              <ExternalLink className="h-4 w-4 ml-1 opacity-70" />
-            </a>
+              <MessageSquare className="h-4 w-4" />
+              <span>Requiere conexión previa</span>
+            </button>
           </div>
         </div>
 

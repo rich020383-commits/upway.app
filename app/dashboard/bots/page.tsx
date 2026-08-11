@@ -106,12 +106,11 @@ export default function AgentesBotPage() {
     }
   };
 
+  // 🚀 AQUÍ ESTÁ EL CAMBIO MAESTRO
   const handleActivarWhatsApp = () => {
-    if (userEmail === 'rich020383@gmail.com' || userEmail === 'revisor_meta@upway.business') {
-      router.push('/dashboard/activacion'); 
-    } else {
-      setMostrarPlanes(true); 
-    }
+    // Ya no verificamos el correo ni mostramos los planes.
+    // Todos los usuarios (incluyendo el revisor) pasan directo al botón de Meta.
+    router.push('/dashboard/activacion'); 
   };
 
   // ==========================================

@@ -32,10 +32,10 @@ export default function LoginPage() {
                 <input type="password" defaultValue="12345689" className="w-full rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-sm text-white outline-none ring-0" />
               </div>
               
-              {/* 🚀 BOTÓN CONVERTIDO EN LINK DIRECTO AL SIMULADOR */}
-              <Link href="/dashboard/activacion" className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-500">
-  Entrar <ArrowRight className="h-4 w-4" />
-</Link>
+              {/* 🚀 BOTÓN CORREGIDO: Ahora lleva directo al simulador del celular */}
+              <Link href="/dashboard/bots" className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-500">
+                Entrar <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
           </div>
         </div>

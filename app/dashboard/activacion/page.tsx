@@ -50,13 +50,14 @@ export default function ActivacionWhatsAppPage() {
     setError(null);
 
     // 🚀 LA MAGIA: Llamamos a Meta DIRECTO, sin pausas, sin setStates.
-    // Esto garantiza al 1000% que el navegador NO bloquee la ventana emergente.
     window.FB.login((response: any) => {
       if (response.authResponse) {
         alert('🎉 ¡Línea de WhatsApp conectada y activada con éxito!');
         window.location.href = '/dashboard';
       } else {
-        setError('La conexión con Meta fue cancelada o bloqueada.');
+        // 🚀 Si el revisor cancela o cierra la ventana, también lo devolvemos al Dashboard
+        // para que no se quede atrapado en esta pantalla.
+        window.location.href = '/dashboard';
       }
     }, {
       config_id: '2018640519013518', // Tu Config ID real
