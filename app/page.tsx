@@ -287,6 +287,8 @@ export default function Home() {
       {/* ========================================== */}
       <section id="top" className="relative h-screen w-full overflow-hidden z-10">
         
+        {/* 🔄 FORZANDO DESPLIEGUE EN RENDER */}
+
         {/* 🚀 EL REPRODUCTOR OPTIMIZADO (GPU + FILTROS + WEBM) */}
         <video 
           autoPlay 
