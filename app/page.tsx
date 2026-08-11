@@ -286,7 +286,17 @@ export default function Home() {
       {/* HERO SECTION: SOPHIE V2 */}
       {/* ========================================== */}
       <section id="top" className="relative h-screen w-full overflow-hidden z-10">
-        <video autoPlay loop muted playsInline className="absolute inset-0 z-0 h-full w-full object-cover scale-[1.02]">
+        
+        {/* 🚀 EL REPRODUCTOR OPTIMIZADO (GPU + FILTROS + WEBM) */}
+        <video 
+          autoPlay 
+          loop 
+          muted 
+          playsInline 
+          preload="metadata"
+          className="absolute inset-0 z-0 h-full w-full object-cover scale-[1.02] transform-gpu contrast-[1.15] saturate-[1.1] brightness-[1.05]"
+        >
+          <source src="/sophie-animada.webm" type="video/webm" />
           <source src="/sophie-animada.mp4" type="video/mp4" />
         </video>
         
