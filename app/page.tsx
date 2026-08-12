@@ -287,16 +287,16 @@ export default function Home() {
       {/* ========================================== */}
       <section id="top" className="relative h-screen w-full overflow-hidden z-10">
         
-        {/* 🔄 FORZANDO DESPLIEGUE EN RENDER */}
+        {/* 🔄 FORZANDO DESPLIEGUE: BRILLO NATURAL */}
 
-        {/* 🚀 EL REPRODUCTOR OPTIMIZADO (GPU + FILTROS + WEBM) */}
+        {/* 🚀 EL REPRODUCTOR OPTIMIZADO (GPU + BRILLO EXTRA) */}
         <video 
           autoPlay 
           loop 
           muted 
           playsInline 
           preload="metadata"
-          className="absolute inset-0 z-0 h-full w-full object-cover scale-[1.02] transform-gpu contrast-[1.15] saturate-[1.1] brightness-[1.05]"
+          className="absolute inset-0 z-0 h-full w-full object-cover scale-[1.02] transform-gpu brightness-[1.15]"
         >
           <source src="/sophie-animada.webm" type="video/webm" />
           <source src="/sophie-animada.mp4" type="video/mp4" />
