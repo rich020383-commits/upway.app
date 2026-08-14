@@ -2,13 +2,16 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
-import { Bot, MessageCircleMore, Sparkles, ShieldCheck, ArrowRight, Send, Signal, Wifi, Battery, Check, Store, Mic, Square } from 'lucide-react';
+import { Bot, MessageCircleMore, Sparkles, ShieldCheck, ArrowRight, Send, Signal, Wifi, Battery, Check, Store, Mic, Square, Phone, ArrowLeft, Headphones, UploadCloud } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { getSession } from 'next-auth/react'; 
 
 export default function AgentesBotPage() {
   const router = useRouter();
   
+  // 🚀 ESTADO MAESTRO DEL MULTI-TENANT (EL HUB)
+  const [servicioActivo, setServicioActivo] = useState<'hub' | 'whatsapp' | 'voz'>('hub');
+
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
@@ -27,23 +30,26 @@ export default function AgentesBotPage() {
   const [mostrarPlanes, setMostrarPlanes] = useState(false);
   const [procesandoPago, setProcesandoPago] = useState(false);
   
-  // Estados para el Simulador
+  // Estados para el Simulador WhatsApp
   const [mensajePrueba, setMensajePrueba] = useState('');
   const [historialChat, setHistorialChat] = useState<{rol: string, texto: string}[]>([]);
   const [cargandoPrueba, setCargandoPrueba] = useState(false);
   
-  // 🔥 ESTADOS PARA EL AUDIO (NUEVO)
+  // Estados para el Audio
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+
+  // Estados para el Simulador de Voz (VAPI)
+  const [vozSeleccionada, setVozSeleccionada] = useState('laura');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
   useEffect(() => {
-    scrollToBottom();
-  }, [historialChat, cargandoPrueba, isRecording]);
+    if(servicioActivo === 'whatsapp') scrollToBottom();
+  }, [historialChat, cargandoPrueba, isRecording, servicioActivo]);
 
   const guardarConfiguracion = async () => {
     if (!nombreAgente || !promptMaestro) {
@@ -106,15 +112,12 @@ export default function AgentesBotPage() {
     }
   };
 
-  // 🚀 AQUÍ ESTÁ EL CAMBIO MAESTRO
   const handleActivarWhatsApp = () => {
-    // Ya no verificamos el correo ni mostramos los planes.
-    // Todos los usuarios (incluyendo el revisor) pasan directo al botón de Meta.
     router.push('/dashboard/activacion'); 
   };
 
   // ==========================================
-  // 🔥 LÓGICA DE GRABACIÓN DE AUDIO (NUEVO)
+  // 🔥 LÓGICA DE GRABACIÓN DE AUDIO (EXISTENTE)
   // ==========================================
   const startRecording = async () => {
     try {
@@ -131,16 +134,12 @@ export default function AgentesBotPage() {
 
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        
-        // Convertimos el audio a Base64 para enviarlo fácil al backend
         const reader = new FileReader();
         reader.readAsDataURL(audioBlob);
         reader.onloadend = () => {
           const base64Audio = reader.result;
           enviarAudioPrueba(base64Audio as string);
         };
-
-        // Apagamos el micrófono del navegador
         stream.getTracks().forEach(track => track.stop());
       };
 
@@ -171,7 +170,7 @@ export default function AgentesBotPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           promptMaestro: promptContextualizado, 
-          audioUsuario: base64Audio, // 🚀 ENVIAMOS EL AUDIO EN BASE64
+          audioUsuario: base64Audio,
           historial: historialChat 
         })
       });
@@ -191,9 +190,6 @@ export default function AgentesBotPage() {
     }
   };
 
-  // ==========================================
-  // LÓGICA DE TEXTO (EXISTENTE)
-  // ==========================================
   const enviarMensajePrueba = async () => {
     if (!mensajePrueba.trim()) return;
 
@@ -231,17 +227,184 @@ export default function AgentesBotPage() {
     }
   };
 
+
+  // ==========================================
+  // RENDER: PANTALLA HUB (SELECCIÓN DE SERVICIO)
+  // ==========================================
+  if (servicioActivo === 'hub') {
+    return (
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.15),_transparent_55%)] bg-slate-950 px-4 py-16 text-white sm:px-6 lg:px-8 flex flex-col items-center justify-center">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center max-w-2xl mx-auto mb-16">
+          <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-sm font-semibold text-blue-400 mb-6">
+            <Bot className="h-4 w-4"/> Upway Multi-Canal
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-4">¿Qué canal deseas potenciar hoy?</h1>
+          <p className="text-lg text-slate-400">Selecciona el tipo de agente digital que quieres configurar o monitorear para tu negocio.</p>
+        </motion.div>
+
+        <div className="grid md:grid-cols-2 gap-8 w-full max-w-5xl mx-auto">
+          {/* Tarjeta WhatsApp */}
+          <motion.div 
+            whileHover={{ scale: 1.02, y: -5 }}
+            onClick={() => setServicioActivo('whatsapp')}
+            className="group relative cursor-pointer overflow-hidden rounded-[32px] border border-emerald-500/30 bg-white/[0.02] p-8 shadow-[0_0_40px_rgba(16,185,129,0.05)] transition-all hover:bg-emerald-950/20 hover:border-emerald-500/60"
+          >
+            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+              <MessageCircleMore className="w-40 h-40 text-emerald-500" />
+            </div>
+            <div className="relative z-10">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 mb-6 border border-emerald-500/30">
+                <MessageCircleMore className="h-8 w-8"/>
+              </div>
+              <h2 className="text-3xl font-bold text-white mb-3">Agente de Texto</h2>
+              <p className="text-slate-400 mb-8 leading-relaxed">Conecta un vendedor digital a tu WhatsApp. Responde mensajes, lee notas de voz, revisa catálogo y cierra ventas 24/7.</p>
+              <div className="flex items-center text-emerald-400 font-semibold gap-2">
+                Configurar WhatsApp <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Tarjeta Voz (Vapi) */}
+          <motion.div 
+            whileHover={{ scale: 1.02, y: -5 }}
+            onClick={() => setServicioActivo('voz')}
+            className="group relative cursor-pointer overflow-hidden rounded-[32px] border border-cyan-500/30 bg-white/[0.02] p-8 shadow-[0_0_40px_rgba(6,182,212,0.05)] transition-all hover:bg-cyan-950/20 hover:border-cyan-500/60"
+          >
+            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+              <Phone className="w-40 h-40 text-cyan-500" />
+            </div>
+            <div className="relative z-10">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-500/20 text-cyan-400 mb-6 border border-cyan-500/30">
+                <Headphones className="h-8 w-8"/>
+              </div>
+              <span className="absolute top-8 right-8 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-3 py-1 text-xs font-bold uppercase tracking-wider">Nuevo</span>
+              <h2 className="text-3xl font-bold text-white mb-3">Agente Telefónico</h2>
+              <p className="text-slate-400 mb-8 leading-relaxed">Una IA que hace y recibe llamadas reales. Ideal para confirmar citas médicas, recordar cobros o atención al cliente.</p>
+              <div className="flex items-center text-cyan-400 font-semibold gap-2">
+                Configurar Central de Voz <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // RENDER: PANTALLA AGENTE DE VOZ (VAPI)
+  // ==========================================
+  if (servicioActivo === 'voz') {
+    return (
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(6,182,212,0.15),_transparent_55%)] bg-slate-950 px-4 py-8 text-white sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          
+          <button onClick={() => setServicioActivo('hub')} className="mb-6 flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Volver al panel central
+          </button>
+
+          <div className="mb-8 overflow-hidden rounded-[32px] border border-cyan-500/20 bg-white/5 p-8 shadow-2xl shadow-cyan-900/20 backdrop-blur-xl">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-sm font-semibold text-cyan-400">
+                  <Headphones className="h-4 w-4"/> Central Telefónica IA
+                </div>
+                <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Configura tu Recepcionista de Voz</h1>
+                <p className="mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">Define cómo hablará por teléfono, elige su acento y sube el listado de clientes a los que debe llamar hoy.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr]">
+            {/* Columna Configuración VAPI */}
+            <div className="space-y-6">
+              <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-md">
+                <div className="space-y-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-slate-300">Nombre de la Recepcionista</label>
+                      <input 
+                        type="text" 
+                        value={nombreAgente} 
+                        onChange={(e) => setNombreAgente(e.target.value)} 
+                        placeholder="Ej. Laura de Clínica San Juan" 
+                        className="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition focus:border-cyan-500 focus:bg-slate-900" 
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-slate-300">Tipo de Voz (Acento Latino)</label>
+                      <select 
+                        value={vozSeleccionada} 
+                        onChange={(e) => setVozSeleccionada(e.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-500 focus:bg-slate-900 cursor-pointer"
+                      >
+                        <option value="laura">Laura (Femenino - Formal)</option>
+                        <option value="matilda">Matilda (Femenino - Cálida)</option>
+                        <option value="pedro">Pedro (Masculino - Directo)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-300 flex justify-between items-center">
+                      <span>Guion de Llamada (Prompt Telefónico)</span>
+                      <span className="text-xs text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">Modo Voz</span>
+                    </label>
+                    <textarea 
+                      value={promptMaestro} 
+                      onChange={(e) => setPromptMaestro(e.target.value)} 
+                      placeholder="Ej: Eres recepcionista de la clínica. Llama para confirmar la cita de mañana. Si te dicen que no pueden, ofrece reprogramar. Sé breve, no hagas preguntas abiertas..." 
+                      className="h-40 w-full resize-none rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition focus:border-cyan-500 focus:bg-slate-900" 
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Columna Derecha VAPI: Campañas */}
+            <div className="flex flex-col gap-6">
+              <div className="rounded-[28px] border border-cyan-500/20 bg-[#0A0E14] p-6 shadow-[0_0_30px_rgba(6,182,212,0.1)] ring-1 ring-white/10">
+                <div className="mb-6 flex flex-col items-center text-center">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-cyan-500/10 text-cyan-400 mb-4">
+                    <UploadCloud className="h-8 w-8"/>
+                  </div>
+                  <h3 className="text-xl font-bold text-white">Lanzar Campaña de Llamadas</h3>
+                  <p className="text-sm text-slate-400 mt-2">Sube tu Excel con Nombre, Teléfono y Fecha de Cita. La IA los llamará a todos automáticamente.</p>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <button className="group flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-cyan-500/50 bg-cyan-500/5 px-6 py-4 font-bold text-cyan-400 transition-all hover:bg-cyan-500/10">
+                    <UploadCloud className="h-5 w-5" /> Subir archivo CSV
+                  </button>
+
+                  <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-cyan-500 px-6 py-4 font-bold text-black shadow-lg shadow-cyan-500/30 transition-all hover:bg-cyan-400 mt-4">
+                    <Phone className="h-5 w-5 fill-current" /> Activar Agente de Voz
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // RENDER ORIGINAL: PANTALLA WHATSAPP (TEXTO)
+  // ==========================================
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.15),_transparent_55%)] bg-slate-950 px-4 py-8 text-white sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.15),_transparent_55%)] bg-slate-950 px-4 py-8 text-white sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         
+        <button onClick={() => setServicioActivo('hub')} className="mb-6 flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Volver al panel central
+        </button>
+
         {/* Cabecera Premium Oscura */}
-        <div className="mb-8 overflow-hidden rounded-[32px] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-blue-900/20 backdrop-blur-xl">
+        <div className="mb-8 overflow-hidden rounded-[32px] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-emerald-900/20 backdrop-blur-xl">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-sm font-semibold text-blue-400">
-                <Bot className="h-4 w-4"/>
-                Agente IA premium
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm font-semibold text-emerald-400">
+                <Bot className="h-4 w-4"/> Agente IA WhatsApp
               </div>
               <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Construye la voz de tu Empleado Digital</h1>
               <p className="mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">Define su personalidad, establece las reglas de tu negocio y ponlo a prueba en tiempo real antes de conectarlo a WhatsApp.</p>
@@ -254,12 +417,12 @@ export default function AgentesBotPage() {
           <div className="space-y-6">
             <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-md">
               <div className="mb-6 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-500/20 text-blue-400">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400">
                   <Sparkles className="h-5 w-5"/>
                 </div>
                 <div>
                   <h2 className="text-xl font-semibold text-white">Cerebro del Agente</h2>
-                  <p className="text-sm text-slate-400">Instruye a la IA exactamente cómo debe vender y atender.</p>
+                  <p className="text-sm text-slate-400">Instruye a la IA exactamente cómo debe vender y atender por chat.</p>
                 </div>
               </div>
 
@@ -272,7 +435,7 @@ export default function AgentesBotPage() {
                       value={nombreAgente} 
                       onChange={(e) => setNombreAgente(e.target.value)} 
                       placeholder="Ej. Sofía de Ferretería XY" 
-                      className="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition focus:border-cyan-500 focus:bg-slate-900 focus:shadow-[0_0_15px_rgba(6,182,212,0.15)]" 
+                      className="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition focus:border-emerald-500 focus:bg-slate-900 focus:shadow-[0_0_15px_rgba(16,185,129,0.15)]" 
                     />
                   </div>
                   <div>
@@ -282,7 +445,7 @@ export default function AgentesBotPage() {
                       <select 
                         value={nicho} 
                         onChange={(e) => setNicho(e.target.value)}
-                        className="w-full appearance-none rounded-2xl border border-white/10 bg-slate-900/60 pl-10 pr-4 py-3 text-sm text-white outline-none transition focus:border-cyan-500 focus:bg-slate-900 cursor-pointer"
+                        className="w-full appearance-none rounded-2xl border border-white/10 bg-slate-900/60 pl-10 pr-4 py-3 text-sm text-white outline-none transition focus:border-emerald-500 focus:bg-slate-900 cursor-pointer"
                       >
                         <option value="general">Empresa General (Servicios)</option>
                         <option value="restaurante">Restaurante / Comidas</option>
@@ -298,13 +461,13 @@ export default function AgentesBotPage() {
                 <div>
                   <label className="mb-2 block text-sm font-medium text-slate-300 flex justify-between items-center">
                     <span>Instrucciones Operativas (El Prompt)</span>
-                    <span className="text-xs text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">Secreto Comercial</span>
+                    <span className="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Secreto Comercial</span>
                   </label>
                   <textarea 
                     value={promptMaestro} 
                     onChange={(e) => setPromptMaestro(e.target.value)} 
-                    placeholder="Ej: Eres un vendedor experto. Tu objetivo es agendar citas. Nunca digas no sé, si no tenemos algo, ofrece una alternativa similar..." 
-                    className="h-40 w-full resize-none rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition focus:border-cyan-500 focus:bg-slate-900 focus:shadow-[0_0_15px_rgba(6,182,212,0.15)]" 
+                    placeholder="Ej: Eres un vendedor experto. Tu objetivo es agendar citas..." 
+                    className="h-40 w-full resize-none rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition focus:border-emerald-500 focus:bg-slate-900 focus:shadow-[0_0_15px_rgba(16,185,129,0.15)]" 
                   />
                 </div>
               </div>
@@ -330,12 +493,10 @@ export default function AgentesBotPage() {
             </div>
           </div>
 
-          {/* ========================================== */}
           {/* COLUMNA DERECHA (Simulador Premium Celular) */}
-          {/* ========================================== */}
           <div className="flex flex-col items-center gap-6 lg:items-end">
             
-            <div className="relative flex h-[720px] w-full max-w-[340px] shrink-0 flex-col overflow-hidden rounded-[3.5rem] border-[14px] border-slate-950 bg-slate-950 shadow-[0_0_50px_rgba(37,99,235,0.15)] ring-1 ring-white/20">
+            <div className="relative flex h-[720px] w-full max-w-[340px] shrink-0 flex-col overflow-hidden rounded-[3.5rem] border-[14px] border-slate-950 bg-slate-950 shadow-[0_0_50px_rgba(16,185,129,0.15)] ring-1 ring-white/20">
               
               <div className="pointer-events-none absolute inset-x-0 top-0 z-50 flex h-7 items-center justify-between px-6 text-[10px] font-medium text-white/70">
                 <span>9:41</span>
@@ -349,20 +510,20 @@ export default function AgentesBotPage() {
               <div className="pointer-events-none absolute inset-x-0 top-0 z-50 flex h-7 justify-center">
                 <div className="flex h-7 w-32 items-center justify-center gap-3 rounded-b-3xl bg-slate-950 px-3 shadow-md">
                   <div className="h-1.5 w-1.5 rounded-full bg-white/10"></div>
-                  <div className={`h-2 w-2 rounded-full transition-all duration-300 ${cargandoPrueba ? 'bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.8)]' : isRecording ? 'bg-red-500 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.8)]' : 'bg-[#00D1FF]/40 shadow-[0_0_8px_rgba(0,209,255,0.4)]'}`}></div>
+                  <div className={`h-2 w-2 rounded-full transition-all duration-300 ${cargandoPrueba ? 'bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.8)]' : isRecording ? 'bg-red-500 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.8)]' : 'bg-[#10b981]/40 shadow-[0_0_8px_rgba(16,185,129,0.4)]'}`}></div>
                 </div>
               </div>
 
               <div className="relative z-40 flex items-center gap-3 border-b border-white/10 bg-white/[0.03] px-4 pb-3 pt-12 backdrop-blur-xl">
-                <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-[#00D1FF] to-blue-600 shadow-lg">
-                  <Bot className="h-5 w-5 text-black" />
+                <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-[#10b981] to-emerald-600 shadow-lg">
+                  <Bot className="h-5 w-5 text-white" />
                   <span className="absolute bottom-0 right-0 z-20 h-3 w-3 rounded-full border-2 border-[#0A0E14] bg-green-500"></span>
                 </div>
                 <div>
                   <h3 className="flex items-center gap-1 font-display text-[14px] font-bold leading-tight text-white">
-                    {nombreAgente || "Agente sin nombre"} <Sparkles className="h-3 w-3 text-cyan-400" />
+                    {nombreAgente || "Agente sin nombre"} <Sparkles className="h-3 w-3 text-emerald-400" />
                   </h3>
-                  <p className="mt-0.5 font-mono text-[10px] tracking-wide text-[#00D1FF]">Simulador Interno IA</p>
+                  <p className="mt-0.5 font-mono text-[10px] tracking-wide text-[#10b981]">Simulador WhatsApp</p>
                 </div>
               </div>
 
@@ -372,8 +533,8 @@ export default function AgentesBotPage() {
                 <div className="relative z-10 space-y-4 pt-2">
                   {historialChat.length === 0 ? (
                     <div className="mt-16 flex h-full flex-col items-center justify-center px-4 text-center">
-                      <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mb-4 border border-blue-500/20">
-                        <MessageCircleMore className="text-blue-400 w-8 h-8" />
+                      <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4 border border-emerald-500/20">
+                        <MessageCircleMore className="text-emerald-400 w-8 h-8" />
                       </div>
                       <p className="text-sm font-bold text-white mb-2">Pon a prueba tu Agente</p>
                       <p className="text-xs text-white/50 leading-relaxed mb-4">
@@ -387,7 +548,7 @@ export default function AgentesBotPage() {
                         initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} key={i} 
                         className={`flex ${m.rol === 'usuario' ? 'justify-end' : 'justify-start'}`}
                       >
-                        <div className={`max-w-[85%] p-3.5 text-[13px] leading-relaxed shadow-md backdrop-blur-md ${m.rol === 'usuario' ? 'bg-gradient-to-br from-[#00D1FF] to-cyan-500 text-black font-medium rounded-[20px] rounded-tr-[4px]' : 'bg-white/[0.08] border border-white/10 text-slate-200 rounded-[20px] rounded-tl-[4px]'}`}>
+                        <div className={`max-w-[85%] p-3.5 text-[13px] leading-relaxed shadow-md backdrop-blur-md ${m.rol === 'usuario' ? 'bg-gradient-to-br from-[#10b981] to-emerald-500 text-white font-medium rounded-[20px] rounded-tr-[4px]' : 'bg-white/[0.08] border border-white/10 text-slate-200 rounded-[20px] rounded-tl-[4px]'}`}>
                           {m.texto}
                         </div>
                       </motion.div>
@@ -398,9 +559,9 @@ export default function AgentesBotPage() {
                     {cargandoPrueba && (
                       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="flex justify-start">
                         <div className="flex items-center gap-1.5 rounded-[20px] rounded-tl-[4px] border border-white/10 bg-white/[0.08] p-4 backdrop-blur-md">
-                          <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0 }} className="h-1.5 w-1.5 rounded-full bg-[#00D1FF]" />
-                          <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }} className="h-1.5 w-1.5 rounded-full bg-[#00D1FF]/70" />
-                          <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }} className="h-1.5 w-1.5 rounded-full bg-[#00D1FF]/40" />
+                          <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0 }} className="h-1.5 w-1.5 rounded-full bg-[#10b981]" />
+                          <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }} className="h-1.5 w-1.5 rounded-full bg-[#10b981]/70" />
+                          <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }} className="h-1.5 w-1.5 rounded-full bg-[#10b981]/40" />
                         </div>
                       </motion.div>
                     )}
@@ -422,7 +583,7 @@ export default function AgentesBotPage() {
 
               {/* Input de Texto y Audio */}
               <div className="shrink-0 border-t border-white/5 bg-[#0A0E14] p-4 pb-8 backdrop-blur-xl relative z-20">
-                <div className="relative flex items-center rounded-full border border-white/10 bg-white/[0.03] transition-all focus-within:border-[#00D1FF]/50 focus-within:bg-white/[0.06]">
+                <div className="relative flex items-center rounded-full border border-white/10 bg-white/[0.03] transition-all focus-within:border-[#10b981]/50 focus-within:bg-white/[0.06]">
                   <input 
                     value={mensajePrueba} 
                     onChange={(e) => setMensajePrueba(e.target.value)}
@@ -432,14 +593,13 @@ export default function AgentesBotPage() {
                     className="w-full bg-transparent py-3.5 pl-5 pr-14 text-[13px] text-white outline-none placeholder:text-white/30 disabled:opacity-50"
                   />
                   
-                  {/* 🔥 BOTÓN DINÁMICO (ENVIAR vs MICRÓFONO vs DETENER) */}
                   <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
                     {mensajePrueba.trim() ? (
                       <motion.button 
                         whileTap={{ scale: 0.9 }}
                         onClick={enviarMensajePrueba} 
                         disabled={cargandoPrueba}
-                        className="flex items-center justify-center rounded-full bg-[#00D1FF] p-2.5 text-black transition-colors hover:bg-cyan-400"
+                        className="flex items-center justify-center rounded-full bg-[#10b981] p-2.5 text-white transition-colors hover:bg-emerald-400"
                       >
                         <Send className="ml-0.5 h-4 w-4" />
                       </motion.button>
@@ -456,7 +616,7 @@ export default function AgentesBotPage() {
                         whileTap={{ scale: 0.9 }}
                         onClick={startRecording} 
                         disabled={cargandoPrueba}
-                        className="flex items-center justify-center rounded-full bg-[#00D1FF]/20 p-2.5 text-[#00D1FF] transition-colors hover:bg-[#00D1FF] hover:text-black"
+                        className="flex items-center justify-center rounded-full bg-[#10b981]/20 p-2.5 text-[#10b981] transition-colors hover:bg-[#10b981] hover:text-white"
                       >
                         <Mic className="h-4 w-4" />
                       </motion.button>
@@ -488,72 +648,6 @@ export default function AgentesBotPage() {
           </div>
         </div>
       </div>
-
-      {/* ========================================== */}
-      {/* VENTANA FLOTANTE DE PAGOS (BOLD)           */}
-      {/* ========================================== */}
-      <AnimatePresence>
-        {mostrarPlanes && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
-            
-            <div className="absolute inset-0 cursor-pointer" onClick={() => setMostrarPlanes(false)} />
-
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative z-10 w-full max-w-4xl overflow-hidden rounded-[32px] border border-[#00D1FF]/30 bg-[#0A0E14] p-8 text-white shadow-[0_0_50px_rgba(0,209,255,0.15)]"
-            >
-              <button onClick={() => setMostrarPlanes(false)} className="absolute right-6 top-6 rounded-full bg-white/5 p-2 text-gray-400 transition-all hover:bg-white/10 hover:text-white">✕</button>
-
-              <div className="mb-6 text-center md:text-left">
-                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-400">
-                  <Sparkles className="h-3.5 w-3.5"/> Activación de Producción
-                </div>
-                <h2 className="mt-3 text-3xl font-bold">Llegó el momento de automatizar</h2>
-                <p className="mt-2 text-sm text-gray-400">Tu agente está listo en el simulador. Elige un plan para conectarlo a tu línea real de WhatsApp Business y empezar a vender 24/7.</p>
-              </div>
-
-              <div className="my-8 grid gap-6 md:grid-cols-2">
-                <div className="flex flex-col justify-between rounded-3xl border border-white/10 bg-white/[0.03] p-6 transition-colors hover:bg-white/[0.05]">
-                  <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-cyan-400">Plan Emprendedor</span>
-                    <h3 className="mt-2 text-3xl font-bold">$149.900 <span className="font-normal text-gray-400 text-sm">COP/mes</span></h3>
-                    <p className="mb-5 mt-3 border-b border-white/10 pb-5 text-sm text-gray-400">Ideal para negocios que inician con atención automatizada básica.</p>
-                    
-                    <ul className="mb-6 space-y-3">
-                      <li className="flex items-center gap-3 text-sm text-gray-300"><Check className="h-5 w-5 shrink-0 text-cyan-400" /> Chatbot de texto 24/7</li>
-                      <li className="flex items-center gap-3 text-sm text-gray-300"><Check className="h-5 w-5 shrink-0 text-cyan-400" /> Reglas de personalidad básicas</li>
-                    </ul>
-                  </div>
-                  
-                  <button onClick={() => iniciarPago('Plan Emprendedor', 149900)} disabled={procesandoPago} className="mt-4 w-full rounded-xl bg-white/10 py-3.5 text-sm font-bold text-white transition hover:bg-white/20 disabled:opacity-50">
-                    {procesandoPago ? 'Conectando con Bold...' : 'Seleccionar Emprendedor'}
-                  </button>
-                </div>
-
-                <div className="relative flex flex-col justify-between rounded-3xl border-2 border-cyan-500/50 bg-gradient-to-b from-[#00D1FF]/10 to-[#0A0E14] p-6 shadow-[0_0_30px_rgba(0,209,255,0.15)]">
-                  <span className="absolute -top-3 right-6 rounded-full bg-cyan-400 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-black shadow-lg">El favorito ⭐️</span>
-                  
-                  <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-cyan-400">Plan Negocio</span>
-                    <h3 className="mt-2 text-3xl font-bold">$299.900 <span className="font-normal text-gray-400 text-sm">COP/mes</span></h3>
-                    <p className="mb-5 mt-3 border-b border-white/10 pb-5 text-sm text-gray-400">La experiencia completa con IA avanzada e integración de multimedia.</p>
-                    
-                    <ul className="mb-6 space-y-3">
-                      <li className="flex items-center gap-3 text-sm font-medium text-white"><Check className="h-5 w-5 shrink-0 text-cyan-400" /> <b>Todo lo del Plan Emprendedor</b></li>
-                      <li className="flex items-center gap-3 text-sm text-gray-200"><Check className="h-5 w-5 shrink-0 text-cyan-400" /> Entiende <b>notas de voz de clientes</b></li>
-                      <li className="flex items-center gap-3 text-sm text-gray-200"><Check className="h-5 w-5 shrink-0 text-cyan-400" /> Toma de pedidos automática y RAG</li>
-                    </ul>
-                  </div>
-                  
-                  <button onClick={() => iniciarPago('Plan Negocio', 299900)} disabled={procesandoPago} className="mt-4 w-full rounded-xl bg-cyan-500 py-3.5 text-sm font-bold text-black shadow-[0_0_20px_rgba(6,182,212,0.4)] transition hover:bg-cyan-400 disabled:opacity-50">
-                    {procesandoPago ? 'Conectando seguro con Bold...' : '🔒 Activar Plan Negocio'}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

@@ -12,18 +12,18 @@ datasource db {
 // ==========================================
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String? @db.Text
-  access_token       String? @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String? @db.Text
-  session_state      String?
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([provider, providerAccountId])
@@ -76,9 +76,15 @@ model Tienda {
   metaWabaId        String?  
   metaAccessToken   String?  @db.Text
   isWhatsAppActive  Boolean  @default(false)
+
+  // 🎙️ CAMPOS VAPI (Agentes de Voz)
+  vapiAssistantId   String?  
+  vapiPhoneNumber   String?  
+  isVapiActive      Boolean  @default(false)
   
-  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   productos         Producto[]
+  llamadas          LlamadaLog[] // Relación con el historial de facturación de voz
 }
 
 model Producto {
@@ -90,4 +96,22 @@ model Producto {
   stock       Int      @default(0)
   
   tienda      Tienda   @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// 3. MOTOR DE FACTURACIÓN (VOZ)
+// ==========================================
+
+model LlamadaLog {
+  id                String   @id @default(cuid())
+  tiendaId          String
+  vapiCallId        String   @unique
+  direction         String   // "inbound" o "outbound"
+  durationMinutes   Float
+  vapiCost          Float    // Lo que te cobra Vapi a ti
+  upwayBilledCost   Float    // Lo que Upway le cobra a la IPS (con tu margen)
+  status            String   // "completed", "failed", "no_answer", etc.
+  createdAt         DateTime @default(now())
+
+  tienda            Tienda   @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
 }
