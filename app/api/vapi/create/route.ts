@@ -1,37 +1,38 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// 1. EL DICCIONARIO SECRETO DE VOCES (CATÁLOGO UPWAY)
+// 1. DICCIONARIO DE VOCES VALIDADO CON VAPI
 const VOICE_MAPPING: Record<string, any> = {
   // === VOCES FEMENINAS ===
   femenina_estrella: {
-    provider: 'deepgram',
-    voiceId: 'aura-2-celeste-es', // ¡Aquí está tu favorita!
+    provider: '11labs',
+    voiceId: 'cgSgspJ2msm6clMCkdW9', // Laura (ElevenLabs altamente compatible)
+    model: 'eleven_multilingual_v2'
   },
   femenina_calida: {
     provider: '11labs',
-    voiceId: 'xrExE9yKIg1WjnnlVkGX', 
+    voiceId: 'xrExE9yKIg1WjnnlVkGX', // Matilda
     model: 'eleven_multilingual_v2'
   },
   femenina_nativa: {
     provider: 'vapi',
-    voiceId: 'Aila', 
+    voiceId: 'celeste', // Nombre nativo aceptado por Vapi
   },
 
   // === VOCES MASCULINAS ===
-  masculino_joven: {
-    provider: '11labs',
-    voiceId: 'pNInz6obbfDQGcgMyIGC', 
-    model: 'eleven_multilingual_v2'
-  },
   masculino_serio: {
     provider: '11labs',
-    voiceId: 'ErXwobaYiN019PkySvjV', 
+    voiceId: 'ErXwobaYiN019PkySvjV', // Antoni
+    model: 'eleven_multilingual_v2'
+  },
+  masculino_joven: {
+    provider: '11labs',
+    voiceId: 'pNInz6obbfDQGcgMyIGC', // Fin
     model: 'eleven_multilingual_v2'
   },
   masculino_nativo: {
     provider: 'vapi',
-    voiceId: 'Elliot', 
+    voiceId: 'jorge', // Nombre nativo aceptado por Vapi
   }
 };
 
@@ -75,12 +76,14 @@ export async function POST(req: Request) {
     const vapiData = await vapiResponse.json();
 
     if (!vapiResponse.ok) {
-      throw new Error(vapiData.message || 'Error en Vapi');
+      console.error('❌ Error detallado de Vapi:', vapiData);
+      throw new Error(vapiData.message || JSON.stringify(vapiData));
     }
 
     const nuevoAssistantId = vapiData.id;
     console.log(`✅ Agente creado en Vapi. ID: ${nuevoAssistantId}`);
 
+    // Guardado seguro en Prisma
     await prisma.tienda.update({
       where: { id: tienda_id },
       data: {
