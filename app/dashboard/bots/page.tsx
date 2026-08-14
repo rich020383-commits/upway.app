@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
-import { Bot, MessageCircleMore, Sparkles, ShieldCheck, ArrowRight, Send, Signal, Wifi, Battery, Check, Store, Mic, Square, Phone, ArrowLeft, Headphones, UploadCloud } from 'lucide-react';
+import { Bot, MessageCircleMore, Sparkles, ShieldCheck, ArrowRight, Send, Signal, Wifi, Battery, Check, Store, Mic, Square, Phone, ArrowLeft, Headphones, UploadCloud, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { getSession } from 'next-auth/react'; 
 
@@ -41,7 +41,8 @@ export default function AgentesBotPage() {
   const audioChunksRef = useRef<Blob[]>([]);
 
   // Estados para el Simulador de Voz (VAPI)
-  const [vozSeleccionada, setVozSeleccionada] = useState('laura');
+  const [vozSeleccionada, setVozSeleccionada] = useState('femenina_estrella'); // Celeste por defecto
+  const [creandoVoz, setCreandoVoz] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollToBottom = () => {
@@ -81,6 +82,39 @@ export default function AgentesBotPage() {
       alert('No fue posible contactar con el servicio.');
     } finally {
       setGuardando(false);
+    }
+  };
+
+  // 🚀 NUEVA FUNCIÓN: CREAR AGENTE EN VAPI
+  const crearAgenteVoz = async () => {
+    if (!nombreAgente || !promptMaestro) {
+      alert('Completa el nombre y el guion antes de activar el agente.');
+      return;
+    }
+    setCreandoVoz(true);
+    try {
+      const res = await fetch('/api/vapi/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tienda_id: '1172769935927318', // Usando tu ID de prueba fijo
+          nombre: nombreAgente,
+          promptMaestro: promptMaestro,
+          vozSeleccionada: vozSeleccionada
+        }),
+      });
+      
+      const data = await res.json();
+      if (res.ok) {
+        alert('🎉 ¡Central Telefónica conectada! Tu agente ya existe en Vapi con el ID: ' + data.assistantId);
+      } else {
+        alert('Error: ' + data.error);
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Error de conexión con el servidor.');
+    } finally {
+      setCreandoVoz(false);
     }
   };
 
@@ -326,20 +360,27 @@ export default function AgentesBotPage() {
                         type="text" 
                         value={nombreAgente} 
                         onChange={(e) => setNombreAgente(e.target.value)} 
-                        placeholder="Ej. Laura de Clínica San Juan" 
+                        placeholder="Ej. Celeste de Clínica San Juan" 
                         className="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition focus:border-cyan-500 focus:bg-slate-900" 
                       />
                     </div>
                     <div>
-                      <label className="mb-2 block text-sm font-medium text-slate-300">Tipo de Voz (Acento Latino)</label>
+                      <label className="mb-2 block text-sm font-medium text-slate-300">Catálogo de Voces (Español)</label>
                       <select 
                         value={vozSeleccionada} 
                         onChange={(e) => setVozSeleccionada(e.target.value)}
                         className="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-500 focus:bg-slate-900 cursor-pointer"
                       >
-                        <option value="laura">Laura (Femenino - Formal)</option>
-                        <option value="matilda">Matilda (Femenino - Cálida)</option>
-                        <option value="pedro">Pedro (Masculino - Directo)</option>
+                        <optgroup label="Voces Femeninas">
+                          <option value="femenina_estrella">Celeste (Recomendada - Latencia Ultra Baja)</option>
+                          <option value="femenina_calida">Matilda (Tono Cálido y Empático)</option>
+                          <option value="femenina_nativa">Aila (Asistente Rápida)</option>
+                        </optgroup>
+                        <optgroup label="Voces Masculinas">
+                          <option value="masculino_serio">Antoni (Voz Grave y Confiable)</option>
+                          <option value="masculino_joven">Fin (Tono Joven y Casual)</option>
+                          <option value="masculino_nativo">Elliot (Asistente Rápido)</option>
+                        </optgroup>
                       </select>
                     </div>
                   </div>
@@ -376,8 +417,13 @@ export default function AgentesBotPage() {
                     <UploadCloud className="h-5 w-5" /> Subir archivo CSV
                   </button>
 
-                  <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-cyan-500 px-6 py-4 font-bold text-black shadow-lg shadow-cyan-500/30 transition-all hover:bg-cyan-400 mt-4">
-                    <Phone className="h-5 w-5 fill-current" /> Activar Agente de Voz
+                  <button 
+                    onClick={crearAgenteVoz} 
+                    disabled={creandoVoz} 
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-cyan-500 px-6 py-4 font-bold text-black shadow-lg shadow-cyan-500/30 transition-all hover:bg-cyan-400 hover:scale-[1.02] mt-4 disabled:opacity-50 disabled:hover:scale-100"
+                  >
+                    {creandoVoz ? <Loader2 className="h-5 w-5 animate-spin text-black" /> : <Phone className="h-5 w-5 fill-current" />}
+                    {creandoVoz ? 'Activando Central...' : 'Activar Agente de Voz'}
                   </button>
                 </div>
               </div>
