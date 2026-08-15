@@ -16,7 +16,7 @@ import LeadModal from "@/components/LeadModal";
 // TIPOS Y DATOS DE LOS PLANES (SaaS)
 // ==========================================
 type ContractOption = 1 | 2 | 3;
-type PlanId = "emprendedor" | "negocio" | "pro" | "personalizado";
+type PlanId = "emprendedor" | "negocio" | "voz" | "pro" | "personalizado";
 
 interface Plan {
   id: PlanId;
@@ -38,70 +38,89 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 // ==========================================
-// 1. ACTUALIZA EL ARRAY DE PLANES (Para las conversaciones)
+// 1. ESTRUCTURA DE 4 PLANES (Desglosando el Monstruo de Voz)
 // ==========================================
 const PLANS: Plan[] = [
   {
     id: "emprendedor",
     emoji: "🌱",
-    name: "Emprendedor",
-    capacityLabel: "Capacidad Básica",
-    capacityDesc: "Ideal para iniciar tu automatización.",
-    price: 149900,
-    implFull: 399900,
-    implDiscount: 199900,
-    cuota: 49975,
-    first4: 199875,
+    name: "Esencial",
+    capacityLabel: "Automatización Básica",
+    capacityDesc: "Ideal para iniciar procesos corporativos.",
+    price: 249900,
+    implFull: 499900,
+    implDiscount: 249900,
+    cuota: 62475,
+    first4: 249900,
   },
   {
     id: "negocio",
-    emoji: "⭐",
-    name: "Negocio",
-    capacityLabel: "Capacidad de Crecimiento",
-    capacityDesc: "Hasta 5.000 conversaciones / mes.",
-    price: 299900,
-    implFull: 699900,
-    implDiscount: 349900,
-    cuota: 87475,
-    first4: 387375,
+    emoji: "💬",
+    name: "WhatsApp IA",
+    capacityLabel: "Monstruo de Texto 24/7",
+    capacityDesc: "Hasta 5.000 chats, catálogos y pagos integrados.",
+    price: 399900,
+    implFull: 799900,
+    implDiscount: 399900,
+    cuota: 99975,
+    first4: 399900,
     popular: true,
+  },
+  {
+    id: "voz",
+    emoji: "🎧",
+    name: "Central Voz IA",
+    capacityLabel: "Monstruo Telefónico",
+    capacityDesc: "Llamadas autónomas corporativas + 500 min Vapi.",
+    price: 599900,
+    implFull: 1199900,
+    implDiscount: 599900,
+    cuota: 149975,
+    first4: 599900,
   },
   {
     id: "pro",
     emoji: "🚀",
-    name: "PRO",
-    capacityLabel: "Capacidad Empresarial",
-    capacityDesc: "Hasta 15.000 conversaciones / mes.",
-    price: 499900,
-    implFull: 899900,
-    implDiscount: 449900,
-    cuota: 112475,
-    first4: 612375,
+    name: "PRO (Omnicanal)",
+    capacityLabel: "Infraestructura Total",
+    capacityDesc: "WhatsApp + Voz + Agenda + Analítica Avanzada.",
+    price: 899900,
+    implFull: 1799900,
+    implDiscount: 899900,
+    cuota: 224975,
+    first4: 899900,
   },
 ];
 
 // ==========================================
-// 2. ACTUALIZA LAS FUNCIONES (El "Feature Gating")
+// 2. FUNCIONES Y FEATURE GATING (Niveles diferenciados)
 // ==========================================
 const INCLUDED_BASE = [
-  "Atención automatizada 24/7",
-  "Toma de pedidos inteligente",
-  "Conexión con Catálogo e Inventario",
-  "Reporte diario de métricas",
+  "Atención corporativa automatizada 24/7",
+  "Toma de pedidos y ventas inteligente",
+  "Conexión oficial con Catálogo e Inventario",
+  "Soporte técnico prioritario local",
 ];
 
 const EXTRA_NEGOCIO = [
-  "Procesamiento de Notas de Voz",
+  "Procesamiento avanzado de Notas de Voz",
   "Lectura de Imágenes y Recibos (PDF)",
-  "Links de Pago automáticos (Bold/Nequi)",
-  "Memoria de cliente (Contexto de chat)",
+  "Pasarela de Pagos integrada (Bold/Nequi)",
+  "Cerebro RAG (Memoria unificada)",
+];
+
+const EXTRA_VOZ = [
+  "Llamadas autónomas (Salientes/Entrantes)",
+  "IA con acento natural y ultra baja latencia",
+  "Gestión automática de citas médicas/citas",
+  "Transcripción y análisis de llamadas"
 ];
 
 const EXTRA_PRO = [
+  "Todo el poder de Texto y Voz",
+  "Agenda Inteligente (Google Calendar)",
   "Transferencia a Asesor Humano (Handoff)",
-  "Conexión Webhooks (Zapier/Make/CRM)",
-  "Análisis de Sentimiento del cliente",
-  "Agentes Múltiples (Ventas/Soporte)",
+  "Dashboard de Analítica y Telemetría"
 ];
 
 const fmt = (n: number) => `$${n.toLocaleString("es-CO")}`;
