@@ -1,13 +1,41 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// ==========================================
+// 1. DICCIONARIO DE VOCES (CATÁLOGO UPWAY)
+// ==========================================
 const VOICE_MAPPING: Record<string, any> = {
-  femenina_estrella: { provider: '11labs', voiceId: 'cgSgspJ2msm6clMCkdW9', model: 'eleven_multilingual_v2' },
-  femenina_calida: { provider: '11labs', voiceId: 'xrExE9yKIg1WjnnlVkGX', model: 'eleven_multilingual_v2' },
-  femenina_nativa: { provider: 'vapi', voiceId: 'celeste' },
-  masculino_serio: { provider: '11labs', voiceId: 'ErXwobaYiN019PkySvjV', model: 'eleven_multilingual_v2' },
-  masculino_joven: { provider: '11labs', voiceId: 'pNInz6obbfDQGcgMyIGC', model: 'eleven_multilingual_v2' },
-  masculino_nativo: { provider: 'vapi', voiceId: 'jorge' }
+  // 🌟 CELESTE DE AURA 2 (ESPAÑOL COLOMBIA - DEEPGRAM) 🌟
+  femenina_nativa: { 
+    provider: 'deepgram', 
+    voiceId: 'celeste', 
+  },
+  
+  // === OTRAS VOCES DE RESPALDO ===
+  femenina_estrella: { 
+    provider: '11labs', 
+    voiceId: 'cgSgspJ2msm6clMCkdW9', // Laura
+    model: 'eleven_multilingual_v2' 
+  },
+  femenina_calida: { 
+    provider: '11labs', 
+    voiceId: 'xrExE9yKIg1WjnnlVkGX', // Matilda
+    model: 'eleven_multilingual_v2' 
+  },
+  masculino_serio: { 
+    provider: '11labs', 
+    voiceId: 'ErXwobaYiN019PkySvjV', 
+    model: 'eleven_multilingual_v2' 
+  },
+  masculino_joven: { 
+    provider: '11labs', 
+    voiceId: 'pNInz6obbfDQGcgMyIGC', 
+    model: 'eleven_multilingual_v2' 
+  },
+  masculino_nativo: { 
+    provider: 'vapi', 
+    voiceId: 'jorge' 
+  }
 };
 
 export async function POST(req: Request) {
@@ -22,7 +50,7 @@ export async function POST(req: Request) {
     console.log(`🎙️ Procesando Agente Vapi para el ID entrante: ${tienda_id}`);
 
     // ==========================================
-    // 1. BUSCADOR Y CREADOR INTELIGENTE DE TIENDAS
+    // 2. BUSCADOR Y CREADOR INTELIGENTE DE TIENDAS
     // ==========================================
     let tienda = null;
     
@@ -48,7 +76,6 @@ export async function POST(req: Request) {
     if (!tienda) {
       console.log('⚠️ BD Vacía detectada. Creando Tienda de Prueba temporal y Usuario anónimo...');
       
-      // Necesitamos un usuario fantasma para poder crear la tienda
       const usuarioFantasma = await prisma.user.create({
         data: {
           name: "Usuario Revisor",
@@ -56,7 +83,6 @@ export async function POST(req: Request) {
         }
       });
 
-      // Ahora creamos la tienda fantasma y le asignamos el ID de Meta que estás usando
       tienda = await prisma.tienda.create({
         data: {
           userId: usuarioFantasma.id,
@@ -67,9 +93,10 @@ export async function POST(req: Request) {
     }
 
     // ==========================================
-    // 2. CREACIÓN EN VAPI
+    // 3. CREACIÓN DEL ASISTENTE EN VAPI
     // ==========================================
-    const voiceConfig = VOICE_MAPPING[vozSeleccionada] || VOICE_MAPPING['femenina_estrella'];
+    // Si la voz seleccionada no existe, usamos a Celeste por defecto
+    const voiceConfig = VOICE_MAPPING[vozSeleccionada] || VOICE_MAPPING['femenina_nativa']; 
     const vapiKey = process.env.VAPI_PRIVATE_API_KEY;
     
     if (!vapiKey) throw new Error('Falta VAPI_PRIVATE_API_KEY en .env');
@@ -103,7 +130,7 @@ export async function POST(req: Request) {
     console.log(`✅ Agente creado en Vapi. ID: ${nuevoAssistantId}`);
 
     // ==========================================
-    // 3. VINCULACIÓN FINAL
+    // 4. VINCULACIÓN FINAL CON TU BASE DE DATOS
     // ==========================================
     await prisma.tienda.update({
       where: { id: tienda.id }, 
