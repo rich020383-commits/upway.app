@@ -21,9 +21,12 @@ export async function POST(req: Request) {
 
     console.log(`🎙️ Procesando Agente Vapi para el ID entrante: ${tienda_id}`);
 
-    // 💡 LA SOLUCIÓN MÁGICA CON TU SCHEMA ACTUAL
-    // Buscamos si "1172769935927318" coincide con el ID interno, o con el metaPhoneNumberId, o el telefono
+    // ==========================================
+    // 1. BUSCADOR Y CREADOR INTELIGENTE DE TIENDAS
+    // ==========================================
     let tienda = null;
+    
+    // Primero, intentamos buscarla
     if (tienda_id) {
       tienda = await prisma.tienda.findFirst({
         where: {
@@ -36,17 +39,36 @@ export async function POST(req: Request) {
       });
     }
 
-    // Respaldo para desarrollo: si no lo encuentra, agarra la primera tienda que exista
+    // Segundo intento: agarrar cualquier tienda existente
     if (!tienda) {
-      console.log('⚠️ No se encontró por ID de Meta, usando la primera tienda disponible por defecto.');
       tienda = await prisma.tienda.findFirst();
     }
 
+    // TERCER INTENTO DE RESCATE (Para cuando la BD está vacía por el bypass de Meta)
     if (!tienda) {
-      return NextResponse.json({ error: 'No hay ninguna tienda registrada en la base de datos.' }, { status: 404 });
+      console.log('⚠️ BD Vacía detectada. Creando Tienda de Prueba temporal y Usuario anónimo...');
+      
+      // Necesitamos un usuario fantasma para poder crear la tienda
+      const usuarioFantasma = await prisma.user.create({
+        data: {
+          name: "Usuario Revisor",
+          email: `revisor_${Date.now()}@upway.test`,
+        }
+      });
+
+      // Ahora creamos la tienda fantasma y le asignamos el ID de Meta que estás usando
+      tienda = await prisma.tienda.create({
+        data: {
+          userId: usuarioFantasma.id,
+          nombre: "Tienda Revisor Meta",
+          metaPhoneNumberId: tienda_id || '1172769935927318',
+        }
+      });
     }
 
-    // 2. CREAR ASISTENTE EN VAPI
+    // ==========================================
+    // 2. CREACIÓN EN VAPI
+    // ==========================================
     const voiceConfig = VOICE_MAPPING[vozSeleccionada] || VOICE_MAPPING['femenina_estrella'];
     const vapiKey = process.env.VAPI_PRIVATE_API_KEY;
     
@@ -80,7 +102,9 @@ export async function POST(req: Request) {
     const nuevoAssistantId = vapiData.id;
     console.log(`✅ Agente creado en Vapi. ID: ${nuevoAssistantId}`);
 
-    // 💡 3. EL TRUCO FINAL: Actualizamos usando el `tienda.id` REAL (el CUID generado por Prisma)
+    // ==========================================
+    // 3. VINCULACIÓN FINAL
+    // ==========================================
     await prisma.tienda.update({
       where: { id: tienda.id }, 
       data: {
