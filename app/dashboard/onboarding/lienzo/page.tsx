@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { MessageCircleMore, Headphones, CalendarDays, BarChart3, Sparkles, ArrowRight, Check } from 'lucide-react';
 import { useUpwayStore } from '../../../store/upwayStore';
 import { useRouter } from 'next/navigation';
@@ -8,51 +8,26 @@ import { motion } from 'framer-motion';
 
 export default function Paso02Lienzo() {
   const router = useRouter();
-  const { modulosSeleccionados, totalMensual, toggleModulo } = useUpwayStore();
+  const { modulosSeleccionados, toggleModulo } = useUpwayStore();
 
-  // Ecosistema completo con los Monstruos, Add-ons y Funciones Anzuelo
+  // Definición de precios reales (Estrategia High-Ticket)
   const modulos = [
-    { 
-      id: 'whatsapp', 
-      titulo: 'WhatsApp IA (Texto)', 
-      desc: 'Atención 24/7, 1.000 chats incluidos, notas de voz y catálogos.', 
-      precio: 399900, 
-      icon: <MessageCircleMore size={28} />, 
-      color: 'emerald' 
-    },
-    { 
-      id: 'voz', 
-      titulo: 'Central Telefónica (Voz)', 
-      desc: 'Llamadas autónomas corporativas, Vapi + Twilio (500 min).', 
-      precio: 599900, 
-      icon: <Headphones size={28} />, 
-      color: 'cyan' 
-    },
-    { 
-      id: 'calendario', 
-      titulo: 'Agenda Inteligente', 
-      desc: 'Sincronización directa y automática con Google Calendar.', 
-      precio: 39000, 
-      icon: <CalendarDays size={28} />, 
-      color: 'purple' 
-    },
-    { 
-      id: 'analitica', 
-      titulo: 'Analítica y Telemetría', 
-      desc: 'Dashboard avanzado de auditoría, rendimiento y conversión.', 
-      precio: 19000, 
-      icon: <BarChart3 size={28} />, 
-      color: 'blue' 
-    },
-    { 
-      id: 'rag', 
-      titulo: 'Cerebro RAG Omnicanal', 
-      desc: 'Memoria unificada de PDFs y catálogos compartida (Texto y Voz).', 
-      precio: 0, // ¡El gancho gratis que eleva el valor!
-      icon: <Sparkles size={28} />, 
-      color: 'amber' 
-    },
+    { id: 'whatsapp', titulo: 'WhatsApp IA (Texto)', precio: 399900, icon: <MessageCircleMore size={28} />, color: 'emerald' },
+    { id: 'voz', titulo: 'Central Telefónica (Voz)', precio: 599900, icon: <Headphones size={28} />, color: 'cyan' },
+    { id: 'calendario', titulo: 'Agenda Inteligente', precio: 39000, icon: <CalendarDays size={28} />, color: 'purple' },
+    { id: 'analitica', titulo: 'Analítica Avanzada', precio: 19000, icon: <BarChart3 size={28} />, color: 'blue' },
+    { id: 'rag', titulo: 'Cerebro RAG (Omnicanal)', precio: 0, icon: <Sparkles size={28} />, color: 'amber' },
   ];
+
+  // 🔥 CÁLCULO DINÁMICO: Sumamos los precios de los módulos seleccionados aquí mismo
+  const totalMensual = useMemo(() => {
+    return modulos.reduce((acc, curr) => {
+      if (modulosSeleccionados.includes(curr.id)) {
+        return acc + curr.precio;
+      }
+      return acc;
+    }, 0);
+  }, [modulosSeleccionados]);
 
   const fmt = (n: number) => `$${n.toLocaleString("es-CO")}`;
 
@@ -62,7 +37,7 @@ export default function Paso02Lienzo() {
       <header className="w-full max-w-5xl mb-12">
         <button onClick={() => router.back()} className="text-sm text-slate-500 hover:text-white mb-6 transition-colors">← Volver</button>
         <h1 className="text-3xl md:text-4xl font-bold mb-2">Arquitectura de tu Infraestructura</h1>
-        <p className="text-slate-400">Selecciona los módulos y componentes estratégicos para el despliegue de tu organización.</p>
+        <p className="text-slate-400">Selecciona los módulos corporativos para automatizar tu organización.</p>
       </header>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl mb-12">
@@ -83,20 +58,12 @@ export default function Paso02Lienzo() {
             >
               <div>
                 <div className="text-cyan-400 mb-4 bg-white/5 w-fit p-3 rounded-2xl border border-white/5">{m.icon}</div>
-                <h3 className="text-xl font-bold mb-1 text-white flex items-center justify-between">
-                  {m.titulo}
-                  {esGratis && (
-                    <span className="text-[10px] font-mono tracking-widest bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full uppercase">
-                      Incluido
-                    </span>
-                  )}
-                </h3>
-                <p className="text-sm text-slate-400 mb-6 leading-relaxed">{m.desc}</p>
+                <h3 className="text-xl font-bold mb-1 text-white">{m.titulo}</h3>
               </div>
 
               <div>
-                <div className="text-2xl font-bold text-white">
-                  {esGratis ? <span className="text-emerald-400 text-xl font-mono">GRATIS</span> : fmt(m.precio)}
+                <div className="text-2xl font-bold text-white mt-4">
+                  {esGratis ? <span className="text-emerald-400 text-lg font-mono">INCLUIDO (GRATIS)</span> : fmt(m.precio)}
                   {!esGratis && <span className="text-xs font-normal text-slate-500">/mes</span>}
                 </div>
               </div>

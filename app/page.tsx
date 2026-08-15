@@ -13,7 +13,7 @@ import ParticleBackground from "@/components/ParticleBackground";
 import LeadModal from "@/components/LeadModal";
 
 // ==========================================
-// TIPOS Y DATOS DE LOS PLANES (SaaS)
+// TIPOS Y DATOS DE LOS PLANES (High-Ticket B2B)
 // ==========================================
 type ContractOption = 1 | 2 | 3;
 type PlanId = "emprendedor" | "negocio" | "voz" | "pro" | "personalizado";
@@ -38,7 +38,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 // ==========================================
-// 1. ESTRUCTURA DE 4 PLANES (Desglosando el Monstruo de Voz)
+// 1. PLANES (Con la Voz como protagonista)
 // ==========================================
 const PLANS: Plan[] = [
   {
@@ -54,6 +54,19 @@ const PLANS: Plan[] = [
     first4: 249900,
   },
   {
+    id: "voz",
+    emoji: "🎧",
+    name: "Central Voz IA",
+    capacityLabel: "El Monstruo de Voz",
+    capacityDesc: "Llamadas autónomas corporativas + 500 min Vapi.",
+    price: 599900,
+    implFull: 1199900,
+    implDiscount: 599900,
+    cuota: 149975,
+    first4: 599900,
+    popular: true, // 🌟 ¡Protagonista absoluto!
+  },
+  {
     id: "negocio",
     emoji: "💬",
     name: "WhatsApp IA",
@@ -64,19 +77,6 @@ const PLANS: Plan[] = [
     implDiscount: 399900,
     cuota: 99975,
     first4: 399900,
-    popular: true,
-  },
-  {
-    id: "voz",
-    emoji: "🎧",
-    name: "Central Voz IA",
-    capacityLabel: "Monstruo Telefónico",
-    capacityDesc: "Llamadas autónomas corporativas + 500 min Vapi.",
-    price: 599900,
-    implFull: 1199900,
-    implDiscount: 599900,
-    cuota: 149975,
-    first4: 599900,
   },
   {
     id: "pro",
@@ -93,7 +93,7 @@ const PLANS: Plan[] = [
 ];
 
 // ==========================================
-// 2. FUNCIONES Y FEATURE GATING (Niveles diferenciados)
+// 2. FUNCIONES Y FEATURE GATING
 // ==========================================
 const INCLUDED_BASE = [
   "Atención corporativa automatizada 24/7",
@@ -112,7 +112,7 @@ const EXTRA_NEGOCIO = [
 const EXTRA_VOZ = [
   "Llamadas autónomas (Salientes/Entrantes)",
   "IA con acento natural y ultra baja latencia",
-  "Gestión automática de citas médicas/citas",
+  "Gestión automática de citas médicas",
   "Transcripción y análisis de llamadas"
 ];
 
@@ -132,14 +132,10 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHudOpen, setIsHudOpen] = useState(false); 
 
-  // Estados para el Menú Móvil y la Instalación de la App (PWA)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  
-  // 🔥 NUEVO: Estado para procesar el pago con Bold
   const [procesandoPago, setProcesandoPago] = useState(false);
 
-  // Escuchar cuando el navegador permite instalar la app
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
@@ -160,7 +156,6 @@ export default function Home() {
     }
   };
 
-  // Estados para la sección de Precios (SaaS)
   const [contract, setContract] = useState<ContractOption>(2);
   const [checkoutPlan, setCheckoutPlan] = useState<Plan | null>(null);
 
@@ -170,7 +165,6 @@ export default function Home() {
     return () => window.removeEventListener("abrir-modal-lead", abrirModal);
   }, []);
 
-  // 🔥 NUEVO: Función para iniciar el pago con la API de Bold
   const iniciarPago = async (nombrePlan: string, totalPagar: number) => {
     setProcesandoPago(true);
     try {
@@ -191,9 +185,7 @@ export default function Home() {
         throw new Error(message);
       }
 
-      // Redirigir al cliente a la pasarela de Bold
-      const paymentUrl = data.payment_url;
-      window.location.assign(paymentUrl);
+      window.location.assign(data.payment_url);
     } catch (error) {
       console.error("Error:", error);
       alert("Error de conexión con la pasarela de pagos.");
@@ -202,7 +194,6 @@ export default function Home() {
     }
   };
 
-  // Lógica de precios de implementación
   const getImplLabel = (plan: Plan) => {
     if (contract === 1)
       return { main: `+ ${fmt(plan.implFull)}`, sub: "pago único de implementación", strike: null, free: false };
@@ -211,7 +202,7 @@ export default function Home() {
     return { main: "GRATIS", sub: "Implementación", strike: fmt(plan.implFull), free: true };
   };
 
-  const steps = ["Tienes una idea", "La traducimos en estrategia", "Creamos tu experiencia", "Automatizamos y escalamos"];
+  const steps = ["Diseño de arquitectura", "Configuración de tu Empleado Digital", "Conexión oficial con Meta y pasarelas", "Operación autónoma y escalado"];
 
   return (
     <main className="min-h-screen bg-[#03050a] text-white selection:bg-cyan-500/30 selection:text-white relative overflow-x-hidden antialiased">
@@ -251,50 +242,33 @@ export default function Home() {
                 ↓ Instalar App
               </button>
             )}
-            <a href="/login" className="text-sm font-mono text-white/70 transition hover:text-white">
-              [login]
-            </a>
+            <a href="/login" className="text-sm font-mono text-white/70 transition hover:text-white">[login]</a>
             <a href="/dashboard/bots" className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-5 py-2 text-sm font-mono text-cyan-300 transition hover:bg-cyan-500/30 hover:shadow-[0_0_15px_rgba(6,182,212,0.3)] backdrop-blur-md">
               PANEL_IA →
             </a>
           </div>
 
-          <button 
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden text-white/70 hover:text-white p-2 rounded-lg bg-white/5 border border-white/10"
-          >
+          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="md:hidden text-white/70 hover:text-white p-2 rounded-lg bg-white/5 border border-white/10">
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
 
         <AnimatePresence>
           {isMobileMenuOpen && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-[#0A0E14]/95 backdrop-blur-xl border-b border-white/10 overflow-hidden"
-            >
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="md:hidden bg-[#0A0E14]/95 backdrop-blur-xl border-b border-white/10 overflow-hidden">
               <div className="flex flex-col px-6 py-6 gap-6 font-mono text-sm tracking-widest">
                 <a href="#ventajas" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white">/ventajas_upway</a>
                 <a href="#planes" onClick={() => setIsMobileMenuOpen(false)} className="text-[#00D1FF]">/planes</a>
                 <a href="#proceso" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white">/proceso</a>
                 <a href="#contacto" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white">/contacto</a>
-                
                 <div className="h-[1px] bg-white/10 w-full my-2" />
-
                 {deferredPrompt && (
                   <button onClick={() => { instalarApp(); setIsMobileMenuOpen(false); }} className="w-full text-center py-3 rounded-lg border border-[#00D1FF]/40 bg-[#00D1FF]/10 text-[#00D1FF] font-bold">
                     ↓ DESCARGAR APP UPWAY
                   </button>
                 )}
-                
-                <a href="/login" className="w-full text-center py-3 rounded-lg border border-white/20 bg-white/5 text-white/80">
-                  INICIAR SESIÓN
-                </a>
-                <a href="/dashboard/bots" className="w-full text-center py-3 rounded-lg bg-[#00D1FF] text-black font-bold shadow-[0_0_15px_rgba(0,209,255,0.4)]">
-                  ENTRAR AL PANEL →
-                </a>
+                <a href="/login" className="w-full text-center py-3 rounded-lg border border-white/20 bg-white/5 text-white/80">INICIAR SESIÓN</a>
+                <a href="/dashboard/bots" className="w-full text-center py-3 rounded-lg bg-[#00D1FF] text-black font-bold shadow-[0_0_15px_rgba(0,209,255,0.4)]">ENTRAR AL PANEL →</a>
               </div>
             </motion.div>
           )}
@@ -305,18 +279,7 @@ export default function Home() {
       {/* HERO SECTION: SOPHIE V2 */}
       {/* ========================================== */}
       <section id="top" className="relative h-screen w-full overflow-hidden z-10">
-        
-        {/* 🔄 FORZANDO DESPLIEGUE: BRILLO NATURAL */}
-
-        {/* 🚀 EL REPRODUCTOR OPTIMIZADO (GPU + BRILLO EXTRA) */}
-        <video 
-          autoPlay 
-          loop 
-          muted 
-          playsInline 
-          preload="metadata"
-          className="absolute inset-0 z-0 h-full w-full object-cover scale-[1.02] transform-gpu brightness-[1.15]"
-        >
+        <video autoPlay loop muted playsInline preload="metadata" className="absolute inset-0 z-0 h-full w-full object-cover scale-[1.02] transform-gpu brightness-[1.15]">
           <source src="/sophie-animada.webm" type="video/webm" />
           <source src="/sophie-animada.mp4" type="video/mp4" />
         </video>
@@ -325,10 +288,7 @@ export default function Home() {
         <div className="absolute bottom-0 left-0 w-full h-56 bg-gradient-to-t from-[#03050a] via-[#03050a]/80 to-transparent z-20 pointer-events-none" />
         
         <div className="absolute right-6 top-1/2 z-20 -translate-y-1/2">
-          <button
-            onClick={() => setIsHudOpen(true)}
-            className={`group flex flex-col items-center gap-3 rounded-full border border-cyan-500/40 bg-white/[0.02] p-4 backdrop-blur-md transition-all hover:bg-cyan-500/20 hover:shadow-[0_0_30px_rgba(6,182,212,0.4)] ${isHudOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-          >
+          <button onClick={() => setIsHudOpen(true)} className={`group flex flex-col items-center gap-3 rounded-full border border-cyan-500/40 bg-white/[0.02] p-4 backdrop-blur-md transition-all hover:bg-cyan-500/20 hover:shadow-[0_0_30px_rgba(6,182,212,0.4)] ${isHudOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
             <Menu className="h-6 w-6 text-cyan-400" />
             <span className="writing-vertical text-[10px] font-mono tracking-[0.3em] text-cyan-300" style={{ writingMode: 'vertical-rl' }}>INICIAR_SISTEMA</span>
           </button>
@@ -350,13 +310,13 @@ export default function Home() {
                   <X className="h-5 w-5" />
                 </button>
                 <div className="mb-4 inline-flex items-center gap-2 border-r-2 border-cyan-500 pr-3 text-[10px] font-mono text-cyan-400 tracking-widest w-fit">
-                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping"></span> SISTEMA OPERATIVO ACTIVO
+                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping"></span> INTELIGENCIA DE VOZ ACTIVA
                 </div>
                 <h1 className="mt-4 text-4xl font-extrabold leading-[1.1] tracking-tight text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
-                  Inteligencia artificial que mueve <br/><span className="text-transparent bg-clip-text bg-gradient-to-l from-cyan-300 to-blue-400 drop-shadow-[0_0_15px_rgba(6,182,212,0.4)]">tu negocio.</span>
+                  La primera inteligencia de voz <br/><span className="text-transparent bg-clip-text bg-gradient-to-l from-cyan-300 to-blue-400 drop-shadow-[0_0_15px_rgba(6,182,212,0.4)]">autónoma para empresas.</span>
                 </h1>
                 <p className="mt-6 text-sm leading-relaxed text-white/90 font-medium drop-shadow-md">
-                  Despliega agentes virtuales que no solo responden, sino que dominan tus procesos corporativos, ventas y operaciones con la identidad de tu marca.
+                  Tus clientes no leen chats cuando tienen urgencias, te llaman. Despliega un agente telefónico con la voz de tu marca que responde, confirma citas y perfila clientes 24/7.
                 </p>
                 <div className="mt-10 flex flex-col gap-4">
                   <button onClick={() => { setIsHudOpen(false); window.dispatchEvent(new Event("abrir-chat")); }} className="group relative flex w-full items-center justify-center gap-3 border border-cyan-400/60 bg-cyan-500/20 px-6 py-4 text-sm font-mono tracking-widest text-cyan-100 backdrop-blur-md transition-all hover:bg-cyan-500 hover:text-slate-950 hover:shadow-[0_0_30px_rgba(6,182,212,0.6)]">
@@ -376,73 +336,44 @@ export default function Home() {
       </section>
 
       {/* ========================================== */}
-      {/* SECCIÓN LETAL: EL ARMAMENTO (COMPETITIVA) */}
+      {/* VENTAJAS B2B */}
       {/* ========================================== */}
       <section id="ventajas" className="relative py-24 bg-[#0A0E14] border-t border-white/5 overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/5 rounded-full blur-[100px] pointer-events-none"></div>
-        
         <div className="relative z-10 max-w-[95rem] mx-auto px-6 lg:px-12">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400 mb-6">
-              El fin de los bots tradicionales
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-400 mb-6">
+              El poder de la voz corporativa
             </div>
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 tracking-tight">
-              Deja de pagar nóminas para responder chats. <br className="hidden lg:block"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Despliega un Empleado Digital 24/7.</span>
+              Sustituye la fricción operativa con <br className="hidden lg:block"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">tecnología de alta fiabilidad.</span>
             </h2>
             <p className="text-slate-400 text-lg leading-relaxed">
-              Las plataformas antiguas te cobran por cada asesor humano conectado. Upway te entrega un cerebro digital autónomo que atiende, negocia y cierra ventas sin cansarse.
+              En sectores exigentes como salud (IPS) e inmobiliarias, las llamadas perdidas cuestan millones. Upway asegura el 100% de la atención telefónica y de chat.
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            
-            {/* Ventaja 1 */}
             <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-8 hover:bg-white/[0.04] transition-all group">
-              <div className="h-12 w-12 rounded-2xl bg-red-500/10 flex items-center justify-center mb-6 border border-red-500/20 group-hover:scale-110 transition-transform">
-                <span className="text-red-400 font-bold text-xl">❌</span>
-              </div>
-              <h3 className="text-xl font-bold text-white mb-3">Cero menús aburridos</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                Olvídate del frustrante “Presione 1 para ventas”. Nuestra IA procesa lenguaje natural, entiende el contexto y mantiene conversaciones fluidas.
-              </p>
+              <div className="h-12 w-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center mb-6 border border-cyan-500/20 group-hover:scale-110 transition-transform"><span className="text-cyan-400 font-bold text-xl">🛡️</span></div>
+              <h3 className="text-xl font-bold text-white mb-3">Cero llamadas perdidas</h3>
+              <p className="text-sm text-slate-400 leading-relaxed">Atiende múltiples llamadas simultáneas con acento natural, sin esperas y con integración directa al calendario.</p>
             </div>
-
-            {/* Ventaja 2 */}
-            <div className="rounded-3xl border border-cyan-500/20 bg-cyan-500/5 p-8 shadow-[0_0_30px_rgba(6,182,212,0.1)] hover:shadow-[0_0_40px_rgba(6,182,212,0.2)] transition-all group relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <svg className="w-24 h-24 text-cyan-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-              </div>
-              <div className="h-12 w-12 rounded-2xl bg-cyan-500/20 flex items-center justify-center mb-6 border border-cyan-500/40 group-hover:scale-110 transition-transform relative z-10">
-                <svg className="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
-              </div>
-              <h3 className="text-xl font-bold text-white mb-3 relative z-10">Entiende Notas de Voz</h3>
-              <p className="text-sm text-slate-400 leading-relaxed relative z-10">
-                Tus clientes aman enviar audios. Upway los escucha, los transcribe internamente y responde al instante con precisión milimétrica.
-              </p>
+            <div className="rounded-3xl border border-cyan-500/20 bg-cyan-500/5 p-8 shadow-[0_0_30px_rgba(6,182,212,0.1)] group">
+              <div className="h-12 w-12 rounded-2xl bg-cyan-500/20 flex items-center justify-center mb-6 border border-cyan-500/40 group-hover:scale-110 transition-transform"><span className="text-cyan-400 font-bold text-xl">🎧</span></div>
+              <h3 className="text-xl font-bold text-white mb-3">Multimodalidad Nativa</h3>
+              <p className="text-sm text-slate-400 leading-relaxed">Combina la Central Telefónica de Voz (Vapi) y el Agente de Texto en WhatsApp bajo un mismo cerebro unificado (RAG).</p>
             </div>
-
-            {/* Ventaja 3 */}
             <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-8 hover:bg-white/[0.04] transition-all group">
-              <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6 border border-blue-500/20 group-hover:scale-110 transition-transform">
-                <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-              </div>
-              <h3 className="text-xl font-bold text-white mb-3">Tarifa plana sin trampas</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                No cobramos “por asiento” ni te castigamos por crecer. Paga una suscripción única y deja que la IA haga el trabajo de 10 empleados a la vez.
-              </p>
+              <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6 border border-blue-500/20 group-hover:scale-110 transition-transform"><span className="text-blue-400 font-bold text-xl">🛠️</span></div>
+              <h3 className="text-xl font-bold text-white mb-3">Soporte Local en Colombia</h3>
+              <p className="text-sm text-slate-400 leading-relaxed">Ingeniería local disponible para respaldar la operación de tu negocio sin intermediarios extranjeros.</p>
             </div>
-
-            {/* Ventaja 4 */}
-            <div className="rounded-3xl border border-emerald-500/20 bg-emerald-500/5 p-8 hover:bg-emerald-500/10 transition-all group">
-              <div className="h-12 w-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center mb-6 border border-emerald-500/40 group-hover:scale-110 transition-transform">
-                <svg className="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-              </div>
-              <h3 className="text-xl font-bold text-white mb-3">Operando en 15 minutos</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                Olvida las tediosas llamadas de ventas. Paga con Bold, vincula tu WhatsApp oficial con Meta Embedded Signup y arranca hoy mismo.
-              </p>
+            <div className="rounded-3xl border border-emerald-500/20 bg-emerald-500/5 p-8 group">
+              <div className="h-12 w-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center mb-6 border border-emerald-500/40 group-hover:scale-110 transition-transform"><span className="text-emerald-400 font-bold text-xl">⚡</span></div>
+              <h3 className="text-xl font-bold text-white mb-3">Despliegue Inmediato</h3>
+              <p className="text-sm text-slate-400 leading-relaxed">Conexión oficial con la API Cloud de Meta y pasarelas de pago locales como Bold en minutos.</p>
             </div>
-
           </div>
         </div>
       </section>
@@ -456,10 +387,9 @@ export default function Home() {
         </div>
 
         <div className="relative max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-          
           <div className="text-center mb-16">
             <p className="text-xs font-mono uppercase tracking-[0.3em] text-cyan-400 mb-4">/precios_upway</p>
-            <h2 className="text-4xl font-display font-bold text-white mb-4">Un empleado digital de élite,<br/>para cada nivel de operación.</h2>
+            <h2 className="text-4xl font-display font-bold text-white mb-4">La potencia de la voz y el texto,<br/>adaptadas a tu operación corporativa.</h2>
           </div>
 
           <div className="mb-10 max-w-2xl mx-auto">
@@ -490,7 +420,7 @@ export default function Home() {
                 <div key={plan.id} className={`relative rounded-[24px] border p-[1px] group transition-all duration-300 ${plan.popular ? "border-[#00D1FF]/35 shadow-[0_0_80px_rgba(0,209,255,0.18)]" : "border-white/10 hover:border-white/[0.14]"}`}>
                   {plan.popular && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
-                      <div className="font-display text-[10px] font-bold tracking-[0.12em] bg-[#00D1FF] text-black px-3.5 py-1 rounded-full shadow-[0_0_20px_rgba(0,209,255,0.6)]">POPULAR</div>
+                      <div className="font-display text-[10px] font-bold tracking-[0.12em] bg-[#00D1FF] text-black px-3.5 py-1 rounded-full shadow-[0_0_20px_rgba(0,209,255,0.6)]">MÁS POPULAR</div>
                     </div>
                   )}
                   <div className={`relative rounded-[23px] glass h-full p-6 flex flex-col ${plan.popular ? "bg-gradient-to-b from-[#00D1FF]/[0.07] to-white/[0.02]" : ""}`}>
@@ -522,11 +452,8 @@ export default function Home() {
                     <div className="h-[1px] bg-gradient-to-r from-white/10 to-transparent mb-5" />
 
                     <div className="mb-6">
-                      <div className="font-body text-[10px] font-semibold tracking-[0.16em] uppercase text-white/30 mb-3">
-                        Incluye empleado digital completo
-                      </div>
+                      <div className="font-body text-[10px] font-semibold tracking-[0.16em] uppercase text-white/30 mb-3">Incluye empleado digital</div>
                       
-                      {/* 1. LISTA BASE (Común para todos, en blanco) */}
                       <div className="space-y-2">
                         {INCLUDED_BASE.map((feat) => (
                           <div key={feat} className="flex items-center gap-2.5 font-body text-[13px] text-white/70 leading-snug">
@@ -537,37 +464,43 @@ export default function Home() {
                           </div>
                         ))}
                         
-                        {/* 🔥 LIMITANTE VISUAL (Solo se pinta en el plan Emprendedor) */}
                         {plan.id === "emprendedor" && (
                           <div className="flex items-center gap-2.5 font-body text-[13px] text-red-400/80 leading-snug mt-2">
                              <div className="w-[18px] h-[18px] rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0 text-[10px]">✕</div>
-                             Limitado a solo texto (Sin audios)
+                             Limitado a solo texto (Sin audios / sin voz)
                           </div>
                         )}
                       </div>
 
-                      {/* 2. LISTA NEGOCIO (Azul en Negocio, Blanco en PRO) */}
                       {(plan.id === "negocio" || plan.id === "pro") && (
                         <div className="mt-5">
-                          <div className={`font-body text-[10px] font-bold tracking-[0.14em] uppercase mb-2.5 ${plan.id === "negocio" ? "text-[#00D1FF]/90" : "text-white/50"}`}>
-                            + Capacidades Multimodales
-                          </div>
+                          <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase mb-2.5 text-[#00D1FF]/90">+ Capacidades de Texto</div>
                           <div className="space-y-1.5">
                             {EXTRA_NEGOCIO.map((e) => (
-                              <div key={e} className={`flex gap-2 font-body text-[12px] leading-snug ${plan.id === "negocio" ? "text-[#00D1FF]/90" : "text-white/70"}`}>
-                                <span className={plan.id === "negocio" ? "text-[#00D1FF]/60" : "text-white/30"}>•</span> {e}
+                              <div key={e} className="flex gap-2 font-body text-[12px] text-white/70 leading-snug">
+                                <span className="text-[#00D1FF]/60">•</span> {e}
                               </div>
                             ))}
                           </div>
                         </div>
                       )}
 
-                      {/* 3. LISTA PRO (Exclusiva del PRO, resaltada en Azul Brillante) */}
+                      {(plan.id === "voz" || plan.id === "pro") && (
+                        <div className="mt-5">
+                          <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase mb-2.5 text-cyan-400">+ Potencia de Voz (Vapi)</div>
+                          <div className="space-y-1.5">
+                            {EXTRA_VOZ.map((e) => (
+                              <div key={e} className="flex gap-2 font-body text-[12px] text-white/70 leading-snug">
+                                <span className="text-cyan-400/60">•</span> {e}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       {plan.id === "pro" && (
                         <div className="mt-5">
-                          <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase text-[#00D1FF] mb-2.5">
-                            + Capacidad Empresarial Max
-                          </div>
+                          <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase text-[#00D1FF] mb-2.5">+ Nivel Corporativo Máximo</div>
                           <div className="space-y-1.5">
                             {EXTRA_PRO.map((e) => (
                               <div key={e} className="flex gap-2 font-body text-[12.5px] text-[#00D1FF] font-medium leading-snug">
@@ -580,10 +513,7 @@ export default function Home() {
                     </div>
 
                     <div className="mt-auto pt-2">
-                      <button
-                        onClick={() => setCheckoutPlan(plan)}
-                        className="w-full h-[46px] rounded-[12px] bg-[#00D1FF] text-black font-display font-bold text-[14px] tracking-tight hover:bg-[#33DDFF] transition-colors shadow-[0_0_28px_rgba(0,209,255,0.35)] flex items-center justify-center gap-2"
-                      >
+                      <button onClick={() => setCheckoutPlan(plan)} className="w-full h-[46px] rounded-[12px] bg-[#00D1FF] text-black font-display font-bold text-[14px] tracking-tight hover:bg-[#33DDFF] transition-colors shadow-[0_0_28px_rgba(0,209,255,0.35)] flex items-center justify-center gap-2">
                         Elegir {plan.name} <span className="text-[16px] font-medium">→</span>
                       </button>
                     </div>
@@ -591,35 +521,16 @@ export default function Home() {
                 </div>
               );
             })}
-
-            {/* Plan Personalizado */}
-            <div className="relative rounded-[24px] border border-white/10 p-[1px] group">
-              <div className="relative rounded-[23px] glass h-full p-6 flex flex-col bg-gradient-to-b from-white/[0.03] to-transparent">
-                <div className="flex items-center gap-2.5 mb-5"><span className="text-[20px]">💎</span><span className="font-display text-[16px] font-bold tracking-tight">Personalizado</span></div>
-                <div className="mb-5">
-                  <div className="flex items-baseline gap-2"><span className="font-display text-[26px] font-bold tracking-[-0.02em]">Desde {fmt(999900)}</span><span className="font-body text-[13px] text-white/40">/ mes</span></div>
-                  <div className="font-body text-[11.5px] text-white/35 mt-2 leading-relaxed">A cotizar según volumen, integraciones y necesidades.</div>
-                </div>
-                <div className="h-[1px] bg-white/10 mb-5" />
-                <div className="font-body text-[10px] font-semibold tracking-[0.16em] uppercase text-white/30 mb-3">Todo lo anterior +</div>
-                <div className="space-y-2.5 mb-8">
-                  {["Infraestructura dedicada", "Integraciones a medida", "SLA empresarial", "Soporte prioritario"].map((f) => (<div key={f} className="flex gap-2.5 font-body text-[13px] text-white/60"><span className="text-white/20">—</span> {f}</div>))}
-                </div>
-                <div className="mt-auto">
-                  <button onClick={() => window.dispatchEvent(new Event("abrir-chat"))} className="w-full h-[46px] rounded-[12px] bg-white/[0.05] text-white font-display font-bold text-[14px] tracking-tight hover:bg-white/[0.1] transition-colors border border-white/10 flex items-center justify-center gap-2">Contactar a ventas</button>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
       {/* ========================================== */}
-      {/* SECCIONES SECUNDARIAS */}
+      {/* PROCESO Y FOOTER */}
       {/* ========================================== */}
       <section id="proceso" className="relative border-t border-white/5 bg-[#03050a]">
         <div className="mx-auto max-w-7xl px-6 py-24 lg:px-12">
-          <div className="max-w-3xl"><p className="text-xs font-mono uppercase tracking-[0.3em] text-cyan-400">/02_proceso</p><h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Un camino claro para pasar de la idea a la ejecución.</h2></div>
+          <div className="max-w-3xl"><p className="text-xs font-mono uppercase tracking-[0.3em] text-cyan-400">/02_proceso</p><h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Implementación corporativa sin fricciones.</h2></div>
           <div className="mt-12 grid gap-6 md:grid-cols-4">
             {steps.map((step, index) => (
               <div key={step} className="rounded-2xl border border-white/5 bg-white/[0.02] p-6 relative overflow-hidden group">
@@ -633,10 +544,10 @@ export default function Home() {
 
       <section id="contacto" className="relative border-t border-white/5 bg-[#03050a]">
         <div className="mx-auto flex max-w-7xl flex-col gap-10 px-6 py-24 lg:flex-row lg:items-end lg:justify-between lg:px-12">
-          <div className="max-w-2xl"><p className="text-xs font-mono uppercase tracking-[0.3em] text-cyan-400">/03_contacto</p><h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Tu próximo movimiento puede ser el más importante.</h2></div>
+          <div className="max-w-2xl"><p className="text-xs font-mono uppercase tracking-[0.3em] text-cyan-400">/03_contacto</p><h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Eleva el nivel tecnológico de tu organización hoy.</h2></div>
           <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-8 backdrop-blur shadow-2xl">
             <button onClick={() => window.dispatchEvent(new Event("abrir-chat"))} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-6 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-300">
-              Agendar una llamada <ArrowRight className="h-4 w-4" />
+              Agendar asesoría técnica <ArrowRight className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -652,9 +563,9 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* ========================================= */}
-      {/* MODAL DE CHECKOUT (BOLD) CON LÓGICA ACTIVA */}
-      {/* ========================================= */}
+      {/* ========================================== */}
+      {/* MODAL DE CHECKOUT (BOLD) */}
+      {/* ========================================== */}
       <AnimatePresence>
         {checkoutPlan && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -667,12 +578,11 @@ export default function Home() {
                   <span className="text-[28px]">{checkoutPlan.emoji}</span>
                   <div>
                     <h3 className="font-display text-[18px] font-bold text-white">Plan {checkoutPlan.name}</h3>
-                    <p className="font-body text-[12px] text-white/50">Completar activación</p>
+                    <p className="font-body text-[12px] text-white/50">Activación de infraestructura corporativa</p>
                   </div>
                 </div>
 
                 {(() => {
-                  // 🔥 Calculamos el valor exacto a cobrar según el plan y el tipo de contrato seleccionado
                   const valorImplementacion = contract === 2 ? checkoutPlan.cuota : contract === 3 ? 0 : checkoutPlan.implFull;
                   const totalApagar = checkoutPlan.price + valorImplementacion;
 
@@ -680,7 +590,7 @@ export default function Home() {
                     <>
                       <div className="glass rounded-[16px] p-4 mb-6 border border-white/5">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="font-body text-[13px] text-white/70">Mensualidad</span>
+                          <span className="font-body text-[13px] text-white/70">Mensualidad Infraestructura</span>
                           <span className="font-display text-[14px] font-semibold">{fmt(checkoutPlan.price)}</span>
                         </div>
                         <div className="flex justify-between items-center mb-4">
@@ -698,19 +608,14 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {/* BOTÓN CONECTADO A BOLD */}
-                      <button 
-                        onClick={() => iniciarPago(checkoutPlan.name, totalApagar)}
-                        disabled={procesandoPago}
-                        className="w-full h-[50px] rounded-[12px] bg-gradient-to-r from-[#FF424D] to-[#FF6B74] text-white font-display font-bold text-[15px] hover:shadow-[0_0_20px_rgba(255,66,77,0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                      >
+                      <button onClick={() => iniciarPago(checkoutPlan.name, totalApagar)} disabled={procesandoPago} className="w-full h-[50px] rounded-[12px] bg-gradient-to-r from-[#FF424D] to-[#FF6B74] text-white font-display font-bold text-[15px] hover:shadow-[0_0_20px_rgba(255,66,77,0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
                         {procesandoPago ? 'Conectando con Bold...' : '🔒 Pagar de forma segura con Bold'}
                       </button>
                     </>
                   );
                 })()}
 
-                <p className="text-center font-body text-[10px] text-white/30 mt-4">Se abrirá una pestaña segura de Bold. Tu progreso aquí no se perderá.</p>
+                <p className="text-center font-body text-[10px] text-white/30 mt-4">Transacción segura procesada mediante pasarela Bold.</p>
               </div>
             </motion.div>
           </motion.div>
