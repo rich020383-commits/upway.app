@@ -2,25 +2,23 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 // ==========================================
-// 1. DICCIONARIO DE VOCES (CATÁLOGO UPWAY)
+// 1. DICCIONARIO DE VOCES (CORREGIDO PARA EL FRONTEND)
 // ==========================================
 const VOICE_MAPPING: Record<string, any> = {
-  // 🌟 CELESTE DE AURA 2 (ESPAÑOL COLOMBIA - DEEPGRAM) 🌟
-  femenina_nativa: { 
+  // 🌟 AHORA SÍ: Coincide con lo que manda tu panel cuando eliges "Celeste"
+  femenina_estrella: { 
     provider: 'deepgram', 
     voiceId: 'celeste', 
   },
   
-  // === OTRAS VOCES DE RESPALDO ===
-  femenina_estrella: { 
-    provider: '11labs', 
-    voiceId: 'cgSgspJ2msm6clMCkdW9', // Laura
-    model: 'eleven_multilingual_v2' 
-  },
   femenina_calida: { 
     provider: '11labs', 
-    voiceId: 'xrExE9yKIg1WjnnlVkGX', // Matilda
+    voiceId: 'xrExE9yKIg1WjnnlVkGX', 
     model: 'eleven_multilingual_v2' 
+  },
+  femenina_nativa: { 
+    provider: 'deepgram', 
+    voiceId: 'luna', // Otra de Deepgram por si acaso
   },
   masculino_serio: { 
     provider: '11labs', 
@@ -33,7 +31,7 @@ const VOICE_MAPPING: Record<string, any> = {
     model: 'eleven_multilingual_v2' 
   },
   masculino_nativo: { 
-    provider: 'vapi', 
+    provider: 'deepgram', 
     voiceId: 'jorge' 
   }
 };
