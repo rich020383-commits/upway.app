@@ -2,23 +2,20 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 // ==========================================
-// 1. DICCIONARIO DE VOCES (CORREGIDO PARA EL FRONTEND)
+// 1. CONFIGURACIÓN ESTÁNDAR EMPRESARIAL (TIER 1)
 // ==========================================
+// Utilizamos ElevenLabs como motor principal de aprovisionamiento automatizado 
+// debido a su estabilidad comprobada en la API de Vapi.
 const VOICE_MAPPING: Record<string, any> = {
-  // 🌟 AHORA SÍ: Coincide con lo que manda tu panel cuando eliges "Celeste"
   femenina_estrella: { 
-    provider: 'deepgram', 
-    voiceId: 'celeste', 
-  },
-  
-  femenina_calida: { 
     provider: '11labs', 
-    voiceId: 'xrExE9yKIg1WjnnlVkGX', 
+    voiceId: 'cgSgspJ2msm6clMCkdW9', // Laura (Estándar Producción Español)
     model: 'eleven_multilingual_v2' 
   },
-  femenina_nativa: { 
-    provider: 'deepgram', 
-    voiceId: 'luna', // Otra de Deepgram por si acaso
+  femenina_calida: { 
+    provider: '11labs', 
+    voiceId: 'xrExE9yKIg1WjnnlVkGX', // Matilda
+    model: 'eleven_multilingual_v2' 
   },
   masculino_serio: { 
     provider: '11labs', 
@@ -29,10 +26,6 @@ const VOICE_MAPPING: Record<string, any> = {
     provider: '11labs', 
     voiceId: 'pNInz6obbfDQGcgMyIGC', 
     model: 'eleven_multilingual_v2' 
-  },
-  masculino_nativo: { 
-    provider: 'deepgram', 
-    voiceId: 'jorge' 
   }
 };
 
@@ -41,66 +34,43 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { tienda_id, nombre, promptMaestro, vozSeleccionada } = body;
 
-    if (!promptMaestro || !vozSeleccionada) {
-      return NextResponse.json({ error: 'Faltan datos obligatorios.' }, { status: 400 });
+    // 1. VALIDACIÓN ESTRICTA
+    if (!tienda_id || !promptMaestro || !vozSeleccionada) {
+      return NextResponse.json(
+        { error: 'Faltan parámetros obligatorios para la creación del agente.' }, 
+        { status: 400 }
+      );
     }
 
-    console.log(`🎙️ Procesando Agente Vapi para el ID entrante: ${tienda_id}`);
+    console.log(`🎙️ [Upway Vapi Service] Solicitud de creación para Tienda/Meta ID: ${tienda_id}`);
 
-    // ==========================================
-    // 2. BUSCADOR Y CREADOR INTELIGENTE DE TIENDAS
-    // ==========================================
-    let tienda = null;
-    
-    // Primero, intentamos buscarla
-    if (tienda_id) {
-      tienda = await prisma.tienda.findFirst({
-        where: {
-          OR: [
-            { id: tienda_id },
-            { metaPhoneNumberId: tienda_id },
-            { telefono: tienda_id }
-          ]
-        }
-      });
-    }
+    // 2. BÚSQUEDA EXACTA EN BASE DE DATOS (SIN CREACIÓN FANTASMA)
+    const tienda = await prisma.tienda.findFirst({
+      where: {
+        OR: [
+          { id: tienda_id },
+          { metaPhoneNumberId: tienda_id },
+          { telefono: tienda_id }
+        ]
+      }
+    });
 
-    // Segundo intento: agarrar cualquier tienda existente
     if (!tienda) {
-      tienda = await prisma.tienda.findFirst();
+      console.error(`❌ [Upway Vapi Service] Tienda no encontrada para el ID: ${tienda_id}`);
+      return NextResponse.json(
+        { error: 'Entidad de negocio no encontrada. Verifique la vinculación de la cuenta.' }, 
+        { status: 404 }
+      );
     }
 
-    // TERCER INTENTO DE RESCATE (Para cuando la BD está vacía por el bypass de Meta)
-    if (!tienda) {
-      console.log('⚠️ BD Vacía detectada. Creando Tienda de Prueba temporal y Usuario anónimo...');
-      
-      const usuarioFantasma = await prisma.user.create({
-        data: {
-          name: "Usuario Revisor",
-          email: `revisor_${Date.now()}@upway.test`,
-        }
-      });
-
-      tienda = await prisma.tienda.create({
-        data: {
-          userId: usuarioFantasma.id,
-          nombre: "Tienda Revisor Meta",
-          metaPhoneNumberId: tienda_id || '1172769935927318',
-        }
-      });
-    }
-
-    // ==========================================
-    // 3. CREACIÓN DEL ASISTENTE EN VAPI
-    // ==========================================
-    // Si la voz seleccionada no existe, usamos a Celeste por defecto
-    const voiceConfig = VOICE_MAPPING[vozSeleccionada] || VOICE_MAPPING['femenina_nativa']; 
+    // 3. COMUNICACIÓN CON VAPI
+    const voiceConfig = VOICE_MAPPING[vozSeleccionada] || VOICE_MAPPING['femenina_estrella']; 
     const vapiKey = process.env.VAPI_PRIVATE_API_KEY;
     
-    if (!vapiKey) throw new Error('Falta VAPI_PRIVATE_API_KEY en .env');
+    if (!vapiKey) throw new Error('Credenciales de Vapi no configuradas en el entorno.');
 
     const vapiPayload = {
-      name: nombre || 'Agente Telefónico Upway',
+      name: nombre || `Agente - ${tienda.nombre}`,
       voice: voiceConfig,
       model: {
         provider: 'openai',
@@ -121,15 +91,14 @@ export async function POST(req: Request) {
     const vapiData = await vapiResponse.json();
 
     if (!vapiResponse.ok) {
-      throw new Error(vapiData.message || JSON.stringify(vapiData));
+      console.error('❌ [Upway Vapi Service] Error del proveedor de voz:', vapiData);
+      throw new Error(vapiData.message || 'Fallo en la comunicación con la API de voz.');
     }
 
     const nuevoAssistantId = vapiData.id;
-    console.log(`✅ Agente creado en Vapi. ID: ${nuevoAssistantId}`);
+    console.log(`✅ [Upway Vapi Service] Agente corporativo creado. ID: ${nuevoAssistantId}`);
 
-    // ==========================================
-    // 4. VINCULACIÓN FINAL CON TU BASE DE DATOS
-    // ==========================================
+    // 4. ACTUALIZACIÓN TRANSACCIONAL
     await prisma.tienda.update({
       where: { id: tienda.id }, 
       data: {
@@ -141,13 +110,13 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       assistantId: nuevoAssistantId,
-      mensaje: `Agente vinculado a la tienda: ${tienda.nombre}`
+      mensaje: `Agente vinculado exitosamente a: ${tienda.nombre}`
     });
 
   } catch (error) {
-    console.error('❌ Error en creacion de Vapi:', error);
+    console.error('❌ [Upway Vapi Service] Error crítico:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Error interno' },
+      { error: error instanceof Error ? error.message : 'Error interno del servidor.' },
       { status: 500 }
     );
   }

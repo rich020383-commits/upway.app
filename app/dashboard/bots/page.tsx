@@ -2,16 +2,25 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
-import { Bot, MessageCircleMore, Sparkles, ShieldCheck, ArrowRight, Send, Signal, Wifi, Battery, Check, Store, Mic, Square, Phone, ArrowLeft, Headphones, UploadCloud, Loader2 } from 'lucide-react';
+import { 
+  Bot, MessageCircleMore, MessageSquare, Sparkles, ShieldCheck, ArrowRight, Send, Signal, 
+  Wifi, Battery, Store, Mic, Square, Phone, ArrowLeft, Headphones, UploadCloud, 
+  Loader2, Zap, RefreshCw, Power, Clock, BookOpen, AtSign, Rocket, Activity, CheckCircle2 
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { getSession } from 'next-auth/react'; 
+import { useUpwayStore } from '../../store/upwayStore'; // Conectamos tu store local
+import Link from 'next/link';
 
 export default function AgentesBotPage() {
   const router = useRouter();
   
-  // 🚀 ESTADO MAESTRO DEL MULTI-TENANT (EL HUB)
-  const [servicioActivo, setServicioActivo] = useState<'hub' | 'whatsapp' | 'voz'>('hub');
+  // 🚀 ESTADO MAESTRO (EL HUB AHORA INICIA EN EL DASHBOARD PREMIUM)
+  const [servicioActivo, setServicioActivo] = useState<'dashboard' | 'hub' | 'whatsapp' | 'voz'>('dashboard');
 
+  const { nombreAgente: nombreStore } = useUpwayStore(); // Nombre del agente desde el Onboarding
+  const [iaActiva, setIaActiva] = useState(true); // Estado del Botón de pánico del Dashboard
+  
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
@@ -22,6 +31,7 @@ export default function AgentesBotPage() {
     });
   }, []);
 
+  // ESTADOS DE TUS FORMULARIOS Y LÓGICA ORIGINAL
   const [nombreAgente, setNombreAgente] = useState('');
   const [nicho, setNicho] = useState('general'); 
   const [promptMaestro, setPromptMaestro] = useState('');
@@ -41,17 +51,21 @@ export default function AgentesBotPage() {
   const audioChunksRef = useRef<Blob[]>([]);
 
   // Estados para el Simulador de Voz (VAPI)
-  const [vozSeleccionada, setVozSeleccionada] = useState('femenina_estrella'); // Celeste por defecto
+  const [vozSeleccionada, setVozSeleccionada] = useState('femenina_estrella'); 
   const [creandoVoz, setCreandoVoz] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+  
   useEffect(() => {
     if(servicioActivo === 'whatsapp') scrollToBottom();
   }, [historialChat, cargandoPrueba, isRecording, servicioActivo]);
 
+  // ==========================================
+  // 🔥 LÓGICA BACKEND ORIGINAL INTACTA
+  // ==========================================
   const guardarConfiguracion = async () => {
     if (!nombreAgente || !promptMaestro) {
       alert('Completa el nombre del agente y las reglas antes de guardar.');
@@ -85,7 +99,6 @@ export default function AgentesBotPage() {
     }
   };
 
-  // 🚀 NUEVA FUNCIÓN: CREAR AGENTE EN VAPI
   const crearAgenteVoz = async () => {
     if (!nombreAgente || !promptMaestro) {
       alert('Completa el nombre y el guion antes de activar el agente.');
@@ -97,7 +110,7 @@ export default function AgentesBotPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tienda_id: '1172769935927318', // Usando tu ID de prueba fijo
+          tienda_id: '1172769935927318',
           nombre: nombreAgente,
           promptMaestro: promptMaestro,
           vozSeleccionada: vozSeleccionada
@@ -147,12 +160,9 @@ export default function AgentesBotPage() {
   };
 
   const handleActivarWhatsApp = () => {
-    router.push('/dashboard/activacion'); 
+    router.push('/dashboard/onboarding/activacion'); 
   };
 
-  // ==========================================
-  // 🔥 LÓGICA DE GRABACIÓN DE AUDIO (EXISTENTE)
-  // ==========================================
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -263,12 +273,16 @@ export default function AgentesBotPage() {
 
 
   // ==========================================
-  // RENDER: PANTALLA HUB (SELECCIÓN DE SERVICIO)
+  // RENDER 1: PANTALLA HUB (SELECCIÓN DE SERVICIO)
   // ==========================================
   if (servicioActivo === 'hub') {
     return (
       <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.15),_transparent_55%)] bg-slate-950 px-4 py-16 text-white sm:px-6 lg:px-8 flex flex-col items-center justify-center">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center max-w-2xl mx-auto mb-16">
+        <button onClick={() => setServicioActivo('dashboard')} className="absolute top-8 left-8 flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors z-50">
+          <ArrowLeft className="w-4 h-4" /> Volver al Tablero
+        </button>
+
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center max-w-2xl mx-auto mb-16 relative z-10">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-sm font-semibold text-blue-400 mb-6">
             <Bot className="h-4 w-4"/> Upway Multi-Canal
           </div>
@@ -276,8 +290,7 @@ export default function AgentesBotPage() {
           <p className="text-lg text-slate-400">Selecciona el tipo de agente digital que quieres configurar o monitorear para tu negocio.</p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-8 w-full max-w-5xl mx-auto">
-          {/* Tarjeta WhatsApp */}
+        <div className="grid md:grid-cols-2 gap-8 w-full max-w-5xl mx-auto relative z-10">
           <motion.div 
             whileHover={{ scale: 1.02, y: -5 }}
             onClick={() => setServicioActivo('whatsapp')}
@@ -298,7 +311,6 @@ export default function AgentesBotPage() {
             </div>
           </motion.div>
 
-          {/* Tarjeta Voz (Vapi) */}
           <motion.div 
             whileHover={{ scale: 1.02, y: -5 }}
             onClick={() => setServicioActivo('voz')}
@@ -325,15 +337,15 @@ export default function AgentesBotPage() {
   }
 
   // ==========================================
-  // RENDER: PANTALLA AGENTE DE VOZ (VAPI)
+  // RENDER 2: PANTALLA AGENTE DE VOZ (VAPI)
   // ==========================================
   if (servicioActivo === 'voz') {
     return (
       <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(6,182,212,0.15),_transparent_55%)] bg-slate-950 px-4 py-8 text-white sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           
-          <button onClick={() => setServicioActivo('hub')} className="mb-6 flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Volver al panel central
+          <button onClick={() => setServicioActivo('dashboard')} className="mb-6 flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Volver al Tablero
           </button>
 
           <div className="mb-8 overflow-hidden rounded-[32px] border border-cyan-500/20 bg-white/5 p-8 shadow-2xl shadow-cyan-900/20 backdrop-blur-xl">
@@ -349,7 +361,6 @@ export default function AgentesBotPage() {
           </div>
 
           <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr]">
-            {/* Columna Configuración VAPI */}
             <div className="space-y-6">
               <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-md">
                 <div className="space-y-5">
@@ -401,7 +412,6 @@ export default function AgentesBotPage() {
               </div>
             </div>
 
-            {/* Columna Derecha VAPI: Campañas */}
             <div className="flex flex-col gap-6">
               <div className="rounded-[28px] border border-cyan-500/20 bg-[#0A0E14] p-6 shadow-[0_0_30px_rgba(6,182,212,0.1)] ring-1 ring-white/10">
                 <div className="mb-6 flex flex-col items-center text-center">
@@ -435,263 +445,450 @@ export default function AgentesBotPage() {
   }
 
   // ==========================================
-  // RENDER ORIGINAL: PANTALLA WHATSAPP (TEXTO)
+  // RENDER 3: PANTALLA WHATSAPP (SIMULADOR)
   // ==========================================
-  return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.15),_transparent_55%)] bg-slate-950 px-4 py-8 text-white sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        
-        <button onClick={() => setServicioActivo('hub')} className="mb-6 flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Volver al panel central
-        </button>
+  if (servicioActivo === 'whatsapp') {
+    return (
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.15),_transparent_55%)] bg-slate-950 px-4 py-8 text-white sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          
+          <button onClick={() => setServicioActivo('dashboard')} className="mb-6 flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Volver al Tablero
+          </button>
 
-        {/* Cabecera Premium Oscura */}
-        <div className="mb-8 overflow-hidden rounded-[32px] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-emerald-900/20 backdrop-blur-xl">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm font-semibold text-emerald-400">
-                <Bot className="h-4 w-4"/> Agente IA WhatsApp
+          <div className="mb-8 overflow-hidden rounded-[32px] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-emerald-900/20 backdrop-blur-xl">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm font-semibold text-emerald-400">
+                  <Bot className="h-4 w-4"/> Agente IA WhatsApp
+                </div>
+                <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Construye la voz de tu Empleado Digital</h1>
+                <p className="mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">Define su personalidad, establece las reglas de tu negocio y ponlo a prueba en tiempo real antes de conectarlo a WhatsApp.</p>
               </div>
-              <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Construye la voz de tu Empleado Digital</h1>
-              <p className="mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">Define su personalidad, establece las reglas de tu negocio y ponlo a prueba en tiempo real antes de conectarlo a WhatsApp.</p>
+            </div>
+          </div>
+
+          <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr]">
+            
+            <div className="space-y-6">
+              <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-md">
+                <div className="mb-6 flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400">
+                    <Sparkles className="h-5 w-5"/>
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">Cerebro del Agente</h2>
+                    <p className="text-sm text-slate-400">Instruye a la IA exactamente cómo debe vender y atender por chat.</p>
+                  </div>
+                </div>
+
+                <div className="space-y-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-slate-300">Nombre de tu Asistente</label>
+                      <input 
+                        type="text" 
+                        value={nombreAgente} 
+                        onChange={(e) => setNombreAgente(e.target.value)} 
+                        placeholder="Ej. Sofía de Ferretería XY" 
+                        className="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition focus:border-emerald-500 focus:bg-slate-900 focus:shadow-[0_0_15px_rgba(16,185,129,0.15)]" 
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-slate-300">Industria o Sector</label>
+                      <div className="relative">
+                        <Store className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <select 
+                          value={nicho} 
+                          onChange={(e) => setNicho(e.target.value)}
+                          className="w-full appearance-none rounded-2xl border border-white/10 bg-slate-900/60 pl-10 pr-4 py-3 text-sm text-white outline-none transition focus:border-emerald-500 focus:bg-slate-900 cursor-pointer"
+                        >
+                          <option value="general">Empresa General (Servicios)</option>
+                          <option value="restaurante">Restaurante / Comidas</option>
+                          <option value="ferreteria">Ferretería / Construcción</option>
+                          <option value="clinica">Clínica / Estética / Salud</option>
+                          <option value="ropa">Tienda de Ropa / Moda</option>
+                          <option value="inmobiliaria">Inmobiliaria / Bienes Raíces</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-300 flex justify-between items-center">
+                      <span>Instrucciones Operativas (El Prompt)</span>
+                      <span className="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Secreto Comercial</span>
+                    </label>
+                    <textarea 
+                      value={promptMaestro} 
+                      onChange={(e) => setPromptMaestro(e.target.value)} 
+                      placeholder="Ej: Eres un vendedor experto. Tu objetivo es agendar citas..." 
+                      className="h-40 w-full resize-none rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition focus:border-emerald-500 focus:bg-slate-900 focus:shadow-[0_0_15px_rgba(16,185,129,0.15)]" 
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-md">
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400">
+                    <ShieldCheck className="h-5 w-5"/>
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">Memoria y Catálogo (RAG)</h2>
+                    <p className="text-sm text-slate-400">Alimenta a tu agente con el stock real de tu negocio.</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => window.location.href = '/dashboard/inventario'}
+                  className="group flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-white/20 bg-white/5 px-4 py-10 text-sm font-semibold text-slate-400 transition hover:border-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-400"
+                >
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1"/>
+                  Sincronizar base de datos de productos
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center gap-6 lg:items-end">
+              
+              <div className="relative flex h-[720px] w-full max-w-[340px] shrink-0 flex-col overflow-hidden rounded-[3.5rem] border-[14px] border-slate-950 bg-slate-950 shadow-[0_0_50px_rgba(16,185,129,0.15)] ring-1 ring-white/20">
+                
+                <div className="pointer-events-none absolute inset-x-0 top-0 z-50 flex h-7 items-center justify-between px-6 text-[10px] font-medium text-white/70">
+                  <span>9:41</span>
+                  <div className="flex items-center gap-1.5">
+                    <Signal className="h-3 w-3" />
+                    <Wifi className="h-3 w-3" />
+                    <Battery className="h-4 w-4" />
+                  </div>
+                </div>
+
+                <div className="pointer-events-none absolute inset-x-0 top-0 z-50 flex h-7 justify-center">
+                  <div className="flex h-7 w-32 items-center justify-center gap-3 rounded-b-3xl bg-slate-950 px-3 shadow-md">
+                    <div className="h-1.5 w-1.5 rounded-full bg-white/10"></div>
+                    <div className={`h-2 w-2 rounded-full transition-all duration-300 ${cargandoPrueba ? 'bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.8)]' : isRecording ? 'bg-red-500 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.8)]' : 'bg-[#10b981]/40 shadow-[0_0_8px_rgba(16,185,129,0.4)]'}`}></div>
+                  </div>
+                </div>
+
+                <div className="relative z-40 flex items-center gap-3 border-b border-white/10 bg-white/[0.03] px-4 pb-3 pt-12 backdrop-blur-xl">
+                  <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-[#10b981] to-emerald-600 shadow-lg">
+                    <Bot className="h-5 w-5 text-white" />
+                    <span className="absolute bottom-0 right-0 z-20 h-3 w-3 rounded-full border-2 border-[#0A0E14] bg-green-500"></span>
+                  </div>
+                  <div>
+                    <h3 className="flex items-center gap-1 font-display text-[14px] font-bold leading-tight text-white">
+                      {nombreAgente || "Agente sin nombre"} <Sparkles className="h-3 w-3 text-emerald-400" />
+                    </h3>
+                    <p className="mt-0.5 font-mono text-[10px] tracking-wide text-[#10b981]">Simulador WhatsApp</p>
+                  </div>
+                </div>
+
+                <div className="relative flex-1 space-y-4 overflow-y-auto bg-[#03050a] p-4 scroll-smooth scrollbar-hide">
+                  <div className="pointer-events-none absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("https://web.whatsapp.com/img/bg-chat-tile-dark_a4be512e7195b6b733d9110b408f075d.png")' }}></div>
+                  
+                  <div className="relative z-10 space-y-4 pt-2">
+                    {historialChat.length === 0 ? (
+                      <div className="mt-16 flex h-full flex-col items-center justify-center px-4 text-center">
+                        <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4 border border-emerald-500/20">
+                          <MessageCircleMore className="text-emerald-400 w-8 h-8" />
+                        </div>
+                        <p className="text-sm font-bold text-white mb-2">Pon a prueba tu Agente</p>
+                        <p className="text-xs text-white/50 leading-relaxed mb-4">
+                          Desafíalo. Pídele un producto difícil, simula que eres un cliente enojado o envíale un texto mal escrito.
+                        </p>
+                        <span className="text-[10px] bg-white/5 border border-white/10 px-3 py-1 rounded-full text-white/40">El chat se limpiará al recargar</span>
+                      </div>
+                    ) : (
+                      historialChat.map((m, i) => (
+                        <motion.div 
+                          initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} key={i} 
+                          className={`flex ${m.rol === 'usuario' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div className={`max-w-[85%] p-3.5 text-[13px] leading-relaxed shadow-md backdrop-blur-md ${m.rol === 'usuario' ? 'bg-gradient-to-br from-[#10b981] to-emerald-500 text-white font-medium rounded-[20px] rounded-tr-[4px]' : 'bg-white/[0.08] border border-white/10 text-slate-200 rounded-[20px] rounded-tl-[4px]'}`}>
+                            {m.texto}
+                          </div>
+                        </motion.div>
+                      ))
+                    )}
+                    
+                    <AnimatePresence>
+                      {cargandoPrueba && (
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="flex justify-start">
+                          <div className="flex items-center gap-1.5 rounded-[20px] rounded-tl-[4px] border border-white/10 bg-white/[0.08] p-4 backdrop-blur-md">
+                            <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0 }} className="h-1.5 w-1.5 rounded-full bg-[#10b981]" />
+                            <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }} className="h-1.5 w-1.5 rounded-full bg-[#10b981]/70" />
+                            <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }} className="h-1.5 w-1.5 rounded-full bg-[#10b981]/40" />
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                    
+                    <AnimatePresence>
+                      {isRecording && (
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="flex justify-end">
+                           <div className="flex items-center gap-2 rounded-[20px] rounded-tr-[4px] border border-red-500/20 bg-red-500/10 p-3 backdrop-blur-md text-red-400 text-xs font-bold">
+                              <span className="animate-pulse h-2 w-2 rounded-full bg-red-500 block"></span> Grabando audio...
+                           </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                    
+                    <div ref={messagesEndRef} />
+                  </div>
+                </div>
+
+                <div className="shrink-0 border-t border-white/5 bg-[#0A0E14] p-4 pb-8 backdrop-blur-xl relative z-20">
+                  <div className="relative flex items-center rounded-full border border-white/10 bg-white/[0.03] transition-all focus-within:border-[#10b981]/50 focus-within:bg-white/[0.06]">
+                    <input 
+                      value={mensajePrueba} 
+                      onChange={(e) => setMensajePrueba(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && enviarMensajePrueba()}
+                      placeholder={isRecording ? "Grabando..." : "Chatea o graba un audio..."}
+                      disabled={cargandoPrueba || isRecording}
+                      className="w-full bg-transparent py-3.5 pl-5 pr-14 text-[13px] text-white outline-none placeholder:text-white/30 disabled:opacity-50"
+                    />
+                    
+                    <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                      {mensajePrueba.trim() ? (
+                        <motion.button 
+                          whileTap={{ scale: 0.9 }}
+                          onClick={enviarMensajePrueba} 
+                          disabled={cargandoPrueba}
+                          className="flex items-center justify-center rounded-full bg-[#10b981] p-2.5 text-white transition-colors hover:bg-emerald-400"
+                        >
+                          <Send className="ml-0.5 h-4 w-4" />
+                        </motion.button>
+                      ) : isRecording ? (
+                        <motion.button 
+                          whileTap={{ scale: 0.9 }}
+                          onClick={stopRecording} 
+                          className="flex items-center justify-center rounded-full bg-red-500 p-2.5 text-white transition-colors hover:bg-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+                        >
+                          <Square className="h-4 w-4 fill-current" />
+                        </motion.button>
+                      ) : (
+                        <motion.button 
+                          whileTap={{ scale: 0.9 }}
+                          onClick={startRecording} 
+                          disabled={cargandoPrueba}
+                          className="flex items-center justify-center rounded-full bg-[#10b981]/20 p-2.5 text-[#10b981] transition-colors hover:bg-[#10b981] hover:text-white"
+                        >
+                          <Mic className="h-4 w-4" />
+                        </motion.button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex w-full max-w-[340px] flex-col gap-3">
+                <button 
+                  onClick={guardarConfiguracion} 
+                  disabled={guardando}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-6 py-4 font-bold text-white shadow-sm transition-all hover:bg-white/10"
+                >
+                  {guardando ? "Aplicando memoria..." : "💾 Guardar instrucciones"}
+                </button>
+
+                <button 
+                  onClick={handleActivarWhatsApp} 
+                  className="group relative flex w-full overflow-hidden items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 px-6 py-4 font-bold text-black shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)]"
+                >
+                  <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out"></div>
+                  <div className="relative z-10 flex items-center gap-2">
+                    <span className="animate-pulse">🟢</span> Conectar a mi WhatsApp
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
         </div>
+      </div>
+    );
+  }
 
-        <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr]">
+  // ==========================================
+  // RENDER 4: DASHBOARD TELEMETRÍA (NUEVO POR DEFECTO)
+  // ==========================================
+  return (
+    <div className="min-h-screen bg-[#050508] text-white relative overflow-hidden font-sans pb-20">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-blue-600/10 blur-[150px] rounded-full pointer-events-none z-0"></div>
+      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-purple-600/5 blur-[150px] rounded-full pointer-events-none z-0"></div>
+
+      <div className="max-w-6xl mx-auto px-6 pt-12 relative z-10">
+        
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 pb-6 border-b border-white/5">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400 mb-3 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span> Sistema Operativo
+            </div>
+            <h1 className="text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">
+              Centro de Mando {nombreStore || nombreAgente ? `de ${nombreStore || nombreAgente}` : 'Upway'}
+            </h1>
+            <p className="text-slate-400 text-sm mt-2">Supervisa la telemetría de tu inteligencia artificial en tiempo real.</p>
+          </div>
           
-          <div className="space-y-6">
-            <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-md">
-              <div className="mb-6 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400">
-                  <Sparkles className="h-5 w-5"/>
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-white">Cerebro del Agente</h2>
-                  <p className="text-sm text-slate-400">Instruye a la IA exactamente cómo debe vender y atender por chat.</p>
-                </div>
-              </div>
+          <button 
+            onClick={() => setServicioActivo('hub')}
+            className="inline-flex items-center gap-2 rounded-xl bg-slate-900/50 border border-white/10 px-5 py-2.5 text-sm font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition-all backdrop-blur-md"
+          >
+            <RefreshCw className="h-4 w-4" /> Reconfigurar Canales
+          </button>
+        </div>
 
-              <div className="space-y-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-slate-300">Nombre de tu Asistente</label>
-                    <input 
-                      type="text" 
-                      value={nombreAgente} 
-                      onChange={(e) => setNombreAgente(e.target.value)} 
-                      placeholder="Ej. Sofía de Ferretería XY" 
-                      className="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition focus:border-emerald-500 focus:bg-slate-900 focus:shadow-[0_0_15px_rgba(16,185,129,0.15)]" 
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-slate-300">Industria o Sector</label>
-                    <div className="relative">
-                      <Store className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                      <select 
-                        value={nicho} 
-                        onChange={(e) => setNicho(e.target.value)}
-                        className="w-full appearance-none rounded-2xl border border-white/10 bg-slate-900/60 pl-10 pr-4 py-3 text-sm text-white outline-none transition focus:border-emerald-500 focus:bg-slate-900 cursor-pointer"
-                      >
-                        <option value="general">Empresa General (Servicios)</option>
-                        <option value="restaurante">Restaurante / Comidas</option>
-                        <option value="ferreteria">Ferretería / Construcción</option>
-                        <option value="clinica">Clínica / Estética / Salud</option>
-                        <option value="ropa">Tienda de Ropa / Moda</option>
-                        <option value="inmobiliaria">Inmobiliaria / Bienes Raíces</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-300 flex justify-between items-center">
-                    <span>Instrucciones Operativas (El Prompt)</span>
-                    <span className="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Secreto Comercial</span>
-                  </label>
-                  <textarea 
-                    value={promptMaestro} 
-                    onChange={(e) => setPromptMaestro(e.target.value)} 
-                    placeholder="Ej: Eres un vendedor experto. Tu objetivo es agendar citas..." 
-                    className="h-40 w-full resize-none rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition focus:border-emerald-500 focus:bg-slate-900 focus:shadow-[0_0_15px_rgba(16,185,129,0.15)]" 
-                  />
-                </div>
+        <div className="mb-10 rounded-[32px] bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-10 text-white shadow-[0_0_50px_rgba(79,70,229,0.2)] relative overflow-hidden border border-white/20 group">
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-700"></div>
+          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="flex-1">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-bold tracking-wider text-white mb-4 backdrop-blur-md border border-white/30">
+                <Sparkles className="h-3.5 w-3.5 text-yellow-300" /> ACCIÓN REQUERIDA
               </div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-3">Enciende tu IA Oficial</h2>
+              <p className="text-blue-100 max-w-xl text-sm md:text-base leading-relaxed">
+                Tu agente está configurado, pero necesita una línea de comunicación. Conecta tu cuenta oficial de WhatsApp Business para empezar a automatizar tus ventas.
+              </p>
             </div>
-
-            <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-md">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400">
-                  <ShieldCheck className="h-5 w-5"/>
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-white">Memoria y Catálogo (RAG)</h2>
-                  <p className="text-sm text-slate-400">Alimenta a tu agente con el stock real de tu negocio.</p>
-                </div>
-              </div>
-              <button 
-                onClick={() => window.location.href = '/dashboard/inventario'}
-                className="group flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-white/20 bg-white/5 px-4 py-10 text-sm font-semibold text-slate-400 transition hover:border-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-400"
-              >
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1"/>
-                Sincronizar base de datos de productos
-              </button>
-            </div>
-          </div>
-
-          {/* COLUMNA DERECHA (Simulador Premium Celular) */}
-          <div className="flex flex-col items-center gap-6 lg:items-end">
             
-            <div className="relative flex h-[720px] w-full max-w-[340px] shrink-0 flex-col overflow-hidden rounded-[3.5rem] border-[14px] border-slate-950 bg-slate-950 shadow-[0_0_50px_rgba(16,185,129,0.15)] ring-1 ring-white/20">
-              
-              <div className="pointer-events-none absolute inset-x-0 top-0 z-50 flex h-7 items-center justify-between px-6 text-[10px] font-medium text-white/70">
-                <span>9:41</span>
-                <div className="flex items-center gap-1.5">
-                  <Signal className="h-3 w-3" />
-                  <Wifi className="h-3 w-3" />
-                  <Battery className="h-4 w-4" />
-                </div>
-              </div>
+            <button 
+              onClick={handleActivarWhatsApp}
+              className="inline-flex items-center gap-3 bg-white text-blue-700 px-8 py-4 rounded-2xl font-bold hover:bg-slate-100 hover:scale-105 transition-all shadow-[0_0_30px_rgba(255,255,255,0.4)] whitespace-nowrap"
+            >
+              <Rocket className="h-5 w-5" />
+              Conectar WhatsApp con Meta
+            </button>
+          </div>
+        </div>
 
-              <div className="pointer-events-none absolute inset-x-0 top-0 z-50 flex h-7 justify-center">
-                <div className="flex h-7 w-32 items-center justify-center gap-3 rounded-b-3xl bg-slate-950 px-3 shadow-md">
-                  <div className="h-1.5 w-1.5 rounded-full bg-white/10"></div>
-                  <div className={`h-2 w-2 rounded-full transition-all duration-300 ${cargandoPrueba ? 'bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.8)]' : isRecording ? 'bg-red-500 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.8)]' : 'bg-[#10b981]/40 shadow-[0_0_8px_rgba(16,185,129,0.4)]'}`}></div>
-                </div>
+        <div className="grid md:grid-cols-3 gap-6 mb-10">
+          
+          <div className={`rounded-[32px] border transition-all duration-500 bg-white/[0.02] backdrop-blur-xl p-8 relative overflow-hidden shadow-2xl flex flex-col justify-between ${iaActiva ? 'border-emerald-500/20 hover:border-emerald-500/40' : 'border-amber-500/20 hover:border-amber-500/40'}`}>
+            <div className={`absolute top-0 left-0 right-0 h-1 transition-colors duration-500 ${iaActiva ? 'bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.5)]' : 'bg-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.5)]'}`}></div>
+            
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">Motor de Inferencia</span>
+                <Activity className={`h-5 w-5 ${iaActiva ? 'text-emerald-400 animate-pulse' : 'text-amber-400'}`} />
               </div>
-
-              <div className="relative z-40 flex items-center gap-3 border-b border-white/10 bg-white/[0.03] px-4 pb-3 pt-12 backdrop-blur-xl">
-                <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-[#10b981] to-emerald-600 shadow-lg">
-                  <Bot className="h-5 w-5 text-white" />
-                  <span className="absolute bottom-0 right-0 z-20 h-3 w-3 rounded-full border-2 border-[#0A0E14] bg-green-500"></span>
-                </div>
-                <div>
-                  <h3 className="flex items-center gap-1 font-display text-[14px] font-bold leading-tight text-white">
-                    {nombreAgente || "Agente sin nombre"} <Sparkles className="h-3 w-3 text-emerald-400" />
-                  </h3>
-                  <p className="mt-0.5 font-mono text-[10px] tracking-wide text-[#10b981]">Simulador WhatsApp</p>
-                </div>
+              <div className="flex items-center gap-3 mb-2">
+                <Bot className={`h-8 w-8 flex-shrink-0 ${iaActiva ? 'text-emerald-400' : 'text-amber-400'}`} />
+                <span className="text-2xl font-bold text-white leading-tight">
+                  {iaActiva ? 'Autónomo' : 'Pausado'}
+                </span>
               </div>
+              <p className="text-sm text-slate-400 h-10">
+                {iaActiva ? 'La IA está respondiendo conversaciones en tiempo real.' : 'Estás en control manual. La IA no enviará mensajes.'}
+              </p>
+            </div>
 
-              <div className="relative flex-1 space-y-4 overflow-y-auto bg-[#03050a] p-4 scroll-smooth scrollbar-hide">
-                <div className="pointer-events-none absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("https://web.whatsapp.com/img/bg-chat-tile-dark_a4be512e7195b6b733d9110b408f075d.png")' }}></div>
-                
-                <div className="relative z-10 space-y-4 pt-2">
-                  {historialChat.length === 0 ? (
-                    <div className="mt-16 flex h-full flex-col items-center justify-center px-4 text-center">
-                      <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4 border border-emerald-500/20">
-                        <MessageCircleMore className="text-emerald-400 w-8 h-8" />
-                      </div>
-                      <p className="text-sm font-bold text-white mb-2">Pon a prueba tu Agente</p>
-                      <p className="text-xs text-white/50 leading-relaxed mb-4">
-                        Desafíalo. Pídele un producto difícil, simula que eres un cliente enojado o envíale un texto mal escrito.
-                      </p>
-                      <span className="text-[10px] bg-white/5 border border-white/10 px-3 py-1 rounded-full text-white/40">El chat se limpiará al recargar</span>
-                    </div>
-                  ) : (
-                    historialChat.map((m, i) => (
-                      <motion.div 
-                        initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} key={i} 
-                        className={`flex ${m.rol === 'usuario' ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div className={`max-w-[85%] p-3.5 text-[13px] leading-relaxed shadow-md backdrop-blur-md ${m.rol === 'usuario' ? 'bg-gradient-to-br from-[#10b981] to-emerald-500 text-white font-medium rounded-[20px] rounded-tr-[4px]' : 'bg-white/[0.08] border border-white/10 text-slate-200 rounded-[20px] rounded-tl-[4px]'}`}>
-                          {m.texto}
-                        </div>
-                      </motion.div>
-                    ))
-                  )}
-                  
-                  <AnimatePresence>
-                    {cargandoPrueba && (
-                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="flex justify-start">
-                        <div className="flex items-center gap-1.5 rounded-[20px] rounded-tl-[4px] border border-white/10 bg-white/[0.08] p-4 backdrop-blur-md">
-                          <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0 }} className="h-1.5 w-1.5 rounded-full bg-[#10b981]" />
-                          <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }} className="h-1.5 w-1.5 rounded-full bg-[#10b981]/70" />
-                          <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }} className="h-1.5 w-1.5 rounded-full bg-[#10b981]/40" />
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                  
-                  <AnimatePresence>
-                    {isRecording && (
-                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="flex justify-end">
-                         <div className="flex items-center gap-2 rounded-[20px] rounded-tr-[4px] border border-red-500/20 bg-red-500/10 p-3 backdrop-blur-md text-red-400 text-xs font-bold">
-                            <span className="animate-pulse h-2 w-2 rounded-full bg-red-500 block"></span> Grabando audio...
-                         </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                  
-                  <div ref={messagesEndRef} />
-                </div>
+            <button
+              onClick={() => setIaActiva(!iaActiva)}
+              className={`mt-8 flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3.5 text-sm font-bold transition-all ${
+                iaActiva
+                  ? 'border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
+                  : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
+              }`}
+            >
+              <Power className="h-4 w-4" /> {iaActiva ? 'Tomar Control Manual' : 'Activar Piloto Automático'}
+            </button>
+          </div>
+
+          <div className="rounded-[32px] border border-white/5 hover:border-white/10 transition-all bg-white/[0.02] backdrop-blur-xl p-8 relative overflow-hidden shadow-2xl flex flex-col justify-between group">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-blue-600/50 group-hover:bg-blue-500 transition-colors"></div>
+            
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">Canal Principal</span>
+                <MessageSquare className="h-5 w-5 text-blue-400" />
               </div>
+              <div className="text-2xl font-bold text-white mb-2">WhatsApp API</div>
+              <p className="text-sm text-amber-400 font-medium flex items-center gap-1.5 bg-amber-400/10 w-fit px-3 py-1 rounded-full border border-amber-400/20">
+                <ShieldCheck className="h-4 w-4" /> Desconectado
+              </p>
+            </div>
 
-              {/* Input de Texto y Audio */}
-              <div className="shrink-0 border-t border-white/5 bg-[#0A0E14] p-4 pb-8 backdrop-blur-xl relative z-20">
-                <div className="relative flex items-center rounded-full border border-white/10 bg-white/[0.03] transition-all focus-within:border-[#10b981]/50 focus-within:bg-white/[0.06]">
-                  <input 
-                    value={mensajePrueba} 
-                    onChange={(e) => setMensajePrueba(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && enviarMensajePrueba()}
-                    placeholder={isRecording ? "Grabando..." : "Chatea o graba un audio..."}
-                    disabled={cargandoPrueba || isRecording}
-                    className="w-full bg-transparent py-3.5 pl-5 pr-14 text-[13px] text-white outline-none placeholder:text-white/30 disabled:opacity-50"
-                  />
-                  
-                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                    {mensajePrueba.trim() ? (
-                      <motion.button 
-                        whileTap={{ scale: 0.9 }}
-                        onClick={enviarMensajePrueba} 
-                        disabled={cargandoPrueba}
-                        className="flex items-center justify-center rounded-full bg-[#10b981] p-2.5 text-white transition-colors hover:bg-emerald-400"
-                      >
-                        <Send className="ml-0.5 h-4 w-4" />
-                      </motion.button>
-                    ) : isRecording ? (
-                      <motion.button 
-                        whileTap={{ scale: 0.9 }}
-                        onClick={stopRecording} 
-                        className="flex items-center justify-center rounded-full bg-red-500 p-2.5 text-white transition-colors hover:bg-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)]"
-                      >
-                        <Square className="h-4 w-4 fill-current" />
-                      </motion.button>
-                    ) : (
-                      <motion.button 
-                        whileTap={{ scale: 0.9 }}
-                        onClick={startRecording} 
-                        disabled={cargandoPrueba}
-                        className="flex items-center justify-center rounded-full bg-[#10b981]/20 p-2.5 text-[#10b981] transition-colors hover:bg-[#10b981] hover:text-white"
-                      >
-                        <Mic className="h-4 w-4" />
-                      </motion.button>
-                    )}
-                  </div>
+            <div className="mt-8 pt-6 border-t border-white/5 flex flex-col gap-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-slate-500 flex items-center gap-2"><AtSign className="h-4 w-4"/> ID Business</span>
+                <span className="font-mono text-slate-400">---</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-600">Requiere activación previa</span>
+                <button 
+                  onClick={handleActivarWhatsApp}
+                  className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  Configurar <Rocket className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[32px] border border-white/5 hover:border-white/10 transition-all bg-white/[0.02] backdrop-blur-xl p-8 relative overflow-hidden shadow-2xl flex flex-col justify-between group">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-cyan-400/50 group-hover:bg-cyan-400 transition-colors"></div>
+            
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">Impacto Hoy</span>
+                <Zap className="h-5 w-5 text-cyan-400" />
+              </div>
+              <div className="flex items-baseline gap-2 mb-2">
+                <span className="text-4xl font-bold text-white">0</span>
+                <span className="text-sm font-medium text-slate-400">mensajes</span>
+              </div>
+              <div className="flex items-center gap-3 mt-4">
+                <div className="h-2 w-full bg-slate-900 rounded-full overflow-hidden border border-white/5">
+                  <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full w-[0%]"></div>
                 </div>
+                <span className="text-xs font-bold text-cyan-400">0%</span>
               </div>
             </div>
 
-            <div className="flex w-full max-w-[340px] flex-col gap-3">
-              <button 
-                onClick={guardarConfiguracion} 
-                disabled={guardando}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-6 py-4 font-bold text-white shadow-sm transition-all hover:bg-white/10"
-              >
-                {guardando ? "Aplicando memoria..." : "💾 Guardar instrucciones"}
-              </button>
+            <button className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-white/5 px-4 py-3.5 text-sm font-semibold text-white hover:bg-white/10 transition-all border border-white/5">
+              <Clock className="h-4 w-4" /> Ver Historial
+            </button>
+          </div>
 
-              <button 
-                onClick={handleActivarWhatsApp} 
-                className="group relative flex w-full overflow-hidden items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 px-6 py-4 font-bold text-black shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)]"
-              >
-                <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out"></div>
-                <div className="relative z-10 flex items-center gap-2">
-                  <span className="animate-pulse">🟢</span> Conectar a mi WhatsApp
-                </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          
+          <div className="rounded-[32px] border border-white/5 hover:border-white/10 transition-all bg-white/[0.02] backdrop-blur-xl p-8 shadow-2xl relative overflow-hidden group">
+            <div className="absolute top-1/2 left-0 -translate-y-1/2 w-72 h-72 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-purple-500/20 transition-colors"></div>
+            
+            <div className="relative z-10">
+              <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs font-semibold text-purple-400 mb-5">
+                <BookOpen className="h-3.5 w-3.5" /> Cerebro RAG
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-3">Base de Conocimiento</h2>
+              <p className="text-slate-400 text-sm leading-relaxed mb-8 max-w-sm">
+                Sube catálogos, PDFs o reglas de negocio. La IA consumirá esta información para generar respuestas milimétricas a tus clientes.
+              </p>
+              
+              <Link href="/dashboard/inventario" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white/5 border border-white/10 px-8 py-4 font-semibold text-white hover:bg-white/10 transition-all text-sm group-hover:border-purple-500/50">
+                <BookOpen className="h-4 w-4 text-purple-400" />
+                <span>Gestionar Memoria</span>
+              </Link>
+            </div>
+          </div>
+
+          <div className="rounded-[32px] border border-white/5 hover:border-white/10 transition-all bg-white/[0.02] backdrop-blur-xl p-8 shadow-2xl relative overflow-hidden group cursor-pointer" onClick={() => setServicioActivo('whatsapp')}>
+            <div className="absolute top-1/2 right-0 -translate-y-1/2 w-72 h-72 bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-emerald-500/10 transition-colors"></div>
+            
+            <div className="relative z-10">
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400 mb-5">
+                <MessageSquare className="h-3.5 w-3.5" /> Pruebas Locales
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-3">Simulador de Chat</h2>
+              <p className="text-slate-400 text-sm leading-relaxed mb-8 max-w-sm">
+                Entra aquí para modificar el Prompt de tu agente y probar sus respuestas en tiempo real antes de salir a producción.
+              </p>
+              
+              <button className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 px-8 py-4 font-semibold text-emerald-400 transition-all text-sm group-hover:bg-emerald-500/20 group-hover:border-emerald-500/50">
+                <MessageSquare className="h-4 w-4" />
+                <span>Abrir Simulador</span>
               </button>
             </div>
           </div>
+
         </div>
       </div>
     </div>
