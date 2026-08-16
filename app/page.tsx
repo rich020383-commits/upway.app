@@ -11,7 +11,8 @@ import {
   X,
   ShieldCheck,
   CheckCircle,
-  Info
+  Info,
+  Sparkles
 } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import LeadModal from "@/components/LeadModal";
@@ -356,8 +357,8 @@ export default function Home() {
         <div className="relative z-10 max-w-[95rem] mx-auto px-6 lg:px-12">
           
           <div className="text-center max-w-4xl mx-auto mb-20">
-            <div className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-1.5 text-xs font-bold text-red-400 mb-6 tracking-widest uppercase">
-              Tu empresa merece algo más que un chatbot
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#00D1FF]/30 bg-[#00D1FF]/10 px-4 py-1.5 text-xs font-bold text-[#00D1FF] mb-6 tracking-widest uppercase shadow-[0_0_15px_rgba(0,209,255,0.15)]">
+              <Sparkles className="h-4 w-4" /> Tu empresa merece algo más que un chatbot
             </div>
             <h2 className="text-4xl md:text-6xl font-display font-bold text-white mb-8 tracking-tight leading-[1.1]">
               No es un bot de respuestas. <br className="hidden lg:block"/>
@@ -699,8 +700,8 @@ export default function Home() {
 
         <div className="relative z-10 mx-auto flex max-w-[95rem] flex-col gap-10 px-6 py-24 lg:flex-row lg:items-center lg:justify-between lg:px-12">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400 mb-6">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> El costo de inacción es alto
+            <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400 mb-6">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" /> Tus competidores ya usan IA
             </div>
             <h2 className="text-4xl font-display font-bold text-white sm:text-5xl tracking-tight mb-6">
               No pierdas más clientes por <br className="hidden md:block"/>falta de atención inmediata.
@@ -800,7 +801,7 @@ export default function Home() {
                         </div>
                       </div>
 
-                      <button onClick={() => iniciarPago(checkoutPlan.name, totalApagar)} disabled={procesandoPago} className="w-full h-[50px] rounded-[12px] bg-gradient-to-r from-[#FF424D] to-[#FF6B74] text-white font-display font-bold text-[15px] hover:shadow-[0_0_20px_rgba(255,66,77,0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                      <button onClick={() => iniciarPago(checkoutPlan.name, totalApagar)} disabled={procesandoPago} className="w-full h-[50px] rounded-[12px] bg-gradient-to-r from-blue-600 to-[#00D1FF] text-white font-display font-bold text-[15px] hover:shadow-[0_0_20px_rgba(0,209,255,0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
                         {procesandoPago ? 'Conectando con Bold...' : '🔒 Pagar de forma segura con Bold'}
                       </button>
                     </>

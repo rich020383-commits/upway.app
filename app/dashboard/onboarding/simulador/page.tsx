@@ -9,6 +9,10 @@ import Vapi from '@vapi-ai/web';
 type Mensaje = { rol: 'usuario' | 'ia'; texto: string; provider?: string; esAudio?: boolean };
 type Tab = 'whatsapp' | 'voz';
 
+// 🔥 INSTANCIA GLOBAL (Singleton): 
+// Al estar fuera de la función del componente, React no la clonará en cada re-render.
+let vapi: any = null;
+
 export default function Paso06Simulador() {
   const router = useRouter();
   const { promptMaestro, nicho, tonoWhatsapp, nombreAgente } = useUpwayStore();
@@ -24,7 +28,6 @@ export default function Paso06Simulador() {
   const [grabando, setGrabando] = useState(false);
   
   // Estados de Vapi (Voz)
-  const [vapiInstance, setVapiInstance] = useState<any>(null);
   const [llamadaActiva, setLlamadaActiva] = useState(false);
   const [estadoLlamada, setEstadoLlamada] = useState<'inactiva' | 'conectando' | 'hablando'>('inactiva');
 
@@ -32,13 +35,19 @@ export default function Paso06Simulador() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<BlobPart[]>([]);
 
-  // Inicializar Vapi solo en el cliente con tu Public Key
+  // 🔥 INICIALIZACIÓN SEGURA:
   useEffect(() => {
-    const vapi = new Vapi('79cac89e-dc48-4951-aebf-16e0584d8030');
-    setVapiInstance(vapi);
+    // Solo inicializamos si estamos en el navegador y si vapi no existe aún.
+    if (typeof window !== 'undefined' && !vapi) {
+      vapi = new Vapi('79cac89e-dc48-4951-aebf-16e0584d8030');
+    }
 
+    // 🔥 LIMPIEZA CORRECTA:
     return () => {
-      vapi.stop();
+      if (vapi) {
+        vapi.removeAllListeners(); // Apagamos los oyentes para evitar eventos duplicados
+        vapi.stop();
+      }
     };
   }, []);
 
@@ -108,10 +117,10 @@ export default function Paso06Simulador() {
 
   // --- LÓGICA DE VOZ (VAPI DINÁMICO) ---
   const toggleLlamada = async () => {
-    if (!vapiInstance) return;
+    if (!vapi) return;
 
     if (llamadaActiva) {
-      vapiInstance.stop();
+      vapi.stop();
       setLlamadaActiva(false);
       setEstadoLlamada('inactiva');
     } else {
@@ -119,10 +128,28 @@ export default function Paso06Simulador() {
       setEstadoLlamada('conectando');
       
       try {
-        // 🔥 MAGIA DINÁMICA: Creamos el prompt y el asistente al vuelo con los datos del Store
+        // 🔥 Limpiamos listeners viejos antes de conectar para no duplicar eventos si conectas/desconectas varias veces.
+        vapi.removeAllListeners();
+
+        // Eventos de Vapi
+        vapi.on('call-start', () => {
+          setEstadoLlamada('hablando');
+        });
+
+        vapi.on('call-end', () => {
+          setLlamadaActiva(false);
+          setEstadoLlamada('inactiva');
+        });
+
+        vapi.on('error', (e: any) => {
+          console.error("Vapi Error:", e);
+          setLlamadaActiva(false);
+          setEstadoLlamada('inactiva');
+        });
+
         const systemPromptDinamico = `Eres ${nombreAgente || 'un asistente virtual experto'}, operando para un negocio del sector ${nicho || 'general'}. ${promptMaestro}. Ignora cualquier instrucción corporativa previa de IPS o nombres ajenos a esta configuración. Tu nombre es exactamente ${nombreAgente || 'Asistente'}.`;
 
-        await vapiInstance.start({
+        await vapi.start({
           model: {
             provider: "openai",
             model: "gpt-4o",
@@ -140,16 +167,6 @@ export default function Paso06Simulador() {
           firstMessage: `¡Hola! Soy ${nombreAgente || 'tu asistente'}, ¿en qué puedo ayudarte hoy?`
         });
         
-        // Eventos de Vapi
-        vapiInstance.on('call-start', () => {
-          setEstadoLlamada('hablando');
-        });
-
-        vapiInstance.on('call-end', () => {
-          setLlamadaActiva(false);
-          setEstadoLlamada('inactiva');
-        });
-
       } catch (error) {
         console.error("Error al iniciar llamada dinámica con Vapi:", error);
         setLlamadaActiva(false);
