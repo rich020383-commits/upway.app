@@ -2,12 +2,16 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
   Cpu,
   Menu,
-  X
+  X,
+  ShieldCheck,
+  CheckCircle,
+  Info
 } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import LeadModal from "@/components/LeadModal";
@@ -16,7 +20,7 @@ import LeadModal from "@/components/LeadModal";
 // TIPOS Y DATOS DE LOS PLANES (High-Ticket B2B)
 // ==========================================
 type ContractOption = 1 | 2 | 3;
-type PlanId = "emprendedor" | "negocio" | "voz" | "pro" | "personalizado";
+type PlanId = "emprendedor" | "negocio" | "voz" | "pro";
 
 interface Plan {
   id: PlanId;
@@ -38,15 +42,15 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 // ==========================================
-// 1. PLANES (Con la Voz como protagonista)
+// 1. PLANES (Reestructuración Ejecutiva)
 // ==========================================
 const PLANS: Plan[] = [
   {
     id: "emprendedor",
-    emoji: "🌱",
-    name: "Esencial",
-    capacityLabel: "Automatización Básica",
-    capacityDesc: "Ideal para iniciar procesos corporativos.",
+    emoji: "🏪",
+    name: "PYME",
+    capacityLabel: "Tu vendedor digital de WhatsApp",
+    capacityDesc: "WhatsApp inteligente para tiendas, salones y negocios de barrio.",
     price: 249900,
     implFull: 499900,
     implDiscount: 249900,
@@ -54,24 +58,11 @@ const PLANS: Plan[] = [
     first4: 249900,
   },
   {
-    id: "voz",
-    emoji: "🎧",
-    name: "Central Voz IA",
-    capacityLabel: "El Monstruo de Voz",
-    capacityDesc: "Llamadas autónomas corporativas + 500 min Vapi.",
-    price: 599900,
-    implFull: 1199900,
-    implDiscount: 599900,
-    cuota: 149975,
-    first4: 599900,
-    popular: true, // 🌟 ¡Protagonista absoluto!
-  },
-  {
     id: "negocio",
     emoji: "💬",
-    name: "WhatsApp IA",
-    capacityLabel: "Monstruo de Texto 24/7",
-    capacityDesc: "Hasta 5.000 chats, catálogos y pagos integrados.",
+    name: "Ejecutivo de Chat",
+    capacityLabel: "Atención Masiva 24/7",
+    capacityDesc: "Atención masiva por WhatsApp con memoria, pagos y reportes.",
     price: 399900,
     implFull: 799900,
     implDiscount: 399900,
@@ -79,11 +70,24 @@ const PLANS: Plan[] = [
     first4: 399900,
   },
   {
+    id: "voz",
+    emoji: "🎧",
+    name: "Ejecutivo de Voz",
+    capacityLabel: "El Poder de la Voz IA",
+    capacityDesc: "Llamadas autónomas con acento natural y análisis de conversaciones.",
+    price: 599900,
+    implFull: 1199900,
+    implDiscount: 599900,
+    cuota: 149975,
+    first4: 599900,
+    popular: true, 
+  },
+  {
     id: "pro",
     emoji: "🚀",
-    name: "PRO (Omnicanal)",
+    name: "Director Omnicanal",
     capacityLabel: "Infraestructura Total",
-    capacityDesc: "WhatsApp + Voz + Agenda + Analítica Avanzada.",
+    capacityDesc: "Voz, texto, agenda y analítica avanzada para operaciones corporativas.",
     price: 899900,
     implFull: 1799900,
     implDiscount: 899900,
@@ -99,7 +103,8 @@ const INCLUDED_BASE = [
   "Atención corporativa automatizada 24/7",
   "Toma de pedidos y ventas inteligente",
   "Conexión oficial con Catálogo e Inventario",
-  "Soporte técnico prioritario local",
+  "Soporte técnico inmediato en Colombia",
+  "Reporte de ventas y conversaciones",
 ];
 
 const EXTRA_NEGOCIO = [
@@ -196,16 +201,14 @@ export default function Home() {
 
   const getImplLabel = (plan: Plan) => {
     if (contract === 1)
-      return { main: `+ ${fmt(plan.implFull)}`, sub: "pago único de implementación", strike: null, free: false };
+      return { main: `+ ${fmt(plan.implFull)}`, sub: "Implementación según plan", strike: null, free: false };
     if (contract === 2)
       return { main: fmt(plan.implDiscount), sub: "Implementación 50% OFF", strike: fmt(plan.implFull), free: false };
-    return { main: "GRATIS", sub: "Implementación", strike: fmt(plan.implFull), free: true };
+    return { main: "GRATIS", sub: "Implementación incluida", strike: fmt(plan.implFull), free: true };
   };
 
-  const steps = ["Diseño de arquitectura", "Configuración de tu Empleado Digital", "Conexión oficial con Meta y pasarelas", "Operación autónoma y escalado"];
-
   return (
-    <main className="min-h-screen bg-[#03050a] text-white selection:bg-cyan-500/30 selection:text-white relative overflow-x-hidden antialiased">
+    <main className="min-h-screen bg-[#03050a] text-white selection:bg-cyan-500/30 selection:text-white relative overflow-x-hidden antialiased pb-20 md:pb-0">
       
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
@@ -313,19 +316,27 @@ export default function Home() {
                   <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping"></span> INTELIGENCIA DE VOZ ACTIVA
                 </div>
                 <h1 className="mt-4 text-4xl font-extrabold leading-[1.1] tracking-tight text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
-                  La primera inteligencia de voz <br/><span className="text-transparent bg-clip-text bg-gradient-to-l from-cyan-300 to-blue-400 drop-shadow-[0_0_15px_rgba(6,182,212,0.4)]">autónoma para empresas.</span>
+                  Hola, soy Sophie V2, la <br/><span className="text-transparent bg-clip-text bg-gradient-to-l from-cyan-300 to-blue-400 drop-shadow-[0_0_15px_rgba(6,182,212,0.4)]">empleada digital de UpWay.</span>
                 </h1>
                 <p className="mt-6 text-sm leading-relaxed text-white/90 font-medium drop-shadow-md">
-                  Tus clientes no leen chats cuando tienen urgencias, te llaman. Despliega un agente telefónico con la voz de tu marca que responde, confirma citas y perfila clientes 24/7.
+                  Estoy aquí para atenderte. ¿Quieres que una como yo trabaje para tu empresa? No nos cuentes. Habla conmigo ahora mismo y juzga tú mismo el nivel de la tecnología.
                 </p>
                 <div className="mt-10 flex flex-col gap-4">
-                  <button onClick={() => { setIsHudOpen(false); window.dispatchEvent(new Event("abrir-chat")); }} className="group relative flex w-full items-center justify-center gap-3 border border-cyan-400/60 bg-cyan-500/20 px-6 py-4 text-sm font-mono tracking-widest text-cyan-100 backdrop-blur-md transition-all hover:bg-cyan-500 hover:text-slate-950 hover:shadow-[0_0_30px_rgba(6,182,212,0.6)]">
-                    <Cpu className="h-4 w-4" /> DESPLEGAR AGENTE <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  <button onClick={() => { setIsHudOpen(false); window.dispatchEvent(new Event("abrir-chat")); }} className="group relative flex w-full items-center justify-center gap-3 border border-[#00D1FF]/60 bg-[#00D1FF]/20 px-6 py-4 text-sm font-display font-bold tracking-widest text-[#00D1FF] backdrop-blur-md transition-all hover:bg-[#00D1FF] hover:text-slate-950 hover:shadow-[0_0_30px_rgba(0,209,255,0.6)]">
+                    <Cpu className="h-4 w-4" /> PROBAR AGENTE GRATIS <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </button>
                   <a href="#planes" onClick={() => setIsHudOpen(false)} className="flex w-full items-center justify-center rounded-none border border-white/20 bg-black/20 px-6 py-4 text-sm font-mono tracking-widest text-white/80 backdrop-blur-md transition hover:bg-white/10 hover:text-white">
                     VER PLANES Y PRECIOS
                   </a>
                 </div>
+
+                <div className="mt-6 bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl flex items-start gap-3">
+                  <Info className="h-5 w-5 text-blue-400 shrink-0 mt-0.5" />
+                  <p className="text-xs text-blue-200/80 leading-relaxed font-body">
+                    <strong>Aclaración importante:</strong> Configura un empleado digital de demostración y vive la experiencia aquí en la web. La conexión con tu WhatsApp real se realiza únicamente después de contratar un plan.
+                  </p>
+                </div>
+
                 <div className="mt-auto border-t border-white/20 pt-6">
                   <p className="text-[10px] font-mono text-white/60 tracking-widest drop-shadow-sm">UPWAY BUSINESS // COLOMBIA HQ</p>
                 </div>
@@ -336,67 +347,59 @@ export default function Home() {
       </section>
 
       {/* ========================================== */}
-      {/* VENTAJAS B2B */}
+      {/* SECCIÓN DE PRECIOS Y TRANSPARENCIA */}
       {/* ========================================== */}
-      <section id="ventajas" className="relative py-24 bg-[#0A0E14] border-t border-white/5 overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/5 rounded-full blur-[100px] pointer-events-none"></div>
-        <div className="relative z-10 max-w-[95rem] mx-auto px-6 lg:px-12">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-400 mb-6">
-              El poder de la voz corporativa
-            </div>
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 tracking-tight">
-              Sustituye la fricción operativa con <br className="hidden lg:block"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">tecnología de alta fiabilidad.</span>
-            </h2>
-            <p className="text-slate-400 text-lg leading-relaxed">
-              En sectores exigentes como salud (IPS) e inmobiliarias, las llamadas perdidas cuestan millones. Upway asegura el 100% de la atención telefónica y de chat.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-8 hover:bg-white/[0.04] transition-all group">
-              <div className="h-12 w-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center mb-6 border border-cyan-500/20 group-hover:scale-110 transition-transform"><span className="text-cyan-400 font-bold text-xl">🛡️</span></div>
-              <h3 className="text-xl font-bold text-white mb-3">Cero llamadas perdidas</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">Atiende múltiples llamadas simultáneas con acento natural, sin esperas y con integración directa al calendario.</p>
-            </div>
-            <div className="rounded-3xl border border-cyan-500/20 bg-cyan-500/5 p-8 shadow-[0_0_30px_rgba(6,182,212,0.1)] group">
-              <div className="h-12 w-12 rounded-2xl bg-cyan-500/20 flex items-center justify-center mb-6 border border-cyan-500/40 group-hover:scale-110 transition-transform"><span className="text-cyan-400 font-bold text-xl">🎧</span></div>
-              <h3 className="text-xl font-bold text-white mb-3">Multimodalidad Nativa</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">Combina la Central Telefónica de Voz (Vapi) y el Agente de Texto en WhatsApp bajo un mismo cerebro unificado (RAG).</p>
-            </div>
-            <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-8 hover:bg-white/[0.04] transition-all group">
-              <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6 border border-blue-500/20 group-hover:scale-110 transition-transform"><span className="text-blue-400 font-bold text-xl">🛠️</span></div>
-              <h3 className="text-xl font-bold text-white mb-3">Soporte Local en Colombia</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">Ingeniería local disponible para respaldar la operación de tu negocio sin intermediarios extranjeros.</p>
-            </div>
-            <div className="rounded-3xl border border-emerald-500/20 bg-emerald-500/5 p-8 group">
-              <div className="h-12 w-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center mb-6 border border-emerald-500/40 group-hover:scale-110 transition-transform"><span className="text-emerald-400 font-bold text-xl">⚡</span></div>
-              <h3 className="text-xl font-bold text-white mb-3">Despliegue Inmediato</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">Conexión oficial con la API Cloud de Meta y pasarelas de pago locales como Bold en minutos.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================== */}
-      {/* SECCIÓN DE PRECIOS */}
-      {/* ========================================== */}
-      <section id="planes" className="relative z-20 py-20 bg-gradient-to-b from-[#0A0E14] to-[#03050a]">
+      <section id="planes" className="relative z-20 py-24 bg-gradient-to-b from-[#0A0E14] to-[#03050a]">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute -top-[10%] left-[20%] w-[60%] h-[30%] bg-[#00D1FF]/[0.05] blur-[140px] rounded-full" />
         </div>
 
         <div className="relative max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+          
           <div className="text-center mb-16">
             <p className="text-xs font-mono uppercase tracking-[0.3em] text-cyan-400 mb-4">/precios_upway</p>
-            <h2 className="text-4xl font-display font-bold text-white mb-4">La potencia de la voz y el texto,<br/>adaptadas a tu operación corporativa.</h2>
+            <h2 className="text-4xl md:text-5xl font-display font-bold text-white mb-6 leading-tight">
+              Contrata a tu ejecutivo digital desde $249.900/mes.
+            </h2>
+            <p className="text-xl text-slate-300 max-w-3xl mx-auto font-medium">
+              Nunca más pierdas una venta por una llamada o mensaje no atendido.
+            </p>
           </div>
 
-          <div className="mb-10 max-w-2xl mx-auto">
+          {/* 🛡️ TRANSPARENCIA UPWAY Y GARANTÍA */}
+          <div className="max-w-5xl mx-auto mb-16 grid md:grid-cols-2 gap-6">
+            <div className="bg-white/[0.02] border border-white/10 rounded-3xl p-8 backdrop-blur-sm">
+              <h3 className="font-display font-bold text-xl text-white mb-6 flex items-center gap-3">
+                <span className="w-8 h-8 rounded-full bg-[#00D1FF]/10 flex items-center justify-center text-[#00D1FF]">⚖️</span>
+                Claridad antes de que contrates
+              </h3>
+              <div className="space-y-4 font-body text-sm text-slate-300">
+                <div className="flex gap-3"><CheckCircle className="h-5 w-5 text-[#00D1FF] shrink-0" /> <p><strong>Hacemos:</strong> Tecnología que atiende 24/7, memoria avanzada, voz natural, soporte técnico inmediato en Colombia.</p></div>
+                <div className="flex gap-3"><CheckCircle className="h-5 w-5 text-[#00D1FF] shrink-0" /> <p><strong>Garantizamos:</strong> Que nunca más perderás un cliente por no atenderlo a tiempo.</p></div>
+                <div className="flex gap-3 opacity-60"><X className="h-5 w-5 text-slate-500 shrink-0" /> <p><strong>No hacemos:</strong> Marketing, promesas mágicas de ventas o publicidad. Eso depende de tu producto y estrategia.</p></div>
+              </div>
+            </div>
+
+            <div className="bg-[#00D1FF]/5 border border-[#00D1FF]/20 rounded-3xl p-8 backdrop-blur-sm shadow-[0_0_30px_rgba(0,209,255,0.05)]">
+              <h3 className="font-display font-bold text-xl text-white mb-6 flex items-center gap-3">
+                <ShieldCheck className="h-8 w-8 text-[#00D1FF]" />
+                Garantía de Funcionamiento
+              </h3>
+              <p className="font-body text-sm text-slate-300 mb-4 leading-relaxed">
+                Nos comprometemos a que tu empleado digital esté disponible el 99.5% del tiempo mensual. Si por un fallo técnico de nuestra plataforma el servicio se interrumpe por más de 4 horas continuas, <strong>te acreditamos el 10% de tu mensualidad</strong> en tu próxima factura. 
+              </p>
+              <p className="font-body text-sm text-slate-300 leading-relaxed">
+                Si el servicio está caído por más de 24 horas continuas, te acreditamos el 50%. La implementación es un servicio de ingeniería dedicado y no tiene devolución.
+              </p>
+            </div>
+          </div>
+
+          {/* TOGGLE DE PAGO */}
+          <div className="mb-12 max-w-3xl mx-auto">
             <div className="glass-strong border border-white/10 rounded-[16px] p-1.5 flex flex-col sm:flex-row gap-1.5">
               <button onClick={() => setContract(1)} className={`flex-1 text-left rounded-[12px] px-4 py-3.5 transition-all border ${contract === 1 ? "bg-white text-black border-white shadow-[0_4px_20px_rgba(255,255,255,0.15)]" : "bg-transparent text-white/60 border-transparent hover:bg-white/[0.05] hover:text-white/90"}`}>
-                <div className="font-display text-[13px] font-semibold tracking-tight">Sin permanencia</div>
-                <div className={`font-body text-[12px] mt-1 leading-snug ${contract === 1 ? "text-black/60" : "text-white/40"}`}>Implementación completa + mensual</div>
+                <div className="font-display text-[13px] font-semibold tracking-tight">Mensual (Sin permanencia)</div>
+                <div className={`font-body text-[12px] mt-1 leading-snug ${contract === 1 ? "text-black/60" : "text-white/40"}`}>Implementación según plan</div>
               </button>
               <button onClick={() => setContract(2)} className={`flex-1 text-left rounded-[12px] px-4 py-3.5 transition-all border relative overflow-hidden ${contract === 2 ? "bg-[#00D1FF] text-black border-[#00D1FF] shadow-[0_8px_32px_rgba(0,209,255,0.35)]" : "bg-transparent text-white/60 border-transparent hover:bg-white/[0.05] hover:text-white/90"}`}>
                 {contract === 2 && <div className="absolute inset-0 bg-gradient-to-br from-white/25 to-transparent pointer-events-none" />}
@@ -404,32 +407,40 @@ export default function Home() {
                   <span className="font-display text-[13px] font-bold tracking-tight">12 meses</span>
                   <span className={`font-body text-[10px] font-bold px-2 py-0.5 rounded-full tracking-wide ${contract === 2 ? "bg-black text-[#00D1FF]" : "bg-[#00D1FF] text-black"}`}>RECOMENDADO</span>
                 </div>
-                <div className={`relative font-body text-[12px] mt-1 leading-snug ${contract === 2 ? "text-black/70" : "text-white/40"}`}>50% OFF impl. + 4 cuotas</div>
+                <div className={`relative font-body text-[12px] mt-1 leading-snug ${contract === 2 ? "text-black/70" : "text-white/40"}`}>Implementación 50% OFF</div>
               </button>
               <button onClick={() => setContract(3)} className={`flex-1 text-left rounded-[12px] px-4 py-3.5 transition-all border ${contract === 3 ? "bg-white text-black border-white shadow-[0_4px_20px_rgba(255,255,255,0.15)]" : "bg-transparent text-white/60 border-transparent hover:bg-white/[0.05] hover:text-white/90"}`}>
-                <div className="font-display text-[13px] font-semibold tracking-tight">Prepago anual</div>
-                <div className={`font-body text-[12px] mt-1 leading-snug ${contract === 3 ? "text-black/60" : "text-white/40"}`}>Implementación GRATIS</div>
+                <div className="font-display text-[13px] font-semibold tracking-tight">Prepago Anual</div>
+                <div className={`font-body text-[12px] mt-1 leading-snug ${contract === 3 ? "text-black/60" : "text-white/40"}`}>Implementación INCLUIDA (Mayor ahorro)</div>
               </button>
             </div>
           </div>
 
+          {/* GUÍA DE ELECCIÓN */}
+          <div className="max-w-4xl mx-auto mb-12 flex flex-wrap justify-center gap-3">
+            <div className="bg-white/5 border border-white/10 rounded-full px-4 py-2 text-xs font-mono text-white/70">¿Solo tienes WhatsApp y quieres vender más? → <strong className="text-white">PYME</strong></div>
+            <div className="bg-white/5 border border-white/10 rounded-full px-4 py-2 text-xs font-mono text-white/70">¿Atiendes más de 50 chats al día? → <strong className="text-[#00D1FF]">Ejecutivo de Chat</strong></div>
+            <div className="bg-white/5 border border-white/10 rounded-full px-4 py-2 text-xs font-mono text-white/70">¿Te llaman por teléfono y pierdes citas? → <strong className="text-[#00D1FF]">Ejecutivo de Voz</strong></div>
+            <div className="bg-[#00D1FF]/10 border border-[#00D1FF]/30 rounded-full px-4 py-2 text-xs font-mono text-[#00D1FF]">¿Quieres todo integrado con reportes avanzados? → <strong className="text-white">Director Omnicanal</strong></div>
+          </div>
+
+          {/* TABLA DE PRECIOS */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5 mb-12">
             {PLANS.map((plan) => {
               const impl = getImplLabel(plan);
               return (
-                <div key={plan.id} className={`relative rounded-[24px] border p-[1px] group transition-all duration-300 ${plan.popular ? "border-[#00D1FF]/35 shadow-[0_0_80px_rgba(0,209,255,0.18)]" : "border-white/10 hover:border-white/[0.14]"}`}>
+                <div key={plan.id} className={`relative rounded-[24px] border p-[1px] flex flex-col group transition-all duration-300 ${plan.popular ? "border-[#00D1FF]/50 shadow-[0_0_80px_rgba(0,209,255,0.18)]" : "border-white/10 hover:border-white/[0.14]"}`}>
                   {plan.popular && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
                       <div className="font-display text-[10px] font-bold tracking-[0.12em] bg-[#00D1FF] text-black px-3.5 py-1 rounded-full shadow-[0_0_20px_rgba(0,209,255,0.6)]">MÁS POPULAR</div>
                     </div>
                   )}
-                  <div className={`relative rounded-[23px] glass h-full p-6 flex flex-col ${plan.popular ? "bg-gradient-to-b from-[#00D1FF]/[0.07] to-white/[0.02]" : ""}`}>
+                  <div className={`relative rounded-[23px] glass h-full p-6 flex flex-col flex-1 ${plan.popular ? "bg-gradient-to-b from-[#00D1FF]/[0.07] to-white/[0.02]" : ""}`}>
                     <div className="flex items-start justify-between mb-5">
                       <div className="flex items-center gap-2.5">
                         <span className="text-[20px]">{plan.emoji}</span>
                         <span className="font-display text-[16px] font-bold tracking-tight">{plan.name}</span>
                       </div>
-                      <div className={`font-body text-[10.5px] font-semibold px-2.5 py-1 rounded-full border tracking-wide ${impl.free ? "bg-[#00D1FF] text-black border-[#00D1FF]" : "bg-white/[0.06] border-white/10 text-white/55"}`}>{impl.sub}</div>
                     </div>
 
                     <div className="mb-5">
@@ -441,35 +452,27 @@ export default function Home() {
                         <span className={`font-display text-[13px] font-semibold tracking-tight ${impl.free ? "text-[#00D1FF]" : "text-white/90"}`}>{impl.main}</span>
                         {impl.strike && <span className="font-body text-[11px] text-white/25 line-through">{impl.strike}</span>}
                       </div>
+                      <div className="font-body text-[10.5px] font-semibold mt-1.5 text-white/40">{impl.sub}</div>
                     </div>
 
                     <div className="mb-5">
-                      <div className="font-body text-[10px] font-semibold tracking-[0.16em] uppercase text-white/30 mb-1.5">Capacidad incluida</div>
+                      <div className="font-body text-[10px] font-semibold tracking-[0.16em] uppercase text-[#00D1FF]/70 mb-1.5">Capacidad</div>
                       <div className="font-display text-[13.5px] font-semibold text-white/90 leading-tight">{plan.capacityLabel}</div>
                       <div className="font-body text-[12.5px] text-white/50 mt-1 leading-snug">{plan.capacityDesc}</div>
                     </div>
 
                     <div className="h-[1px] bg-gradient-to-r from-white/10 to-transparent mb-5" />
 
-                    <div className="mb-6">
+                    <div className="mb-6 flex-1">
                       <div className="font-body text-[10px] font-semibold tracking-[0.16em] uppercase text-white/30 mb-3">Incluye empleado digital</div>
                       
                       <div className="space-y-2">
                         {INCLUDED_BASE.map((feat) => (
                           <div key={feat} className="flex items-center gap-2.5 font-body text-[13px] text-white/70 leading-snug">
-                            <div className="w-[18px] h-[18px] rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-                              <div className="w-[5px] h-[5px] rounded-full bg-white/50" />
-                            </div>
+                            <CheckCircle className="w-[16px] h-[16px] text-[#00D1FF] shrink-0" />
                             {feat}
                           </div>
                         ))}
-                        
-                        {plan.id === "emprendedor" && (
-                          <div className="flex items-center gap-2.5 font-body text-[13px] text-red-400/80 leading-snug mt-2">
-                             <div className="w-[18px] h-[18px] rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0 text-[10px]">✕</div>
-                             Limitado a solo texto (Sin audios / sin voz)
-                          </div>
-                        )}
                       </div>
 
                       {(plan.id === "negocio" || plan.id === "pro") && (
@@ -478,7 +481,7 @@ export default function Home() {
                           <div className="space-y-1.5">
                             {EXTRA_NEGOCIO.map((e) => (
                               <div key={e} className="flex gap-2 font-body text-[12px] text-white/70 leading-snug">
-                                <span className="text-[#00D1FF]/60">•</span> {e}
+                                <CheckCircle className="w-[14px] h-[14px] text-[#00D1FF]/70 shrink-0" /> {e}
                               </div>
                             ))}
                           </div>
@@ -487,11 +490,11 @@ export default function Home() {
 
                       {(plan.id === "voz" || plan.id === "pro") && (
                         <div className="mt-5">
-                          <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase mb-2.5 text-cyan-400">+ Potencia de Voz (Vapi)</div>
+                          <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase mb-2.5 text-[#00D1FF]">+ Potencia de Voz (Vapi)</div>
                           <div className="space-y-1.5">
                             {EXTRA_VOZ.map((e) => (
                               <div key={e} className="flex gap-2 font-body text-[12px] text-white/70 leading-snug">
-                                <span className="text-cyan-400/60">•</span> {e}
+                                <CheckCircle className="w-[14px] h-[14px] text-[#00D1FF]/70 shrink-0" /> {e}
                               </div>
                             ))}
                           </div>
@@ -512,9 +515,9 @@ export default function Home() {
                       )}
                     </div>
 
-                    <div className="mt-auto pt-2">
+                    <div className="mt-auto pt-4 border-t border-white/5">
                       <button onClick={() => setCheckoutPlan(plan)} className="w-full h-[46px] rounded-[12px] bg-[#00D1FF] text-black font-display font-bold text-[14px] tracking-tight hover:bg-[#33DDFF] transition-colors shadow-[0_0_28px_rgba(0,209,255,0.35)] flex items-center justify-center gap-2">
-                        Elegir {plan.name} <span className="text-[16px] font-medium">→</span>
+                        Quiero automatizar mis ventas <span className="text-[16px] font-medium">→</span>
                       </button>
                     </div>
                   </div>
@@ -526,42 +529,102 @@ export default function Home() {
       </section>
 
       {/* ========================================== */}
-      {/* PROCESO Y FOOTER */}
+      {/* PROCESO Y FOOTER (B2B OPTIMIZED) */}
       {/* ========================================== */}
-      <section id="proceso" className="relative border-t border-white/5 bg-[#03050a]">
-        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-12">
-          <div className="max-w-3xl"><p className="text-xs font-mono uppercase tracking-[0.3em] text-cyan-400">/02_proceso</p><h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Implementación corporativa sin fricciones.</h2></div>
-          <div className="mt-12 grid gap-6 md:grid-cols-4">
-            {steps.map((step, index) => (
-              <div key={step} className="rounded-2xl border border-white/5 bg-white/[0.02] p-6 relative overflow-hidden group">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-500/10 text-sm font-mono text-cyan-400">0{index + 1}</div>
-                <p className="mt-4 text-lg font-semibold text-white">{step}</p>
+      <section id="proceso" className="relative border-t border-white/5 bg-[#03050a] overflow-hidden">
+        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-[#00D1FF]/[0.03] rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="relative z-10 mx-auto max-w-[95rem] px-6 py-24 lg:px-12">
+          <div className="max-w-3xl mb-16">
+            <p className="text-xs font-mono uppercase tracking-[0.3em] text-[#00D1FF] mb-4">/02_onboarding</p>
+            <h2 className="text-3xl font-display font-bold text-white sm:text-4xl tracking-tight">
+              Implementación corporativa en <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00D1FF] to-blue-500">4 pasos exactos.</span>
+            </h2>
+            <p className="mt-4 text-slate-400 text-lg">Un proceso de ingeniería estructurado para que tu operación no se detenga mientras hacemos la transición a la IA.</p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {[
+              { title: "Auditoría de Arquitectura", desc: "Mapeamos tus procesos, embudos y base de conocimientos para diseñar el 'cerebro' ideal de tu IA." },
+              { title: "Entrenamiento (RAG)", desc: "Inyectamos tus catálogos, PDFs y reglas de negocio para evitar 'alucinaciones' y asegurar precisión." },
+              { title: "Despliegue Oficial", desc: "Conexión segura de infraestructura con WhatsApp Cloud API (Meta) y Centrales de Voz Vapi." },
+              { title: "Operación Autónoma", desc: "Tu agente asume el control 24/7. Monitorea métricas y respuestas desde tu Dashboard en tiempo real." }
+            ].map((step, index) => (
+              <div key={step.title} className="rounded-[24px] border border-white/10 bg-white/[0.02] p-8 relative overflow-hidden group transition-all hover:bg-white/[0.04] hover:border-[#00D1FF]/30">
+                <div className="absolute top-0 right-0 p-6 opacity-[0.03] font-display text-8xl font-bold text-white group-hover:text-[#00D1FF] group-hover:opacity-10 transition-all">
+                  {index + 1}
+                </div>
+                
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#00D1FF]/10 text-lg font-mono font-bold text-[#00D1FF] mb-6 shadow-[0_0_20px_rgba(0,209,255,0.15)] group-hover:scale-110 transition-transform">
+                  0{index + 1}
+                </div>
+                <h3 className="mt-4 text-xl font-bold text-white mb-3">{step.title}</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">{step.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="contacto" className="relative border-t border-white/5 bg-[#03050a]">
-        <div className="mx-auto flex max-w-7xl flex-col gap-10 px-6 py-24 lg:flex-row lg:items-end lg:justify-between lg:px-12">
-          <div className="max-w-2xl"><p className="text-xs font-mono uppercase tracking-[0.3em] text-cyan-400">/03_contacto</p><h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Eleva el nivel tecnológico de tu organización hoy.</h2></div>
-          <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-8 backdrop-blur shadow-2xl">
-            <button onClick={() => window.dispatchEvent(new Event("abrir-chat"))} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-6 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-300">
-              Agendar asesoría técnica <ArrowRight className="h-4 w-4" />
+      <section id="contacto" className="relative border-t border-white/5 bg-gradient-to-b from-[#03050a] to-[#010204]">
+        <div className="absolute inset-0 bg-[url('https://i.pinimg.com/736x/07/93/29/07932918dfec0b7ee8ed301abccdbbf9.jpg')] bg-cover bg-center opacity-[0.02] mix-blend-screen pointer-events-none" />
+
+        <div className="relative z-10 mx-auto flex max-w-[95rem] flex-col gap-10 px-6 py-24 lg:flex-row lg:items-center lg:justify-between lg:px-12">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400 mb-6">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> El costo de inacción es alto
+            </div>
+            <h2 className="text-4xl font-display font-bold text-white sm:text-5xl tracking-tight mb-6">
+              No pierdas más clientes por <br className="hidden md:block"/>falta de atención inmediata.
+            </h2>
+            <p className="text-slate-400 text-lg leading-relaxed">
+              Tus competidores ya están automatizando sus canales. Agenda una auditoría de infraestructura hoy mismo y descubre el ROI exacto de implementar nuestra tecnología en tu empresa.
+            </p>
+          </div>
+
+          <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8 md:p-10 backdrop-blur-xl shadow-2xl flex flex-col items-center text-center lg:min-w-[420px]">
+            <p className="text-sm font-semibold text-white/70 mb-6 uppercase tracking-widest">Habla con un Ingeniero</p>
+            <button onClick={() => window.dispatchEvent(new Event("abrir-chat"))} className="w-full h-[56px] rounded-[16px] bg-[#00D1FF] text-black font-display font-bold text-[16px] tracking-tight hover:bg-[#33DDFF] hover:scale-[1.02] transition-all shadow-[0_0_30px_rgba(0,209,255,0.4)] flex items-center justify-center gap-3">
+              Automatizar mi operación hoy <ArrowRight className="h-5 w-5" />
             </button>
+            <button onClick={() => window.dispatchEvent(new Event("abrir-chat"))} className="mt-4 text-[12px] font-semibold text-white/40 hover:text-white transition-colors underline decoration-white/20 underline-offset-4">
+              Mantener mi operación manual
+            </button>
+            <p className="text-[11px] text-slate-500 mt-6 flex items-center justify-center gap-1.5 border-t border-white/10 pt-4 w-full">
+              <ShieldCheck className="h-3.5 w-3.5 text-[#00D1FF]/70" /> Análisis de viabilidad 100% gratuito.
+            </p>
           </div>
         </div>
       </section>
 
-      <footer className="border-t border-white/5 bg-[#010204] py-8">
-        <div className="mx-auto flex max-w-[95rem] flex-col gap-4 px-6 text-xs font-mono text-white/40 md:flex-row md:items-center md:justify-between lg:px-12">
-          <div className="flex items-center gap-3">
-            <Image src="/upway.png" alt="Logo Upway" width={32} height={32} className="rounded-full object-contain grayscale opacity-70" />
-            <span className="uppercase tracking-[0.2em] text-white/60">Upway Business Corporation</span>
+      <footer className="border-t border-white/5 bg-[#010204] py-10 relative z-20 pb-32 md:pb-10">
+        <div className="mx-auto flex max-w-[95rem] flex-col gap-6 px-6 md:flex-row md:items-center md:justify-between lg:px-12">
+          
+          <div className="flex items-center gap-4">
+            <Image src="/upway.png" alt="Logo Upway" width={36} height={36} className="rounded-full object-contain grayscale opacity-70" />
+            <div className="flex flex-col">
+              <span className="text-xs font-mono uppercase tracking-[0.2em] text-white/80 font-semibold">Upway Business Corp.</span>
+              <span className="text-[10px] font-mono text-white/40">Powered by Barakah Tech Hub S.A.S.</span>
+            </div>
           </div>
-          <p>© 2026 Upway Business. All rights reserved.</p>
+
+          <div className="flex gap-8 text-[11px] font-mono tracking-widest text-white/40">
+            <Link href="/terminos" className="hover:text-[#00D1FF] transition-colors uppercase">Términos de Servicio</Link>
+            <Link href="/terminos" className="hover:text-[#00D1FF] transition-colors uppercase">Privacidad (Ley 1581)</Link>
+          </div>
+
+          <p className="text-[10px] font-mono text-white/30">© 2026 UPWAY BUSINESS. ALL RIGHTS RESERVED.</p>
         </div>
       </footer>
+
+      {/* ========================================== */}
+      {/* STICKY CTA (MÓVIL) */}
+      {/* ========================================== */}
+      <div className="md:hidden fixed bottom-0 left-0 w-full z-50 p-4 bg-[#0A0E14]/90 backdrop-blur-xl border-t border-white/10">
+        <button onClick={() => window.dispatchEvent(new Event("abrir-chat"))} className="w-full h-[50px] rounded-[14px] bg-[#00D1FF] text-black font-display font-bold text-[14px] tracking-tight flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(0,209,255,0.3)]">
+           Probar gratis con Sophie V2 <ArrowRight className="h-4 w-4" />
+        </button>
+      </div>
 
       {/* ========================================== */}
       {/* MODAL DE CHECKOUT (BOLD) */}
@@ -570,7 +633,7 @@ export default function Home() {
         {checkoutPlan && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => !procesandoPago && setCheckoutPlan(null)} />
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative w-full max-w-md bg-[#0A0E14] border border-[#00D1FF]/30 rounded-[24px] shadow-[0_0_50px_rgba(0,209,255,0.15)] overflow-hidden z-10">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative w-full max-w-md bg-[#0A0E14] border border-[#00D1FF]/30 rounded-[24px] shadow-[0_0_50px_rgba(0,209,255,0.15)] overflow-hidden z-10 pb-20 md:pb-0">
               <button disabled={procesandoPago} onClick={() => setCheckoutPlan(null)} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/50 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50">✕</button>
               
               <div className="p-6 sm:p-8">

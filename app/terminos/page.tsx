@@ -1,95 +1,111 @@
 "use client";
 
 import React from 'react';
-import { ShieldCheck, ArrowLeft } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function TerminosPage() {
   return (
-    <div className="min-h-screen bg-slate-950 px-4 py-12 text-slate-300 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#03050a] px-4 py-12 text-slate-300 sm:px-6 lg:px-8 selection:bg-[#00D1FF]/30 selection:text-white">
       <div className="mx-auto max-w-4xl">
         
         {/* Cabecera */}
         <div className="mb-10">
-          <Link href="/" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors mb-8">
+          <Link href="/" className="inline-flex items-center gap-2 text-sm font-mono text-slate-400 hover:text-[#00D1FF] transition-colors mb-8">
             <ArrowLeft className="h-4 w-4" />
-            Volver al inicio
+            [VOLVER_AL_INICIO]
           </Link>
           <div className="flex items-center gap-4 mb-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/20 text-blue-400">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#00D1FF]/10 text-[#00D1FF] border border-[#00D1FF]/30 shadow-[0_0_20px_rgba(0,209,255,0.2)]">
               <ShieldCheck className="h-7 w-7" />
             </div>
-            <h1 className="text-3xl font-bold text-white tracking-tight">Términos y Condiciones de Uso</h1>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight font-display">Términos y Condiciones</h1>
           </div>
-          <p className="text-slate-500 text-sm">Última actualización: 10 de agosto de 2026</p>
+          <p className="text-slate-500 text-sm font-mono tracking-widest">ÚLTIMA ACTUALIZACIÓN: 16 DE AGOSTO DE 2026</p>
         </div>
 
         {/* Contenido Legal */}
-        <div className="rounded-3xl border border-white/10 bg-[#0A0E14] p-8 sm:p-12 shadow-2xl">
-          <div className="prose prose-invert max-w-none prose-slate">
+        <div className="rounded-[24px] border border-white/10 bg-white/[0.02] p-8 sm:p-12 shadow-2xl backdrop-blur-xl relative overflow-hidden">
+          {/* Brillo de fondo */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-[#00D1FF]/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+          <div className="prose prose-invert max-w-none prose-slate relative z-10 font-body">
             
-            <p className="lead text-lg text-slate-300 mb-8">
-              Bienvenido a Upway Business. Los presentes Términos y Condiciones regulan el acceso y uso de la plataforma de software como servicio (SaaS) Upway Business, operada por <strong>BARAKAH TECH HUB S.A.S.</strong>, una empresa legalmente constituida bajo las leyes de la República de Colombia.
+            <p className="lead text-lg text-slate-300 mb-8 font-medium">
+              Bienvenido a Upway Business. Los presentes Términos y Condiciones regulan el acceso y uso de la infraestructura de software como servicio (SaaS) Upway Business, operada por <strong className="text-white">BARAKAH TECH HUB S.A.S.</strong>, legalmente constituida en Colombia.
             </p>
-            <p className="mb-8">
-              Al registrarse, acceder o utilizar nuestra plataforma, el usuario (en adelante, "el Cliente") acepta someterse a los presentes términos. Si no está de acuerdo con alguna de las condiciones, no deberá utilizar nuestros servicios.
-            </p>
-
-            <h3 className="text-xl font-semibold text-white mt-8 mb-4">1. Descripción del Servicio</h3>
-            <p className="mb-6 text-slate-400">
-              Upway Business provee una plataforma tecnológica que permite a las empresas automatizar su atención al cliente en WhatsApp mediante el uso de Inteligencia Artificial y la integración oficial con la API de Meta (WhatsApp Cloud API). BARAKAH TECH HUB S.A.S. actúa exclusivamente como Proveedor de Tecnología (TP).
+            <p className="mb-8 leading-relaxed">
+              Al registrarse, acceder o utilizar nuestra plataforma de inteligencia artificial, el usuario (en adelante, "el Cliente") acepta someterse a los presentes términos. Si no está de acuerdo con alguna de las condiciones, no deberá desplegar nuestros servicios corporativos.
             </p>
 
-            <h3 className="text-xl font-semibold text-white mt-8 mb-4">2. Responsabilidades del Cliente y Uso de WhatsApp</h3>
-            <p className="mb-4 text-slate-400">El Cliente entiende y acepta que el uso de la plataforma está estrictamente sujeto a las Políticas de Comercio y Condiciones de Servicio de WhatsApp (Meta).</p>
-            <ul className="list-disc pl-6 space-y-2 mb-6 text-slate-400 marker:text-blue-500">
-              <li>El Cliente es el único responsable de la calidad, legalidad y veracidad de los mensajes enviados a través de Upway Business.</li>
-              <li><strong>Prohibición de Spam:</strong> Queda estrictamente prohibido utilizar la plataforma para enviar mensajes masivos no solicitados (spam), contenido fraudulento, ilegal o que vulnere derechos de terceros.</li>
-              {/* 🚀 INYECCIÓN LEGAL BSUID - PROTECCIÓN CONTRA ABUSOS */}
-              <li><strong>Respeto al Anonimato y BSUIDs:</strong> El Cliente se compromete a respetar la configuración de privacidad de los usuarios finales que contacten a su línea mediante Nombres de Usuario de WhatsApp o BSUIDs (sin número telefónico visible). Queda terminantemente prohibido el uso de herramientas de terceros, scripts o técnicas de "scraping" para extraer, adivinar o vulnerar el anonimato de dichos usuarios.</li>
-              <li><strong>Bloqueos de Línea:</strong> BARAKAH TECH HUB S.A.S. no se hace responsable por suspensiones, bloqueos o baneos de cuentas de WhatsApp aplicados por Meta debido a infracciones cometidas por el Cliente.</li>
+            <h3 className="text-xl font-bold text-white mt-10 mb-4 flex items-center gap-2">
+              <span className="text-[#00D1FF]">01.</span> Uso Aceptable del Servicio
+            </h3>
+            <p className="mb-4 leading-relaxed">
+              El Cliente se obliga a utilizar el servicio de UpWay únicamente para fines lícitos, éticos y dentro del marco legal colombiano. El empleado digital debe emplearse exclusivamente para atender comunicaciones propias de la operación comercial del cliente, agendar citas, procesar pedidos y brindar información autorizada.
+            </p>
+
+            <h3 className="text-xl font-bold text-white mt-10 mb-4 flex items-center gap-2">
+              <span className="text-[#00D1FF]">02.</span> Actividades Estrictamente Prohibidas
+            </h3>
+            <p className="mb-4 leading-relaxed">Queda expresamente prohibido utilizar la plataforma, los canales de voz, WhatsApp o cualquier integración de UpWay para:</p>
+            <ul className="list-none space-y-3 mb-6">
+              <li className="flex gap-3"><span className="text-[#00D1FF]">✦</span> <span><strong>Spam y Publicidad Intrusiva:</strong> Envío masivo de mensajes no solicitados, cadenas o contenido publicitario no consentido.</span></li>
+              <li className="flex gap-3"><span className="text-[#00D1FF]">✦</span> <span><strong>Fraude:</strong> Actividades fraudulentas, estafas, suplantación de identidad (phishing) o conductas que induzcan a error a terceros.</span></li>
+              <li className="flex gap-3"><span className="text-[#00D1FF]">✦</span> <span><strong>Contenido Ilegal o Dañino:</strong> Contenido ilegal, difamatorio, obsceno, discriminatorio, violento o que promueva el odio por razones de raza, género, religión o condición socioeconómica.</span></li>
+              <li className="flex gap-3"><span className="text-[#00D1FF]">✦</span> <span><strong>Violación de Propiedad Intelectual:</strong> Actividades que infrinjan derechos de autor, propiedad industrial o imagen de terceros.</span></li>
+              <li className="flex gap-3"><span className="text-[#00D1FF]">✦</span> <span><strong>Clonación y Piratería:</strong> Usar la plataforma para competir directamente con UpWay, realizar ingeniería inversa, extraer código, copiar arquitectura o crear productos derivados.</span></li>
+              <li className="flex gap-3"><span className="text-[#00D1FF]">✦</span> <span><strong>Violación de Políticas de Terceros:</strong> Cualquier actividad que viole las políticas de Meta Platforms (WhatsApp, Facebook), Vapi, Bold, Nequi, Google o AWS.</span></li>
+              <li className="flex gap-3"><span className="text-[#00D1FF]">✦</span> <span><strong>Reventa No Autorizada:</strong> Transferir, revender, sublicenciar o permitir el acceso a terceros no autorizados sin consentimiento de UpWay.</span></li>
             </ul>
 
-            <h3 className="text-xl font-semibold text-white mt-8 mb-4">3. Inteligencia Artificial y Limitación de Responsabilidad</h3>
-            <p className="mb-4 text-slate-400">Upway Business utiliza modelos de Inteligencia Artificial para generar respuestas automatizadas.</p>
-            <ul className="list-disc pl-6 space-y-2 mb-6 text-slate-400 marker:text-blue-500">
-              <li>El Cliente comprende que la IA puede generar respuestas imprecisas o inesperadas ("alucinaciones"). Es responsabilidad del Cliente monitorear, configurar adecuadamente y supervisar el comportamiento de sus agentes virtuales.</li>
-              <li>BARAKAH TECH HUB S.A.S. no asume responsabilidad civil, comercial o penal por pérdidas, daños, reclamos o malos entendidos derivados de las respuestas emitidas por la Inteligencia Artificial a los usuarios finales del Cliente.</li>
-            </ul>
+            <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 mt-8 mb-10">
+              <h3 className="text-lg font-bold text-red-400 mb-2 flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5" />
+                Consecuencias del Incumplimiento
+              </h3>
+              <p className="text-slate-300 text-sm leading-relaxed mb-3">
+                El incumplimiento de cualquiera de las prohibiciones anteriores constituirá causal inmediata de terminación del servicio. UpWay se reserva el derecho de suspender, limitar o cancelar el acceso a la plataforma sin previo aviso y <strong>sin derecho a devolución de pagos realizados</strong> (incluyendo implementación y mensualidades).
+              </p>
+              <p className="text-slate-300 text-sm leading-relaxed">
+                El cliente será el único responsable civil y penalmente ante terceros y autoridades competentes. UpWay queda eximida de toda responsabilidad derivada de actos u omisiones atribuibles al cliente.
+              </p>
+            </div>
 
-            <h3 className="text-xl font-semibold text-white mt-8 mb-4">4. Tratamiento de Datos Personales y Contacto Ético</h3>
-            <p className="mb-4 text-slate-400">En cumplimiento de la Ley 1581 de 2012 de la República de Colombia, BARAKAH TECH HUB S.A.S. se compromete a proteger la privacidad de los datos suministrados en la plataforma.</p>
-            <ul className="list-disc pl-6 space-y-2 mb-6 text-slate-400 marker:text-blue-500">
-              <li>El Cliente actúa como el Responsable del Tratamiento de los datos de sus propios usuarios finales (sus clientes de WhatsApp). Upway Business actúa únicamente como Encargado del Tratamiento, procesando la información exclusivamente para permitir el funcionamiento del servicio.</li>
-              {/* 🚀 INYECCIÓN DE CONTACTO ÉTICO */}
-              <li><strong>Contacto Ético:</strong> La plataforma permite enrutar conversaciones mediante identificadores anónimos. El Cliente acepta que la única vía legítima para obtener el número de teléfono real de un usuario anónimo es mediante la solicitud oficial facilitada por la plataforma y con el consentimiento explícito del consumidor final.</li>
-              <li>BARAKAH TECH HUB S.A.S. no comercializará, venderá ni compartirá los datos de las conversaciones del Cliente con terceros, salvo requerimiento de una autoridad judicial competente.</li>
-            </ul>
-
-            <h3 className="text-xl font-semibold text-white mt-8 mb-4">5. Pagos, Suscripciones y Cancelaciones</h3>
-            <p className="mb-4 text-slate-400">El acceso a las funciones premium de Upway Business requiere el pago de una suscripción.</p>
-            <ul className="list-disc pl-6 space-y-2 mb-6 text-slate-400 marker:text-blue-500">
-              <li>Los pagos realizados no son reembolsables, salvo en los casos expresamente estipulados por el Estatuto del Consumidor de Colombia o a discreción de la empresa por fallas críticas y prolongadas del sistema.</li>
-              <li>BARAKAH TECH HUB S.A.S. se reserva el derecho de suspender temporal o definitivamente el acceso a la plataforma en caso de impago o incumplimiento de estos términos.</li>
-            </ul>
-
-            <h3 className="text-xl font-semibold text-white mt-8 mb-4">6. Propiedad Intelectual</h3>
-            <p className="mb-6 text-slate-400">
-              Todo el código fuente, diseño, logotipos, algoritmos, metodologías y arquitectura de software de Upway Business son propiedad exclusiva de BARAKAH TECH HUB S.A.S. El Cliente obtiene una licencia de uso temporal y revocable, pero no adquiere ningún derecho de propiedad sobre la tecnología subyacente.
+            <h3 className="text-xl font-bold text-white mt-10 mb-4 flex items-center gap-2">
+              <span className="text-[#00D1FF]">03.</span> Inteligencia Artificial (Alucinaciones)
+            </h3>
+            <p className="mb-4 leading-relaxed">
+              El Cliente comprende que la IA (texto y voz sintética) puede generar respuestas imprecisas o inesperadas ("alucinaciones"). BARAKAH TECH HUB S.A.S. no asume responsabilidad por pérdidas, compromisos financieros o malos entendidos derivados de las interacciones autónomas de la IA con los usuarios finales del Cliente.
             </p>
 
-            <h3 className="text-xl font-semibold text-white mt-8 mb-4">7. Jurisdicción y Ley Aplicable</h3>
-            <p className="mb-10 text-slate-400">
-              Estos términos se rigen por las leyes de la República de Colombia. Cualquier controversia, disputa o reclamo derivado de la interpretación o ejecución de este contrato será sometido a los jueces y tribunales competentes en el territorio colombiano.
-            </p>
+            <h3 className="text-xl font-bold text-white mt-10 mb-4 flex items-center gap-2">
+              <span className="text-[#00D1FF]">04.</span> Tratamiento de Datos Personales (Ley 1581)
+            </h3>
+            <ul className="list-none space-y-3 mb-6">
+              <li className="flex gap-3"><span className="text-[#00D1FF]">✦</span> <span>El Cliente actúa como el <strong>Responsable del Tratamiento</strong> de los datos de sus clientes. Upway Business actúa únicamente como <strong>Encargado del Tratamiento</strong>.</span></li>
+              <li className="flex gap-3"><span className="text-[#00D1FF]">✦</span> <span>No comercializaremos ni compartiremos las bases de datos corporativas con terceros no autorizados.</span></li>
+            </ul>
 
-            <hr className="border-white/10 my-8" />
+            <h3 className="text-xl font-bold text-white mt-10 mb-4 flex items-center gap-2">
+              <span className="text-[#00D1FF]">05.</span> Infraestructura y Pagos
+            </h3>
+            <ul className="list-none space-y-3 mb-6">
+              <li className="flex gap-3"><span className="text-[#00D1FF]">✦</span> <span>El acceso a la infraestructura requiere el pago de la suscripción acordada. Nos reservamos el derecho de apagar el entorno por impago.</span></li>
+              <li className="flex gap-3"><span className="text-[#00D1FF]">✦</span> <span>Garantía de Servicio (SLA): Se aplicarán créditos de penalidad a favor del cliente únicamente por interrupciones atribuibles a la infraestructura de UpWay (excluyendo caídas de Meta, Bold o conectividad del cliente).</span></li>
+            </ul>
 
-            <h3 className="text-lg font-semibold text-white mb-4">Contacto</h3>
-            <p className="text-slate-400">
-              Para dudas, soporte o solicitudes relacionadas con estos términos, puede contactarnos a través de:<br/>
-              <strong className="text-blue-400 mt-2 block">barakahtechhub@gmail.com</strong>
-            </p>
+            <hr className="border-white/10 my-10" />
+
+            <div className="bg-[#00D1FF]/5 border border-[#00D1FF]/20 rounded-2xl p-6">
+              <h3 className="text-lg font-bold text-white mb-2">Soporte Legal y Operativo</h3>
+              <p className="text-slate-400 text-sm mb-4">
+                Para requerimientos corporativos, reporte de abusos o consultas sobre este acuerdo de nivel de servicio (SLA), comuníquese a nuestro canal oficial:
+              </p>
+              <a href="mailto:notificaciones@upway.business" className="inline-flex items-center gap-2 text-[#00D1FF] hover:text-white transition-colors font-mono font-bold tracking-wide">
+                notificaciones@upway.business
+              </a>
+            </div>
 
           </div>
         </div>
