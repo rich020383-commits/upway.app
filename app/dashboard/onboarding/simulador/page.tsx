@@ -37,7 +37,6 @@ export default function Paso06Simulador() {
     const vapi = new Vapi('79cac89e-dc48-4951-aebf-16e0584d8030');
     setVapiInstance(vapi);
 
-    // Limpieza al desmontar el componente
     return () => {
       vapi.stop();
     };
@@ -91,7 +90,7 @@ export default function Paso06Simulador() {
     }
     setEscribiendo(true);
     try {
-      const promptEnriquecido = `[TONO] Formalidad: ${tonoWhatsapp.formalidad}%, Cercanía: ${tonoWhatsapp.cercania}%, Persuasión: ${tonoWhatsapp.persuasion}%\n[NEGOCIO] Sector: ${nicho}\n[INSTRUCCIONES] ${promptMaestro}`.trim();
+      const promptEnriquecido = `[NOMBRE_AGENTE] ${nombreAgente || 'Asistente'}\n[TONO] Formalidad: ${tonoWhatsapp.formalidad}%, Cercanía: ${tonoWhatsapp.cercania}%, Persuasión: ${tonoWhatsapp.persuasion}%\n[NEGOCIO] Sector: ${nicho}\n[INSTRUCCIONES] ${promptMaestro}`.trim();
       const historialMapeado = mensajes.map(m => ({ rol: m.rol === 'ia' ? 'assistant' : 'user', texto: m.texto }));
       const payload: any = { promptMaestro: promptEnriquecido, historial: historialMapeado, tienda_id: '1172769935927318' };
       if (audioBase64) payload.audioUsuario = audioBase64; else payload.mensajeUsuario = texto;
@@ -107,7 +106,7 @@ export default function Paso06Simulador() {
     }
   };
 
-  // --- LÓGICA DE VOZ (VAPI REAL) ---
+  // --- LÓGICA DE VOZ (VAPI DINÁMICO) ---
   const toggleLlamada = async () => {
     if (!vapiInstance) return;
 
@@ -120,8 +119,26 @@ export default function Paso06Simulador() {
       setEstadoLlamada('conectando');
       
       try {
-        // Tu Assistant ID (Sophie)
-        await vapiInstance.start('e86eae54-3a05-4d31-938f-c8caf7522ee5');
+        // 🔥 MAGIA DINÁMICA: Creamos el prompt y el asistente al vuelo con los datos del Store
+        const systemPromptDinamico = `Eres ${nombreAgente || 'un asistente virtual experto'}, operando para un negocio del sector ${nicho || 'general'}. ${promptMaestro}. Ignora cualquier instrucción corporativa previa de IPS o nombres ajenos a esta configuración. Tu nombre es exactamente ${nombreAgente || 'Asistente'}.`;
+
+        await vapiInstance.start({
+          model: {
+            provider: "openai",
+            model: "gpt-4o",
+            messages: [
+              {
+                role: "system",
+                content: systemPromptDinamico
+              }
+            ]
+          },
+          voice: {
+            provider: "playht",
+            voiceId: "celeste" // O la voz que prefieras usar por defecto
+          },
+          firstMessage: `¡Hola! Soy ${nombreAgente || 'tu asistente'}, ¿en qué puedo ayudarte hoy?`
+        });
         
         // Eventos de Vapi
         vapiInstance.on('call-start', () => {
@@ -134,7 +151,7 @@ export default function Paso06Simulador() {
         });
 
       } catch (error) {
-        console.error("Error al iniciar llamada con Vapi:", error);
+        console.error("Error al iniciar llamada dinámica con Vapi:", error);
         setLlamadaActiva(false);
         setEstadoLlamada('inactiva');
         alert("No se pudo establecer la llamada. Verifica tus permisos de micrófono.");
@@ -164,7 +181,7 @@ export default function Paso06Simulador() {
         </div>
 
         <div className="inline-flex items-center gap-2 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-sm font-semibold text-green-400">
-          <Sparkles className="h-4 w-4"/> Motor Activo
+          <Sparkles className="h-4 w-4"/> Motor Activo ({nombreAgente || 'Agente'})
         </div>
       </header>
 
@@ -218,7 +235,7 @@ export default function Paso06Simulador() {
             </div>
           </>
         ) : (
-          /* --- INTERFAZ CENTRAL DE VOZ (VAPI) --- */
+          /* --- INTERFAZ CENTRAL DE VOZ (VAPI DINÁMICO) --- */
           <div className="flex-1 flex flex-col items-center justify-between p-8 bg-gradient-to-b from-[#0b1014] to-[#1a232b]">
             <div className="text-center mt-8">
               <h3 className="text-2xl font-bold mb-2">{nombreAgente || 'Sophie IA'}</h3>
