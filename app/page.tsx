@@ -347,6 +347,124 @@ export default function Home() {
       </section>
 
       {/* ========================================== */}
+      {/* EL EMPLEADO DIGITAL (NUEVAS VENTAJAS B2B) */}
+      {/* ========================================== */}
+      <section id="ventajas" className="relative py-32 bg-[#0A0E14] border-t border-white/5 overflow-hidden">
+        {/* Glow de fondo */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#00D1FF]/5 rounded-full blur-[120px] pointer-events-none"></div>
+        
+        <div className="relative z-10 max-w-[95rem] mx-auto px-6 lg:px-12">
+          
+          <div className="text-center max-w-4xl mx-auto mb-20">
+            <div className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-1.5 text-xs font-bold text-red-400 mb-6 tracking-widest uppercase">
+              Tu empresa merece algo más que un chatbot
+            </div>
+            <h2 className="text-4xl md:text-6xl font-display font-bold text-white mb-8 tracking-tight leading-[1.1]">
+              No es un bot de respuestas. <br className="hidden lg:block"/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00D1FF] to-blue-500">Es tu Empleado Digital.</span>
+            </h2>
+            <p className="text-xl text-slate-300 font-medium tracking-wide">
+              Habla. Escucha. Entiende. Atiende. Ejecuta.
+            </p>
+            <p className="mt-4 text-slate-400 text-lg leading-relaxed max-w-3xl mx-auto">
+              Una IA conversacional diseñada para trabajar junto a tu empresa 24/7, atender clientes, gestionar solicitudes y ejecutar procesos con precisión milimétrica.
+            </p>
+          </div>
+
+          {/* BENTO GRID DE CARACTERÍSTICAS */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            
+            {/* 1. EL PROTAGONISTA: LA VOZ Y LA INTERRUPCIÓN (Ocupa 2 columnas) */}
+            <div className="md:col-span-2 rounded-[32px] border border-[#00D1FF]/30 bg-gradient-to-br from-[#00D1FF]/10 to-transparent p-8 md:p-12 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-40 transition-opacity">
+                <svg className="w-32 h-32 text-[#00D1FF]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+              </div>
+              <div className="relative z-10">
+                <div className="inline-block px-3 py-1 bg-[#00D1FF]/20 border border-[#00D1FF]/30 text-[#00D1FF] rounded-lg text-xs font-bold font-mono mb-6">🎙️ TECNOLOGÍA DE VOZ AUTÓNOMA</div>
+                <h3 className="text-3xl font-display font-bold text-white mb-4">También puede hablar (y escuchar)</h3>
+                <p className="text-slate-300 text-lg leading-relaxed mb-6 max-w-xl">
+                  Tu cliente llama. Tu Empleado Digital responde con una <strong>voz colombiana natural</strong> y una experiencia conversacional fluida. Cero menús robóticos.
+                </p>
+                
+                {/* El super diferenciador */}
+                <div className="bg-black/40 border border-white/10 rounded-2xl p-5 backdrop-blur-md max-w-xl border-l-4 border-l-[#00D1FF]">
+                  <p className="text-sm font-bold text-white mb-2 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#00D1FF] animate-pulse"></span>
+                    Interrupción Inteligente (Barge-in)
+                  </p>
+                  <p className="text-sm text-slate-400 leading-relaxed">
+                    Si el agente está hablando y el cliente lo interrumpe, <strong>la IA se calla inmediatamente, escucha el nuevo contexto y adapta su respuesta al instante.</strong> Una experiencia diseñada para sentirse idéntica a hablar con un humano real.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. CONTEXTO Y NOTAS DE VOZ */}
+            <div className="rounded-[32px] border border-white/10 bg-white/[0.02] p-8 hover:bg-white/[0.04] transition-all flex flex-col justify-center">
+              <div className="h-14 w-14 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-6 border border-purple-500/20">
+                <span className="text-2xl">🧠</span>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-3">Entiende el Contexto</h3>
+              <p className="text-sm text-slate-400 leading-relaxed mb-6">
+                No se trata solo de responder mensajes. Mantiene el hilo de la conversación y utiliza la información previa para ofrecer respuestas relevantes.
+              </p>
+              <h4 className="font-bold text-white mb-2 text-sm">Escucha Audios</h4>
+              <p className="text-sm text-slate-400 leading-relaxed">
+                Tus clientes no tienen que escribir. El sistema procesa notas de voz kilométricas, las entiende y continúa la conversación con total naturalidad.
+              </p>
+            </div>
+
+            {/* 3. CONVERSACIONES FLUIDAS */}
+            <div className="rounded-[32px] border border-white/10 bg-white/[0.02] p-8 hover:bg-white/[0.04] transition-all">
+              <div className="h-14 w-14 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6 border border-blue-500/20">
+                <span className="text-2xl">💬</span>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-3">Conversaciones Fluidas</h3>
+              <p className="text-sm text-slate-400 leading-relaxed">
+                Olvídate de los menús rígidos y las reglas mecánicas. Tu Empleado Digital responde de forma natural para ofrecer una experiencia cercana, rápida y altamente personalizada por WhatsApp o Web.
+              </p>
+            </div>
+
+            {/* 4. LA LISTA DE TRABAJO (Ocupa 2 columnas) */}
+            <div className="md:col-span-2 rounded-[32px] border border-white/10 bg-white/[0.02] p-8 hover:bg-white/[0.04] transition-all">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="h-14 w-14 rounded-2xl bg-[#00D1FF]/10 flex items-center justify-center border border-[#00D1FF]/20">
+                  <span className="text-2xl">🤖</span>
+                </div>
+                <h3 className="text-2xl font-display font-bold text-white">Más que responder: Trabaja</h3>
+              </div>
+              
+              <div className="grid sm:grid-cols-2 gap-y-4 gap-x-8 mt-6">
+                {[
+                  "Atender clientes 24/7 sin descanso",
+                  "Consultar catálogo e inventario en tiempo real",
+                  "Gestionar reservas y agenda (Calendario)",
+                  "Integrarse con pasarelas de pago y sistemas",
+                  "Tomar pedidos y automatizar ventas",
+                  "Transferir a un asesor humano cuando sea necesario"
+                ].map((task, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <div className="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-[#00D1FF]/20 flex items-center justify-center border border-[#00D1FF]/40">
+                      <svg className="w-3 h-3 text-[#00D1FF]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                    </div>
+                    <p className="text-sm text-slate-300">{task}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+
+          <div className="mt-16 text-center">
+            <p className="text-lg text-slate-400 max-w-2xl mx-auto font-medium">
+              Mientras tu equipo se concentra en tareas de alto valor que requieren intervención humana real, tu <strong className="text-white">Empleado Digital</strong> se encarga del 80% de la operación automatizable.
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ========================================== */}
       {/* SECCIÓN DE PRECIOS Y TRANSPARENCIA */}
       {/* ========================================== */}
       <section id="planes" className="relative z-20 py-24 bg-gradient-to-b from-[#0A0E14] to-[#03050a]">
@@ -368,6 +486,8 @@ export default function Home() {
 
           {/* 🛡️ TRANSPARENCIA UPWAY Y GARANTÍA */}
           <div className="max-w-5xl mx-auto mb-16 grid md:grid-cols-2 gap-6">
+            
+            {/* Tarjeta 1: Claridad */}
             <div className="bg-white/[0.02] border border-white/10 rounded-3xl p-8 backdrop-blur-sm">
               <h3 className="font-display font-bold text-xl text-white mb-6 flex items-center gap-3">
                 <span className="w-8 h-8 rounded-full bg-[#00D1FF]/10 flex items-center justify-center text-[#00D1FF]">⚖️</span>
@@ -380,19 +500,27 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="bg-[#00D1FF]/5 border border-[#00D1FF]/20 rounded-3xl p-8 backdrop-blur-sm shadow-[0_0_30px_rgba(0,209,255,0.05)]">
-              <h3 className="font-display font-bold text-xl text-white mb-6 flex items-center gap-3">
-                <ShieldCheck className="h-8 w-8 text-[#00D1FF]" />
-                Garantía de Funcionamiento
-              </h3>
-              <p className="font-body text-sm text-slate-300 mb-4 leading-relaxed">
-                Nos comprometemos a que tu empleado digital esté disponible el 99.5% del tiempo mensual. Si por un fallo técnico de nuestra plataforma el servicio se interrumpe por más de 4 horas continuas, <strong>te acreditamos el 10% de tu mensualidad</strong> en tu próxima factura. 
-              </p>
-              <p className="font-body text-sm text-slate-300 leading-relaxed">
-                Si el servicio está caído por más de 24 horas continuas, te acreditamos el 50%. La implementación es un servicio de ingeniería dedicado y no tiene devolución.
-              </p>
+            {/* Tarjeta 2: Garantía con Exclusiones */}
+            <div className="bg-[#00D1FF]/5 border border-[#00D1FF]/20 rounded-3xl p-8 backdrop-blur-sm shadow-[0_0_30px_rgba(0,209,255,0.05)] flex flex-col justify-between">
+              <div>
+                <h3 className="font-display font-bold text-xl text-white mb-4 flex items-center gap-3">
+                  <ShieldCheck className="h-8 w-8 text-[#00D1FF]" />
+                  Garantía de Funcionamiento
+                </h3>
+                <p className="font-body text-[13px] text-slate-300 mb-4 leading-relaxed">
+                  Garantizamos un uptime del 99.5%. Si por un fallo <strong>exclusivo de nuestra infraestructura</strong> el servicio se interrumpe por más de 4 horas continuas, te acreditamos el 10% de tu mensualidad (50% si supera las 24 horas).
+                </p>
+              </div>
+              
+              <div className="bg-black/30 border border-white/5 rounded-xl p-4 mt-2">
+                <p className="font-body text-[11px] text-slate-400 leading-relaxed">
+                  <strong className="text-white/80">Exclusiones:</strong> No aplica por mantenimientos programados, fallos de tu conectividad, bloqueos por mal uso, ni por caídas de plataformas de terceros (Meta, WhatsApp, Vapi, Bold, Nequi). La implementación es un servicio dedicado y no es reembolsable.
+                </p>
+              </div>
             </div>
+
           </div>
+          {/* AQUI TERMINA EL BLOQUE DE TRANSPARENCIA Y GARANTÍA */}
 
           {/* TOGGLE DE PAGO */}
           <div className="mb-12 max-w-3xl mx-auto">
@@ -609,8 +737,9 @@ export default function Home() {
           </div>
 
           <div className="flex gap-8 text-[11px] font-mono tracking-widest text-white/40">
-            <Link href="/terminos" className="hover:text-[#00D1FF] transition-colors uppercase">Términos de Servicio</Link>
-            <Link href="/terminos" className="hover:text-[#00D1FF] transition-colors uppercase">Privacidad (Ley 1581)</Link>
+            <a href="/terminos" className="hover:text-[#00D1FF] transition-colors uppercase">Términos de Servicio</a>
+            {/* Como la Ley 1581 está en el numeral 04 de los términos, lo enviamos allí mismo por ahora */}
+            <a href="/terminos" className="hover:text-[#00D1FF] transition-colors uppercase">Privacidad (Ley 1581)</a>
           </div>
 
           <p className="text-[10px] font-mono text-white/30">© 2026 UPWAY BUSINESS. ALL RIGHTS RESERVED.</p>
