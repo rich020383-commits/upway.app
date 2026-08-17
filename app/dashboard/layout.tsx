@@ -1,16 +1,33 @@
 "use client";
 
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Package, Bot, Sparkles, UserCircle } from 'lucide-react';
 import LogoutButton from '@/components/LogoutButton'; 
 import { usePathname } from 'next/navigation';
+import { getSession } from 'next-auth/react'; // 🔥 Importamos getSession
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  // 🚀 BYPASS MAESTRO: Cero NextAuth, cero base de datos.
-  const session = { user: { name: "Revisor Meta" } };
-  
   const pathname = usePathname();
   const isOnboarding = pathname.includes('/onboarding');
+  
+  // Estado para guardar el nombre real del usuario
+  const [userName, setUserName] = useState<string>("Cargando...");
+
+  useEffect(() => {
+    // Obtenemos la sesión real
+    getSession().then((session) => {
+      if (session?.user?.name) {
+        setUserName(session.user.name);
+      } else if (session?.user?.email) {
+        // Si no tiene nombre registrado, le mostramos la primera parte del correo
+        setUserName(session.user.email.split('@')[0]);
+      } else {
+        // Fallback por si acaso entran sin sesión en modo desarrollo
+        setUserName("Usuario Upway");
+      }
+    });
+  }, []);
 
   return (
     // Fondo oscuro Enterprise Luxury unificado
@@ -40,14 +57,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link href="/dashboard/inventario" className="flex items-center gap-2 transition-colors hover:text-[#19C8E8]">
                 <Package className="h-4 w-4" /> Cerebro RAG
               </Link>
-              {/* Quité WhatsApp de aquí porque ahora se hace todo desde el Centro de Mando */}
             </nav>
 
-            {/* USUARIO Y CERRAR SESIÓN */}
+            {/* USUARIO REAL Y CERRAR SESIÓN */}
             <div className="flex items-center gap-4">
               <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#1E293B] bg-[#0D1117]">
                 <UserCircle className="h-4 w-4 text-[#8994A6]" />
-                <span className="text-xs font-medium text-[#8994A6]">{session.user.name}</span>
+                <span className="text-xs font-medium text-[#F5F7FA] capitalize">{userName}</span>
               </div>
               <LogoutButton />
             </div>
