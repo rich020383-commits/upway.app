@@ -920,3 +920,4 @@ export default function AgentesBotPage() {
       </div>
     </div>
   );
+}
