@@ -515,7 +515,7 @@ export default function Home() {
               
               <div className="bg-black/30 border border-white/5 rounded-xl p-4 mt-2">
                 <p className="font-body text-[11px] text-slate-400 leading-relaxed">
-                  <strong className="text-white/80">Exclusiones:</strong> No aplica por mantenimientos programados, fallos de tu conectividad, bloqueos por mal uso, ni por caídas de plataformas de terceros (Meta, WhatsApp, Vapi, Bold, Nequi). La implementación es un servicio dedicado y no es reembolsable.
+                  <strong className="text-white/80">Exclusiones:</strong> No aplica por mantenimientos programados, fallos de tu conectividad, bloqueos por mal uso, ni por caídas de plataformas de terceros (Meta, WhatsApp, Bold, Nequi, Etc). La implementación es un servicio dedicado y no es reembolsable.
                 </p>
               </div>
             </div>
