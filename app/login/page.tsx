@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { Mail, Lock, Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
@@ -15,7 +16,6 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validaciones básicas de frontend
     if (!email || !password) {
       setError('Por favor, completa todos los campos.');
       return;
@@ -25,23 +25,18 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      // 🚀 Llamada a nuestra nueva API real de Login
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+      // 🚀 Autenticación unificada con NextAuth (Soporta credenciales y al Revisor de Meta)
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
       });
 
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        // Login exitoso: Redirigimos al Onboarding o Dashboard
-        // Por esto:
-router.push('/dashboard/onboarding/lienzo');
-      } else {
-        // Falló el login: Mostramos el mensaje exacto de la API
-        setError(data.message || 'Error de autenticación.');
+      if (result?.error) {
+        setError('Credenciales incorrectas. Verifica tu correo y contraseña.');
         setCargando(false);
+      } else if (result?.ok) {
+        router.push('/dashboard/onboarding/lienzo');
       }
     } catch (err) {
       console.error('Error en login:', err);
@@ -70,7 +65,7 @@ router.push('/dashboard/onboarding/lienzo');
         {/* Formulario */}
         <form onSubmit={handleLogin} className="bg-[#0A0E14]/80 backdrop-blur-xl border border-white/10 p-8 rounded-[32px] shadow-2xl">
           
-          <div className="space-y-5 mb-8">
+          <div className="space-y-5 mb-6">
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Correo Electrónico</label>
               <div className="relative">
@@ -79,7 +74,7 @@ router.push('/dashboard/onboarding/lienzo');
                   type="email" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="revisor@meta.com"
+                  placeholder="revisor_meta@upway.business"
                   className="w-full bg-[#121820] border border-white/5 focus:border-blue-500/50 rounded-2xl pl-12 pr-4 py-4 text-sm text-white placeholder-slate-600 outline-none transition-all shadow-inner"
                 />
               </div>
@@ -117,6 +112,28 @@ router.push('/dashboard/onboarding/lienzo');
             ) : (
               <>Iniciar Sesión <ArrowRight className="h-5 w-5" /></>
             )}
+          </button>
+
+          {/* Separador */}
+          <div className="relative flex py-6 items-center">
+            <div className="flex-grow border-t border-white/10"></div>
+            <span className="flex-shrink mx-4 text-xs text-slate-500 uppercase tracking-widest">o continúa con</span>
+            <div className="flex-grow border-t border-white/10"></div>
+          </div>
+
+          {/* Botón de Google OAuth */}
+          <button
+            type="button"
+            onClick={() => signIn("google", { callbackUrl: "/dashboard/onboarding/lienzo" })}
+            className="w-full flex items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 py-4 text-sm font-semibold text-white transition-all hover:bg-white/10 hover:border-white/20 shadow-lg"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24">
+              <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.1 8.9 5 12 5z" />
+              <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z" />
+              <path fill="#FBBC05" d="M5.3 14.7c-.2-.7-.3-1.5-.3-2.7s.1-2 .3-2.7L1.6 6.4C.6 8.4 0 10.6 0 13s.6 4.6 1.6 6.6l3.7-2.9z" />
+              <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5.3L1.6 15c1.9 3.8 5.8 8 10.4 8z" />
+            </svg>
+            Google Workspace / Calendar
           </button>
         </form>
 
