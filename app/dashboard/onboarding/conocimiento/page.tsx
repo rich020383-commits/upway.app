@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Database, ArrowRight, CheckCircle2, Server, ScanLine } from 'lucide-react';
+import { Database, ArrowRight, CheckCircle2, Server, ScanLine, FileText, Cpu } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function Paso04Conocimiento() {
@@ -11,11 +11,10 @@ export default function Paso04Conocimiento() {
   const [progreso, setProgreso] = useState(0);
   const [productosEscaneados, setProductosEscaneados] = useState(0);
 
-  // Efecto visual de escaneo de base de datos (CORREGIDO)
+  // Efecto visual de escaneo (Mantenemos tu excelente lógica matemática)
   useEffect(() => {
     if (!sincronizando) return;
 
-    // Si ya llegó a 100, detenemos todo y mostramos el éxito
     if (progreso >= 100) {
       const timer = setTimeout(() => {
         setSincronizando(false);
@@ -24,11 +23,10 @@ export default function Paso04Conocimiento() {
       return () => clearTimeout(timer);
     }
 
-    // Mientras no llegue a 100, seguimos sumando
     const intervalo = setInterval(() => {
       setProgreso(prev => {
         const nuevoAvance = prev + Math.floor(Math.random() * 15);
-        return nuevoAvance > 100 ? 100 : nuevoAvance; // Topamos en 100 para que no se pase
+        return nuevoAvance > 100 ? 100 : nuevoAvance; 
       });
       setProductosEscaneados(prev => prev + Math.floor(Math.random() * 5));
     }, 300);
@@ -44,81 +42,133 @@ export default function Paso04Conocimiento() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050508] text-white p-8 md:p-16 flex flex-col items-center relative overflow-hidden">
+    <main className="min-h-screen bg-[#07090C] text-[#F5F7FA] pb-32 font-sans selection:bg-[#19C8E8] selection:text-[#07090C]">
       
-      {/* Efecto de luz de fondo */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none"></div>
-
-      <header className="w-full max-w-2xl mb-12 relative z-10">
-        <button onClick={() => router.back()} className="text-sm text-slate-500 hover:text-white mb-6 transition-colors">← Volver</button>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-2xl">
-            <Database className="text-blue-400 h-6 w-6" />
-          </div>
-          <h1 className="text-3xl font-bold">Conecta tu Inventario</h1>
-        </div>
-        <p className="text-slate-400">Enlazaremos el cerebro de la IA directamente con tu base de datos actual para que ofrezca productos y precios reales (RAG).</p>
-      </header>
-
-      <div className="w-full max-w-2xl bg-[#0b1014]/80 border border-white/5 p-12 rounded-[32px] backdrop-blur-2xl text-center shadow-2xl relative z-10">
+      <div className="max-w-4xl mx-auto px-6 pt-12 md:pt-20">
         
-        <div className="flex justify-center mb-8">
-          <div className={`relative p-8 rounded-full transition-all duration-700 ${completado ? 'bg-green-500/10 shadow-[0_0_50px_rgba(34,197,94,0.2)]' : 'bg-blue-500/5 border border-blue-500/20'}`}>
-            {sincronizando ? (
-              <ScanLine className="h-14 w-14 text-blue-400 animate-pulse" />
-            ) : completado ? (
-              <CheckCircle2 className="h-14 w-14 text-green-400" />
-            ) : (
-              <Server className="h-14 w-14 text-blue-400" />
-            )}
+        {/* Barra de progreso / Narrativa */}
+        <div className="mb-12">
+          <div className="flex items-center gap-3 text-[#8994A6] text-xs font-semibold tracking-widest uppercase mb-6">
+            <span>Configuración de tu agente</span>
+            <span className="w-1 h-1 rounded-full bg-[#8994A6]"></span>
+            <span className="text-[#F5F7FA]">04 / 05</span>
           </div>
+          
+          <div className="flex gap-2 mb-10">
+            <div className="h-1 flex-1 bg-[#19C8E8] rounded-full"></div>
+            <div className="h-1 flex-1 bg-[#19C8E8] rounded-full"></div>
+            <div className="h-1 flex-1 bg-[#19C8E8] rounded-full"></div>
+            <div className="h-1 flex-1 bg-[#19C8E8] rounded-full"></div>
+            <div className="h-1 flex-1 bg-[#1E293B] rounded-full"></div>
+          </div>
+
+          <div className="flex items-center gap-3 mb-3">
+            <Database className="text-[#19C8E8] h-8 w-8" />
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Cerebro de Datos (RAG)</h1>
+          </div>
+          <p className="text-[#8994A6] text-lg max-w-2xl">
+            Conectaremos tu inventario y reglas de negocio para que tu asistente ofrezca respuestas basadas en datos reales y actualizados.
+          </p>
         </div>
 
-        <h2 className="text-2xl font-bold mb-3 text-white">
-          {sincronizando ? 'Vectorizando catálogo...' : completado ? '¡Base de Datos Enlazada!' : 'Base de datos detectada'}
-        </h2>
-        
-        <p className="text-slate-400 mb-8 h-6">
-          {sincronizando ? (
-            <span className="text-blue-400 font-mono text-sm tracking-wider">INDEXANDO {productosEscaneados} PRODUCTOS...</span>
-          ) : completado ? (
-            'Tu IA ya sabe qué vender y a qué precio exacto.'
-          ) : (
-            'El sistema está listo para importar tus catálogos activos.'
-          )}
-        </p>
+        {/* Tarjeta Principal de Sincronización */}
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-10 relative overflow-hidden">
+            
+            {/* Background pattern sutil */}
+            <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#F5F7FA 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
 
-        {/* BARRA DE PROGRESO */}
-        {sincronizando && (
-          <div className="w-full bg-slate-900 rounded-full h-2.5 mb-8 border border-white/5 overflow-hidden">
-            <div 
-              className="bg-gradient-to-r from-blue-600 to-cyan-400 h-2.5 rounded-full transition-all duration-300 ease-out relative" 
-              style={{ width: `${progreso}%` }}
-            >
-              <div className="absolute top-0 right-0 bottom-0 left-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 animate-pulse"></div>
+            <div className="relative z-10 flex flex-col items-center text-center">
+              
+              {/* Icono de estado */}
+              <div className="mb-8">
+                <div className={`p-5 rounded-2xl transition-all duration-500 border ${
+                  completado 
+                    ? 'bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]' 
+                    : sincronizando 
+                      ? 'bg-[#19C8E8]/10 border-[#19C8E8]/30 text-[#19C8E8]' 
+                      : 'bg-[#1E293B]/50 border-[#1E293B] text-[#8994A6]'
+                }`}>
+                  {sincronizando ? (
+                    <ScanLine className="h-10 w-10 animate-pulse" />
+                  ) : completado ? (
+                    <CheckCircle2 className="h-10 w-10" />
+                  ) : (
+                    <Server className="h-10 w-10" />
+                  )}
+                </div>
+              </div>
+
+              {/* Textos de estado */}
+              <h2 className="text-2xl font-bold mb-3 text-[#F5F7FA]">
+                {sincronizando ? 'Vectorizando catálogo...' : completado ? 'Base de Datos Enlazada' : 'Sistema de Archivos Listo'}
+              </h2>
+              
+              <div className="h-6 mb-10">
+                {sincronizando ? (
+                  <div className="flex items-center justify-center gap-2 text-[#19C8E8] font-mono text-xs uppercase tracking-widest">
+                    <Cpu size={14} className="animate-spin" />
+                    <span>Indexando {productosEscaneados} registros...</span>
+                  </div>
+                ) : completado ? (
+                  <p className="text-[#8994A6] text-sm">Tu IA ya cuenta con memoria institucional activa.</p>
+                ) : (
+                  <p className="text-[#8994A6] text-sm">Inicia la ingesta de datos para entrenar a tu asistente.</p>
+                )}
+              </div>
+
+              {/* UI de Progreso (Sleek) */}
+              {sincronizando && (
+                <div className="w-full max-w-md mx-auto mb-8">
+                  <div className="flex justify-between text-xs font-mono text-[#8994A6] mb-2">
+                    <span>Sincronizando</span>
+                    <span className="text-[#19C8E8]">{progreso}%</span>
+                  </div>
+                  <div className="w-full bg-[#07090C] rounded-full h-1.5 border border-[#1E293B] overflow-hidden">
+                    <div 
+                      className="bg-[#19C8E8] h-1.5 rounded-full transition-all duration-300 ease-out shadow-[0_0_10px_rgba(25,200,232,0.5)]" 
+                      style={{ width: `${progreso}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+
+              {/* Botón de Acción Inicial */}
+              {!completado && !sincronizando && (
+                <button 
+                  onClick={handleSincronizar}
+                  className="bg-[#F5F7FA] text-[#07090C] px-8 py-3.5 rounded-xl font-bold hover:bg-[#E2E8F0] transition-all flex items-center justify-center gap-2 w-full max-w-sm mx-auto shadow-lg"
+                >
+                  <FileText size={18} /> Iniciar Ingesta de Datos
+                </button>
+              )}
+
             </div>
           </div>
-        )}
+        </div>
 
-        {!completado && !sincronizando && (
+      </div>
+
+      {/* Barra Inferior Persistente */}
+      <div className="fixed bottom-0 left-0 right-0 bg-[#07090C]/80 backdrop-blur-xl border-t border-[#1E293B] p-6 z-50">
+        <div className="max-w-4xl mx-auto flex justify-between items-center">
+          <div>
+            <p className="text-[#8994A6] text-xs font-semibold uppercase tracking-wider mb-1">
+              Paso 4 completado
+            </p>
+            <p className="text-lg font-bold text-[#F5F7FA]">
+              Memoria conectada
+            </p>
+          </div>
           <button 
-            onClick={handleSincronizar}
-            className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-blue-500 transition-all flex items-center justify-center gap-2 w-full max-w-sm mx-auto shadow-[0_0_30px_rgba(37,99,235,0.3)]"
+            onClick={() => router.push('/dashboard/onboarding/simulador')}
+            disabled={!completado}
+            className="bg-[#F5F7FA] text-[#07090C] px-8 py-3.5 rounded-xl font-bold hover:bg-[#E2E8F0] transition-colors disabled:opacity-20 flex items-center gap-2"
           >
-            Sincronizar Catálogo Ahora
+            Continuar al Simulador <ArrowRight size={18} />
           </button>
-        )}
+        </div>
       </div>
-
-      <div className="fixed bottom-0 w-full bg-[#050508]/90 backdrop-blur-xl border-t border-white/5 p-6 flex justify-center items-center z-50">
-        <button 
-          onClick={() => router.push('/dashboard/onboarding/simulador')}
-          disabled={!completado}
-          className="bg-white text-black px-12 py-4 rounded-full font-bold hover:scale-105 transition-all disabled:opacity-30 disabled:hover:scale-100 flex items-center gap-3"
-        >
-          Ir al Simulador de Prueba <ArrowRight size={20} />
-        </button>
-      </div>
-    </div>
+    </main>
   );
 }

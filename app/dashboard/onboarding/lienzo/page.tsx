@@ -2,24 +2,52 @@
 
 import React, { useMemo } from 'react';
 import { MessageCircleMore, Headphones, CalendarDays, BarChart3, Sparkles, ArrowRight, Check } from 'lucide-react';
-import { useUpwayStore } from '../../../store/upwayStore';
+import { useUpwayStore } from '../../../store/upwayStore'; // Ajusta la ruta si es necesario
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
 
-export default function Paso02Lienzo() {
+export default function Paso01Infraestructura() {
   const router = useRouter();
   const { modulosSeleccionados, toggleModulo } = useUpwayStore();
 
-  // Definición de precios reales (Estrategia High-Ticket)
+  // Módulos con descripciones enfocadas en el valor corporativo
   const modulos = [
-    { id: 'whatsapp', titulo: 'WhatsApp IA (Texto)', precio: 399900, icon: <MessageCircleMore size={28} />, color: 'emerald' },
-    { id: 'voz', titulo: 'Central Telefónica (Voz)', precio: 599900, icon: <Headphones size={28} />, color: 'cyan' },
-    { id: 'calendario', titulo: 'Agenda Inteligente', precio: 39000, icon: <CalendarDays size={28} />, color: 'purple' },
-    { id: 'analitica', titulo: 'Analítica Avanzada', precio: 19000, icon: <BarChart3 size={28} />, color: 'blue' },
-    { id: 'rag', titulo: 'Cerebro RAG (Omnicanal)', precio: 0, icon: <Sparkles size={28} />, color: 'amber' },
+    { 
+      id: 'whatsapp', 
+      titulo: 'WhatsApp IA', 
+      descripcion: 'Atiende conversaciones, califica leads y vende automáticamente 24/7.',
+      precio: 399900, 
+      icon: <MessageCircleMore size={24} /> 
+    },
+    { 
+      id: 'voz', 
+      titulo: 'Central Telefónica', 
+      descripcion: 'Recibe y gestiona llamadas entrantes con voz hiperrealista.',
+      precio: 599900, 
+      icon: <Headphones size={24} /> 
+    },
+    { 
+      id: 'calendario', 
+      titulo: 'Agenda Inteligente', 
+      descripcion: 'Sincroniza tu disponibilidad y agenda citas en tiempo real.',
+      precio: 39000, 
+      icon: <CalendarDays size={24} /> 
+    },
+    { 
+      id: 'analitica', 
+      titulo: 'Analítica Avanzada', 
+      descripcion: 'Métricas de rendimiento, transcripciones e insights de clientes.',
+      precio: 19000, 
+      icon: <BarChart3 size={24} /> 
+    },
+    { 
+      id: 'rag', 
+      titulo: 'Cerebro Omnicanal', 
+      descripcion: 'Memoria compartida para respuestas precisas basadas en tus documentos.',
+      precio: 0, 
+      icon: <Sparkles size={24} /> 
+    },
   ];
 
-  // 🔥 CÁLCULO DINÁMICO: Sumamos los precios de los módulos seleccionados aquí mismo
   const totalMensual = useMemo(() => {
     return modulos.reduce((acc, curr) => {
       if (modulosSeleccionados.includes(curr.id)) {
@@ -32,68 +60,113 @@ export default function Paso02Lienzo() {
   const fmt = (n: number) => `$${n.toLocaleString("es-CO")}`;
 
   return (
-    <main className="min-h-screen bg-[#050508] text-white p-8 md:p-16 flex flex-col items-center pb-32">
+    <main className="min-h-screen bg-[#07090C] text-[#F5F7FA] pb-32 font-sans selection:bg-[#19C8E8] selection:text-[#07090C]">
       
-      <header className="w-full max-w-5xl mb-12">
-        <button onClick={() => router.back()} className="text-sm text-slate-500 hover:text-white mb-6 transition-colors">← Volver</button>
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">Arquitectura de tu Infraestructura</h1>
-        <p className="text-slate-400">Selecciona los módulos corporativos para automatizar tu organización.</p>
-      </header>
+      {/* Contenedor centralizado */}
+      <div className="max-w-4xl mx-auto px-6 pt-12 md:pt-20">
+        
+        {/* Barra de progreso / Narrativa */}
+        <div className="mb-12">
+          <div className="flex items-center gap-3 text-[#8994A6] text-xs font-semibold tracking-widest uppercase mb-6">
+            <span>Configuración de tu agente</span>
+            <span className="w-1 h-1 rounded-full bg-[#8994A6]"></span>
+            <span className="text-[#F5F7FA]">01 / 05</span>
+          </div>
+          
+          <div className="flex gap-2 mb-10">
+            <div className="h-1 flex-1 bg-[#19C8E8] rounded-full"></div>
+            <div className="h-1 flex-1 bg-[#1E293B] rounded-full"></div>
+            <div className="h-1 flex-1 bg-[#1E293B] rounded-full"></div>
+            <div className="h-1 flex-1 bg-[#1E293B] rounded-full"></div>
+            <div className="h-1 flex-1 bg-[#1E293B] rounded-full"></div>
+          </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl mb-12">
-        {modulos.map((m) => {
-          const seleccionado = modulosSeleccionados.includes(m.id);
-          const esGratis = m.precio === 0;
-
-          return (
-            <motion.button
-              key={m.id}
-              onClick={() => toggleModulo(m.id)}
-              whileTap={{ scale: 0.98 }}
-              className={`p-6 rounded-[28px] border transition-all duration-300 text-left relative overflow-hidden flex flex-col justify-between ${
-                seleccionado 
-                  ? 'border-cyan-500/50 bg-cyan-950/20 shadow-[0_0_30px_rgba(6,182,212,0.15)]' 
-                  : 'border-white/5 bg-white/[0.02] hover:border-white/10'
-              }`}
-            >
-              <div>
-                <div className="text-cyan-400 mb-4 bg-white/5 w-fit p-3 rounded-2xl border border-white/5">{m.icon}</div>
-                <h3 className="text-xl font-bold mb-1 text-white">{m.titulo}</h3>
-              </div>
-
-              <div>
-                <div className="text-2xl font-bold text-white mt-4">
-                  {esGratis ? <span className="text-emerald-400 text-lg font-mono">INCLUIDO (GRATIS)</span> : fmt(m.precio)}
-                  {!esGratis && <span className="text-xs font-normal text-slate-500">/mes</span>}
-                </div>
-              </div>
-              
-              {seleccionado && (
-                <div className="absolute top-4 right-4 bg-cyan-400 text-black p-1.5 rounded-full shadow-lg">
-                  <Check size={16} strokeWidth={3} />
-                </div>
-              )}
-            </motion.button>
-          );
-        })}
-      </div>
-
-      <div className="fixed bottom-0 left-0 right-0 bg-[#0A0E14]/90 backdrop-blur-2xl border-t border-white/10 p-6 flex justify-center items-center gap-10 z-50">
-        <div className="text-left">
-          <p className="text-slate-400 text-xs uppercase tracking-wider font-mono">Inversión mensual estimada</p>
-          <p className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300">
-            {fmt(totalMensual)}
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">Infraestructura</h1>
+          <p className="text-[#8994A6] text-lg max-w-2xl">
+            Selecciona los canales donde operará tu asistente y las capacidades cognitivas que tendrá activas desde el primer día.
           </p>
         </div>
-        <button 
-          onClick={() => router.push('/dashboard/onboarding/tonalidad')}
-          disabled={totalMensual === 0}
-          className="bg-[#00D1FF] text-black px-8 py-4 rounded-2xl font-bold hover:bg-[#33DDFF] transition-all flex items-center gap-2 shadow-[0_0_25px_rgba(0,209,255,0.4)] disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <span>Continuar configuración</span> 
-          <ArrowRight size={20} />
-        </button>
+
+        {/* Grid de Módulos (Diseño Compacto y Elegante) */}
+        <div className="grid md:grid-cols-2 gap-5">
+          {modulos.map((m) => {
+            const seleccionado = modulosSeleccionados.includes(m.id);
+            const esGratis = m.precio === 0;
+
+            return (
+              <div
+                key={m.id}
+                onClick={() => toggleModulo(m.id)}
+                className={`group cursor-pointer rounded-2xl p-6 border transition-all duration-200 flex flex-col justify-between ${
+                  seleccionado 
+                    ? 'bg-[#121821] border-[#19C8E8]' 
+                    : 'bg-[#0D1117] border-[#1E293B] hover:border-[#8994A6]/50'
+                }`}
+              >
+                {/* Cabecera de la tarjeta */}
+                <div className="flex items-start gap-4 mb-6">
+                  <div className={`p-3 rounded-xl transition-colors ${
+                    seleccionado 
+                      ? 'bg-[#19C8E8]/10 text-[#19C8E8]' 
+                      : 'bg-[#1E293B]/50 text-[#8994A6] group-hover:text-[#F5F7FA]'
+                  }`}>
+                    {m.icon}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-[#F5F7FA] mb-1">{m.titulo}</h3>
+                    <p className="text-[#8994A6] text-sm leading-relaxed">{m.descripcion}</p>
+                  </div>
+                </div>
+
+                {/* Footer de la tarjeta (Precio y Acción) */}
+                <div className="flex items-center justify-between pt-4 border-t border-[#1E293B]/50">
+                  <div className="text-[#F5F7FA] font-medium">
+                    {esGratis ? (
+                      <span className="text-[#8994A6] text-sm">Incluido</span>
+                    ) : (
+                      <span>{fmt(m.precio)} <span className="text-[#8994A6] text-sm font-normal">/ mes</span></span>
+                    )}
+                  </div>
+                  
+                  <div className={`text-sm font-semibold px-4 py-2 rounded-lg transition-all flex items-center gap-2 ${
+                    seleccionado 
+                      ? 'text-[#19C8E8]' 
+                      : 'text-[#8994A6] bg-[#1E293B]/30 group-hover:bg-[#1E293B]'
+                  }`}>
+                    {seleccionado ? (
+                      <><Check size={16} strokeWidth={3} /> Activado</>
+                    ) : (
+                      'Activar'
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
+
+      {/* Barra Inferior Persistente (Clear CTA) */}
+      <div className="fixed bottom-0 left-0 right-0 bg-[#07090C]/80 backdrop-blur-xl border-t border-[#1E293B] p-6 z-50">
+        <div className="max-w-4xl mx-auto flex justify-between items-center">
+          <div>
+            <p className="text-[#8994A6] text-xs font-semibold uppercase tracking-wider mb-1">
+              Inversión mensual
+            </p>
+            <p className="text-3xl md:text-4xl font-bold text-[#F5F7FA]">
+              {fmt(totalMensual)}
+            </p>
+          </div>
+          <button 
+            onClick={() => router.push('/dashboard/onboarding/tonalidad')} // Ajusta la ruta al Paso 02 si es diferente
+            disabled={totalMensual === 0}
+            className="bg-[#F5F7FA] text-[#07090C] px-8 py-3.5 rounded-xl font-bold hover:bg-[#E2E8F0] transition-colors disabled:opacity-20 flex items-center gap-2"
+          >
+            Continuar <ArrowRight size={18} />
+          </button>
+        </div>
+      </div>
+
     </main>
   );
 }

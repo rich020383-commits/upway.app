@@ -64,7 +64,6 @@ export default function LoginPage() {
 
         {/* Formulario */}
         <form onSubmit={handleLogin} className="bg-[#0A0E14]/80 backdrop-blur-xl border border-white/10 p-8 rounded-[32px] shadow-2xl">
-          
           <div className="space-y-5 mb-6">
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Correo Electrónico</label>
@@ -133,9 +132,9 @@ export default function LoginPage() {
               <path fill="#FBBC05" d="M5.3 14.7c-.2-.7-.3-1.5-.3-2.7s.1-2 .3-2.7L1.6 6.4C.6 8.4 0 10.6 0 13s.6 4.6 1.6 6.6l3.7-2.9z" />
               <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5.3L1.6 15c1.9 3.8 5.8 8 10.4 8z" />
             </svg>
-            Google Workspace / Calendar
+            Continuar con Google
           </button>
-        </form>
+        </form> {/* 🔥 AQUÍ CERRAMOS EL FORMULARIO CORRECTAMENTE 🔥 */}
 
         <div className="mt-8 text-center">
           <p className="text-sm text-slate-500">

@@ -3,23 +3,23 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Bot, MessageCircleMore, MessageSquare, Sparkles, ShieldCheck, ArrowRight, Send, Signal, 
+  Bot, MessageCircleMore, MessageSquare, Sparkles, ShieldCheck, ArrowRight, Signal, 
   Wifi, Battery, Store, Mic, Square, Phone, ArrowLeft, Headphones, UploadCloud, 
-  Loader2, Zap, RefreshCw, Power, Clock, BookOpen, AtSign, Rocket, Activity, CheckCircle2 
+  Loader2, Zap, RefreshCw, Power, Clock, BookOpen, AtSign, Rocket, Activity, Send, TerminalSquare,Server
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { getSession } from 'next-auth/react'; 
-import { useUpwayStore } from '../../store/upwayStore'; // Conectamos tu store local
+import { getSession, signIn } from 'next-auth/react'; 
+import { useUpwayStore } from '../../store/upwayStore'; 
 import Link from 'next/link';
 
 export default function AgentesBotPage() {
   const router = useRouter();
   
-  // 🚀 ESTADO MAESTRO (EL HUB AHORA INICIA EN EL DASHBOARD PREMIUM)
+  // 🚀 ESTADO MAESTRO
   const [servicioActivo, setServicioActivo] = useState<'dashboard' | 'hub' | 'whatsapp' | 'voz'>('dashboard');
 
-  const { nombreAgente: nombreStore } = useUpwayStore(); // Nombre del agente desde el Onboarding
-  const [iaActiva, setIaActiva] = useState(true); // Estado del Botón de pánico del Dashboard
+  const { nombreAgente: nombreStore } = useUpwayStore();
+  const [iaActiva, setIaActiva] = useState(true); 
   
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
@@ -31,26 +31,26 @@ export default function AgentesBotPage() {
     });
   }, []);
 
-  // ESTADOS DE TUS FORMULARIOS Y LÓGICA ORIGINAL
+  // ESTADOS DE FORMULARIOS Y LÓGICA
   const [nombreAgente, setNombreAgente] = useState('');
   const [nicho, setNicho] = useState('general'); 
   const [promptMaestro, setPromptMaestro] = useState('');
   const [guardando, setGuardando] = useState(false);
   
-  const [mostrarPlanes, setMostrarPlanes] = useState(false);
   const [procesandoPago, setProcesandoPago] = useState(false);
   
-  // Estados para el Simulador WhatsApp
+  // Estados Simulador WhatsApp
   const [mensajePrueba, setMensajePrueba] = useState('');
   const [historialChat, setHistorialChat] = useState<{rol: string, texto: string}[]>([]);
   const [cargandoPrueba, setCargandoPrueba] = useState(false);
   
-  // Estados para el Audio
+  // Estados Audio
   const [isRecording, setIsRecording] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
-  // Estados para el Simulador de Voz (VAPI)
+  // Estados Simulador Voz (VAPI)
   const [vozSeleccionada, setVozSeleccionada] = useState('femenina_estrella'); 
   const [creandoVoz, setCreandoVoz] = useState(false);
 
@@ -64,7 +64,7 @@ export default function AgentesBotPage() {
   }, [historialChat, cargandoPrueba, isRecording, servicioActivo]);
 
   // ==========================================
-  // 🔥 LÓGICA BACKEND ORIGINAL INTACTA
+  // 🔥 LÓGICA BACKEND INTACTA
   // ==========================================
   const guardarConfiguracion = async () => {
     if (!nombreAgente || !promptMaestro) {
@@ -128,34 +128,6 @@ export default function AgentesBotPage() {
       alert('Error de conexión con el servidor.');
     } finally {
       setCreandoVoz(false);
-    }
-  };
-
-  const iniciarPago = async (plan: string, precio: number) => {
-    setProcesandoPago(true);
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plan: plan,
-          precio: precio,
-          descripcion: `Suscripción Upway - ${plan}`
-        })
-      });
-
-      const data = await res.json();
-      
-      if (data.payment_url) {
-        window.location.href = data.payment_url; 
-      } else {
-        alert("Hubo un error al generar el link de pago. Revisa tu backend de Bold.");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      alert("Error de conexión con la pasarela de pagos.");
-    } finally {
-      setProcesandoPago(false);
     }
   };
 
@@ -277,58 +249,54 @@ export default function AgentesBotPage() {
   // ==========================================
   if (servicioActivo === 'hub') {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.15),_transparent_55%)] bg-slate-950 px-4 py-16 text-white sm:px-6 lg:px-8 flex flex-col items-center justify-center">
-        <button onClick={() => setServicioActivo('dashboard')} className="absolute top-8 left-8 flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors z-50">
-          <ArrowLeft className="w-4 h-4" /> Volver al Tablero
+      <div className="min-h-screen bg-[#07090C] px-4 py-16 text-[#F5F7FA] sm:px-6 lg:px-8 flex flex-col items-center justify-center relative font-sans">
+        <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#F5F7FA 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
+        
+        <button onClick={() => setServicioActivo('dashboard')} className="absolute top-8 left-8 flex items-center gap-2 text-sm text-[#8994A6] hover:text-[#F5F7FA] transition-colors z-50">
+          <ArrowLeft className="w-4 h-4" /> Volver al Centro de Mando
         </button>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center max-w-2xl mx-auto mb-16 relative z-10">
-          <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-sm font-semibold text-blue-400 mb-6">
-            <Bot className="h-4 w-4"/> Upway Multi-Canal
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#19C8E8]/30 bg-[#19C8E8]/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#19C8E8] mb-6">
+            <Bot className="h-4 w-4"/> Ecosistema Upway
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-4">¿Qué canal deseas potenciar hoy?</h1>
-          <p className="text-lg text-slate-400">Selecciona el tipo de agente digital que quieres configurar o monitorear para tu negocio.</p>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-[#F5F7FA] mb-4">Arquitectura de Canales</h1>
+          <p className="text-lg text-[#8994A6]">Selecciona el módulo operativo que deseas configurar o auditar.</p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-8 w-full max-w-5xl mx-auto relative z-10">
+        <div className="grid md:grid-cols-2 gap-6 w-full max-w-5xl mx-auto relative z-10">
           <motion.div 
-            whileHover={{ scale: 1.02, y: -5 }}
+            whileHover={{ scale: 1.01, y: -2 }}
             onClick={() => setServicioActivo('whatsapp')}
-            className="group relative cursor-pointer overflow-hidden rounded-[32px] border border-emerald-500/30 bg-white/[0.02] p-8 shadow-[0_0_40px_rgba(16,185,129,0.05)] transition-all hover:bg-emerald-950/20 hover:border-emerald-500/60"
+            className="group cursor-pointer rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8 shadow-xl transition-all hover:border-[#19C8E8]/50 flex flex-col justify-between"
           >
-            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
-              <MessageCircleMore className="w-40 h-40 text-emerald-500" />
+            <div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#19C8E8]/10 text-[#19C8E8] mb-6 border border-[#19C8E8]/20">
+                <MessageSquare className="h-6 w-6"/>
+              </div>
+              <h2 className="text-2xl font-bold text-[#F5F7FA] mb-3">Motor de Texto (Chat)</h2>
+              <p className="text-[#8994A6] mb-8 leading-relaxed text-sm">Gestiona la lógica, el tono y prueba el comportamiento de tu agente de WhatsApp en el entorno de pruebas.</p>
             </div>
-            <div className="relative z-10">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 mb-6 border border-emerald-500/30">
-                <MessageCircleMore className="h-8 w-8"/>
-              </div>
-              <h2 className="text-3xl font-bold text-white mb-3">Agente de Texto</h2>
-              <p className="text-slate-400 mb-8 leading-relaxed">Conecta un vendedor digital a tu WhatsApp. Responde mensajes, lee notas de voz, revisa catálogo y cierra ventas 24/7.</p>
-              <div className="flex items-center text-emerald-400 font-semibold gap-2">
-                Configurar WhatsApp <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </div>
+            <div className="flex items-center text-[#19C8E8] font-semibold gap-2 text-sm">
+              Ingresar al Sandbox <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </motion.div>
 
           <motion.div 
-            whileHover={{ scale: 1.02, y: -5 }}
+            whileHover={{ scale: 1.01, y: -2 }}
             onClick={() => setServicioActivo('voz')}
-            className="group relative cursor-pointer overflow-hidden rounded-[32px] border border-cyan-500/30 bg-white/[0.02] p-8 shadow-[0_0_40px_rgba(6,182,212,0.05)] transition-all hover:bg-cyan-950/20 hover:border-cyan-500/60"
+            className="group cursor-pointer rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8 shadow-xl transition-all hover:border-[#9B5CFF]/50 flex flex-col justify-between relative"
           >
-            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Phone className="w-40 h-40 text-cyan-500" />
+            <span className="absolute top-8 right-8 rounded-md bg-[#9B5CFF]/10 text-[#9B5CFF] border border-[#9B5CFF]/20 px-2 py-1 text-[10px] font-bold uppercase tracking-widest">Enrutador SIP</span>
+            <div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#9B5CFF]/10 text-[#9B5CFF] mb-6 border border-[#9B5CFF]/20">
+                <Phone className="h-6 w-6"/>
+              </div>
+              <h2 className="text-2xl font-bold text-[#F5F7FA] mb-3">Motor de Voz (PBX)</h2>
+              <p className="text-[#8994A6] mb-8 leading-relaxed text-sm">Configura la síntesis de voz, sube tus bases de datos y lanza campañas de llamadas salientes automatizadas.</p>
             </div>
-            <div className="relative z-10">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-500/20 text-cyan-400 mb-6 border border-cyan-500/30">
-                <Headphones className="h-8 w-8"/>
-              </div>
-              <span className="absolute top-8 right-8 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-3 py-1 text-xs font-bold uppercase tracking-wider">Nuevo</span>
-              <h2 className="text-3xl font-bold text-white mb-3">Agente Telefónico</h2>
-              <p className="text-slate-400 mb-8 leading-relaxed">Una IA que hace y recibe llamadas reales. Ideal para confirmar citas médicas, recordar cobros o atención al cliente.</p>
-              <div className="flex items-center text-cyan-400 font-semibold gap-2">
-                Configurar Central de Voz <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </div>
+            <div className="flex items-center text-[#9B5CFF] font-semibold gap-2 text-sm">
+              Configurar Central <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </motion.div>
         </div>
@@ -341,99 +309,101 @@ export default function AgentesBotPage() {
   // ==========================================
   if (servicioActivo === 'voz') {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(6,182,212,0.15),_transparent_55%)] bg-slate-950 px-4 py-8 text-white sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
+      <div className="min-h-screen bg-[#07090C] px-4 py-8 text-[#F5F7FA] font-sans">
+        <div className="mx-auto max-w-6xl">
           
-          <button onClick={() => setServicioActivo('dashboard')} className="mb-6 flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Volver al Tablero
+          <button onClick={() => setServicioActivo('hub')} className="mb-8 flex items-center gap-2 text-sm text-[#8994A6] hover:text-[#F5F7FA] transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Volver a Canales
           </button>
 
-          <div className="mb-8 overflow-hidden rounded-[32px] border border-cyan-500/20 bg-white/5 p-8 shadow-2xl shadow-cyan-900/20 backdrop-blur-xl">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-sm font-semibold text-cyan-400">
-                  <Headphones className="h-4 w-4"/> Central Telefónica IA
-                </div>
-                <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Configura tu Recepcionista de Voz</h1>
-                <p className="mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">Define cómo hablará por teléfono, elige su acento y sube el listado de clientes a los que debe llamar hoy.</p>
-              </div>
+          <div className="mb-8 flex flex-col gap-2">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#9B5CFF]/30 bg-[#9B5CFF]/10 px-3 py-1 w-fit text-xs font-bold uppercase tracking-widest text-[#9B5CFF]">
+              <Headphones className="h-4 w-4"/> Central Telefónica IA
             </div>
+            <h1 className="text-3xl font-bold tracking-tight text-[#F5F7FA] md:text-4xl">Infraestructura de Voz</h1>
+            <p className="max-w-2xl text-sm text-[#8994A6]">Configura los parámetros acústicos y las campañas de llamadas salientes.</p>
           </div>
 
-          <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr]">
+          <div className="grid gap-8 lg:grid-cols-[1.5fr_1fr]">
             <div className="space-y-6">
-              <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-md">
-                <div className="space-y-5">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8 shadow-xl">
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="mb-2 block text-sm font-medium text-slate-300">Nombre de la Recepcionista</label>
+                      <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#8994A6]">Identidad en Llamada</label>
                       <input 
                         type="text" 
                         value={nombreAgente} 
                         onChange={(e) => setNombreAgente(e.target.value)} 
-                        placeholder="Ej. Celeste de Clínica San Juan" 
-                        className="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition focus:border-cyan-500 focus:bg-slate-900" 
+                        placeholder="Ej. Celeste" 
+                        className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3.5 text-sm text-[#F5F7FA] placeholder-[#8994A6]/50 outline-none transition focus:border-[#9B5CFF] focus:ring-1 focus:ring-[#9B5CFF]" 
                       />
                     </div>
                     <div>
-                      <label className="mb-2 block text-sm font-medium text-slate-300">Catálogo de Voces (Español)</label>
+                      <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#8994A6]">Motor de Síntesis (TTS)</label>
                       <select 
                         value={vozSeleccionada} 
                         onChange={(e) => setVozSeleccionada(e.target.value)}
-                        className="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-500 focus:bg-slate-900 cursor-pointer"
+                        className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3.5 text-sm text-[#F5F7FA] outline-none transition focus:border-[#9B5CFF] focus:ring-1 focus:ring-[#9B5CFF] cursor-pointer"
                       >
                         <optgroup label="Voces Femeninas">
-                          <option value="femenina_estrella">Celeste (Recomendada - Latencia Ultra Baja)</option>
-                          <option value="femenina_calida">Matilda (Tono Cálido y Empático)</option>
-                          <option value="femenina_nativa">Aila (Asistente Rápida)</option>
+                          <option value="femenina_estrella">Celeste (Latencia Ultra Baja)</option>
+                          <option value="femenina_calida">Matilda (Empática)</option>
+                          <option value="femenina_nativa">Aila (Rápida)</option>
                         </optgroup>
                         <optgroup label="Voces Masculinas">
-                          <option value="masculino_serio">Antoni (Voz Grave y Confiable)</option>
-                          <option value="masculino_joven">Fin (Tono Joven y Casual)</option>
-                          <option value="masculino_nativo">Elliot (Asistente Rápido)</option>
+                          <option value="masculino_serio">Antoni (Confiable)</option>
+                          <option value="masculino_joven">Fin (Casual)</option>
+                          <option value="masculino_nativo">Elliot (Rápido)</option>
                         </optgroup>
                       </select>
                     </div>
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-slate-300 flex justify-between items-center">
-                      <span>Guion de Llamada (Prompt Telefónico)</span>
-                      <span className="text-xs text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">Modo Voz</span>
+                    <label className="mb-2 flex justify-between items-center text-xs font-semibold uppercase tracking-wider text-[#8994A6]">
+                      <span>Prompt Operativo Telefónico</span>
                     </label>
                     <textarea 
                       value={promptMaestro} 
                       onChange={(e) => setPromptMaestro(e.target.value)} 
-                      placeholder="Ej: Eres recepcionista de la clínica. Llama para confirmar la cita de mañana. Si te dicen que no pueden, ofrece reprogramar. Sé breve, no hagas preguntas abiertas..." 
-                      className="h-40 w-full resize-none rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition focus:border-cyan-500 focus:bg-slate-900" 
+                      placeholder="Ej: Llama para confirmar la cita médica. Si el usuario no puede asistir, intenta reprogramar. Sé breve." 
+                      className="h-40 w-full resize-none rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3.5 text-sm text-[#F5F7FA] placeholder-[#8994A6]/50 outline-none transition focus:border-[#9B5CFF] focus:ring-1 focus:ring-[#9B5CFF]" 
                     />
                   </div>
+                  
+                  <button 
+                    onClick={crearAgenteVoz} 
+                    disabled={creandoVoz} 
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#9B5CFF] px-6 py-3.5 font-bold text-white shadow-lg transition-all hover:bg-[#8B4CFF] disabled:opacity-50"
+                  >
+                    {creandoVoz ? <Loader2 className="h-5 w-5 animate-spin" /> : <Server className="h-5 w-5" />}
+                    {creandoVoz ? 'Aprovisionando SIP...' : 'Guardar y Aprovisionar'}
+                  </button>
                 </div>
               </div>
             </div>
 
             <div className="flex flex-col gap-6">
-              <div className="rounded-[28px] border border-cyan-500/20 bg-[#0A0E14] p-6 shadow-[0_0_30px_rgba(6,182,212,0.1)] ring-1 ring-white/10">
-                <div className="mb-6 flex flex-col items-center text-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-cyan-500/10 text-cyan-400 mb-4">
-                    <UploadCloud className="h-8 w-8"/>
+              <div className="rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8 shadow-xl">
+                <div className="mb-6 flex flex-col items-center text-center border-b border-[#1E293B] pb-6">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#10B981]/10 text-[#10B981] mb-4 border border-[#10B981]/20">
+                    <UploadCloud className="h-6 w-6"/>
                   </div>
-                  <h3 className="text-xl font-bold text-white">Lanzar Campaña de Llamadas</h3>
-                  <p className="text-sm text-slate-400 mt-2">Sube tu Excel con Nombre, Teléfono y Fecha de Cita. La IA los llamará a todos automáticamente.</p>
+                  <h3 className="text-lg font-bold text-[#F5F7FA]">Campañas Outbound</h3>
+                  <p className="text-xs text-[#8994A6] mt-2">Carga tu lista en CSV (Nombre, Teléfono, Contexto). El sistema enrutará las llamadas secuencialmente.</p>
                 </div>
 
-                <div className="flex flex-col gap-3">
-                  <button className="group flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-cyan-500/50 bg-cyan-500/5 px-6 py-4 font-bold text-cyan-400 transition-all hover:bg-cyan-500/10">
-                    <UploadCloud className="h-5 w-5" /> Subir archivo CSV
+                <div className="flex flex-col gap-4">
+                  <button className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-[#8994A6]/50 bg-[#07090C] px-6 py-8 font-semibold text-[#8994A6] transition-all hover:border-[#F5F7FA] hover:text-[#F5F7FA]">
+                    <UploadCloud className="h-5 w-5" /> Seleccionar archivo .csv
                   </button>
 
                   <button 
-                    onClick={crearAgenteVoz} 
-                    disabled={creandoVoz} 
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-cyan-500 px-6 py-4 font-bold text-black shadow-lg shadow-cyan-500/30 transition-all hover:bg-cyan-400 hover:scale-[1.02] mt-4 disabled:opacity-50 disabled:hover:scale-100"
+                    disabled
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#F5F7FA] px-6 py-3.5 font-bold text-[#07090C] transition-all disabled:opacity-20"
                   >
-                    {creandoVoz ? <Loader2 className="h-5 w-5 animate-spin text-black" /> : <Phone className="h-5 w-5 fill-current" />}
-                    {creandoVoz ? 'Activando Central...' : 'Activar Agente de Voz'}
+                    <Phone className="h-4 w-4" /> Lanzar Campaña
                   </button>
                 </div>
               </div>
@@ -449,257 +419,176 @@ export default function AgentesBotPage() {
   // ==========================================
   if (servicioActivo === 'whatsapp') {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.15),_transparent_55%)] bg-slate-950 px-4 py-8 text-white sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
+      <div className="min-h-screen bg-[#07090C] px-4 py-8 text-[#F5F7FA] font-sans">
+        <div className="mx-auto max-w-6xl">
           
-          <button onClick={() => setServicioActivo('dashboard')} className="mb-6 flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Volver al Tablero
+          <button onClick={() => setServicioActivo('hub')} className="mb-8 flex items-center gap-2 text-sm text-[#8994A6] hover:text-[#F5F7FA] transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Volver a Canales
           </button>
 
-          <div className="mb-8 overflow-hidden rounded-[32px] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-emerald-900/20 backdrop-blur-xl">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm font-semibold text-emerald-400">
-                  <Bot className="h-4 w-4"/> Agente IA WhatsApp
-                </div>
-                <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Construye la voz de tu Empleado Digital</h1>
-                <p className="mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">Define su personalidad, establece las reglas de tu negocio y ponlo a prueba en tiempo real antes de conectarlo a WhatsApp.</p>
-              </div>
+          <div className="mb-8 flex flex-col gap-2">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#19C8E8]/30 bg-[#19C8E8]/10 px-3 py-1 w-fit text-xs font-bold uppercase tracking-widest text-[#19C8E8]">
+              <TerminalSquare className="h-4 w-4"/> Entorno Sandbox
             </div>
+            <h1 className="text-3xl font-bold tracking-tight text-[#F5F7FA] md:text-4xl">Motor de Inferencia (Texto)</h1>
+            <p className="max-w-2xl text-sm text-[#8994A6]">Ajusta las reglas de negocio y audita las respuestas de la IA antes del paso a producción.</p>
           </div>
 
-          <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr]">
+          <div className="grid gap-8 lg:grid-cols-[1fr_1.2fr]">
             
+            {/* Columna Izquierda: Configuración */}
             <div className="space-y-6">
-              <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-md">
-                <div className="mb-6 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400">
-                    <Sparkles className="h-5 w-5"/>
+              <div className="rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8 shadow-xl">
+                <div className="mb-6 flex items-center gap-3 border-b border-[#1E293B] pb-4">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1E293B] text-[#F5F7FA]">
+                    <Sparkles className="h-4 w-4"/>
                   </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-white">Cerebro del Agente</h2>
-                    <p className="text-sm text-slate-400">Instruye a la IA exactamente cómo debe vender y atender por chat.</p>
-                  </div>
+                  <h2 className="text-sm font-semibold uppercase tracking-widest text-[#8994A6]">Core del Agente</h2>
                 </div>
 
                 <div className="space-y-5">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-slate-300">Nombre de tu Asistente</label>
-                      <input 
-                        type="text" 
-                        value={nombreAgente} 
-                        onChange={(e) => setNombreAgente(e.target.value)} 
-                        placeholder="Ej. Sofía de Ferretería XY" 
-                        className="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition focus:border-emerald-500 focus:bg-slate-900 focus:shadow-[0_0_15px_rgba(16,185,129,0.15)]" 
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-slate-300">Industria o Sector</label>
-                      <div className="relative">
-                        <Store className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                        <select 
-                          value={nicho} 
-                          onChange={(e) => setNicho(e.target.value)}
-                          className="w-full appearance-none rounded-2xl border border-white/10 bg-slate-900/60 pl-10 pr-4 py-3 text-sm text-white outline-none transition focus:border-emerald-500 focus:bg-slate-900 cursor-pointer"
-                        >
-                          <option value="general">Empresa General (Servicios)</option>
-                          <option value="restaurante">Restaurante / Comidas</option>
-                          <option value="ferreteria">Ferretería / Construcción</option>
-                          <option value="clinica">Clínica / Estética / Salud</option>
-                          <option value="ropa">Tienda de Ropa / Moda</option>
-                          <option value="inmobiliaria">Inmobiliaria / Bienes Raíces</option>
-                        </select>
-                      </div>
+                  <div>
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#8994A6]">Nombre Interno</label>
+                    <input 
+                      type="text" 
+                      value={nombreAgente} 
+                      onChange={(e) => setNombreAgente(e.target.value)} 
+                      placeholder="Ej. Sofía" 
+                      className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3.5 text-sm text-[#F5F7FA] placeholder-[#8994A6]/50 outline-none transition focus:border-[#19C8E8]" 
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#8994A6]">Industria Comercial</label>
+                    <div className="relative">
+                      <Store className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8994A6]" />
+                      <select 
+                        value={nicho} 
+                        onChange={(e) => setNicho(e.target.value)}
+                        className="w-full appearance-none rounded-xl border border-[#1E293B] bg-[#07090C] pl-10 pr-4 py-3.5 text-sm text-[#F5F7FA] outline-none transition focus:border-[#19C8E8] cursor-pointer"
+                      >
+                        <option value="general">Empresa General</option>
+                        <option value="restaurante">Restaurante / Comidas</option>
+                        <option value="ferreteria">Ferretería / Construcción</option>
+                        <option value="clinica">Clínica / Estética / Salud</option>
+                        <option value="inmobiliaria">Bienes Raíces</option>
+                      </select>
                     </div>
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-slate-300 flex justify-between items-center">
-                      <span>Instrucciones Operativas (El Prompt)</span>
-                      <span className="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Secreto Comercial</span>
-                    </label>
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#8994A6]">Prompt Base (Instrucciones)</label>
                     <textarea 
                       value={promptMaestro} 
                       onChange={(e) => setPromptMaestro(e.target.value)} 
-                      placeholder="Ej: Eres un vendedor experto. Tu objetivo es agendar citas..." 
-                      className="h-40 w-full resize-none rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition focus:border-emerald-500 focus:bg-slate-900 focus:shadow-[0_0_15px_rgba(16,185,129,0.15)]" 
+                      placeholder="Instrucciones operativas..." 
+                      className="h-40 w-full resize-none rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3.5 text-sm text-[#F5F7FA] outline-none transition focus:border-[#19C8E8]" 
                     />
                   </div>
+                  
+                  <button 
+                    onClick={guardarConfiguracion} 
+                    disabled={guardando}
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#1E293B] px-6 py-3.5 font-bold text-[#F5F7FA] transition-all hover:bg-[#2A3B4C]"
+                  >
+                    {guardando ? "Aplicando memoria..." : "Guardar Configuración"}
+                  </button>
                 </div>
               </div>
 
-              <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-md">
+              <div className="rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8 shadow-xl">
                 <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400">
-                    <ShieldCheck className="h-5 w-5"/>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20">
+                    <Database className="h-4 w-4"/>
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-white">Memoria y Catálogo (RAG)</h2>
-                    <p className="text-sm text-slate-400">Alimenta a tu agente con el stock real de tu negocio.</p>
+                    <h2 className="text-sm font-semibold uppercase tracking-widest text-[#8994A6]">Memoria RAG</h2>
                   </div>
                 </div>
                 <button 
                   onClick={() => window.location.href = '/dashboard/inventario'}
-                  className="group flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-white/20 bg-white/5 px-4 py-10 text-sm font-semibold text-slate-400 transition hover:border-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-400"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-4 text-sm font-semibold text-[#8994A6] transition hover:border-[#F5F7FA] hover:text-[#F5F7FA]"
                 >
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1"/>
-                  Sincronizar base de datos de productos
+                  Gestión de Vectores de Conocimiento <ArrowRight className="h-4 w-4"/>
                 </button>
               </div>
             </div>
 
-            <div className="flex flex-col items-center gap-6 lg:items-end">
+            {/* Columna Derecha: El Simulador */}
+            <div className="flex flex-col h-[750px] rounded-2xl border border-[#1E293B] bg-[#0D1117] shadow-2xl overflow-hidden">
               
-              <div className="relative flex h-[720px] w-full max-w-[340px] shrink-0 flex-col overflow-hidden rounded-[3.5rem] border-[14px] border-slate-950 bg-slate-950 shadow-[0_0_50px_rgba(16,185,129,0.15)] ring-1 ring-white/20">
-                
-                <div className="pointer-events-none absolute inset-x-0 top-0 z-50 flex h-7 items-center justify-between px-6 text-[10px] font-medium text-white/70">
-                  <span>9:41</span>
-                  <div className="flex items-center gap-1.5">
-                    <Signal className="h-3 w-3" />
-                    <Wifi className="h-3 w-3" />
-                    <Battery className="h-4 w-4" />
-                  </div>
-                </div>
-
-                <div className="pointer-events-none absolute inset-x-0 top-0 z-50 flex h-7 justify-center">
-                  <div className="flex h-7 w-32 items-center justify-center gap-3 rounded-b-3xl bg-slate-950 px-3 shadow-md">
-                    <div className="h-1.5 w-1.5 rounded-full bg-white/10"></div>
-                    <div className={`h-2 w-2 rounded-full transition-all duration-300 ${cargandoPrueba ? 'bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.8)]' : isRecording ? 'bg-red-500 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.8)]' : 'bg-[#10b981]/40 shadow-[0_0_8px_rgba(16,185,129,0.4)]'}`}></div>
-                  </div>
-                </div>
-
-                <div className="relative z-40 flex items-center gap-3 border-b border-white/10 bg-white/[0.03] px-4 pb-3 pt-12 backdrop-blur-xl">
-                  <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-[#10b981] to-emerald-600 shadow-lg">
-                    <Bot className="h-5 w-5 text-white" />
-                    <span className="absolute bottom-0 right-0 z-20 h-3 w-3 rounded-full border-2 border-[#0A0E14] bg-green-500"></span>
+              <div className="bg-[#121821] p-4 flex items-center justify-between border-b border-[#1E293B]">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 bg-[#1E293B] border border-[#8994A6]/20 rounded-full flex items-center justify-center">
+                    <Bot size={20} className="text-[#F5F7FA]" />
                   </div>
                   <div>
-                    <h3 className="flex items-center gap-1 font-display text-[14px] font-bold leading-tight text-white">
-                      {nombreAgente || "Agente sin nombre"} <Sparkles className="h-3 w-3 text-emerald-400" />
-                    </h3>
-                    <p className="mt-0.5 font-mono text-[10px] tracking-wide text-[#10b981]">Simulador WhatsApp</p>
+                    <h3 className="font-semibold text-[#F5F7FA] text-sm">{nombreAgente || 'Asistente IA'}</h3>
+                    <p className="text-[11px] text-[#19C8E8] font-mono tracking-widest">ENTORNO AISLADO (SANDBOX)</p>
                   </div>
                 </div>
+                <div className="flex gap-1.5">
+                  <div className={`h-2 w-2 rounded-full ${cargandoPrueba ? 'bg-[#19C8E8] animate-pulse' : 'bg-[#10B981]'}`}></div>
+                </div>
+              </div>
 
-                <div className="relative flex-1 space-y-4 overflow-y-auto bg-[#03050a] p-4 scroll-smooth scrollbar-hide">
-                  <div className="pointer-events-none absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("https://web.whatsapp.com/img/bg-chat-tile-dark_a4be512e7195b6b733d9110b408f075d.png")' }}></div>
-                  
-                  <div className="relative z-10 space-y-4 pt-2">
-                    {historialChat.length === 0 ? (
-                      <div className="mt-16 flex h-full flex-col items-center justify-center px-4 text-center">
-                        <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4 border border-emerald-500/20">
-                          <MessageCircleMore className="text-emerald-400 w-8 h-8" />
-                        </div>
-                        <p className="text-sm font-bold text-white mb-2">Pon a prueba tu Agente</p>
-                        <p className="text-xs text-white/50 leading-relaxed mb-4">
-                          Desafíalo. Pídele un producto difícil, simula que eres un cliente enojado o envíale un texto mal escrito.
-                        </p>
-                        <span className="text-[10px] bg-white/5 border border-white/10 px-3 py-1 rounded-full text-white/40">El chat se limpiará al recargar</span>
+              <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#07090C]">
+                {historialChat.length === 0 ? (
+                  <div className="flex h-full flex-col items-center justify-center text-center opacity-50">
+                    <MessageSquare className="h-12 w-12 text-[#8994A6] mb-4" />
+                    <p className="text-sm font-semibold text-[#F5F7FA]">Consola de Pruebas</p>
+                    <p className="text-xs text-[#8994A6] max-w-xs mt-2">Envía un mensaje para evaluar la lógica de inferencia del agente.</p>
+                  </div>
+                ) : (
+                  historialChat.map((m, i) => (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={i} 
+                      className={`flex ${m.rol === 'usuario' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div className={`max-w-[80%] p-4 rounded-2xl text-sm leading-relaxed ${
+                        m.rol === 'usuario' 
+                          ? 'bg-[#1E293B] text-[#F5F7FA] rounded-tr-sm border border-[#8994A6]/20' 
+                          : 'bg-[#121821] text-[#F5F7FA] rounded-tl-sm border border-[#1E293B]'
+                      }`}>
+                        {m.texto}
                       </div>
-                    ) : (
-                      historialChat.map((m, i) => (
-                        <motion.div 
-                          initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} key={i} 
-                          className={`flex ${m.rol === 'usuario' ? 'justify-end' : 'justify-start'}`}
-                        >
-                          <div className={`max-w-[85%] p-3.5 text-[13px] leading-relaxed shadow-md backdrop-blur-md ${m.rol === 'usuario' ? 'bg-gradient-to-br from-[#10b981] to-emerald-500 text-white font-medium rounded-[20px] rounded-tr-[4px]' : 'bg-white/[0.08] border border-white/10 text-slate-200 rounded-[20px] rounded-tl-[4px]'}`}>
-                            {m.texto}
-                          </div>
-                        </motion.div>
-                      ))
-                    )}
-                    
-                    <AnimatePresence>
-                      {cargandoPrueba && (
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="flex justify-start">
-                          <div className="flex items-center gap-1.5 rounded-[20px] rounded-tl-[4px] border border-white/10 bg-white/[0.08] p-4 backdrop-blur-md">
-                            <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0 }} className="h-1.5 w-1.5 rounded-full bg-[#10b981]" />
-                            <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }} className="h-1.5 w-1.5 rounded-full bg-[#10b981]/70" />
-                            <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }} className="h-1.5 w-1.5 rounded-full bg-[#10b981]/40" />
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                    
-                    <AnimatePresence>
-                      {isRecording && (
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="flex justify-end">
-                           <div className="flex items-center gap-2 rounded-[20px] rounded-tr-[4px] border border-red-500/20 bg-red-500/10 p-3 backdrop-blur-md text-red-400 text-xs font-bold">
-                              <span className="animate-pulse h-2 w-2 rounded-full bg-red-500 block"></span> Grabando audio...
-                           </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                    
-                    <div ref={messagesEndRef} />
-                  </div>
-                </div>
-
-                <div className="shrink-0 border-t border-white/5 bg-[#0A0E14] p-4 pb-8 backdrop-blur-xl relative z-20">
-                  <div className="relative flex items-center rounded-full border border-white/10 bg-white/[0.03] transition-all focus-within:border-[#10b981]/50 focus-within:bg-white/[0.06]">
-                    <input 
-                      value={mensajePrueba} 
-                      onChange={(e) => setMensajePrueba(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && enviarMensajePrueba()}
-                      placeholder={isRecording ? "Grabando..." : "Chatea o graba un audio..."}
-                      disabled={cargandoPrueba || isRecording}
-                      className="w-full bg-transparent py-3.5 pl-5 pr-14 text-[13px] text-white outline-none placeholder:text-white/30 disabled:opacity-50"
-                    />
-                    
-                    <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                      {mensajePrueba.trim() ? (
-                        <motion.button 
-                          whileTap={{ scale: 0.9 }}
-                          onClick={enviarMensajePrueba} 
-                          disabled={cargandoPrueba}
-                          className="flex items-center justify-center rounded-full bg-[#10b981] p-2.5 text-white transition-colors hover:bg-emerald-400"
-                        >
-                          <Send className="ml-0.5 h-4 w-4" />
-                        </motion.button>
-                      ) : isRecording ? (
-                        <motion.button 
-                          whileTap={{ scale: 0.9 }}
-                          onClick={stopRecording} 
-                          className="flex items-center justify-center rounded-full bg-red-500 p-2.5 text-white transition-colors hover:bg-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)]"
-                        >
-                          <Square className="h-4 w-4 fill-current" />
-                        </motion.button>
-                      ) : (
-                        <motion.button 
-                          whileTap={{ scale: 0.9 }}
-                          onClick={startRecording} 
-                          disabled={cargandoPrueba}
-                          className="flex items-center justify-center rounded-full bg-[#10b981]/20 p-2.5 text-[#10b981] transition-colors hover:bg-[#10b981] hover:text-white"
-                        >
-                          <Mic className="h-4 w-4" />
-                        </motion.button>
-                      )}
+                    </motion.div>
+                  ))
+                )}
+                
+                {cargandoPrueba && (
+                  <div className="flex justify-start">
+                    <div className="bg-[#121821] border border-[#1E293B] p-4 rounded-2xl rounded-tl-sm flex items-center gap-3">
+                      <Loader2 className="h-4 w-4 animate-spin text-[#19C8E8]" />
+                      <span className="text-xs text-[#8994A6] font-mono tracking-widest">PROCESANDO...</span>
                     </div>
                   </div>
-                </div>
+                )}
+                <div ref={messagesEndRef} />
               </div>
 
-              <div className="flex w-full max-w-[340px] flex-col gap-3">
-                <button 
-                  onClick={guardarConfiguracion} 
-                  disabled={guardando}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-6 py-4 font-bold text-white shadow-sm transition-all hover:bg-white/10"
-                >
-                  {guardando ? "Aplicando memoria..." : "💾 Guardar instrucciones"}
-                </button>
-
-                <button 
-                  onClick={handleActivarWhatsApp} 
-                  className="group relative flex w-full overflow-hidden items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 px-6 py-4 font-bold text-black shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)]"
-                >
-                  <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out"></div>
-                  <div className="relative z-10 flex items-center gap-2">
-                    <span className="animate-pulse">🟢</span> Conectar a mi WhatsApp
-                  </div>
-                </button>
+              <div className="bg-[#121821] p-4 border-t border-[#1E293B] flex items-center gap-3">
+                <input
+                  type="text" value={mensajePrueba} onChange={(e) => setMensajePrueba(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && enviarMensajePrueba()}
+                  placeholder={isRecording ? "Grabando audio..." : "Ingresa un input de prueba..."} disabled={cargandoPrueba || isRecording}
+                  className="flex-1 bg-[#07090C] text-[#F5F7FA] border border-[#1E293B] rounded-xl px-4 py-3.5 outline-none text-sm placeholder-[#8994A6]/50 focus:border-[#19C8E8] transition-all disabled:opacity-50"
+                />
+                {mensajePrueba.trim() ? (
+                  <button onClick={enviarMensajePrueba} disabled={cargandoPrueba} className="h-12 w-12 shrink-0 bg-[#F5F7FA] rounded-xl flex items-center justify-center text-[#07090C] hover:bg-[#E2E8F0] transition-all">
+                    <Send size={18} className="ml-1" />
+                  </button>
+                ) : isRecording ? (
+                  <button onClick={stopRecording} className="h-12 w-12 shrink-0 rounded-xl flex items-center justify-center bg-red-500/20 text-red-500 border border-red-500/50 animate-pulse">
+                    <Square size={16} fill="currentColor" />
+                  </button>
+                ) : (
+                  <button onClick={startRecording} disabled={cargandoPrueba} className="h-12 w-12 shrink-0 rounded-xl flex items-center justify-center bg-[#1E293B] text-[#F5F7FA] hover:bg-[#19C8E8]/10 hover:text-[#19C8E8] border border-[#1E293B] transition-all">
+                    <Mic size={18} />
+                  </button>
+                )}
               </div>
             </div>
+
           </div>
         </div>
       </div>
@@ -710,210 +599,184 @@ export default function AgentesBotPage() {
   // RENDER 4: DASHBOARD TELEMETRÍA (NUEVO POR DEFECTO)
   // ==========================================
   return (
-    <div className="min-h-screen bg-[#050508] text-white relative overflow-hidden font-sans pb-20">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-blue-600/10 blur-[150px] rounded-full pointer-events-none z-0"></div>
-      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-purple-600/5 blur-[150px] rounded-full pointer-events-none z-0"></div>
-
-      <div className="max-w-6xl mx-auto px-6 pt-12 relative z-10">
+    <div className="min-h-screen bg-[#07090C] text-[#F5F7FA] font-sans pb-20 selection:bg-[#19C8E8] selection:text-[#07090C]">
+      
+      <div className="max-w-6xl mx-auto px-6 pt-12 md:pt-16">
         
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 pb-6 border-b border-white/5">
+        {/* Header Enterprise */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 pb-6 border-b border-[#1E293B]">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400 mb-3 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span> Sistema Operativo
+            <div className="inline-flex items-center gap-2 rounded-md border border-[#10B981]/30 bg-[#10B981]/10 px-2 py-1 text-[10px] font-mono tracking-widest text-[#10B981] mb-4">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#10B981] animate-pulse"></span> SISTEMA OPERATIVO
             </div>
-            <h1 className="text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">
-              Centro de Mando {nombreStore || nombreAgente ? `de ${nombreStore || nombreAgente}` : 'Upway'}
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-[#F5F7FA]">
+              Centro de Mando {nombreStore ? `- ${nombreStore}` : ''}
             </h1>
-            <p className="text-slate-400 text-sm mt-2">Supervisa la telemetría de tu inteligencia artificial en tiempo real.</p>
+            <p className="text-[#8994A6] text-sm mt-2">Supervisión de telemetría e integraciones en tiempo real.</p>
           </div>
           
           <button 
             onClick={() => setServicioActivo('hub')}
-            className="inline-flex items-center gap-2 rounded-xl bg-slate-900/50 border border-white/10 px-5 py-2.5 text-sm font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition-all backdrop-blur-md"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#1E293B] border border-[#1E293B] hover:border-[#8994A6]/50 px-5 py-2.5 text-sm font-semibold text-[#F5F7FA] transition-all"
           >
-            <RefreshCw className="h-4 w-4" /> Reconfigurar Canales
+            <RefreshCw className="h-4 w-4" /> Administrar Canales
           </button>
         </div>
 
         {/* 🚀 ACCIONES REQUERIDA & GOOGLE CALENDAR (GRID DE 2) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           
           {/* Tarjeta 1: WhatsApp */}
-          <div className="rounded-[32px] bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-700 p-8 text-white shadow-[0_0_40px_rgba(37,99,235,0.2)] relative overflow-hidden border border-white/20 group flex flex-col justify-between">
-            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-60 h-60 bg-white opacity-10 rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-700"></div>
-            <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-bold tracking-wider text-white mb-4 backdrop-blur-md border border-white/30">
-                <Sparkles className="h-3.5 w-3.5 text-yellow-300" /> ACCIÓN REQUERIDA
+          <div className="rounded-2xl bg-[#0D1117] p-8 border border-[#19C8E8]/50 relative overflow-hidden flex flex-col justify-between shadow-[0_0_30px_rgba(25,200,232,0.1)]">
+            <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-[#19C8E8] opacity-[0.05] rounded-full blur-2xl pointer-events-none"></div>
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-md bg-[#19C8E8]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-[#19C8E8] mb-4 border border-[#19C8E8]/30">
+                <Sparkles className="h-3 w-3" /> Acción Requerida
               </div>
-              <h2 className="text-2xl md:text-3xl font-bold mb-3">Enciende tu IA Oficial</h2>
-              <p className="text-blue-100 text-sm md:text-base leading-relaxed mb-6">
-                Tu agente está configurado, pero necesita una línea de comunicación. Conecta tu cuenta oficial de WhatsApp Business.
+              <h2 className="text-2xl font-bold mb-2">Despliegue de WhatsApp</h2>
+              <p className="text-[#8994A6] text-sm leading-relaxed mb-6">
+                Tu agente está aprovisionado. Vincula tu número oficial a través de la API Cloud de Meta para comenzar a operar.
               </p>
             </div>
-            <div className="relative z-10">
-              <button 
-                onClick={handleActivarWhatsApp}
-                className="w-full inline-flex items-center justify-center gap-2 bg-white text-blue-700 px-6 py-3.5 rounded-2xl font-bold hover:bg-slate-100 hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)]"
-              >
-                <Rocket className="h-5 w-5" />
-                Conectar WhatsApp con Meta
-              </button>
-            </div>
+            <button 
+              onClick={handleActivarWhatsApp}
+              className="w-full inline-flex items-center justify-center gap-2 bg-[#19C8E8] text-[#07090C] px-6 py-3.5 rounded-xl font-bold hover:bg-[#33DDFF] transition-all"
+            >
+              <Rocket className="h-5 w-5" /> Iniciar Vinculación
+            </button>
           </div>
 
           {/* Tarjeta 2: Google Calendar */}
-          <div className="rounded-[32px] bg-gradient-to-br from-emerald-600 via-teal-600 to-slate-900 p-8 text-white shadow-[0_0_40px_rgba(16,185,129,0.15)] relative overflow-hidden border border-emerald-500/30 group flex flex-col justify-between">
-            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-60 h-60 bg-emerald-400 opacity-10 rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-700"></div>
-            <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold tracking-wider text-emerald-300 mb-4 backdrop-blur-md border border-emerald-500/30">
-                <span className="h-2 w-2 rounded-full bg-emerald-400"></span> RECOMENDADO
+          <div className="rounded-2xl bg-[#0D1117] p-8 border border-[#1E293B] relative overflow-hidden flex flex-col justify-between hover:border-[#8994A6]/30 transition-all">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-md bg-[#1E293B] px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-[#8994A6] mb-4">
+                Recomendado
               </div>
-              <h2 className="text-2xl md:text-3xl font-bold mb-3">Google Calendar</h2>
-              <p className="text-emerald-100 text-sm md:text-base leading-relaxed mb-6">
-                Permite que tu empleado digital agende citas de forma autónoma sincronizando tu disponibilidad en tiempo real.
+              <h2 className="text-2xl font-bold mb-2">Google Calendar</h2>
+              <p className="text-[#8994A6] text-sm leading-relaxed mb-6">
+                Sincroniza tu disponibilidad bidireccional. Permite a tu IA verificar espacios y crear eventos automáticamente.
               </p>
             </div>
-            <div className="relative z-10">
-              <button 
-                onClick={() => { /* Lógica para conectar Google Calendar */ }}
-                className="w-full inline-flex items-center justify-center gap-2 bg-white text-emerald-800 px-6 py-3.5 rounded-2xl font-bold hover:bg-emerald-50 hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)]"
-              >
-                <span>Conectar Google Calendar</span>
-              </button>
-            </div>
+            
+            {/* ESTE ES EL BOTÓN QUE AHORA SÍ FUNCIONA 👇 */}
+            <button 
+              onClick={() => signIn("google", { callbackUrl: "/dashboard/bots" })}
+              className="w-full inline-flex items-center justify-center gap-2 bg-[#1E293B] text-[#F5F7FA] px-6 py-3.5 rounded-xl font-bold hover:bg-[#2A3B4C] transition-all"
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.1 8.9 5 12 5z" />
+                <path fill="currentColor" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z" />
+                <path fill="currentColor" d="M5.3 14.7c-.2-.7-.3-1.5-.3-2.7s.1-2 .3-2.7L1.6 6.4C.6 8.4 0 10.6 0 13s.6 4.6 1.6 6.6l3.7-2.9z" />
+                <path fill="currentColor" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5.3L1.6 15c1.9 3.8 5.8 8 10.4 8z" />
+              </svg>
+              Conectar Google Workspace
+            </button>
           </div>
 
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 mb-10">
+        {/* METRICS & STATUS (GRID DE 3) */}
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
           
-          <div className={`rounded-[32px] border transition-all duration-500 bg-white/[0.02] backdrop-blur-xl p-8 relative overflow-hidden shadow-2xl flex flex-col justify-between ${iaActiva ? 'border-emerald-500/20 hover:border-emerald-500/40' : 'border-amber-500/20 hover:border-amber-500/40'}`}>
-            <div className={`absolute top-0 left-0 right-0 h-1 transition-colors duration-500 ${iaActiva ? 'bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.5)]' : 'bg-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.5)]'}`}></div>
-            
+          <div className={`rounded-2xl border transition-all duration-500 bg-[#0D1117] p-6 flex flex-col justify-between ${iaActiva ? 'border-[#10B981]/50' : 'border-amber-500/50'}`}>
             <div>
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">Motor de Inferencia</span>
-                <Activity className={`h-5 w-5 ${iaActiva ? 'text-emerald-400 animate-pulse' : 'text-amber-400'}`} />
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[10px] font-bold tracking-widest text-[#8994A6] uppercase">Motor de Inferencia</span>
+                <Activity className={`h-4 w-4 ${iaActiva ? 'text-[#10B981] animate-pulse' : 'text-amber-400'}`} />
               </div>
               <div className="flex items-center gap-3 mb-2">
-                <Bot className={`h-8 w-8 flex-shrink-0 ${iaActiva ? 'text-emerald-400' : 'text-amber-400'}`} />
-                <span className="text-2xl font-bold text-white leading-tight">
+                <Bot className={`h-6 w-6 flex-shrink-0 ${iaActiva ? 'text-[#10B981]' : 'text-amber-400'}`} />
+                <span className="text-xl font-bold text-[#F5F7FA] leading-tight">
                   {iaActiva ? 'Autónomo' : 'Pausado'}
                 </span>
               </div>
-              <p className="text-sm text-slate-400 h-10">
-                {iaActiva ? 'La IA está respondiendo conversaciones en tiempo real.' : 'Estás en control manual. La IA no enviará mensajes.'}
+              <p className="text-xs text-[#8994A6] h-8">
+                {iaActiva ? 'Respuestas automáticas activas.' : 'Control manual. IA silenciada.'}
               </p>
             </div>
-
             <button
               onClick={() => setIaActiva(!iaActiva)}
-              className={`mt-8 flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3.5 text-sm font-bold transition-all ${
+              className={`mt-6 w-full flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-xs font-bold transition-all ${
                 iaActiva
-                  ? 'border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
-                  : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
+                  ? 'border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20'
+                  : 'border-[#10B981]/30 bg-[#10B981]/10 text-[#10B981] hover:bg-[#10B981]/20'
               }`}
             >
-              <Power className="h-4 w-4" /> {iaActiva ? 'Tomar Control Manual' : 'Activar Piloto Automático'}
+              <Power className="h-4 w-4" /> {iaActiva ? 'Forzar Control Manual' : 'Reactivar IA'}
             </button>
           </div>
 
-          <div className="rounded-[32px] border border-white/5 hover:border-white/10 transition-all bg-white/[0.02] backdrop-blur-xl p-8 relative overflow-hidden shadow-2xl flex flex-col justify-between group">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-blue-600/50 group-hover:bg-blue-500 transition-colors"></div>
-            
+          <div className="rounded-2xl border border-[#1E293B] bg-[#0D1117] p-6 flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">Canal Principal</span>
-                <MessageSquare className="h-5 w-5 text-blue-400" />
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[10px] font-bold tracking-widest text-[#8994A6] uppercase">Canal de Ingesta</span>
+                <MessageSquare className="h-4 w-4 text-[#8994A6]" />
               </div>
-              <div className="text-2xl font-bold text-white mb-2">WhatsApp API</div>
-              <p className="text-sm text-amber-400 font-medium flex items-center gap-1.5 bg-amber-400/10 w-fit px-3 py-1 rounded-full border border-amber-400/20">
-                <ShieldCheck className="h-4 w-4" /> Desconectado
-              </p>
+              <div className="text-xl font-bold text-[#F5F7FA] mb-2">WhatsApp API</div>
+              <span className="text-[10px] font-mono font-medium flex items-center w-fit gap-1.5 bg-amber-400/10 text-amber-400 px-2 py-1 rounded-md border border-amber-400/20">
+                <ShieldCheck className="h-3 w-3" /> PENDIENTE
+              </span>
             </div>
-
-            <div className="mt-8 pt-6 border-t border-white/5 flex flex-col gap-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-500 flex items-center gap-2"><AtSign className="h-4 w-4"/> ID Business</span>
-                <span className="font-mono text-slate-400">---</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-600">Requiere activación previa</span>
-                <button 
-                  onClick={handleActivarWhatsApp}
-                  className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
-                >
-                  Configurar <Rocket className="h-3 w-3" />
-                </button>
-              </div>
+            <div className="mt-6 pt-4 border-t border-[#1E293B] flex items-center justify-between">
+              <span className="text-xs font-mono text-[#8994A6] flex items-center gap-2"><AtSign className="h-3 w-3"/> WABA ID</span>
+              <span className="text-xs font-mono text-[#1E293B]">---------</span>
             </div>
           </div>
 
-          <div className="rounded-[32px] border border-white/5 hover:border-white/10 transition-all bg-white/[0.02] backdrop-blur-xl p-8 relative overflow-hidden shadow-2xl flex flex-col justify-between group">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-cyan-400/50 group-hover:bg-cyan-400 transition-colors"></div>
-            
+          <div className="rounded-2xl border border-[#1E293B] bg-[#0D1117] p-6 flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">Impacto Hoy</span>
-                <Zap className="h-5 w-5 text-cyan-400" />
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[10px] font-bold tracking-widest text-[#8994A6] uppercase">Impacto Hoy</span>
+                <Zap className="h-4 w-4 text-[#19C8E8]" />
               </div>
               <div className="flex items-baseline gap-2 mb-2">
-                <span className="text-4xl font-bold text-white">0</span>
-                <span className="text-sm font-medium text-slate-400">mensajes</span>
-              </div>
-              <div className="flex items-center gap-3 mt-4">
-                <div className="h-2 w-full bg-slate-900 rounded-full overflow-hidden border border-white/5">
-                  <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full w-[0%]"></div>
-                </div>
-                <span className="text-xs font-bold text-cyan-400">0%</span>
+                <span className="text-3xl font-bold text-[#F5F7FA]">0</span>
+                <span className="text-xs font-medium text-[#8994A6]">mensajes procesados</span>
               </div>
             </div>
-
-            <button className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-white/5 px-4 py-3.5 text-sm font-semibold text-white hover:bg-white/10 transition-all border border-white/5">
-              <Clock className="h-4 w-4" /> Ver Historial
+            <button className="mt-6 w-full flex items-center justify-center gap-2 rounded-xl bg-[#1E293B] px-4 py-3 text-xs font-semibold text-[#F5F7FA] hover:bg-[#2A3B4C] transition-all">
+              <Clock className="h-4 w-4" /> Consultar Logs
             </button>
           </div>
 
         </div>
 
+        {/* RECURSOS ADICIONALES (GRID DE 2) */}
         <div className="grid md:grid-cols-2 gap-6">
           
-          <div className="rounded-[32px] border border-white/5 hover:border-white/10 transition-all bg-white/[0.02] backdrop-blur-xl p-8 shadow-2xl relative overflow-hidden group">
-            <div className="absolute top-1/2 left-0 -translate-y-1/2 w-72 h-72 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-purple-500/20 transition-colors"></div>
-            
-            <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs font-semibold text-purple-400 mb-5">
-                <BookOpen className="h-3.5 w-3.5" /> Cerebro RAG
+          <div className="rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8 hover:border-[#8994A6]/30 transition-all flex flex-col justify-between items-start">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-md border border-[#9B5CFF]/30 bg-[#9B5CFF]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-[#9B5CFF] mb-4">
+                <Database className="h-3 w-3" /> Motor Vectorial
               </div>
-              <h2 className="text-2xl font-bold text-white mb-3">Base de Conocimiento</h2>
-              <p className="text-slate-400 text-sm leading-relaxed mb-8 max-w-sm">
-                Sube catálogos, PDFs o reglas de negocio. La IA consumirá esta información para generar respuestas milimétricas a tus clientes.
+              <h2 className="text-xl font-bold text-[#F5F7FA] mb-2">Base de Conocimiento (RAG)</h2>
+              <p className="text-[#8994A6] text-sm leading-relaxed mb-6 max-w-sm">
+                Añade documentos, políticas o catálogos para expandir la memoria de tu empleado digital.
               </p>
-              
-              <Link href="/dashboard/inventario" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white/5 border border-white/10 px-8 py-4 font-semibold text-white hover:bg-white/10 transition-all text-sm group-hover:border-purple-500/50">
-                <BookOpen className="h-4 w-4 text-purple-400" />
-                <span>Gestionar Memoria</span>
-              </Link>
             </div>
+            <Link href="/dashboard/inventario" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1E293B] border border-[#1E293B] hover:border-[#9B5CFF]/50 px-6 py-3.5 font-semibold text-[#F5F7FA] transition-all text-sm w-full md:w-auto">
+              <BookOpen className="h-4 w-4 text-[#9B5CFF]" />
+              Gestor de Documentos
+            </Link>
           </div>
 
-          <div className="rounded-[32px] border border-white/5 hover:border-white/10 transition-all bg-white/[0.02] backdrop-blur-xl p-8 shadow-2xl relative overflow-hidden group cursor-pointer" onClick={() => setServicioActivo('whatsapp')}>
-            <div className="absolute top-1/2 right-0 -translate-y-1/2 w-72 h-72 bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-emerald-500/10 transition-colors"></div>
-            
-            <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400 mb-5">
-                <MessageSquare className="h-3.5 w-3.5" /> Pruebas Locales
+          <div 
+            onClick={() => setServicioActivo('whatsapp')}
+            className="rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8 hover:border-[#19C8E8]/30 transition-all cursor-pointer flex flex-col justify-between items-start"
+          >
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-md border border-[#19C8E8]/30 bg-[#19C8E8]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-[#19C8E8] mb-4">
+                <TerminalSquare className="h-3 w-3" /> Entorno Aislado
               </div>
-              <h2 className="text-2xl font-bold text-white mb-3">Simulador de Chat</h2>
-              <p className="text-slate-400 text-sm leading-relaxed mb-8 max-w-sm">
-                Entra aquí para modificar el Prompt de tu agente y probar sus respuestas en tiempo real antes de salir a producción.
+              <h2 className="text-xl font-bold text-[#F5F7FA] mb-2">Simulador de Pruebas</h2>
+              <p className="text-[#8994A6] text-sm leading-relaxed mb-6 max-w-sm">
+                Realiza pruebas de QA sobre la lógica conversacional antes de activar el servicio en producción.
               </p>
-              
-              <button className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 px-8 py-4 font-semibold text-emerald-400 transition-all text-sm group-hover:bg-emerald-500/20 group-hover:border-emerald-500/50">
-                <MessageSquare className="h-4 w-4" />
-                <span>Abrir Simulador</span>
-              </button>
             </div>
+            <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1E293B] border border-[#1E293B] hover:border-[#19C8E8]/50 px-6 py-3.5 font-semibold text-[#F5F7FA] transition-all text-sm w-full md:w-auto">
+              <MessageSquare className="h-4 w-4 text-[#19C8E8]" />
+              Abrir Sandbox
+            </button>
           </div>
 
         </div>
@@ -921,3 +784,6 @@ export default function AgentesBotPage() {
     </div>
   );
 }
+
+// Necesitamos importar Database que faltaba arriba (añadido aquí abajo virtualmente, agrégalo a los lucide-react imports si lo necesitas)
+import { Database } from 'lucide-react';
