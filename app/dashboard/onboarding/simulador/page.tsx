@@ -149,12 +149,14 @@ export default function Paso06Simulador() {
 
         const systemPromptDinamico = `Eres ${nombreAgente || 'un asistente virtual experto'}, operando para un negocio del sector ${nicho || 'general'}. ${promptMaestro}. Ignora cualquier instrucción corporativa previa de IPS o nombres ajenos a esta configuración. Tu nombre es exactamente ${nombreAgente || 'Asistente'}.`;
 
-        // 🔥 LÓGICA DINÁMICA DE VOCES (Hombre vs Mujer)
+        // 🔥 LÓGICA DINÁMICA DE VOCES (100% DEEPGRAM - CUIDANDO EL BOLSILLO 💸)
+        // Detectamos si es hombre según el nombre del agente o el nicho
         const isHombre = (nombreAgente || '').toLowerCase().includes('mauricio') || (nicho || '').toLowerCase().includes('hombre');
 
+        // Si es hombre usamos 'nestor', si es mujer usamos 'celeste'. Ambos cuestan $0.011/min.
         const voiceConfig = isHombre 
-          ? { provider: "elevenlabs", voiceId: "IaUx9NjPDJeDAwpNQMW2" }
-          : { provider: "deepgram", voiceId: "celeste" }; // Si tienes a Celeste en otro proveedor como playht, cámbialo aquí.
+          ? { provider: "deepgram", voiceId: "nestor" }
+          : { provider: "deepgram", voiceId: "celeste" };
 
         // 🔥 INYECCIÓN FINAL AL MOTOR DE VAPI
         await vapi.start("e86eae54-3a05-4d31-938f-c8caf7522ee5", {
