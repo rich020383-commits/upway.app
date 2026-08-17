@@ -62,29 +62,33 @@ model VerificationToken {
 // ==========================================
 
 model Tienda {
-  id                String   @id @default(cuid())
-  userId            String
-  nombre            String
+  id                  String   @id @default(cuid())
+  userId              String
+  nombre              String
   
   // 🤖 Personalidad del Bot
-  agentName         String?
-  systemPrompt      String?  @db.Text
+  agentName           String?
+  systemPrompt        String?  @db.Text
   
-  // 🔥 CAMPOS META WHATSAPP (Unificados y dentro del modelo)
-  telefono          String?  
-  metaPhoneNumberId String?  
-  metaWabaId        String?  
-  metaAccessToken   String?  @db.Text
-  isWhatsAppActive  Boolean  @default(false)
+  // 🔥 CAMPOS META WHATSAPP
+  telefono            String?  
+  metaPhoneNumberId   String?  
+  metaWabaId          String?  
+  metaAccessToken     String?  @db.Text
+  isWhatsAppActive    Boolean  @default(false)
 
   // 🎙️ CAMPOS VAPI (Agentes de Voz)
-  vapiAssistantId   String?  
-  vapiPhoneNumber   String?  
-  isVapiActive      Boolean  @default(false)
+  vapiAssistantId     String?  
+  vapiPhoneNumber     String?  
+  isVapiActive        Boolean  @default(false)
+
+  // 📅 INTEGRACIÓN GOOGLE CALENDAR (NUEVO)
+  googleRefreshToken  String?  @db.Text
+  googleCalendarId    String?  @default("primary")
   
-  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  productos         Producto[]
-  llamadas          LlamadaLog[] // Relación con el historial de facturación de voz
+  user                User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productos           Producto[]
+  llamadas            LlamadaLog[] 
 }
 
 model Producto {

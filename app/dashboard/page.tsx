@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Bot, CheckCircle2, MessageSquare, ShieldCheck, Zap, RefreshCw, Sparkles, Power, Download, Clock, BookOpen, AtSign, Rocket, Activity } from 'lucide-react';
+import { Bot, CheckCircle2, MessageSquare, ShieldCheck, Zap, RefreshCw, Sparkles, Power, Clock, BookOpen, AtSign, Rocket, Activity, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { useUpwayStore } from '../store/upwayStore'; // Asegúrate de que la ruta sea correcta según tu estructura
 
@@ -12,11 +12,24 @@ export default function DashboardHomePage() {
   // Estado para controlar el "Botón de Pánico" de la IA
   const [iaActiva, setIaActiva] = useState(true);
   
+  // ESTADOS PARA GOOGLE CALENDAR
+  const [isConnectingCalendar, setIsConnectingCalendar] = useState(false);
+  // Simulación: Si viene el token de tu DB (ej. tiendaActual.googleRefreshToken), esto sería true
+  const [calendarConectado, setCalendarConectado] = useState(false); 
+  
   // SIMULACIÓN DE DATOS
   const [tiendaData] = useState({
+    id: "tienda_123_demo", // Simulamos el ID para la URL
     telefono: "573001234567",
     metaUsername: "upway_demo" 
   });
+
+  // FUNCIÓN MÁGICA: Dispara la tubería hacia Google
+  const handleConnectCalendar = () => {
+    setIsConnectingCalendar(true);
+    // Redirige a la API que armamos, enviando el ID de la tienda
+    window.location.href = `/api/integraciones/google/auth?tiendaId=${tiendaData.id}`;
+  };
 
   return (
     <div className="min-h-screen bg-[#050508] text-white relative overflow-hidden font-sans pb-20">
@@ -47,7 +60,7 @@ export default function DashboardHomePage() {
           </Link>
         </div>
 
-        {/* 🚀 BANNER DE ONBOARDING (Ideal para que el Revisor de Meta sepa qué hacer) */}
+        {/* 🚀 BANNER DE ONBOARDING */}
         <div className="mb-10 rounded-[32px] bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-10 text-white shadow-[0_0_50px_rgba(79,70,229,0.2)] relative overflow-hidden border border-white/20 group">
           <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-700"></div>
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
@@ -163,41 +176,87 @@ export default function DashboardHomePage() {
 
         </div>
 
-        {/* ZONA INFERIOR: Conocimiento y Pruebas */}
-        <div className="grid md:grid-cols-2 gap-6">
+        {/* ZONA INFERIOR: Conocimiento, Integraciones y Pruebas */}
+        {/* Cambiado a grid-cols-3 para añadir el calendario de forma simétrica */}
+        <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-6">
           
+          {/* TARJETA 1: CEREBRO RAG */}
           <div className="rounded-[32px] border border-white/5 hover:border-white/10 transition-all bg-white/[0.02] backdrop-blur-xl p-8 shadow-2xl relative overflow-hidden group">
             <div className="absolute top-1/2 left-0 -translate-y-1/2 w-72 h-72 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-purple-500/20 transition-colors"></div>
             
-            <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs font-semibold text-purple-400 mb-5">
-                <BookOpen className="h-3.5 w-3.5" /> Cerebro RAG
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs font-semibold text-purple-400 mb-5">
+                  <BookOpen className="h-3.5 w-3.5" /> Cerebro RAG
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-3">Base de Conocimiento</h2>
+                <p className="text-slate-400 text-sm leading-relaxed mb-8">
+                  Sube catálogos, PDFs o reglas de negocio. La IA consumirá esta información para generar respuestas milimétricas a tus clientes.
+                </p>
               </div>
-              <h2 className="text-2xl font-bold text-white mb-3">Base de Conocimiento</h2>
-              <p className="text-slate-400 text-sm leading-relaxed mb-8 max-w-sm">
-                Sube catálogos, PDFs o reglas de negocio. La IA consumirá esta información para generar respuestas milimétricas a tus clientes.
-              </p>
               
-              <button className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white/5 border border-white/10 px-8 py-4 font-semibold text-white hover:bg-white/10 transition-all text-sm group-hover:border-purple-500/50">
+              <button className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white/5 border border-white/10 px-8 py-4 font-semibold text-white hover:bg-white/10 transition-all text-sm group-hover:border-purple-500/50 mt-auto">
                 <BookOpen className="h-4 w-4 text-purple-400" />
                 <span>Gestionar Memoria</span>
               </button>
             </div>
           </div>
 
+          {/* TARJETA 2: GOOGLE CALENDAR (NUEVA INTEGRACIÓN) 🚀 */}
+          <div className="rounded-[32px] border border-white/5 hover:border-white/10 transition-all bg-white/[0.02] backdrop-blur-xl p-8 shadow-2xl relative overflow-hidden group">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-blue-500/20 transition-colors"></div>
+            
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-400 mb-5 shadow-[0_0_15px_rgba(59,130,246,0.15)]">
+                  <Calendar className="h-3.5 w-3.5" /> Motor de Citas
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-3">Google Calendar</h2>
+                <p className="text-slate-400 text-sm leading-relaxed mb-8">
+                  Concede acceso a tu calendario para que el Empleado Digital de Upway agende reuniones automáticamente validando tu disponibilidad.
+                </p>
+              </div>
+              
+              <div className="mt-auto">
+                {calendarConectado ? (
+                  <div className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 px-8 py-4 font-semibold text-emerald-400 text-sm shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span>Sincronizado y Activo</span>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={handleConnectCalendar}
+                    disabled={isConnectingCalendar}
+                    className="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-white text-blue-700 px-8 py-4 font-bold hover:bg-slate-100 hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] disabled:opacity-70 disabled:cursor-not-allowed text-sm"
+                  >
+                    {/* SVG Oficial de Calendar Minimalista */}
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M16 2V6M8 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V20C21 21.1046 20.1046 22 19 22H5C3.89543 22 3 21.1046 3 20V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M16 14H16.01M12 14H12.01M8 14H8.01M16 18H16.01M12 18H12.01M8 18H8.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    {isConnectingCalendar ? "Conectando..." : "Sincronizar Calendario"}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* TARJETA 3: SIMULADOR DE CHAT */}
           <div className="rounded-[32px] border border-white/5 bg-slate-900/40 backdrop-blur-xl p-8 shadow-2xl relative overflow-hidden">
             <div className="absolute top-1/2 right-0 -translate-y-1/2 w-72 h-72 bg-slate-500/5 rounded-full blur-[100px] pointer-events-none"></div>
             
-            <div className="relative z-10 opacity-60">
-              <div className="inline-flex items-center gap-2 rounded-full border border-slate-500/30 bg-slate-500/10 px-3 py-1 text-xs font-semibold text-slate-400 mb-5">
-                <MessageSquare className="h-3.5 w-3.5" /> Pruebas Locales
+            <div className="relative z-10 opacity-60 flex flex-col h-full justify-between">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-slate-500/30 bg-slate-500/10 px-3 py-1 text-xs font-semibold text-slate-400 mb-5">
+                  <MessageSquare className="h-3.5 w-3.5" /> Pruebas Locales
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-3">Simulador de Chat</h2>
+                <p className="text-slate-400 text-sm leading-relaxed mb-8">
+                  Esta herramienta se desbloqueará automáticamente una vez que vincules tu número de Meta.
+                </p>
               </div>
-              <h2 className="text-2xl font-bold text-white mb-3">Simulador de Chat</h2>
-              <p className="text-slate-400 text-sm leading-relaxed mb-8 max-w-sm">
-                Esta herramienta se desbloqueará automáticamente una vez que vincules tu número de Meta.
-              </p>
               
-              <button disabled className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 border border-white/5 px-8 py-4 font-semibold text-slate-500 cursor-not-allowed text-sm">
+              <button disabled className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 border border-white/5 px-8 py-4 font-semibold text-slate-500 cursor-not-allowed text-sm mt-auto">
                 <span>Requiere Conexión</span>
               </button>
             </div>
