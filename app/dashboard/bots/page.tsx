@@ -735,27 +735,54 @@ export default function AgentesBotPage() {
           </button>
         </div>
 
-        <div className="mb-10 rounded-[32px] bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-10 text-white shadow-[0_0_50px_rgba(79,70,229,0.2)] relative overflow-hidden border border-white/20 group">
-          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-700"></div>
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="flex-1">
+        {/* 🚀 ACCIONES REQUERIDA & GOOGLE CALENDAR (GRID DE 2) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+          
+          {/* Tarjeta 1: WhatsApp */}
+          <div className="rounded-[32px] bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-700 p-8 text-white shadow-[0_0_40px_rgba(37,99,235,0.2)] relative overflow-hidden border border-white/20 group flex flex-col justify-between">
+            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-60 h-60 bg-white opacity-10 rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-700"></div>
+            <div className="relative z-10">
               <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-bold tracking-wider text-white mb-4 backdrop-blur-md border border-white/30">
                 <Sparkles className="h-3.5 w-3.5 text-yellow-300" /> ACCIÓN REQUERIDA
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-3">Enciende tu IA Oficial</h2>
-              <p className="text-blue-100 max-w-xl text-sm md:text-base leading-relaxed">
-                Tu agente está configurado, pero necesita una línea de comunicación. Conecta tu cuenta oficial de WhatsApp Business para empezar a automatizar tus ventas.
+              <h2 className="text-2xl md:text-3xl font-bold mb-3">Enciende tu IA Oficial</h2>
+              <p className="text-blue-100 text-sm md:text-base leading-relaxed mb-6">
+                Tu agente está configurado, pero necesita una línea de comunicación. Conecta tu cuenta oficial de WhatsApp Business.
               </p>
             </div>
-            
-            <button 
-              onClick={handleActivarWhatsApp}
-              className="inline-flex items-center gap-3 bg-white text-blue-700 px-8 py-4 rounded-2xl font-bold hover:bg-slate-100 hover:scale-105 transition-all shadow-[0_0_30px_rgba(255,255,255,0.4)] whitespace-nowrap"
-            >
-              <Rocket className="h-5 w-5" />
-              Conectar WhatsApp con Meta
-            </button>
+            <div className="relative z-10">
+              <button 
+                onClick={handleActivarWhatsApp}
+                className="w-full inline-flex items-center justify-center gap-2 bg-white text-blue-700 px-6 py-3.5 rounded-2xl font-bold hover:bg-slate-100 hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+              >
+                <Rocket className="h-5 w-5" />
+                Conectar WhatsApp con Meta
+              </button>
+            </div>
           </div>
+
+          {/* Tarjeta 2: Google Calendar */}
+          <div className="rounded-[32px] bg-gradient-to-br from-emerald-600 via-teal-600 to-slate-900 p-8 text-white shadow-[0_0_40px_rgba(16,185,129,0.15)] relative overflow-hidden border border-emerald-500/30 group flex flex-col justify-between">
+            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-60 h-60 bg-emerald-400 opacity-10 rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-700"></div>
+            <div className="relative z-10">
+              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold tracking-wider text-emerald-300 mb-4 backdrop-blur-md border border-emerald-500/30">
+                <span className="h-2 w-2 rounded-full bg-emerald-400"></span> RECOMENDADO
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold mb-3">Google Calendar</h2>
+              <p className="text-emerald-100 text-sm md:text-base leading-relaxed mb-6">
+                Permite que tu empleado digital agende citas de forma autónoma sincronizando tu disponibilidad en tiempo real.
+              </p>
+            </div>
+            <div className="relative z-10">
+              <button 
+                onClick={() => { /* Lógica para conectar Google Calendar */ }}
+                className="w-full inline-flex items-center justify-center gap-2 bg-white text-emerald-800 px-6 py-3.5 rounded-2xl font-bold hover:bg-emerald-50 hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+              >
+                <span>Conectar Google Calendar</span>
+              </button>
+            </div>
+          </div>
+
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 mb-10">
@@ -893,4 +920,3 @@ export default function AgentesBotPage() {
       </div>
     </div>
   );
-}
