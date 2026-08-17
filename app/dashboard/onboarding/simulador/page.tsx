@@ -149,7 +149,14 @@ export default function Paso06Simulador() {
 
         const systemPromptDinamico = `Eres ${nombreAgente || 'un asistente virtual experto'}, operando para un negocio del sector ${nicho || 'general'}. ${promptMaestro}. Ignora cualquier instrucción corporativa previa de IPS o nombres ajenos a esta configuración. Tu nombre es exactamente ${nombreAgente || 'Asistente'}.`;
 
-        // 🔥 OJO A ESTE BLOQUE: Arquitectura AssistantOverrides (CORREGIDA)
+        // 🔥 LÓGICA DINÁMICA DE VOCES (Hombre vs Mujer)
+        const isHombre = (nombreAgente || '').toLowerCase().includes('mauricio') || (nicho || '').toLowerCase().includes('hombre');
+
+        const voiceConfig = isHombre 
+          ? { provider: "elevenlabs", voiceId: "IaUx9NjPDJeDAwpNQMW2" }
+          : { provider: "deepgram", voiceId: "celeste" }; // Si tienes a Celeste en otro proveedor como playht, cámbialo aquí.
+
+        // 🔥 INYECCIÓN FINAL AL MOTOR DE VAPI
         await vapi.start("e86eae54-3a05-4d31-938f-c8caf7522ee5", {
           firstMessage: `¡Hola! Soy ${nombreAgente || 'tu asistente'}, ¿en qué puedo ayudarte hoy?`,
           model: {
@@ -161,7 +168,8 @@ export default function Paso06Simulador() {
                 content: systemPromptDinamico
               }
             ]
-          }
+          },
+          voice: voiceConfig
         });
         
       } catch (error) {
