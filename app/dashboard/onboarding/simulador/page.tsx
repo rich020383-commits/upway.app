@@ -115,7 +115,7 @@ export default function Paso06Simulador() {
     }
   };
 
-  // --- LÓGICA DE VOZ (VAPI DINÁMICO) ---
+  // --- LÓGICA DE VOZ (VAPI DINÁMICO BLINDADO) ---
   const toggleLlamada = async () => {
     if (!vapi) return;
 
@@ -128,7 +128,7 @@ export default function Paso06Simulador() {
       setEstadoLlamada('conectando');
       
       try {
-        // 🔥 Limpiamos listeners viejos antes de conectar para no duplicar eventos si conectas/desconectas varias veces.
+        // Limpiamos listeners viejos antes de conectar
         vapi.removeAllListeners();
 
         // Eventos de Vapi
@@ -149,22 +149,21 @@ export default function Paso06Simulador() {
 
         const systemPromptDinamico = `Eres ${nombreAgente || 'un asistente virtual experto'}, operando para un negocio del sector ${nicho || 'general'}. ${promptMaestro}. Ignora cualquier instrucción corporativa previa de IPS o nombres ajenos a esta configuración. Tu nombre es exactamente ${nombreAgente || 'Asistente'}.`;
 
-        await vapi.start({
-          model: {
-            provider: "openai",
-            model: "gpt-4o",
-            messages: [
-              {
-                role: "system",
-                content: systemPromptDinamico
-              }
-            ]
-          },
-          voice: {
-            provider: "playht",
-            voiceId: "celeste" // O la voz que prefieras usar por defecto
-          },
-          firstMessage: `¡Hola! Soy ${nombreAgente || 'tu asistente'}, ¿en qué puedo ayudarte hoy?`
+        // 🔥 OJO A ESTE BLOQUE: Arquitectura AssistantOverrides
+        await vapi.start("e86eae54-3a05-4d31-938f-c8caf7522ee5", {
+          assistantOverrides: {
+            firstMessage: `¡Hola! Soy ${nombreAgente || 'tu asistente'}, ¿en qué puedo ayudarte hoy?`,
+            model: {
+              provider: "openai",
+              model: "gpt-4o",
+              messages: [
+                {
+                  role: "system",
+                  content: systemPromptDinamico
+                }
+              ]
+            }
+          }
         });
         
       } catch (error) {

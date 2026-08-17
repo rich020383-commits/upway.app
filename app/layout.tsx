@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Chatbot from "@/components/Chatbot"; 
 import PwaRegister from "@/components/PwaRegister";
-import Footer from "@/components/Footer"; // <--- 1. Importamos el Footer
+// 🔥 Eliminamos la importación del Footer Global
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,13 +38,12 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-slate-950 text-white">
-        {/* Contenedor principal que empuja el footer hacia abajo */}
+        {/* Contenedor principal libre de elementos duplicados */}
         <main className="flex-grow">
           {children}
         </main>
-        
-        {/* 2. El Footer global visible en todo el sitio web */}
-        <Footer />
+
+        {/* 🔥 Footer global eliminado. Ahora solo aparecerá donde lo llamemos explícitamente (en la landing page) */}
 
         <Chatbot /> 
         <PwaRegister />
