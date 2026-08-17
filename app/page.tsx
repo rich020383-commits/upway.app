@@ -738,10 +738,13 @@ export default function Home() {
           </div>
 
           <div className="flex gap-8 text-[11px] font-mono tracking-widest text-white/40">
-            <a href="/terminos" className="hover:text-[#00D1FF] transition-colors uppercase">Términos de Servicio</a>
-            {/* Como la Ley 1581 está en el numeral 04 de los términos, lo enviamos allí mismo por ahora */}
-            <a href="/terminos" className="hover:text-[#00D1FF] transition-colors uppercase">Privacidad (Ley 1581)</a>
-          </div>
+  <Link href="/terminos" className="hover:text-[#00D1FF] transition-colors uppercase">
+    Términos de Servicio
+  </Link>
+  <Link href="/privacy" className="hover:text-[#00D1FF] transition-colors uppercase">
+    Privacidad (Ley 1581)
+  </Link>
+</div>
 
           <p className="text-[10px] font-mono text-white/30">© 2026 UPWAY BUSINESS. ALL RIGHTS RESERVED.</p>
         </div>
