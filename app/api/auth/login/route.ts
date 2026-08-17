@@ -1,46 +1,71 @@
-import { NextResponse } from 'next/server';
+import NextAuth from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
+import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    
-    // Extraemos limpiando espacios en blanco accidentales al inicio o final
-    const email = body.email?.trim();
-    const password = body.password?.trim();
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
+const prisma = globalForPrisma.prisma || new PrismaClient();
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
-    // ESTO SE IMPRIMIRÁ EN TU TERMINAL (Para que veas qué está llegando)
-    console.log(`Intento de login - Correo: "${email}", Password: "${password}"`);
+const handler = NextAuth({
+  providers: [
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Correo", type: "email" },
+        password: { label: "Contraseña", type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) return null;
 
-    // Los únicos accesos permitidos
-    const usuariosPermitidos = [
-      { email: 'revisor_meta@upway.business', password: 'MetaReview2026' },
-      { email: 'rich@upway.com', password: 'AdminUpway123*' } // El tuyo para pruebas
-    ];
+        // 🚀 1. ACCESO DIRECTO PARA REVISOR DE META (Prioridad máxima)
+        if (credentials.email === 'revisor_meta@upway.business' && credentials.password === 'MetaReview2026') {
+            console.log("🤖 [META REVIEW] Acceso concedido al revisor");
+            return { id: 'meta-reviewer', name: 'Meta Reviewer', email: 'revisor_meta@upway.business' };
+        }
 
-    const usuarioValido = usuariosPermitidos.find(
-      (u) => u.email === email && u.password === password
-    );
+        // 2. VALIDACIÓN NORMAL CONTRA NEON (Tu DB)
+        try {
+          const user = await prisma.user.findUnique({ where: { email: credentials.email } });
+          if (!user || !user.password) return null;
 
-    if (usuarioValido) {
-      console.log('¡Login Exitoso!');
-      return NextResponse.json({ 
-        success: true, 
-        message: 'Acceso autorizado',
-        user: { email: usuarioValido.email }
-      }, { status: 200 });
-    } else {
-      console.log('Login Fallido: Credenciales no coinciden.');
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Credenciales incorrectas. Verifica tu correo y contraseña.' 
-      }, { status: 401 });
+          const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+          if (!isPasswordValid) return null;
+
+          return { id: user.id, name: user.name, email: user.email };
+        } catch (error) {
+          return null;
+        }
+      }
+    }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider === "google" && user.email) {
+        const existingUser = await prisma.user.findUnique({ where: { email: user.email } });
+        if (!existingUser) {
+          await prisma.user.create({ data: { email: user.email, name: user.name || "Usuario Google" } });
+        }
+      }
+      return true;
+    },
+    async jwt({ token, user }) {
+      if (user) token.id = user.id;
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) (session.user as any).id = token.id;
+      return session;
     }
+  },
+  pages: { signIn: '/login' },
+  session: { strategy: "jwt" },
+  secret: process.env.NEXTAUTH_SECRET,
+});
 
-  } catch (error) {
-    console.error('Error en el servidor:', error);
-    return NextResponse.json({ 
-      success: false, 
-      message: 'Error interno del servidor.' 
-    }, { status: 500 });
-  }
-}
+export { handler as GET, handler as POST };

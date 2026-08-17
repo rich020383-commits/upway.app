@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
@@ -20,6 +21,16 @@ const handler = NextAuth({
 
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Por favor ingresa tu correo y contraseña");
+        }
+
+        // 🚀 ACCESO DIRECTO PARA EL REVISOR DE META
+        if (credentials.email === 'revisor_meta@upway.business' && credentials.password === 'MetaReview2026') {
+          console.log("🤖 [META REVIEW] Acceso concedido al revisor de Meta");
+          return { 
+            id: 'meta-reviewer', 
+            name: 'Meta Reviewer', 
+            email: 'revisor_meta@upway.business' 
+          };
         }
 
         try {
@@ -49,13 +60,52 @@ const handler = NextAuth({
           throw new Error(error.message || "Error interno al procesar el acceso");
         }
       }
-    })
+    }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
   ],
-  // 🔥 ESTO ES LO QUE FALTABA: Asegura que el ID viaje a la sesión del navegador
   callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider === "google") {
+        if (!user.email) return false;
+
+        try {
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email }
+          });
+
+          if (!existingUser) {
+            await prisma.user.create({
+              data: {
+                email: user.email,
+                name: user.name || "Usuario de Google",
+              }
+            });
+            console.log("✅ [Google Auth] Nuevo usuario creado en BD:", user.email);
+          }
+        } catch (error) {
+          console.error("🚨 Error al sincronizar usuario de Google en BD:", error);
+          return false;
+        }
+      }
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+      } else if (token.email && !token.id) {
+        if (token.email === 'revisor_meta@upway.business') {
+          token.id = 'meta-reviewer';
+        } else {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: token.email as string }
+          });
+          if (dbUser) {
+            token.id = dbUser.id;
+          }
+        }
       }
       return token;
     },
