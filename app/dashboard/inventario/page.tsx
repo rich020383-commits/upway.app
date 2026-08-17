@@ -1,270 +1,198 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Package, PlusCircle, Upload, Pencil, Trash2, Search, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { Database, UploadCloud, Search, Plus, Trash2, Box, ArrowRight, FileText } from 'lucide-react';
+
+// Estructura de prueba vacía (borramos los productos viejos)
+type Producto = { id: string; nombre: string; categoria: string; precio: number };
 
 export default function InventarioPage() {
-  const [modoCarga, setModoCarga] = useState<'manual' | 'csv'>('manual');
-  const [guardando, setGuardando] = useState(false);
-  const [productos, setProductos] = useState<any[]>([]);
-  const [cargando, setCargando] = useState(true);
+  const [metodoCarga, setMetodoCarga] = useState<'manual' | 'csv'>('manual');
+  // Iniciamos la base de datos vacía para que se vea limpio
+  const [productos, setProductos] = useState<Producto[]>([]); 
+  
+  // Estados del formulario manual
   const [nombre, setNombre] = useState('');
   const [precio, setPrecio] = useState('');
   const [categoria, setCategoria] = useState('');
-  const [archivoCSV, setArchivoCSV] = useState<File | null>(null);
-  const [editandoId, setEditandoId] = useState<number | null>(null);
-  const [editNombre, setEditNombre] = useState('');
-  const [editPrecio, setEditPrecio] = useState('');
-  const [editCategoria, setEditCategoria] = useState('');
 
-  const TIENDA_ID = '1172769935927318';
-
-  const cargarInventario = async () => {
-    setCargando(true);
-    try {
-      const respuesta = await fetch(`/api/inventario/${TIENDA_ID}`);
-      if (respuesta.ok) {
-        const datos = await respuesta.json();
-        setProductos(datos.inventario || []);
-      }
-    } catch (error) {
-      console.error('Error', error);
-    } finally {
-      setCargando(false);
-    }
-  };
-
-  useEffect(() => {
-    cargarInventario();
-  }, []);
-
-  const agregarProducto = async (e: React.FormEvent) => {
+  const handleAgregarManual = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nombre || !precio) return alert('Nombre y precio son obligatorios.');
-    setGuardando(true);
-
-    try {
-      const respuesta = await fetch('/api/inventario/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tienda_id: TIENDA_ID, nombre, precio: parseFloat(precio), categoria: categoria || 'General', disponible: true }),
-      });
-      if (respuesta.ok) {
-        setNombre('');
-        setPrecio('');
-        setCategoria('');
-        cargarInventario();
-      }
-    } catch (error) {
-      alert('❌ Error conectando al servidor.');
-    } finally {
-      setGuardando(false);
-    }
+    if (!nombre || !precio) return;
+    
+    const nuevo: Producto = {
+      id: Math.random().toString(36).substring(7),
+      nombre,
+      categoria: categoria || 'General',
+      precio: parseFloat(precio)
+    };
+    
+    setProductos([nuevo, ...productos]);
+    setNombre('');
+    setPrecio('');
+    setCategoria('');
   };
 
-  const subirArchivoCSV = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!archivoCSV) return alert('Selecciona un archivo CSV primero.');
-    setGuardando(true);
-
-    const formData = new FormData();
-    formData.append('tienda_id', TIENDA_ID);
-    formData.append('archivo', archivoCSV);
-
-    try {
-      const respuesta = await fetch('/api/inventario/cargar-csv/', {
-        method: 'POST',
-        body: formData,
-      });
-      if (respuesta.ok) {
-        setArchivoCSV(null);
-        cargarInventario();
-      } else {
-        alert('❌ Error al procesar el archivo.');
-      }
-    } catch (error) {
-      alert('❌ Error de conexión.');
-    } finally {
-      setGuardando(false);
-    }
+  const eliminarProducto = (id: string) => {
+    setProductos(productos.filter(p => p.id !== id));
   };
 
-  const eliminarProducto = async (id: number) => {
-    if (!confirm('¿Seguro que quieres borrar este producto?')) return;
-
-    try {
-      const respuesta = await fetch(`/api/inventario/${id}`, { method: 'DELETE' });
-      if (respuesta.ok) {
-        cargarInventario();
-      }
-    } catch (error) {
-      alert('❌ Error eliminando producto.');
-    }
-  };
-
-  const iniciarEdicion = (producto: any) => {
-    setEditandoId(producto.id);
-    setEditNombre(producto.nombre);
-    setEditPrecio(producto.precio.toString());
-    setEditCategoria(producto.categoria || '');
-  };
-
-  const guardarEdicion = async (id: number) => {
-    try {
-      const respuesta = await fetch(`/api/inventario/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre: editNombre, precio: parseFloat(editPrecio), categoria: editCategoria }),
-      });
-
-      if (respuesta.ok) {
-        setEditandoId(null);
-        cargarInventario();
-      }
-    } catch (error) {
-      alert('❌ Error al actualizar.');
-    }
-  };
+  const fmt = (n: number) => `$${n.toLocaleString("es-CO")}`;
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.15),_transparent_55%)] bg-slate-950 px-4 py-8 text-white sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
+    <div className="min-h-screen bg-[#07090C] text-[#F5F7FA] font-sans pb-20 selection:bg-[#9B5CFF] selection:text-[#07090C]">
+      
+      <div className="max-w-6xl mx-auto px-6 pt-12 md:pt-16">
         
-        {/* Cabecera Premium Oscura */}
-        <div className="mb-8 overflow-hidden rounded-[32px] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-blue-900/20 backdrop-blur-xl">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-sm font-semibold text-blue-400">
-                <Package className="h-4 w-4" />
-                Inventario inteligente
-              </div>
-              <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Administra tu stock con una experiencia premium</h1>
-              <p className="mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">Carga productos manualmente o en lote, edita stock y mantén un control claro del negocio desde un solo panel.</p>
+        {/* Header Premium */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 pb-6 border-b border-[#1E293B]">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-md border border-[#9B5CFF]/30 bg-[#9B5CFF]/10 px-2 py-1 text-[10px] font-mono tracking-widest text-[#9B5CFF] mb-4">
+              <Database className="h-3 w-3" /> BASE DE CONOCIMIENTO
             </div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg">
-              <Sparkles className="h-4 w-4" />
-              Listo para WhatsApp
-            </div>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-[#F5F7FA]">
+              Memoria Vectorial (RAG)
+            </h1>
+            <p className="text-[#8994A6] text-sm mt-2 max-w-2xl">
+              Alimenta a tu empleado digital con tu inventario. La IA consultará estos datos en tiempo real para generar respuestas precisas.
+            </p>
           </div>
+          
+          <button className="inline-flex items-center gap-2 rounded-xl bg-[#F5F7FA] text-[#07090C] px-5 py-2.5 text-sm font-bold hover:bg-[#E2E8F0] transition-all shadow-[0_0_20px_rgba(245,247,250,0.1)]">
+            <Database className="h-4 w-4" /> Forzar Indexación
+          </button>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
+        <div className="grid lg:grid-cols-[1fr_1.5fr] gap-8">
           
-          {/* COLUMNA IZQUIERDA: FORMULARIOS */}
+          {/* COLUMNA IZQUIERDA: Ingesta de Datos */}
           <div className="space-y-6">
-            <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-md">
-              <div className="mb-6 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-500/20 text-blue-400">
-                  <Search className="h-5 w-5" />
-                </div>
-                <h2 className="text-xl font-semibold text-white">Carga de productos</h2>
-              </div>
+            <div className="rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8 shadow-xl">
+              <h2 className="text-lg font-bold text-[#F5F7FA] mb-6 flex items-center gap-2">
+                <UploadCloud className="h-5 w-5 text-[#9B5CFF]" /> Ingesta de Datos
+              </h2>
               
-              {/* Selector de modo oscuro */}
-              <div className="mb-6 flex rounded-2xl border border-white/5 bg-black/20 p-1">
-                <button onClick={() => setModoCarga('manual')} className={`flex-1 rounded-xl px-3 py-2 text-sm font-medium transition ${modoCarga === 'manual' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-300'}`}>Manual</button>
-                <button onClick={() => setModoCarga('csv')} className={`flex-1 rounded-xl px-3 py-2 text-sm font-medium transition ${modoCarga === 'csv' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-300'}`}>CSV</button>
+              {/* Selector de Método */}
+              <div className="flex p-1 bg-[#07090C] border border-[#1E293B] rounded-xl mb-8">
+                <button 
+                  onClick={() => setMetodoCarga('manual')}
+                  className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+                    metodoCarga === 'manual' ? 'bg-[#1E293B] text-[#F5F7FA]' : 'text-[#8994A6] hover:text-[#F5F7FA]'
+                  }`}
+                >
+                  Registro Manual
+                </button>
+                <button 
+                  onClick={() => setMetodoCarga('csv')}
+                  className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+                    metodoCarga === 'csv' ? 'bg-[#1E293B] text-[#F5F7FA]' : 'text-[#8994A6] hover:text-[#F5F7FA]'
+                  }`}
+                >
+                  Carga Masiva (CSV)
+                </button>
               </div>
 
-              {modoCarga === 'manual' ? (
-                <form onSubmit={agregarProducto} className="space-y-5">
+              {metodoCarga === 'manual' ? (
+                <form onSubmit={handleAgregarManual} className="space-y-5">
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-slate-300">Nombre</label>
-                    <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition focus:border-blue-500" placeholder="Ej. Leche Entera" />
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#8994A6]">Nombre del Producto / Servicio</label>
+                    <input 
+                      type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} required
+                      placeholder="Ej. Taladro Percutor 12V" 
+                      className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3 text-sm text-[#F5F7FA] outline-none transition focus:border-[#9B5CFF] focus:ring-1 focus:ring-[#9B5CFF]" 
+                    />
                   </div>
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-slate-300">Precio</label>
-                    <input type="number" value={precio} onChange={(e) => setPrecio(e.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition focus:border-blue-500" placeholder="Ej. 4500" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#8994A6]">Precio</label>
+                      <input 
+                        type="number" value={precio} onChange={(e) => setPrecio(e.target.value)} required
+                        placeholder="Ej. 150000" 
+                        className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3 text-sm text-[#F5F7FA] outline-none transition focus:border-[#9B5CFF]" 
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#8994A6]">Categoría</label>
+                      <input 
+                        type="text" value={categoria} onChange={(e) => setCategoria(e.target.value)}
+                        placeholder="Ej. Herramientas" 
+                        className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3 text-sm text-[#F5F7FA] outline-none transition focus:border-[#9B5CFF]" 
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-slate-300">Categoría</label>
-                    <input type="text" value={categoria} onChange={(e) => setCategoria(e.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition focus:border-blue-500" placeholder="Opcional" />
-                  </div>
-                  <button type="submit" disabled={guardando} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3.5 font-semibold text-white transition hover:bg-blue-500 disabled:opacity-70">
-                    <PlusCircle className="h-4 w-4" />
-                    {guardando ? 'Guardando...' : 'Agregar producto'}
+                  <button type="submit" className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#9B5CFF] px-6 py-3.5 font-bold text-white transition-all hover:bg-[#8B4CFF] mt-2">
+                    <Plus className="h-4 w-4" /> Agregar al Vector
                   </button>
                 </form>
               ) : (
-                <form onSubmit={subirArchivoCSV} className="space-y-4 text-center">
-                  <div className="cursor-pointer rounded-[24px] border border-dashed border-white/20 bg-white/5 p-8 transition hover:border-blue-500 hover:bg-blue-500/10">
-                    <Upload className="mx-auto mb-3 h-8 w-8 text-blue-400" />
-                    <p className="text-sm font-medium text-slate-300">Selecciona un archivo CSV</p>
-                    <input type="file" accept=".csv" onChange={(e) => setArchivoCSV(e.target.files?.[0] || null)} className="absolute inset-0 h-full w-full opacity-0" />
-                  </div>
-                  {archivoCSV ? <p className="rounded-xl bg-emerald-500/20 px-3 py-2 text-sm text-emerald-400">{archivoCSV.name}</p> : null}
-                  <button type="submit" disabled={guardando || !archivoCSV} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3.5 font-semibold text-white transition hover:bg-blue-500 disabled:opacity-70">
-                    {guardando ? 'Procesando...' : 'Subir inventario masivo'}
+                <div className="flex flex-col items-center justify-center py-8 border-2 border-dashed border-[#1E293B] rounded-xl bg-[#07090C] transition-all hover:border-[#9B5CFF]/50 cursor-pointer">
+                  <FileText className="h-10 w-10 text-[#8994A6] mb-4" />
+                  <p className="text-sm text-[#F5F7FA] font-medium mb-1">Arrastra tu archivo CSV aquí</p>
+                  <p className="text-xs text-[#8994A6]">Máximo 5MB (Solo texto estructurado)</p>
+                  <button className="mt-6 text-xs font-bold bg-[#1E293B] text-[#F5F7FA] px-4 py-2 rounded-lg hover:bg-[#2A3B4C] transition-colors">
+                    Explorar archivos
                   </button>
-                </form>
+                </div>
               )}
             </div>
           </div>
 
-          {/* COLUMNA DERECHA: TABLA */}
-          <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-md">
-            <div className="mb-6 flex items-center justify-between">
+          {/* COLUMNA DERECHA: Tabla de Vectores */}
+          <div className="rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8 shadow-xl flex flex-col h-full min-h-[500px]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-[#1E293B]">
               <div>
-                <h2 className="text-xl font-semibold text-white">Productos activos</h2>
-                <p className="text-sm text-slate-400">{productos.length} elementos disponibles</p>
+                <h2 className="text-lg font-bold text-[#F5F7FA] flex items-center gap-2">
+                  <Box className="h-5 w-5 text-[#9B5CFF]" /> Base de Datos Activa
+                </h2>
+                <p className="text-xs text-[#8994A6] mt-1">{productos.length} registros vectorizados</p>
               </div>
-              <div className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-sm font-semibold text-blue-400">Sincronizado</div>
+              
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8994A6]" />
+                <input 
+                  type="text" 
+                  placeholder="Buscar registro..." 
+                  className="w-full sm:w-64 rounded-xl border border-[#1E293B] bg-[#07090C] pl-9 pr-4 py-2 text-sm text-[#F5F7FA] outline-none transition focus:border-[#9B5CFF]" 
+                />
+              </div>
             </div>
 
-            {cargando ? (
-              <div className="rounded-[24px] border border-white/10 bg-white/5 p-10 text-center text-sm text-slate-400">Cargando inventario...</div>
-            ) : (
-              <div className="overflow-hidden rounded-[24px] border border-white/10">
-                <table className="min-w-full text-left text-sm text-slate-300">
-                  <thead className="border-b border-white/10 bg-black/20 text-xs uppercase tracking-[0.2em] text-slate-400">
-                    <tr>
-                      <th className="px-4 py-4 font-semibold">Producto</th>
-                      <th className="px-4 py-4 font-semibold">Categoría</th>
-                      <th className="px-4 py-4 text-right font-semibold">Precio</th>
-                      <th className="px-4 py-4 text-center font-semibold">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {productos.length === 0 ? (
-                      <tr>
-                        <td colSpan={4} className="px-4 py-12 text-center">
-                          <Package className="mx-auto mb-3 h-8 w-8 text-slate-500 opacity-50" />
-                          <p className="text-slate-400">No hay productos registrados en tu base de datos.</p>
-                          <p className="text-sm text-slate-500">Agrega uno manualmente o sube un CSV para comenzar.</p>
-                        </td>
-                      </tr>
-                    ) : (
-                      productos.map((producto, idx) => (
-                        <tr key={idx} className="border-b border-white/5 bg-transparent transition-colors hover:bg-white/[0.02] last:border-0">
-                          {editandoId === producto.id ? (
-                            <>
-                              <td className="px-4 py-3"><input type="text" value={editNombre} onChange={(e) => setEditNombre(e.target.value)} className="w-full rounded-xl border border-white/20 bg-slate-900 px-3 py-2 text-sm text-white outline-none" /></td>
-                              <td className="px-4 py-3"><input type="text" value={editCategoria} onChange={(e) => setEditCategoria(e.target.value)} className="w-full rounded-xl border border-white/20 bg-slate-900 px-3 py-2 text-sm text-white outline-none" /></td>
-                              <td className="px-4 py-3"><input type="number" value={editPrecio} onChange={(e) => setEditPrecio(e.target.value)} className="w-full rounded-xl border border-white/20 bg-slate-900 px-3 py-2 text-right text-sm text-white outline-none" /></td>
-                              <td className="px-4 py-3 text-center">
-                                <button onClick={() => guardarEdicion(producto.id)} className="mr-3 font-medium text-emerald-400 transition hover:text-emerald-300">Guardar</button>
-                                <button onClick={() => setEditandoId(null)} className="font-medium text-slate-400 transition hover:text-slate-300">Cancelar</button>
-                              </td>
-                            </>
-                          ) : (
-                            <>
-                              <td className="px-4 py-4 font-medium text-white">{producto.nombre}</td>
-                              <td className="px-4 py-4 text-slate-400">{producto.categoria}</td>
-                              <td className="px-4 py-4 text-right font-medium text-white">${producto.precio?.toLocaleString('es-CO')}</td>
-                              <td className="px-4 py-4 text-center">
-                                <button onClick={() => iniciarEdicion(producto)} className="mr-4 text-blue-400 transition hover:text-blue-300"><Pencil className="h-4 w-4" /></button>
-                                <button onClick={() => eliminarProducto(producto.id)} className="text-rose-400 transition hover:text-rose-300"><Trash2 className="h-4 w-4" /></button>
-                              </td>
-                            </>
-                          )}
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <div className="flex-1 overflow-auto">
+              {productos.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-center opacity-50 py-12">
+                  <Database className="h-12 w-12 text-[#8994A6] mb-4" />
+                  <p className="text-sm font-semibold text-[#F5F7FA]">Sin registros vectorizados</p>
+                  <p className="text-xs text-[#8994A6] max-w-xs mt-2">Agrega productos manualmente o sube un CSV para entrenar a la IA.</p>
+                </div>
+              ) : (
+                <div className="w-full">
+                  <div className="grid grid-cols-12 gap-4 text-xs font-bold uppercase tracking-widest text-[#8994A6] mb-4 px-4">
+                    <div className="col-span-5">Registro</div>
+                    <div className="col-span-3">Categoría</div>
+                    <div className="col-span-3">Valor Ref.</div>
+                    <div className="col-span-1 text-right">Acción</div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {productos.map((p) => (
+                      <div key={p.id} className="grid grid-cols-12 gap-4 items-center bg-[#07090C] border border-[#1E293B] rounded-xl px-4 py-3 transition-colors hover:border-[#8994A6]/50">
+                        <div className="col-span-5 font-medium text-[#F5F7FA] text-sm truncate">{p.nombre}</div>
+                        <div className="col-span-3 text-xs text-[#8994A6] truncate">{p.categoria}</div>
+                        <div className="col-span-3 font-mono text-sm text-[#10B981]">{fmt(p.precio)}</div>
+                        <div className="col-span-1 flex justify-end">
+                          <button onClick={() => eliminarProducto(p.id)} className="text-[#8994A6] hover:text-red-400 transition-colors">
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            
           </div>
+
         </div>
       </div>
     </div>
