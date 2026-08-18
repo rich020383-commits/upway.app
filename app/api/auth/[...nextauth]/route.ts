@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaClient } from "@prisma/client";
@@ -8,7 +8,7 @@ const globalForPrisma = global as unknown as { prisma: PrismaClient };
 const prisma = globalForPrisma.prisma || new PrismaClient();
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
-const handler = NextAuth({
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -64,6 +64,15 @@ const handler = NextAuth({
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      // 🔥 AÑADIMOS ESTO: Pedimos acceso offline y el scope del calendario
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+          scope: "openid email profile https://www.googleapis.com/auth/calendar.events"
+        }
+      }
     }),
   ],
   callbacks: {
@@ -92,7 +101,12 @@ const handler = NextAuth({
       }
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
+      // 🔥 AÑADIMOS ESTO: Guardamos el token de acceso de Google si viene en la cuenta
+      if (account && account.provider === 'google') {
+        token.accessToken = account.access_token;
+      }
+
       if (user) {
         token.id = user.id;
       } else if (token.email && !token.id) {
@@ -109,9 +123,11 @@ const handler = NextAuth({
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: any) {
       if (token && session.user) {
-        (session.user as any).id = token.id as string;
+        session.user.id = token.id as string;
+        // 🔥 AÑADIMOS ESTO: Pasamos el token de Google a la sesión del cliente
+        session.accessToken = token.accessToken;
       }
       return session;
     }
@@ -123,6 +139,7 @@ const handler = NextAuth({
     strategy: "jwt",
   },
   secret: process.env.NEXTAUTH_SECRET,
-});
+};
 
+const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
