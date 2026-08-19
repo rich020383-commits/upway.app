@@ -46,8 +46,10 @@ export async function POST(req: Request) {
       const toolCallId = item.toolCall?.id;
       const args = item.toolCall?.function?.arguments;
 
+      console.log(`🛠️ DEPURACIÓN: Vapi envió la herramienta llamada: "${toolName}"`);
+
       // ==========================================
-      // 🔍 HERRAMIENTA 1: CONSULTAR PACIENTE (NUEVA)
+      // 🔍 HERRAMIENTA 1: CONSULTAR PACIENTE
       // ==========================================
       if (toolName === 'consultar_paciente') {
         try {
@@ -64,7 +66,6 @@ export async function POST(req: Request) {
             console.log(`✅ [Upway CRM] Paciente encontrado: ${pacienteEncontrado.nombre}`);
             toolCallResults.push({
               toolCallId: toolCallId,
-              // Le mandamos los datos a la IA para que pueda hablar con propiedad
               result: `Paciente encontrado. Nombre: ${pacienteEncontrado.nombre}. Motivo o estado previo: ${pacienteEncontrado.motivo || pacienteEncontrado.estado}.`
             });
           } else {
@@ -80,11 +81,12 @@ export async function POST(req: Request) {
       }
       
       // ==========================================
-      // 💾 HERRAMIENTA 2: AGENDAR / GUARDAR LEAD (LA QUE YA TENÍAMOS)
+      // 💾 HERRAMIENTA 2: AGENDAR / GUARDAR LEAD
       // ==========================================
-      else if (toolName === 'agendar_cita' || toolName === 'guardar_lead') {
+      else if (toolName === 'perfilamiento_y_agenda' || toolName === 'agendar_cita' || toolName === 'guardar_lead') {
         try {
           const { nombrePaciente, documento, motivoConsulta } = args;
+          console.log(`💾 [Upway CRM] Intentando guardar lead para documento: ${documento}`);
 
           // Buscamos si ya existe para no crear duplicados
           const leadExistente = await prisma.lead.findFirst({
@@ -92,18 +94,17 @@ export async function POST(req: Request) {
           });
 
           if (leadExistente) {
-            // Si ya existe, solo actualizamos el motivo y el estado
             await prisma.lead.update({
               where: { id: leadExistente.id },
               data: { motivo: motivoConsulta, estado: "Cita_Agendada" }
             });
+            console.log(`✅ [Upway CRM] Lead actualizado: ${leadExistente.nombre}`);
             toolCallResults.push({
               toolCallId: toolCallId,
               result: `Éxito. Datos actualizados para el paciente ${leadExistente.nombre}.`
             });
           } else {
-            // Si es nuevo, lo creamos
-            const nuevoLead = await prisma.lead.create({
+            const nuevoLeadCreado = await prisma.lead.create({
               data: {
                 tiendaId: tienda.id,
                 nombre: nombrePaciente || 'Sin Nombre',
@@ -113,6 +114,7 @@ export async function POST(req: Request) {
                 estado: 'Nuevo'
               }
             });
+            console.log(`✅ [Upway CRM] ¡Lead NUEVO guardado en NeonDB!: ${nuevoLeadCreado.nombre}`);
             toolCallResults.push({
               toolCallId: toolCallId,
               result: `Éxito. Paciente nuevo ${nombrePaciente} guardado en el sistema.`
