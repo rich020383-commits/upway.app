@@ -88,7 +88,8 @@ model Tienda {
   
   user                User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   productos           Producto[]
-  llamadas            LlamadaLog[] 
+  llamadas            LlamadaLog[]
+  leads               Lead[]
 }
 
 model Producto {
@@ -118,4 +119,21 @@ model LlamadaLog {
   createdAt         DateTime @default(now())
 
   tienda            Tienda   @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+}
+// ==========================================
+// 4. MÓDULO CRM (LEADS Y PACIENTES)
+// ==========================================
+
+model Lead {
+  id             String   @id @default(cuid())
+  tiendaId       String
+  nombre         String
+  documento      String?  // Cédula, NIT o Pasaporte
+  motivo         String?  @db.Text // El resumen de la consulta o intención
+  origen         String   @default("Voz (Vapi)") // Voz, WhatsApp, Web, etc.
+  estado         String   @default("Nuevo") // Nuevo, Contactado, Cita_Agendada
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tienda         Tienda   @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
 }

@@ -12,7 +12,6 @@ const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_SECRET
 );
 
-// Le pasamos el token infinito que sacamos en Google Cloud
 if (process.env.GOOGLE_REFRESH_TOKEN) {
   oauth2Client.setCredentials({
     refresh_token: process.env.GOOGLE_REFRESH_TOKEN
@@ -21,19 +20,18 @@ if (process.env.GOOGLE_REFRESH_TOKEN) {
 
 const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
-// Función real que crea el evento en Google
 async function crearEventoCalendario(asunto: string, fechaInicio: string, fechaFin: string) {
   try {
     const event = {
       summary: asunto,
-      start: { dateTime: fechaInicio, timeZone: 'America/Bogota' }, // Zona horaria de Colombia
+      start: { dateTime: fechaInicio, timeZone: 'America/Bogota' }, 
       end: { dateTime: fechaFin, timeZone: 'America/Bogota' },
     };
     const response = await calendar.events.insert({
       calendarId: 'primary',
       requestBody: event,
     });
-    return response.data.htmlLink; // Devuelve el link de Google Meet / Evento
+    return response.data.htmlLink; 
   } catch (error) {
     console.error("Error agendando en Calendar:", error);
     throw new Error("No pude conectar con el calendario.");
@@ -65,10 +63,9 @@ const kimiClient = kimiApiKey
 const geminiFlashApiKey = process.env.GEMINI_FLASH_API_KEY;
 const geminiGenAI = geminiFlashApiKey ? new GenerativeAI.GoogleGenerativeAI(geminiFlashApiKey) : null;
 
-// Configuración de Alertas y Timeouts
 const ALERT_WEBHOOK_URL = process.env.ALERT_WEBHOOK_URL;
 const AUDIO_TRANSCRIPTION_TIMEOUT_MS = 5000;
-const PROVIDER_TIMEOUT_MS = 8000; // Un poco más alto para dar tiempo a function calling
+const PROVIDER_TIMEOUT_MS = 8000; 
 
 const sendMonitorAlert = async (message: string) => {
   if (!ALERT_WEBHOOK_URL) return;
@@ -296,11 +293,13 @@ export async function POST(req: NextRequest) {
     // --- CONTEXTO TEMPORAL PARA SOPHIE ---
     const fechaActual = new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' });
 
+    // 🛡️ REGLA ESTRICTA AÑADIDA PARA FORZAR EL USO DE LA HERRAMIENTA
     const systemPromptText = `Comportate ESTRICTAMENTE según estas instrucciones de tu jefe: 
     ${promptMaestro}
     
     INFORMACIÓN VITAL PARA TI (SOPHIE):
-    - Hoy es: ${fechaActual} (Hora de Colombia). Usa esta fecha actual para calcular los días cuando el cliente pida agendar "mañana", "el próximo viernes", etc.
+    - Hoy es: ${fechaActual} (Hora de Colombia). Usa esta fecha actual para calcular los días.
+    - REGLA DE ORO ESTRICTA: Cuando el usuario te pida agendar una reunión y te dé los detalles (Asunto, Fecha y Hora), ESTÁS OBLIGADA a utilizar la herramienta 'agendar_reunion'. NUNCA generes texto simulando que programaste la cita. DEBES ejecutar la herramienta.
     
     === BASE DE DATOS (SISTEMA RAG) ===
     ${contextoInventario}
@@ -348,14 +347,39 @@ export async function POST(req: NextRequest) {
             tool_choice: "auto"
           });
           const message = completion.choices[0]?.message;
+          const textoRespuesta = message?.content || '';
+
+          // 1. Camino Correcto
           if (message?.tool_calls && message.tool_calls.length > 0) {
-            console.log("🛠️ ¡Sophie usó Calendar con Groq!");
-            // LA SOLUCIÓN:
-const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
-            await crearEventoCalendario(args.asunto, args.fechaInicio, args.fechaFin);
+            console.log("🛠️ ¡Sophie usó Calendar con Groq de forma nativa!");
+            const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
+            const inicio = args.fechaInicio || args.fecha_inicio;
+            const fin = args.fechaFin || args.fecha_fin;
+            await crearEventoCalendario(args.asunto, inicio, fin);
             return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
           }
-          return message?.content || '';
+
+          // 2. Camino Rebelde (Si escupe JSON en el chat)
+          if (textoRespuesta.includes('agendar_reunion') && textoRespuesta.includes('{')) {
+            console.log("⚠️ Groq escribió el JSON en el texto. Interceptando...");
+            try {
+              const jsonMatch = textoRespuesta.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                const parsed = JSON.parse(jsonMatch[0]);
+                let args = parsed;
+                if (parsed.tool_calls) args = parsed.tool_calls[0].args || (parsed.tool_calls[0].function && parsed.tool_calls[0].function.arguments);
+                if (typeof args === 'string') args = JSON.parse(args);
+                const inicio = args.fechaInicio || args.fecha_inicio;
+                const fin = args.fechaFin || args.fecha_fin;
+                await crearEventoCalendario(args.asunto, inicio, fin);
+                return `¡Listo! Logré agendar tu cita "${args.asunto}". Todo confirmado.`;
+              }
+            } catch (e) {
+              console.log("Fallo al forzar el JSON de Groq:", e);
+            }
+          }
+
+          return textoRespuesta;
         }
       },
       {
@@ -370,13 +394,39 @@ const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
             tool_choice: "auto"
           });
           const message = completion.choices[0]?.message;
+          const textoRespuesta = message?.content || '';
+
+          // 1. Camino Correcto
           if (message?.tool_calls && message.tool_calls.length > 0) {
-            console.log("🛠️ ¡Sophie usó Calendar con Kimi!");
+            console.log("🛠️ ¡Sophie usó Calendar con Kimi de forma nativa!");
             const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
-            await crearEventoCalendario(args.asunto, args.fechaInicio, args.fechaFin);
+            const inicio = args.fechaInicio || args.fecha_inicio;
+            const fin = args.fechaFin || args.fecha_fin;
+            await crearEventoCalendario(args.asunto, inicio, fin);
             return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
           }
-          return message?.content || '';
+
+          // 2. Camino Rebelde (Si escupe JSON en el chat)
+          if (textoRespuesta.includes('agendar_reunion') && textoRespuesta.includes('{')) {
+            console.log("⚠️ Kimi escribió el JSON en el texto. Interceptando...");
+            try {
+              const jsonMatch = textoRespuesta.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                const parsed = JSON.parse(jsonMatch[0]);
+                let args = parsed;
+                if (parsed.tool_calls) args = parsed.tool_calls[0].args || (parsed.tool_calls[0].function && parsed.tool_calls[0].function.arguments);
+                if (typeof args === 'string') args = JSON.parse(args);
+                const inicio = args.fechaInicio || args.fecha_inicio;
+                const fin = args.fechaFin || args.fecha_fin;
+                await crearEventoCalendario(args.asunto, inicio, fin);
+                return `¡Listo! Logré agendar tu cita "${args.asunto}". Todo confirmado.`;
+              }
+            } catch (e) {
+              console.log("Fallo al forzar el JSON de Kimi:", e);
+            }
+          }
+
+          return textoRespuesta;
         }
       },
       {
@@ -395,7 +445,6 @@ const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
         name: 'Gemini Flash 🛡️',
         enabled: !!geminiGenAI,
         execute: async () => {
-          // ACTUALIZADO AL MODELO CORRECTO
           const geminiModel = geminiGenAI!.getGenerativeModel({
             model: 'gemini-3.6-flash',
             systemInstruction: systemPromptText
@@ -423,13 +472,39 @@ const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
             tool_choice: "auto"
           });
           const message = completion.choices[0]?.message;
+          const textoRespuesta = message?.content || '';
+
+          // 1. Camino Correcto
           if (message?.tool_calls && message.tool_calls.length > 0) {
-            console.log("🛠️ ¡Sophie usó Calendar con Mistral!");
+            console.log("🛠️ ¡Sophie usó Calendar con Mistral de forma nativa!");
             const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
-            await crearEventoCalendario(args.asunto, args.fechaInicio, args.fechaFin);
+            const inicio = args.fechaInicio || args.fecha_inicio;
+            const fin = args.fechaFin || args.fecha_fin;
+            await crearEventoCalendario(args.asunto, inicio, fin);
             return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
           }
-          return message?.content || '';
+
+          // 2. Camino Rebelde (Si escupe JSON en el chat)
+          if (textoRespuesta.includes('agendar_reunion') && textoRespuesta.includes('{')) {
+            console.log("⚠️ Mistral escribió el JSON en el texto. Interceptando...");
+            try {
+              const jsonMatch = textoRespuesta.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                const parsed = JSON.parse(jsonMatch[0]);
+                let args = parsed;
+                if (parsed.tool_calls) args = parsed.tool_calls[0].args || (parsed.tool_calls[0].function && parsed.tool_calls[0].function.arguments);
+                if (typeof args === 'string') args = JSON.parse(args);
+                const inicio = args.fechaInicio || args.fecha_inicio;
+                const fin = args.fechaFin || args.fecha_fin;
+                await crearEventoCalendario(args.asunto, inicio, fin);
+                return `¡Listo! Logré agendar tu cita "${args.asunto}". Todo confirmado.`;
+              }
+            } catch (e) {
+              console.log("Fallo al forzar el JSON de Mistral:", e);
+            }
+          }
+
+          return textoRespuesta;
         }
       }
     ];
