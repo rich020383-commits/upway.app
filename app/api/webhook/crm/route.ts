@@ -9,7 +9,6 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     // 1. FILTRO DE EVENTOS DE VAPI
-    // Solo nos interesan los eventos donde el Agente de Voz usó una Herramienta (Tool)
     const messageType = body?.message?.type;
     if (messageType !== 'tool-calls') {
       return new NextResponse(null, { status: 200 });
@@ -23,75 +22,114 @@ export async function POST(req: Request) {
       return new NextResponse('Faltan datos clave', { status: 400 });
     }
 
-    console.log(`🎙️ [Upway CRM] Recibiendo datos estructurados de Vapi Assistant: ${vapiAssistantId}`);
+    console.log(`🎙️ [Upway CRM] Procesando herramientas para Vapi Assistant: ${vapiAssistantId}`);
 
-    // 2. MAGIA MULTI-TENANT: ¿De qué cliente de Upway es esta llamada?
+    // 2. MAGIA MULTI-TENANT
     const tienda = await prisma.tienda.findFirst({
       where: { vapiAssistantId: vapiAssistantId }
     });
 
     if (!tienda) {
-      console.warn(`⚠️ Asistente no vinculado a ningún cliente en Upway: ${vapiAssistantId}`);
-      // Le respondemos a Vapi que falló para que el bot le diga al paciente que hubo un error
       return NextResponse.json({
-        results: [{
-          toolCallId: toolCalls[0]?.toolCall?.id,
+        results: toolCalls.map((item: any) => ({
+          toolCallId: item.toolCall?.id,
           result: "Error: No se encontró la base de datos de la empresa."
-        }]
+        }))
       });
     }
 
-    // 3. EXTRACCIÓN DE DATOS Y GUARDADO EN EL CRM
-    // Preparamos un array con las respuestas que Vapi espera
+    // 3. ENRUTADOR DE HERRAMIENTAS
     const toolCallResults = [];
 
     for (const item of toolCalls) {
       const toolName = item.tool?.function?.name;
       const toolCallId = item.toolCall?.id;
-      const args = item.toolCall?.function?.arguments; // Vapi ya nos manda esto como objeto JSON
+      const args = item.toolCall?.function?.arguments;
 
-      if (toolName === 'perfilamiento_y_agenda' || toolName === 'guardar_lead') {
+      // ==========================================
+      // 🔍 HERRAMIENTA 1: CONSULTAR PACIENTE (NUEVA)
+      // ==========================================
+      if (toolName === 'consultar_paciente') {
         try {
-          const { nombrePaciente, documento, motivoConsulta } = args;
-
-          // 💾 AQUÍ OCURRE LA MAGIA DEL PLUG AND PLAY
-          // Guarda el paciente/lead asociado a la Tienda ID exacta.
-          // (Nota: Ajusta 'paciente' o 'lead' según cómo se llame tu tabla en Prisma)
-          const nuevoLead = await prisma.lead.create({
-            data: {
+          const { documento } = args;
+          
+          const pacienteEncontrado = await prisma.lead.findFirst({
+            where: { 
               tiendaId: tienda.id,
-              nombre: nombrePaciente || 'Sin Nombre',
-              documento: documento || 'No proporcionado',
-              motivo: motivoConsulta || 'No especificado',
-              origen: 'Llamada Vapi',
-              estado: 'Nuevo'
+              documento: documento 
             }
           });
 
-          console.log(`✅ [Upway CRM] Lead guardado exitosamente para ${tienda.nombre}: ${nuevoLead.nombre}`);
+          if (pacienteEncontrado) {
+            console.log(`✅ [Upway CRM] Paciente encontrado: ${pacienteEncontrado.nombre}`);
+            toolCallResults.push({
+              toolCallId: toolCallId,
+              // Le mandamos los datos a la IA para que pueda hablar con propiedad
+              result: `Paciente encontrado. Nombre: ${pacienteEncontrado.nombre}. Motivo o estado previo: ${pacienteEncontrado.motivo || pacienteEncontrado.estado}.`
+            });
+          } else {
+            console.log(`⚠️ [Upway CRM] Paciente NO encontrado con cédula: ${documento}`);
+            toolCallResults.push({
+              toolCallId: toolCallId,
+              result: "Paciente no encontrado en la base de datos. Pide amablemente los datos completos para registrarlo como nuevo."
+            });
+          }
+        } catch (error) {
+          toolCallResults.push({ toolCallId, result: "Error al consultar la base de datos." });
+        }
+      }
+      
+      // ==========================================
+      // 💾 HERRAMIENTA 2: AGENDAR / GUARDAR LEAD (LA QUE YA TENÍAMOS)
+      // ==========================================
+      else if (toolName === 'agendar_cita' || toolName === 'guardar_lead') {
+        try {
+          const { nombrePaciente, documento, motivoConsulta } = args;
 
-          // Le decimos al bot de voz que todo salió perfecto
-          toolCallResults.push({
-            toolCallId: toolCallId,
-            result: `Éxito. Paciente ${nombrePaciente} guardado en el sistema.`
+          // Buscamos si ya existe para no crear duplicados
+          const leadExistente = await prisma.lead.findFirst({
+            where: { tiendaId: tienda.id, documento: documento }
           });
 
+          if (leadExistente) {
+            // Si ya existe, solo actualizamos el motivo y el estado
+            await prisma.lead.update({
+              where: { id: leadExistente.id },
+              data: { motivo: motivoConsulta, estado: "Cita_Agendada" }
+            });
+            toolCallResults.push({
+              toolCallId: toolCallId,
+              result: `Éxito. Datos actualizados para el paciente ${leadExistente.nombre}.`
+            });
+          } else {
+            // Si es nuevo, lo creamos
+            const nuevoLead = await prisma.lead.create({
+              data: {
+                tiendaId: tienda.id,
+                nombre: nombrePaciente || 'Sin Nombre',
+                documento: documento || 'No proporcionado',
+                motivo: motivoConsulta || 'No especificado',
+                origen: 'Llamada Vapi',
+                estado: 'Nuevo'
+              }
+            });
+            toolCallResults.push({
+              toolCallId: toolCallId,
+              result: `Éxito. Paciente nuevo ${nombrePaciente} guardado en el sistema.`
+            });
+          }
         } catch (dbError) {
           console.error("❌ Error al guardar en Prisma:", dbError);
-          toolCallResults.push({
-            toolCallId: toolCallId,
-            result: "Error interno al guardar en la base de datos."
-          });
+          toolCallResults.push({ toolCallId, result: "Error interno al guardar en la base de datos." });
         }
       }
     }
 
-    // 4. RESPUESTA AL AGENTE DE VOZ
-    // Vapi necesita este formato exacto para saber que ya puede seguir hablando
+    // 4. RESPUESTA A VAPI
     return NextResponse.json({ results: toolCallResults });
 
   } catch (error) {
-    console.error('❌ Error crítico en Webhook CRM de Vapi:', error);
+    console.error('❌ Error crítico en Webhook CRM:', error);
     return new NextResponse('Error Interno', { status: 500 });
   }
 }
