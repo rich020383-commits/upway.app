@@ -2,8 +2,47 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import * as GenerativeAI from '@google/generative-ai';
 import { listProducts } from '@/lib/app-state';
+import { google } from 'googleapis';
 
-// --- INICIALIZACIÓN DE LOS 4 NIVELES (SaaS) --- //
+// ==========================================
+// 📅 CONFIGURACIÓN DE GOOGLE CALENDAR
+// ==========================================
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET
+);
+
+// Le pasamos el token infinito que sacamos en Google Cloud
+if (process.env.GOOGLE_REFRESH_TOKEN) {
+  oauth2Client.setCredentials({
+    refresh_token: process.env.GOOGLE_REFRESH_TOKEN
+  });
+}
+
+const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+// Función real que crea el evento en Google
+async function crearEventoCalendario(asunto: string, fechaInicio: string, fechaFin: string) {
+  try {
+    const event = {
+      summary: asunto,
+      start: { dateTime: fechaInicio, timeZone: 'America/Bogota' }, // Zona horaria de Colombia
+      end: { dateTime: fechaFin, timeZone: 'America/Bogota' },
+    };
+    const response = await calendar.events.insert({
+      calendarId: 'primary',
+      requestBody: event,
+    });
+    return response.data.htmlLink; // Devuelve el link de Google Meet / Evento
+  } catch (error) {
+    console.error("Error agendando en Calendar:", error);
+    throw new Error("No pude conectar con el calendario.");
+  }
+}
+
+// ==========================================
+// 🧠 INICIALIZACIÓN DE LOS 5 NIVELES (SaaS)
+// ==========================================
 const cerebrasClient = process.env.CEREBRAS_API_KEY 
   ? new OpenAI({ apiKey: process.env.CEREBRAS_API_KEY, baseURL: 'https://api.cerebras.ai/v1' }) 
   : null;
@@ -23,9 +62,13 @@ const kimiClient = kimiApiKey
   ? new OpenAI({ apiKey: kimiApiKey, baseURL: kimiApiUrl })
   : null;
 
+const geminiFlashApiKey = process.env.GEMINI_FLASH_API_KEY;
+const geminiGenAI = geminiFlashApiKey ? new GenerativeAI.GoogleGenerativeAI(geminiFlashApiKey) : null;
+
+// Configuración de Alertas y Timeouts
 const ALERT_WEBHOOK_URL = process.env.ALERT_WEBHOOK_URL;
 const AUDIO_TRANSCRIPTION_TIMEOUT_MS = 5000;
-const PROVIDER_TIMEOUT_MS = 4000;
+const PROVIDER_TIMEOUT_MS = 8000; // Un poco más alto para dar tiempo a function calling
 
 const sendMonitorAlert = async (message: string) => {
   if (!ALERT_WEBHOOK_URL) return;
@@ -59,7 +102,9 @@ const sendProviderAlert = async (provider: string, error: unknown) => {
   await sendMonitorAlert(message);
 };
 
-// 🛡️ Aquí usamos el audio de Groq con respaldo de Kimi/Moonshot si Groq falla.
+// ==========================================
+// 🎤 TRANSCRIPCIÓN DE AUDIO (Whisper V3)
+// ==========================================
 async function transcribirAudioUsuario(audioUsuario: string) {
   const base64Data = audioUsuario.split(',')[1] || audioUsuario;
   const buffer = Buffer.from(base64Data, 'base64');
@@ -122,7 +167,6 @@ async function transcribirAudioUsuario(audioUsuario: string) {
     return texto;
   } catch (groqError) {
     console.warn('⚠️ Groq Whisper falló. Intentando respaldo Kimi/Moonshot...');
-    console.warn(groqError);
     lastError = groqError;
   }
 
@@ -132,16 +176,11 @@ async function transcribirAudioUsuario(audioUsuario: string) {
     return texto;
   } catch (kimiError) {
     console.warn('⚠️ Kimi/Moonshot falló en la transcripción de audio.');
-    console.warn(kimiError);
     lastError = kimiError;
   }
 
   throw new Error(`Transcripción de audio falló: ${lastError}`);
 }
-
-// 🛡️ AQUÍ SOLO USAMOS LA VERSIÓN FLASH PARA CLIENTES
-const geminiFlashApiKey = process.env.GEMINI_FLASH_API_KEY;
-const geminiGenAI = geminiFlashApiKey ? new GenerativeAI.GoogleGenerativeAI(geminiFlashApiKey) : null;
 
 const formatProviderError = (error: unknown) => {
   const anyError = error as { status?: number; message?: string; code?: string };
@@ -155,7 +194,9 @@ const isBillingOrAuthError = (error: unknown) => {
   return status === 401 || status === 402 || status === 403;
 };
 
-// --- LÓGICA RAG (INVENTARIO) --- //
+// ==========================================
+// 📦 LÓGICA RAG (INVENTARIO)
+// ==========================================
 const limpiarTexto = (txt: string) => 
   txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
@@ -180,7 +221,6 @@ type ChatMessage = {
 
 function buscarEnInventarioLocal(mensaje: string, todosLosProductos: InventoryItem[]) {
   const mensajeLimpio = limpiarTexto(mensaje);
-  // > 2 letras para no ignorar "pan", "ajo", "ron"
   const palabrasClave = mensajeLimpio.split(' ').filter(p => p.length > 2);
   
   if (palabrasClave.length === 0) return []; 
@@ -196,6 +236,9 @@ function buscarEnInventarioLocal(mensaje: string, todosLosProductos: InventoryIt
   });
 }
 
+// ==========================================
+// 🚀 ENDPOINT PRINCIPAL (POST)
+// ==========================================
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -211,11 +254,9 @@ export async function POST(req: NextRequest) {
     let botReply = '';
     let usedProvider = '';
 
-    // ==========================================
-    // 🎧 1. TRANSCRIPCIÓN DE AUDIO VÍA GROQ (WHISPER)
-    // ==========================================
+    // 1. TRANSCRIPCIÓN
     if (audioUsuario) {
-      console.log("🎤 Audio detectado en agente de cliente, procesando con Whisper V3 (Groq)...");
+      console.log("🎤 Audio detectado, procesando con Whisper V3...");
       try {
         textoProcesado = await transcribirAudioUsuario(audioUsuario);
         console.log(`✅ Transcripción exitosa: "${textoProcesado}"`);
@@ -229,9 +270,7 @@ export async function POST(req: NextRequest) {
        return NextResponse.json({ error: 'Se requiere texto o audio para procesar' }, { status: 400 });
     }
 
-    // ==========================================
-    // 📦 2. EXTRACCIÓN NINJA (RAG - INVENTARIO)
-    // ==========================================
+    // 2. RAG INVENTARIO
     let inventarioCompleto: InventoryItem[] = [];
     try {
       inventarioCompleto = await listProducts(tienda_id);
@@ -239,7 +278,6 @@ export async function POST(req: NextRequest) {
       console.error("Error al obtener inventario de la DB:", dbError);
     }
     
-    // Inyectamos datos de prueba limpios si está vacío
     if (!inventarioCompleto || inventarioCompleto.length === 0) {
       inventarioCompleto = [
         { nombre: "Zapatos Nike de Prueba", categoria: "Calzado", precio: 250000 },
@@ -255,8 +293,14 @@ export async function POST(req: NextRequest) {
        contextoInventario = `PRODUCTOS ENCONTRADOS RELEVANTES A LA CONSULTA ACTUAL:\n${productosRelevantes.map(p => `- ${p.nombre} (Categoría: ${p.categoria || 'N/A'}) - Precio: $${p.precio}`).join('\n')}`;
     }
 
+    // --- CONTEXTO TEMPORAL PARA SOPHIE ---
+    const fechaActual = new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' });
+
     const systemPromptText = `Comportate ESTRICTAMENTE según estas instrucciones de tu jefe: 
     ${promptMaestro}
+    
+    INFORMACIÓN VITAL PARA TI (SOPHIE):
+    - Hoy es: ${fechaActual} (Hora de Colombia). Usa esta fecha actual para calcular los días cuando el cliente pida agendar "mañana", "el próximo viernes", etc.
     
     === BASE DE DATOS (SISTEMA RAG) ===
     ${contextoInventario}
@@ -272,9 +316,25 @@ export async function POST(req: NextRequest) {
       { role: 'user', content: textoProcesado }
     ];
 
-    // ==========================================
-    // 🚀 3. EL CASCADEO DE 5 NIVELES (GROQ -> KIMI K3 -> CEREBRAS -> GEMINI FLASH -> MISTRAL)
-    // ==========================================
+    // --- DEFINICIÓN DE LA HERRAMIENTA (FUNCTION CALLING) ---
+    const herramientas_ia = [{
+      type: "function" as const,
+      function: {
+        name: "agendar_reunion",
+        description: "Usa esta herramienta SOLO cuando el usuario te pida explícitamente agendar o programar una reunión, cita o evento.",
+        parameters: {
+          type: "object",
+          properties: {
+            asunto: { type: "string", description: "El tema o título de la reunión" },
+            fechaInicio: { type: "string", description: "Fecha y hora exacta de inicio en formato ISO 8601 (ej. '2026-08-20T10:00:00-05:00')" },
+            fechaFin: { type: "string", description: "Fecha y hora exacta de finalización en formato ISO 8601 (sumar 1 hora a la de inicio)" }
+          },
+          required: ["asunto", "fechaInicio", "fechaFin"]
+        }
+      }
+    }];
+
+    // 3. EL CASCADEO DE 5 NIVELES
     const providers = [
       {
         name: 'Groq 🚀',
@@ -284,8 +344,18 @@ export async function POST(req: NextRequest) {
             model: 'llama-3.1-8b-instant',
             messages: formattedMessages,
             temperature: 0.3,
+            tools: herramientas_ia,
+            tool_choice: "auto"
           });
-          return completion.choices[0]?.message?.content || '';
+          const message = completion.choices[0]?.message;
+          if (message?.tool_calls && message.tool_calls.length > 0) {
+            console.log("🛠️ ¡Sophie usó Calendar con Groq!");
+            // LA SOLUCIÓN:
+const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
+            await crearEventoCalendario(args.asunto, args.fechaInicio, args.fechaFin);
+            return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
+          }
+          return message?.content || '';
         }
       },
       {
@@ -296,8 +366,17 @@ export async function POST(req: NextRequest) {
             model: kimiModelName,
             messages: formattedMessages,
             temperature: 0.3,
+            tools: herramientas_ia,
+            tool_choice: "auto"
           });
-          return completion.choices[0]?.message?.content || '';
+          const message = completion.choices[0]?.message;
+          if (message?.tool_calls && message.tool_calls.length > 0) {
+            console.log("🛠️ ¡Sophie usó Calendar con Kimi!");
+            const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
+            await crearEventoCalendario(args.asunto, args.fechaInicio, args.fechaFin);
+            return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
+          }
+          return message?.content || '';
         }
       },
       {
@@ -316,8 +395,9 @@ export async function POST(req: NextRequest) {
         name: 'Gemini Flash 🛡️',
         enabled: !!geminiGenAI,
         execute: async () => {
+          // ACTUALIZADO AL MODELO CORRECTO
           const geminiModel = geminiGenAI!.getGenerativeModel({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-3.6-flash',
             systemInstruction: systemPromptText
           });
           const contents = formattedMessages
@@ -339,8 +419,17 @@ export async function POST(req: NextRequest) {
             model: 'ministral-3b-2512',
             messages: formattedMessages,
             temperature: 0.3,
+            tools: herramientas_ia,
+            tool_choice: "auto"
           });
-          return completion.choices[0]?.message?.content || '';
+          const message = completion.choices[0]?.message;
+          if (message?.tool_calls && message.tool_calls.length > 0) {
+            console.log("🛠️ ¡Sophie usó Calendar con Mistral!");
+            const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
+            await crearEventoCalendario(args.asunto, args.fechaInicio, args.fechaFin);
+            return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
+          }
+          return message?.content || '';
         }
       }
     ];

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Bot, MessageCircleMore, MessageSquare, Sparkles, ShieldCheck, ArrowRight, Signal, 
   Wifi, Battery, Store, Mic, Square, Phone, ArrowLeft, Headphones, UploadCloud, 
-  Loader2, Zap, RefreshCw, Power, Clock, BookOpen, AtSign, Rocket, Activity, Send, TerminalSquare,Server
+  Loader2, Zap, RefreshCw, Power, Clock, BookOpen, AtSign, Rocket, Activity, Send, TerminalSquare,Server, CheckCircle2
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { getSession, signIn } from 'next-auth/react'; 
@@ -23,10 +23,17 @@ export default function AgentesBotPage() {
   
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
+  // Añade este estado junto a los demás en la parte superior
+  const [calendarConnected, setCalendarConnected] = useState(false);
+
   useEffect(() => {
-    getSession().then((session) => {
+    getSession().then((session: any) => {
       if (session?.user?.email) {
         setUserEmail(session.user.email);
+      }
+      // 🔥 NUEVO: Detectamos si hay un token de Google activo en la sesión
+      if (session?.accessToken) {
+        setCalendarConnected(true);
       }
     });
   }, []);
@@ -647,30 +654,62 @@ export default function AgentesBotPage() {
           </div>
 
           {/* Tarjeta 2: Google Calendar */}
-          <div className="rounded-2xl bg-[#0D1117] p-8 border border-[#1E293B] relative overflow-hidden flex flex-col justify-between hover:border-[#8994A6]/30 transition-all">
+          <div className={`rounded-2xl p-8 border relative overflow-hidden flex flex-col justify-between transition-all ${
+            calendarConnected 
+              ? 'bg-[#10B981]/10 border-[#10B981]/30 shadow-[0_0_30px_rgba(16,185,129,0.1)]' 
+              : 'bg-[#0D1117] border-[#1E293B] hover:border-[#8994A6]/30'
+          }`}>
+            {/* Efecto de luz verde si está conectado */}
+            {calendarConnected && <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-[#10B981] opacity-[0.05] rounded-full blur-2xl pointer-events-none"></div>}
+            
             <div>
-              <div className="inline-flex items-center gap-2 rounded-md bg-[#1E293B] px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-[#8994A6] mb-4">
-                Recomendado
+              <div className={`inline-flex items-center gap-2 rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-widest mb-4 transition-colors ${
+                calendarConnected 
+                  ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30' 
+                  : 'bg-[#1E293B] text-[#8994A6]'
+              }`}>
+                {calendarConnected ? <><CheckCircle2 className="h-3 w-3" /> Sincronizado</> : 'Recomendado'}
               </div>
               <h2 className="text-2xl font-bold mb-2">Google Calendar</h2>
-              <p className="text-[#8994A6] text-sm leading-relaxed mb-6">
-                Sincroniza tu disponibilidad bidireccional. Permite a tu IA verificar espacios y crear eventos automáticamente.
+              <p className={`text-sm leading-relaxed mb-6 transition-colors ${calendarConnected ? 'text-[#10B981]/80' : 'text-[#8994A6]'}`}>
+                {calendarConnected 
+                  ? 'Disponibilidad sincronizada. Tu IA ahora puede leer tus horarios y agendar citas automáticamente.' 
+                  : 'Sincroniza tu disponibilidad bidireccional. Permite a tu IA verificar espacios y crear eventos.'}
               </p>
             </div>
             
-            {/* ESTE ES EL BOTÓN QUE AHORA SÍ FUNCIONA 👇 */}
-            <button 
-              onClick={() => signIn("google", { callbackUrl: "/dashboard/bots" })}
-              className="w-full inline-flex items-center justify-center gap-2 bg-[#1E293B] text-[#F5F7FA] px-6 py-3.5 rounded-xl font-bold hover:bg-[#2A3B4C] transition-all"
-            >
-              <svg className="h-4 w-4" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.1 8.9 5 12 5z" />
-                <path fill="currentColor" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z" />
-                <path fill="currentColor" d="M5.3 14.7c-.2-.7-.3-1.5-.3-2.7s.1-2 .3-2.7L1.6 6.4C.6 8.4 0 10.6 0 13s.6 4.6 1.6 6.6l3.7-2.9z" />
-                <path fill="currentColor" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5.3L1.6 15c1.9 3.8 5.8 8 10.4 8z" />
-              </svg>
-              Conectar Google Workspace
-            </button>
+            {calendarConnected ? (
+               <div className="w-full inline-flex items-center justify-between bg-[#07090C] border border-[#10B981]/20 px-4 py-3.5 rounded-xl">
+                 <span className="text-xs font-mono text-[#10B981] flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-[#10B981] animate-pulse"></div>
+                    Conexión Activa
+                 </span>
+                 {/* Aquí dejamos tu botón de test para que lo sigas usando */}
+                 <button onClick={async () => {
+                    try {
+                      const res = await fetch('/api/calendar/test');
+                      const data = await res.json();
+                      if (data.success) alert(`¡Conectado! Tienes ${data.eventos.length} eventos próximos.`);
+                      else alert(`Error: ${data.error}`);
+                    } catch (e) { alert("Error ejecutando la prueba"); }
+                 }} className="text-xs font-bold text-[#F5F7FA] hover:text-[#10B981] transition-colors">
+                    Hacer Test
+                 </button>
+               </div>
+            ) : (
+               <button 
+                  onClick={() => signIn("google", { callbackUrl: "/dashboard/bots" })}
+                  className="w-full inline-flex items-center justify-center gap-2 bg-[#1E293B] text-[#F5F7FA] px-6 py-3.5 rounded-xl font-bold hover:bg-[#2A3B4C] transition-all"
+                >
+                  <svg className="h-4 w-4" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.1 8.9 5 12 5z" />
+                    <path fill="currentColor" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z" />
+                    <path fill="currentColor" d="M5.3 14.7c-.2-.7-.3-1.5-.3-2.7s.1-2 .3-2.7L1.6 6.4C.6 8.4 0 10.6 0 13s.6 4.6 1.6 6.6l3.7-2.9z" />
+                    <path fill="currentColor" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5.3L1.6 15c1.9 3.8 5.8 8 10.4 8z" />
+                  </svg>
+                  Conectar Workspace
+               </button>
+            )}
           </div>
 
         </div>
