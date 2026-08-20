@@ -5,15 +5,29 @@ import { prisma } from '@/lib/prisma'; // Asegúrate de que esta ruta apunte a t
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const toolCallList = body.message?.toolCallList;
+    
+    // 🛡️ AJUSTE 1: Captura robusta para cualquier versión del payload de Vapi
+    const toolCalls = body.message?.toolCalls || body.message?.toolWithToolCallList || body.message?.toolCallList || [];
 
     // 1. Validar que Vapi realmente está pidiendo usar la herramienta
-    if (!toolCallList || toolCallList.length === 0) {
+    if (!toolCalls || toolCalls.length === 0) {
       return NextResponse.json({ error: "No se encontraron peticiones de herramientas" }, { status: 400 });
     }
 
-    const toolCall = toolCallList[0];
-    const { fecha, nombreCliente, telefono } = toolCall.arguments;
+    const toolCall = toolCalls[0];
+    const toolCallId = toolCall.id || toolCall.toolCall?.id;
+    let args = toolCall.function?.arguments || toolCall.toolCall?.function?.arguments || toolCall.arguments;
+
+    // 🛡️ AJUSTE 2: Si Vapi manda los argumentos como texto, los convertimos a objeto
+    if (typeof args === 'string') {
+      try {
+        args = JSON.parse(args);
+      } catch (e) {
+        args = {};
+      }
+    }
+
+    const { fecha, nombreCliente, telefono } = args;
 
     // Vapi envía el ID del asistente en el payload. Lo usamos para saber qué cliente es.
     const assistantId = body.message?.assistantId || body.message?.call?.assistantId;
@@ -28,7 +42,7 @@ export async function POST(request: Request) {
       console.warn("❌ Agente no vinculado a ninguna Tienda en Upway.");
       return NextResponse.json({
         results: [{
-          toolCallId: toolCall.id,
+          toolCallId: toolCallId,
           result: "Error de sistema: Dile al usuario que no puedes agendar en este momento por problemas técnicos."
         }]
       });
@@ -39,7 +53,7 @@ export async function POST(request: Request) {
       console.warn(`⚠️ La tienda ${tienda.nombre} no tiene Google Calendar configurado.`);
       return NextResponse.json({
         results: [{
-          toolCallId: toolCall.id,
+          toolCallId: toolCallId,
           result: "El calendario no está sincronizado. Pídele disculpas al cliente, toma sus datos manualmente y dile que un asesor lo llamará para confirmar la cita."
         }]
       });
@@ -61,8 +75,8 @@ export async function POST(request: Request) {
     await calendar.events.insert({
       calendarId: tienda.googleCalendarId || 'primary',
       requestBody: {
-        summary: `Cita confirmada: ${nombreCliente}`,
-        description: `Teléfono: ${telefono}\n\nAgendado automáticamente por el Empleado Digital de Upway.`,
+        summary: `Cita confirmada: ${nombreCliente || 'Paciente'}`,
+        description: `Teléfono: ${telefono || 'No proporcionado'}\n\nAgendado automáticamente por el Empleado Digital de Upway.`,
         start: { dateTime: startDateTime.toISOString() },
         end: { dateTime: endDateTime.toISOString() },
       },
@@ -73,7 +87,7 @@ export async function POST(request: Request) {
     // 5. Devolver éxito a la IA para que retome la llamada
     return NextResponse.json({
       results: [{
-        toolCallId: toolCall.id,
+        toolCallId: toolCallId,
         result: `Cita confirmada exitosamente en el calendario para el ${startDateTime.toLocaleString('es-CO')}. Confírmale al cliente y despídete amablemente.`
       }]
     });

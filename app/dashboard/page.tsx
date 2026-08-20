@@ -1,265 +1,255 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Bot, CheckCircle2, MessageSquare, ShieldCheck, Zap, RefreshCw, Sparkles, Power, Clock, BookOpen, AtSign, Rocket, Activity, Calendar } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  Bot, CheckCircle2, MessageSquare, ShieldCheck, Zap, RefreshCw, 
+  Sparkles, Power, BookOpen, AtSign, Rocket, Activity, Calendar, 
+  Mic, Users, CalendarCheck, Timer, TrendingUp, PhoneCall
+} from 'lucide-react';
 import Link from 'next/link';
-import { useUpwayStore } from '../store/upwayStore'; // Asegúrate de que la ruta sea correcta según tu estructura
+import { useUpwayStore } from '../store/upwayStore'; 
 
 export default function DashboardHomePage() {
-  // Traemos el nombre del agente para personalizar el dashboard
   const { nombreAgente } = useUpwayStore();
-
-  // Estado para controlar el "Botón de Pánico" de la IA
   const [iaActiva, setIaActiva] = useState(true);
   
-  // ESTADOS PARA GOOGLE CALENDAR
+  // ESTADOS DE INTEGRACIÓN
   const [isConnectingCalendar, setIsConnectingCalendar] = useState(false);
-  // Simulación: Si viene el token de tu DB (ej. tiendaActual.googleRefreshToken), esto sería true
   const [calendarConectado, setCalendarConectado] = useState(false); 
+  const [isCreatingAgent, setIsCreatingAgent] = useState(false);
+  const [vapiAgentId, setVapiAgentId] = useState<string | null>(null);
   
-  // SIMULACIÓN DE DATOS
+  // 📊 ESTADOS PARA LAS MÉTRICAS REALES (Inician en Cero)
+  const [metricas, setMetricas] = useState({
+    leads: 0,
+    citas: 0,
+    horasAhorradas: 0,
+    resolucion: 0
+  });
+  const [loadingMetricas, setLoadingMetricas] = useState(true);
+
+  // SIMULACIÓN DE DATOS (Deberás pasar el ID real de la tienda que inició sesión)
   const [tiendaData] = useState({
-    id: "tienda_123_demo", // Simulamos el ID para la URL
-    telefono: "573001234567",
-    metaUsername: "upway_demo" 
+    id: "tienda_123_demo", // ⚠️ Asegúrate de que este ID coincida con una tienda en tu DB para probar
+    nombreClinica: "Clínica Demo"
   });
 
-  // FUNCIÓN MÁGICA: Dispara la tubería hacia Google
+  // 🚀 BUSCAR MÉTRICAS EN TIEMPO REAL AL CARGAR
+  useEffect(() => {
+    const fetchMetricas = async () => {
+      try {
+        const res = await fetch(`/api/dashboard/metricas?tiendaId=${tiendaData.id}`);
+        const data = await res.json();
+        if (res.ok) {
+          setMetricas({
+            leads: data.leads || 0,
+            citas: data.citas || 0,
+            horasAhorradas: data.horasAhorradas || 0,
+            resolucion: data.resolucion || 0
+          });
+        }
+      } catch (error) {
+        console.error("Error cargando métricas reales:", error);
+      } finally {
+        setLoadingMetricas(false);
+      }
+    };
+
+    fetchMetricas();
+  }, [tiendaData.id]);
+
   const handleConnectCalendar = () => {
     setIsConnectingCalendar(true);
-    // Redirige a la API que armamos, enviando el ID de la tienda
     window.location.href = `/api/integraciones/google/auth?tiendaId=${tiendaData.id}`;
+  };
+
+  const handleCreateAgent = async () => {
+    setIsCreatingAgent(true);
+    try {
+      const response = await fetch('/api/vapi/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tienda_id: tiendaData.id,
+          nombre: nombreAgente || tiendaData.nombreClinica,
+          promptMaestro: `Eres la recepcionista virtual de ${tiendaData.nombreClinica}. Tu objetivo es agendar citas amablemente.`,
+          vozSeleccionada: "femenina_estrella"
+        })
+      });
+      const data = await response.json();
+      if (response.ok && data.success) setVapiAgentId(data.assistantId);
+    } catch (error) {
+      console.error("Fallo de red:", error);
+    } finally {
+      setIsCreatingAgent(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#050508] text-white relative overflow-hidden font-sans pb-20">
-      
-      {/* Luces de ambiente (Efecto Nave Espacial) */}
+      {/* Luces de ambiente */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-blue-600/10 blur-[150px] rounded-full pointer-events-none z-0"></div>
-      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-purple-600/5 blur-[150px] rounded-full pointer-events-none z-0"></div>
-
-      <div className="max-w-6xl mx-auto px-6 pt-12 relative z-10">
+      
+      <div className="max-w-7xl mx-auto px-6 pt-12 relative z-10">
         
         {/* HEADER DEL DASHBOARD */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 pb-6 border-b border-white/5">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pb-6 border-b border-white/5">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400 mb-3 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span> Sistema Operativo
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400 mb-3">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span> Sistema Operativo Activo
             </div>
             <h1 className="text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">
               Centro de Mando {nombreAgente ? `de ${nombreAgente}` : 'Upway'}
             </h1>
-            <p className="text-slate-400 text-sm mt-2">Supervisa la telemetría de tu inteligencia artificial en tiempo real.</p>
+            <p className="text-slate-400 text-sm mt-2">Métricas de impacto y telemetría de tu inteligencia artificial en tiempo real.</p>
           </div>
-          
-          <Link 
-            href="/dashboard/activacion"
-            className="inline-flex items-center gap-2 rounded-xl bg-slate-900/50 border border-white/10 px-5 py-2.5 text-sm font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition-all backdrop-blur-md"
-          >
-            <RefreshCw className="h-4 w-4" /> Reconfigurar Canales
-          </Link>
         </div>
 
-        {/* 🚀 BANNER DE ONBOARDING */}
-        <div className="mb-10 rounded-[32px] bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-10 text-white shadow-[0_0_50px_rgba(79,70,229,0.2)] relative overflow-hidden border border-white/20 group">
-          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-700"></div>
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="flex-1">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-bold tracking-wider text-white mb-4 backdrop-blur-md border border-white/30">
-                <Sparkles className="h-3.5 w-3.5 text-yellow-300" /> ACCIÓN REQUERIDA
+        {/* 📊 KPI'S DE IMPACTO EN EL NEGOCIO (DATOS REALES) */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          
+          {/* KPI 1: Tiempo Ahorrado */}
+          <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 backdrop-blur-md transition-all hover:bg-white/[0.04]">
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20"><Timer className="h-5 w-5 text-blue-400" /></div>
+            </div>
+            <p className="text-slate-400 text-sm font-medium">Tiempo Humano Ahorrado</p>
+            <h3 className="text-3xl font-bold text-white mt-1">
+              {loadingMetricas ? "..." : metricas.horasAhorradas} <span className="text-lg text-slate-500 font-normal">Horas</span>
+            </h3>
+            <p className="text-xs text-slate-500 mt-2">Calculado por volumen de gestión</p>
+          </div>
+
+          {/* KPI 2: Citas Agendadas */}
+          <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 backdrop-blur-md transition-all hover:bg-white/[0.04]">
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20"><CalendarCheck className="h-5 w-5 text-emerald-400" /></div>
+            </div>
+            <p className="text-slate-400 text-sm font-medium">Citas Agendadas (Auto)</p>
+            <h3 className="text-3xl font-bold text-white mt-1">
+              {loadingMetricas ? "..." : metricas.citas}
+            </h3>
+            <p className="text-xs text-slate-500 mt-2">Registradas en el calendario</p>
+          </div>
+
+          {/* KPI 3: Leads Capturados */}
+          <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 backdrop-blur-md transition-all hover:bg-white/[0.04]">
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-2 bg-purple-500/10 rounded-xl border border-purple-500/20"><Users className="h-5 w-5 text-purple-400" /></div>
+            </div>
+            <p className="text-slate-400 text-sm font-medium">Pacientes Perfilados</p>
+            <h3 className="text-3xl font-bold text-white mt-1">
+              {loadingMetricas ? "..." : metricas.leads}
+            </h3>
+            <p className="text-xs text-slate-500 mt-2">Guardados en tu base de datos</p>
+          </div>
+
+          {/* KPI 4: Resolución Autónoma */}
+          <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 backdrop-blur-md transition-all hover:bg-white/[0.04]">
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-2 bg-rose-500/10 rounded-xl border border-rose-500/20"><PhoneCall className="h-5 w-5 text-rose-400" /></div>
+            </div>
+            <p className="text-slate-400 text-sm font-medium">Resolución Autónoma</p>
+            <h3 className="text-3xl font-bold text-white mt-1">
+              {loadingMetricas ? "..." : metricas.resolucion}<span className="text-lg text-slate-500 font-normal">%</span>
+            </h3>
+            <p className="text-xs text-slate-500 mt-2">Sin intervención humana</p>
+          </div>
+        </div>
+
+        {/* ⚙️ CONTROLES Y CANALES */}
+        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <Activity className="h-5 w-5 text-blue-400" /> Estado Operativo y Canales
+        </h2>
+        <div className="grid md:grid-cols-2 gap-6 mb-10">
+          
+          {/* Botón de Pánico */}
+          <div className={`rounded-[32px] border transition-all duration-500 bg-white/[0.02] backdrop-blur-xl p-8 relative shadow-2xl flex flex-col justify-between ${iaActiva ? 'border-emerald-500/20' : 'border-amber-500/20'}`}>
+            <div className={`absolute top-0 left-0 right-0 h-1 ${iaActiva ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">Motor de Inferencia</span>
+                <Bot className={`h-6 w-6 ${iaActiva ? 'text-emerald-400' : 'text-amber-400'}`} />
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-3">Enciende tu IA Oficial</h2>
-              <p className="text-blue-100 max-w-xl text-sm md:text-base leading-relaxed">
-                Tu agente está configurado, pero necesita una línea de comunicación. Conecta tu cuenta oficial de WhatsApp Business para empezar a automatizar tus ventas.
+              <div className="text-2xl font-bold text-white mb-2">{iaActiva ? 'Piloto Automático' : 'Control Manual'}</div>
+              <p className="text-sm text-slate-400">
+                {iaActiva ? 'La IA está respondiendo y agendando en tiempo real.' : 'IA en pausa. Estás respondiendo manualmente.'}
               </p>
             </div>
-            
-            <Link 
-              href="/dashboard/activacion" 
-              className="inline-flex items-center gap-3 bg-white text-blue-700 px-8 py-4 rounded-2xl font-bold hover:bg-slate-100 hover:scale-105 transition-all shadow-[0_0_30px_rgba(255,255,255,0.4)] whitespace-nowrap"
-            >
-              <Rocket className="h-5 w-5" />
-              Conectar WhatsApp con Meta
+            <button onClick={() => setIaActiva(!iaActiva)} className={`mt-6 flex w-full justify-center gap-2 rounded-xl border px-4 py-3 font-bold transition-all ${iaActiva ? 'border-amber-500/30 bg-amber-500/10 text-amber-400' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'}`}>
+              <Power className="h-4 w-4" /> {iaActiva ? 'Pausar Inteligencia' : 'Reactivar Inteligencia'}
+            </button>
+          </div>
+
+          {/* Conexión Meta / WhatsApp */}
+          <div className="rounded-[32px] border border-white/5 bg-white/[0.02] backdrop-blur-xl p-8 relative shadow-2xl flex flex-col justify-between group">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-blue-600/50"></div>
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">Canal de Texto</span>
+                <MessageSquare className="h-6 w-6 text-blue-400" />
+              </div>
+              <div className="text-2xl font-bold text-white mb-2">WhatsApp API</div>
+              <p className="text-sm text-amber-400 bg-amber-400/10 w-fit px-3 py-1 rounded-full border border-amber-400/20 inline-flex items-center gap-1.5 mb-2">
+                <ShieldCheck className="h-4 w-4" /> Desconectado
+              </p>
+            </div>
+            <Link href="/dashboard/activacion" className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-white/5 px-4 py-3 text-sm font-semibold text-white hover:bg-white/10 border border-white/5">
+              <Rocket className="h-4 w-4" /> Configurar WhatsApp
             </Link>
           </div>
         </div>
 
-        {/* TARJETAS DE TELEMETRÍA */}
-        <div className="grid md:grid-cols-3 gap-6 mb-10">
+        {/* 🔌 PLUG AND PLAY: INTEGRACIONES CRM Y VAPI */}
+        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <Zap className="h-5 w-5 text-purple-400" /> Integraciones Plug & Play
+        </h2>
+        <div className="grid lg:grid-cols-3 gap-6">
           
-          {/* Tarjeta 1: Estado del Bot (Botón de Pánico) */}
-          <div className={`rounded-[32px] border transition-all duration-500 bg-white/[0.02] backdrop-blur-xl p-8 relative overflow-hidden shadow-2xl flex flex-col justify-between ${iaActiva ? 'border-emerald-500/20 hover:border-emerald-500/40' : 'border-amber-500/20 hover:border-amber-500/40'}`}>
-            <div className={`absolute top-0 left-0 right-0 h-1 transition-colors duration-500 ${iaActiva ? 'bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.5)]' : 'bg-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.5)]'}`}></div>
-            
+          {/* CEREBRO RAG */}
+          <div className="rounded-[32px] border border-white/5 bg-white/[0.02] backdrop-blur-xl p-8 shadow-2xl flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">Motor de Inferencia</span>
-                <Activity className={`h-5 w-5 ${iaActiva ? 'text-emerald-400 animate-pulse' : 'text-amber-400'}`} />
-              </div>
-              <div className="flex items-center gap-3 mb-2">
-                <Bot className={`h-8 w-8 flex-shrink-0 ${iaActiva ? 'text-emerald-400' : 'text-amber-400'}`} />
-                <span className="text-2xl font-bold text-white leading-tight">
-                  {iaActiva ? 'Autónomo' : 'Pausado'}
-                </span>
-              </div>
-              <p className="text-sm text-slate-400 h-10">
-                {iaActiva ? 'La IA está respondiendo conversaciones en tiempo real.' : 'Estás en control manual. La IA no enviará mensajes.'}
-              </p>
+              <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs font-semibold text-purple-400 mb-5"><BookOpen className="h-3.5 w-3.5" /> Memoria</div>
+              <h2 className="text-xl font-bold text-white mb-2">Cerebro Institucional</h2>
+              <p className="text-slate-400 text-sm mb-6">Sube PDFs con los precios y servicios de tu clínica para que la IA responda con precisión.</p>
             </div>
-
-            <button
-              onClick={() => setIaActiva(!iaActiva)}
-              className={`mt-8 flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3.5 text-sm font-bold transition-all ${
-                iaActiva
-                  ? 'border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
-                  : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
-              }`}
-            >
-              <Power className="h-4 w-4" /> {iaActiva ? 'Tomar Control Manual' : 'Activar Piloto Automático'}
-            </button>
+            <button className="w-full rounded-2xl bg-white/5 border border-white/10 py-3 font-semibold text-white hover:bg-white/10 text-sm">Gestionar Documentos</button>
           </div>
 
-          {/* Tarjeta 2: Conexión Meta */}
-          <div className="rounded-[32px] border border-white/5 hover:border-white/10 transition-all bg-white/[0.02] backdrop-blur-xl p-8 relative overflow-hidden shadow-2xl flex flex-col justify-between group">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-blue-600/50 group-hover:bg-blue-500 transition-colors"></div>
-            
+          {/* GOOGLE CALENDAR */}
+          <div className="rounded-[32px] border border-white/5 bg-white/[0.02] backdrop-blur-xl p-8 shadow-2xl flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">Canal Principal</span>
-                <MessageSquare className="h-5 w-5 text-blue-400" />
-              </div>
-              <div className="text-2xl font-bold text-white mb-2">WhatsApp API</div>
-              <p className="text-sm text-amber-400 font-medium flex items-center gap-1.5 bg-amber-400/10 w-fit px-3 py-1 rounded-full border border-amber-400/20">
-                <ShieldCheck className="h-4 w-4" /> Desconectado
-              </p>
+              <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-400 mb-5"><Calendar className="h-3.5 w-3.5" /> Calendario</div>
+              <h2 className="text-xl font-bold text-white mb-2">Google Calendar</h2>
+              <p className="text-slate-400 text-sm mb-6">Conecta tu agenda para que la IA asigne los turnos validando tu disponibilidad.</p>
             </div>
-
-            <div className="mt-8 pt-6 border-t border-white/5 flex flex-col gap-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-500 flex items-center gap-2"><AtSign className="h-4 w-4"/> ID Business</span>
-                <span className="font-mono text-slate-400">---</span>
+            {calendarConectado ? (
+              <div className="w-full flex justify-center items-center gap-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 py-3 font-semibold text-emerald-400 text-sm">
+                <CheckCircle2 className="h-5 w-5" /> Sincronizado
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-600">Requiere activación previa</span>
-                <button className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors">
-                  Configurar <Rocket className="h-3 w-3" />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Tarjeta 3: Rendimiento */}
-          <div className="rounded-[32px] border border-white/5 hover:border-white/10 transition-all bg-white/[0.02] backdrop-blur-xl p-8 relative overflow-hidden shadow-2xl flex flex-col justify-between group">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-cyan-400/50 group-hover:bg-cyan-400 transition-colors"></div>
-            
-            <div>
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">Impacto Hoy</span>
-                <Zap className="h-5 w-5 text-cyan-400" />
-              </div>
-              <div className="flex items-baseline gap-2 mb-2">
-                <span className="text-4xl font-bold text-white">0</span>
-                <span className="text-sm font-medium text-slate-400">mensajes</span>
-              </div>
-              <div className="flex items-center gap-3 mt-4">
-                <div className="h-2 w-full bg-slate-900 rounded-full overflow-hidden border border-white/5">
-                  <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full w-[0%]"></div>
-                </div>
-                <span className="text-xs font-bold text-cyan-400">0%</span>
-              </div>
-            </div>
-
-            <button className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-white/5 px-4 py-3.5 text-sm font-semibold text-white hover:bg-white/10 transition-all border border-white/5">
-              <Clock className="h-4 w-4" /> Ver Historial
-            </button>
-          </div>
-
-        </div>
-
-        {/* ZONA INFERIOR: Conocimiento, Integraciones y Pruebas */}
-        {/* Cambiado a grid-cols-3 para añadir el calendario de forma simétrica */}
-        <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-6">
-          
-          {/* TARJETA 1: CEREBRO RAG */}
-          <div className="rounded-[32px] border border-white/5 hover:border-white/10 transition-all bg-white/[0.02] backdrop-blur-xl p-8 shadow-2xl relative overflow-hidden group">
-            <div className="absolute top-1/2 left-0 -translate-y-1/2 w-72 h-72 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-purple-500/20 transition-colors"></div>
-            
-            <div className="relative z-10 flex flex-col h-full justify-between">
-              <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs font-semibold text-purple-400 mb-5">
-                  <BookOpen className="h-3.5 w-3.5" /> Cerebro RAG
-                </div>
-                <h2 className="text-2xl font-bold text-white mb-3">Base de Conocimiento</h2>
-                <p className="text-slate-400 text-sm leading-relaxed mb-8">
-                  Sube catálogos, PDFs o reglas de negocio. La IA consumirá esta información para generar respuestas milimétricas a tus clientes.
-                </p>
-              </div>
-              
-              <button className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white/5 border border-white/10 px-8 py-4 font-semibold text-white hover:bg-white/10 transition-all text-sm group-hover:border-purple-500/50 mt-auto">
-                <BookOpen className="h-4 w-4 text-purple-400" />
-                <span>Gestionar Memoria</span>
+            ) : (
+              <button onClick={handleConnectCalendar} disabled={isConnectingCalendar} className="w-full rounded-2xl bg-white text-blue-700 py-3 font-bold hover:bg-slate-100 text-sm">
+                {isConnectingCalendar ? "Conectando..." : "Sincronizar Agenda"}
               </button>
-            </div>
+            )}
           </div>
 
-          {/* TARJETA 2: GOOGLE CALENDAR (NUEVA INTEGRACIÓN) 🚀 */}
-          <div className="rounded-[32px] border border-white/5 hover:border-white/10 transition-all bg-white/[0.02] backdrop-blur-xl p-8 shadow-2xl relative overflow-hidden group">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-blue-500/20 transition-colors"></div>
-            
-            <div className="relative z-10 flex flex-col h-full justify-between">
-              <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-400 mb-5 shadow-[0_0_15px_rgba(59,130,246,0.15)]">
-                  <Calendar className="h-3.5 w-3.5" /> Motor de Citas
-                </div>
-                <h2 className="text-2xl font-bold text-white mb-3">Google Calendar</h2>
-                <p className="text-slate-400 text-sm leading-relaxed mb-8">
-                  Concede acceso a tu calendario para que el Empleado Digital de Upway agende reuniones automáticamente validando tu disponibilidad.
-                </p>
-              </div>
-              
-              <div className="mt-auto">
-                {calendarConectado ? (
-                  <div className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 px-8 py-4 font-semibold text-emerald-400 text-sm shadow-[0_0_15px_rgba(16,185,129,0.1)]">
-                    <CheckCircle2 className="h-5 w-5" />
-                    <span>Sincronizado y Activo</span>
-                  </div>
-                ) : (
-                  <button 
-                    onClick={handleConnectCalendar}
-                    disabled={isConnectingCalendar}
-                    className="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-white text-blue-700 px-8 py-4 font-bold hover:bg-slate-100 hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] disabled:opacity-70 disabled:cursor-not-allowed text-sm"
-                  >
-                    {/* SVG Oficial de Calendar Minimalista */}
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M16 2V6M8 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V20C21 21.1046 20.1046 22 19 22H5C3.89543 22 3 21.1046 3 20V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M16 14H16.01M12 14H12.01M8 14H8.01M16 18H16.01M12 18H12.01M8 18H8.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    {isConnectingCalendar ? "Conectando..." : "Sincronizar Calendario"}
-                  </button>
-                )}
-              </div>
+          {/* VAPI - AGENTE DE VOZ */}
+          <div className="rounded-[32px] border border-white/5 bg-white/[0.02] backdrop-blur-xl p-8 shadow-2xl flex flex-col justify-between">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 bg-rose-500/10 px-3 py-1 text-xs font-semibold text-rose-400 mb-5"><Mic className="h-3.5 w-3.5" /> Recepcionista Telefónica</div>
+              <h2 className="text-xl font-bold text-white mb-2">Activar Línea de Voz</h2>
+              <p className="text-slate-400 text-sm mb-6">Despliega tu IA en una línea telefónica real conectada a tu CRM y Calendario.</p>
             </div>
-          </div>
-
-          {/* TARJETA 3: SIMULADOR DE CHAT */}
-          <div className="rounded-[32px] border border-white/5 bg-slate-900/40 backdrop-blur-xl p-8 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-1/2 right-0 -translate-y-1/2 w-72 h-72 bg-slate-500/5 rounded-full blur-[100px] pointer-events-none"></div>
-            
-            <div className="relative z-10 opacity-60 flex flex-col h-full justify-between">
-              <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-slate-500/30 bg-slate-500/10 px-3 py-1 text-xs font-semibold text-slate-400 mb-5">
-                  <MessageSquare className="h-3.5 w-3.5" /> Pruebas Locales
-                </div>
-                <h2 className="text-2xl font-bold text-white mb-3">Simulador de Chat</h2>
-                <p className="text-slate-400 text-sm leading-relaxed mb-8">
-                  Esta herramienta se desbloqueará automáticamente una vez que vincules tu número de Meta.
-                </p>
+            {vapiAgentId ? (
+              <div className="w-full flex justify-center items-center gap-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 py-3 font-semibold text-emerald-400 text-sm">
+                <CheckCircle2 className="h-5 w-5" /> Activo (ID: {vapiAgentId.slice(0,6)}...)
               </div>
-              
-              <button disabled className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 border border-white/5 px-8 py-4 font-semibold text-slate-500 cursor-not-allowed text-sm mt-auto">
-                <span>Requiere Conexión</span>
+            ) : (
+              <button onClick={handleCreateAgent} disabled={isCreatingAgent} className="w-full rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 text-white py-3 font-bold hover:opacity-90 text-sm">
+                {isCreatingAgent ? "Fabricando..." : "Crear Agente de Voz"}
               </button>
-            </div>
+            )}
           </div>
 
         </div>
