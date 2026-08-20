@@ -3,6 +3,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Chatbot from "@/components/Chatbot"; 
 import PwaRegister from "@/components/PwaRegister";
+
+// 🔥 1. IMPORTAMOS EL CEREBRO DEL IDIOMA
+import { LanguageProvider } from "@/context/LanguageContext";
+
 // 🔥 Eliminamos la importación del Footer Global
 
 const geistSans = Geist({
@@ -38,15 +42,20 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-slate-950 text-white">
-        {/* Contenedor principal libre de elementos duplicados */}
-        <main className="flex-grow">
-          {children}
-        </main>
+        
+        {/* 🔥 2. ENVOLVEMOS TODA LA APP CON EL PROVEEDOR DE IDIOMA */}
+        <LanguageProvider>
+          {/* Contenedor principal libre de elementos duplicados */}
+          <main className="flex-grow">
+            {children}
+          </main>
 
-        {/* 🔥 Footer global eliminado. Ahora solo aparecerá donde lo llamemos explícitamente (en la landing page) */}
+          {/* 🔥 Footer global eliminado. Ahora solo aparecerá donde lo llamemos explícitamente (en la landing page) */}
 
-        <Chatbot /> 
-        <PwaRegister />
+          <Chatbot /> 
+          <PwaRegister />
+        </LanguageProvider>
+
       </body>
     </html>
   );

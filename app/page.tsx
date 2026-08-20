@@ -17,8 +17,12 @@ import {
 import ParticleBackground from "@/components/ParticleBackground";
 import LeadModal from "@/components/LeadModal";
 
+// 🔥 IMPORTACIONES DE IDIOMA
+import { useLanguage } from "@/context/LanguageContext";
+import BotonIdioma from "@/components/BotonIdioma";
+
 // ==========================================
-// TIPOS Y DATOS DE LOS PLANES (High-Ticket B2B)
+// TIPOS Y DATOS DE LOS PLANES (High-Ticket B2B - Multimoneda)
 // ==========================================
 type ContractOption = 1 | 2 | 3;
 type PlanId = "emprendedor" | "negocio" | "voz" | "pro";
@@ -30,10 +34,15 @@ interface Plan {
   capacityLabel: string;
   capacityDesc: string;
   price: number;
+  priceUsd: number;
   implFull: number;
+  implFullUsd: number;
   implDiscount: number;
+  implDiscountUsd: number;
   cuota: number;
+  cuotaUsd: number;
   first4: number;
+  first4Usd: number;
   popular?: boolean;
 }
 
@@ -43,7 +52,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 // ==========================================
-// 1. PLANES (Reestructuración Ejecutiva)
+// 1. PLANES CON DOBLE MONEDA (COP / USD)
 // ==========================================
 const PLANS: Plan[] = [
   {
@@ -53,10 +62,15 @@ const PLANS: Plan[] = [
     capacityLabel: "Tu vendedor digital de WhatsApp",
     capacityDesc: "WhatsApp inteligente para tiendas, salones y negocios de barrio.",
     price: 249900,
+    priceUsd: 149,
     implFull: 499900,
+    implFullUsd: 299,
     implDiscount: 249900,
+    implDiscountUsd: 149,
     cuota: 62475,
+    cuotaUsd: 37,
     first4: 249900,
+    first4Usd: 149,
   },
   {
     id: "negocio",
@@ -65,10 +79,15 @@ const PLANS: Plan[] = [
     capacityLabel: "Atención Masiva 24/7",
     capacityDesc: "Atención masiva por WhatsApp con memoria, pagos y reportes.",
     price: 399900,
+    priceUsd: 299,
     implFull: 799900,
+    implFullUsd: 599,
     implDiscount: 399900,
+    implDiscountUsd: 299,
     cuota: 99975,
+    cuotaUsd: 75,
     first4: 399900,
+    first4Usd: 299,
   },
   {
     id: "voz",
@@ -77,10 +96,15 @@ const PLANS: Plan[] = [
     capacityLabel: "El Poder de la Voz IA",
     capacityDesc: "Llamadas autónomas con acento natural y análisis de conversaciones.",
     price: 599900,
+    priceUsd: 499,
     implFull: 1199900,
+    implFullUsd: 999,
     implDiscount: 599900,
+    implDiscountUsd: 499,
     cuota: 149975,
+    cuotaUsd: 125,
     first4: 599900,
+    first4Usd: 499,
     popular: true, 
   },
   {
@@ -90,10 +114,15 @@ const PLANS: Plan[] = [
     capacityLabel: "Infraestructura Total",
     capacityDesc: "Voz, texto, agenda y analítica avanzada para operaciones corporativas.",
     price: 899900,
+    priceUsd: 799,
     implFull: 1799900,
+    implFullUsd: 1598,
     implDiscount: 899900,
+    implDiscountUsd: 799,
     cuota: 224975,
+    cuotaUsd: 200,
     first4: 899900,
+    first4Usd: 799,
   },
 ];
 
@@ -135,6 +164,7 @@ const fmt = (n: number) => `$${n.toLocaleString("es-CO")}`;
 // COMPONENTE PRINCIPAL (LANDING PAGE)
 // ==========================================
 export default function Home() {
+  const { idioma } = useLanguage();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHudOpen, setIsHudOpen] = useState(false); 
 
@@ -201,11 +231,27 @@ export default function Home() {
   };
 
   const getImplLabel = (plan: Plan) => {
+    const isEn = idioma === 'en';
     if (contract === 1)
-      return { main: `+ ${fmt(plan.implFull)}`, sub: "Implementación según plan", strike: null, free: false };
+      return { 
+        main: isEn ? `+ $${plan.implFullUsd}` : `+ ${fmt(plan.implFull)}`, 
+        sub: isEn ? "Implementation per plan" : "Implementación según plan", 
+        strike: null, 
+        free: false 
+      };
     if (contract === 2)
-      return { main: fmt(plan.implDiscount), sub: "Implementación 50% OFF", strike: fmt(plan.implFull), free: false };
-    return { main: "GRATIS", sub: "Implementación incluida", strike: fmt(plan.implFull), free: true };
+      return { 
+        main: isEn ? `$${plan.implDiscountUsd}` : fmt(plan.implDiscount), 
+        sub: isEn ? "Setup 50% OFF" : "Implementación 50% OFF", 
+        strike: isEn ? `$${plan.implFullUsd}` : fmt(plan.implFull), 
+        free: false 
+      };
+    return { 
+      main: "GRATIS", 
+      sub: isEn ? "Setup included" : "Implementación incluida", 
+      strike: isEn ? `$${plan.implFullUsd}` : fmt(plan.implFull), 
+      free: true 
+    };
   };
 
   return (
@@ -246,6 +292,7 @@ export default function Home() {
                 ↓ Instalar App
               </button>
             )}
+            <BotonIdioma />
             <a href="/login" className="text-sm font-mono text-white/70 transition hover:text-white">[login]</a>
             <a href="/dashboard/bots" className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-5 py-2 text-sm font-mono text-cyan-300 transition hover:bg-cyan-500/30 hover:shadow-[0_0_15px_rgba(6,182,212,0.3)] backdrop-blur-md">
               PANEL_IA →
@@ -261,6 +308,10 @@ export default function Home() {
           {isMobileMenuOpen && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="md:hidden bg-[#0A0E14]/95 backdrop-blur-xl border-b border-white/10 overflow-hidden">
               <div className="flex flex-col px-6 py-6 gap-6 font-mono text-sm tracking-widest">
+                <div className="flex justify-between items-center border-b border-white/10 pb-4">
+                  <span className="text-white/50 text-xs">IDIOMA / LANGUAGE</span>
+                  <BotonIdioma />
+                </div>
                 <a href="#ventajas" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white">/ventajas_upway</a>
                 <a href="#planes" onClick={() => setIsMobileMenuOpen(false)} className="text-[#00D1FF]">/planes</a>
                 <a href="#proceso" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white">/proceso</a>
@@ -351,7 +402,6 @@ export default function Home() {
       {/* EL EMPLEADO DIGITAL (NUEVAS VENTAJAS B2B) */}
       {/* ========================================== */}
       <section id="ventajas" className="relative py-32 bg-[#0A0E14] border-t border-white/5 overflow-hidden">
-        {/* Glow de fondo */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#00D1FF]/5 rounded-full blur-[120px] pointer-events-none"></div>
         
         <div className="relative z-10 max-w-[95rem] mx-auto px-6 lg:px-12">
@@ -368,14 +418,12 @@ export default function Home() {
               Habla. Escucha. Entiende. Atiende. Ejecuta.
             </p>
             <p className="mt-4 text-slate-400 text-lg leading-relaxed max-w-3xl mx-auto">
-              Una IA conversacional diseñada para trabajar junto a tu empresa 24/7, atender clientes, gestionar solicitudes y ejecutar procesos con precisión milimétrica.
+              Una IA conversacional diseñada para trabajar junto à tu empresa 24/7, atender clientes, gestionar solicitudes y ejecutar procesos con precisión milimétrica.
             </p>
           </div>
 
-          {/* BENTO GRID DE CARACTERÍSTICAS */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
             
-            {/* 1. EL PROTAGONISTA: LA VOZ Y LA INTERRUPCIÓN (Ocupa 2 columnas) */}
             <div className="md:col-span-2 rounded-[32px] border border-[#00D1FF]/30 bg-gradient-to-br from-[#00D1FF]/10 to-transparent p-8 md:p-12 relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-40 transition-opacity">
                 <svg className="w-32 h-32 text-[#00D1FF]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
@@ -384,23 +432,21 @@ export default function Home() {
                 <div className="inline-block px-3 py-1 bg-[#00D1FF]/20 border border-[#00D1FF]/30 text-[#00D1FF] rounded-lg text-xs font-bold font-mono mb-6">🎙️ TECNOLOGÍA DE VOZ AUTÓNOMA</div>
                 <h3 className="text-3xl font-display font-bold text-white mb-4">También puede hablar (y escuchar)</h3>
                 <p className="text-slate-300 text-lg leading-relaxed mb-6 max-w-xl">
-                  Tu cliente llama. Tu Empleado Digital responde con una <strong>voz colombiana natural</strong> y una experiencia conversacional fluida. Cero menús robóticos.
+                  Tu cliente llama. Tu Empleado Digital responde con una <strong>voz natural</strong> y una experiencia conversacional fluida. Cero menús robóticos.
                 </p>
                 
-                {/* El super diferenciador */}
                 <div className="bg-black/40 border border-white/10 rounded-2xl p-5 backdrop-blur-md max-w-xl border-l-4 border-l-[#00D1FF]">
                   <p className="text-sm font-bold text-white mb-2 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-[#00D1FF] animate-pulse"></span>
                     Interrupción Inteligente (Barge-in)
                   </p>
                   <p className="text-sm text-slate-400 leading-relaxed">
-                    Si el agente está hablando y el cliente lo interrumpe, <strong>la IA se calla inmediatamente, escucha el nuevo contexto y adapta su respuesta al instante.</strong> Una experiencia diseñada para sentirse idéntica a hablar con un humano real.
+                    Si el agente está hablando y el cliente lo interrumpe, <strong>la IA se calla inmediatamente, escucha el nuevo contexto y adapta su respuesta al instante.</strong>
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* 2. CONTEXTO Y NOTAS DE VOZ */}
             <div className="rounded-[32px] border border-white/10 bg-white/[0.02] p-8 hover:bg-white/[0.04] transition-all flex flex-col justify-center">
               <div className="h-14 w-14 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-6 border border-purple-500/20">
                 <span className="text-2xl">🧠</span>
@@ -411,22 +457,20 @@ export default function Home() {
               </p>
               <h4 className="font-bold text-white mb-2 text-sm">Escucha Audios</h4>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Tus clientes no tienen que escribir. El sistema procesa notas de voz kilométricas, las entiende y continúa la conversación con total naturalidad.
+                Tus clientes no tienen que escribir. El sistema procesa notas de voz, las entiende y continúa con naturalidad.
               </p>
             </div>
 
-            {/* 3. CONVERSACIONES FLUIDAS */}
             <div className="rounded-[32px] border border-white/10 bg-white/[0.02] p-8 hover:bg-white/[0.04] transition-all">
               <div className="h-14 w-14 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6 border border-blue-500/20">
                 <span className="text-2xl">💬</span>
               </div>
               <h3 className="text-xl font-bold text-white mb-3">Conversaciones Fluidas</h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Olvídate de los menús rígidos y las reglas mecánicas. Tu Empleado Digital responde de forma natural para ofrecer una experiencia cercana, rápida y altamente personalizada por WhatsApp o Web.
+                Olvídate de los menús rígidos y reglas mecánicas. Tu Empleado Digital responde de forma natural por WhatsApp o Web.
               </p>
             </div>
 
-            {/* 4. LA LISTA DE TRABAJO (Ocupa 2 columnas) */}
             <div className="md:col-span-2 rounded-[32px] border border-white/10 bg-white/[0.02] p-8 hover:bg-white/[0.04] transition-all">
               <div className="flex items-center gap-4 mb-6">
                 <div className="h-14 w-14 rounded-2xl bg-[#00D1FF]/10 flex items-center justify-center border border-[#00D1FF]/20">
@@ -455,18 +499,11 @@ export default function Home() {
             </div>
 
           </div>
-
-          <div className="mt-16 text-center">
-            <p className="text-lg text-slate-400 max-w-2xl mx-auto font-medium">
-              Mientras tu equipo se concentra en tareas de alto valor que requieren intervención humana real, tu <strong className="text-white">Empleado Digital</strong> se encarga del 80% de la operación automatizable.
-            </p>
-          </div>
-
         </div>
       </section>
 
       {/* ========================================== */}
-      {/* SECCIÓN DE PRECIOS Y TRANSPARENCIA */}
+      {/* SECCIÓN DE PRECIOS Y TRANSPARENCIA (MULTIMONEDA) */}
       {/* ========================================== */}
       <section id="planes" className="relative z-20 py-24 bg-gradient-to-b from-[#0A0E14] to-[#03050a]">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -478,85 +515,67 @@ export default function Home() {
           <div className="text-center mb-16">
             <p className="text-xs font-mono uppercase tracking-[0.3em] text-cyan-400 mb-4">/precios_upway</p>
             <h2 className="text-4xl md:text-5xl font-display font-bold text-white mb-6 leading-tight">
-              Contrata a tu ejecutivo digital desde $249.900/mes.
+              {idioma === 'en' ? 'Hire your digital executive starting at $149/mo.' : 'Contrata a tu ejecutivo digital desde $249.900/mes.'}
             </h2>
             <p className="text-xl text-slate-300 max-w-3xl mx-auto font-medium">
-              Nunca más pierdas una venta por una llamada o mensaje no atendido.
+              {idioma === 'en' ? 'Never miss another sale due to unanswered calls or messages.' : 'Nunca más pierdas una venta por una llamada o mensaje no atendido.'}
             </p>
           </div>
 
-          {/* 🛡️ TRANSPARENCIA UPWAY Y GARANTÍA */}
+          {/* TRANSPARENCIA Y GARANTÍA */}
           <div className="max-w-5xl mx-auto mb-16 grid md:grid-cols-2 gap-6">
-            
-            {/* Tarjeta 1: Claridad */}
             <div className="bg-white/[0.02] border border-white/10 rounded-3xl p-8 backdrop-blur-sm">
               <h3 className="font-display font-bold text-xl text-white mb-6 flex items-center gap-3">
                 <span className="w-8 h-8 rounded-full bg-[#00D1FF]/10 flex items-center justify-center text-[#00D1FF]">⚖️</span>
-                Claridad antes de que contrates
+                {idioma === 'en' ? 'Transparency before you hire' : 'Claridad antes de que contrates'}
               </h3>
               <div className="space-y-4 font-body text-sm text-slate-300">
-                <div className="flex gap-3"><CheckCircle className="h-5 w-5 text-[#00D1FF] shrink-0" /> <p><strong>Hacemos:</strong> Tecnología que atiende 24/7, memoria avanzada, voz natural, soporte técnico inmediato en Colombia.</p></div>
-                <div className="flex gap-3"><CheckCircle className="h-5 w-5 text-[#00D1FF] shrink-0" /> <p><strong>Garantizamos:</strong> Que nunca más perderás un cliente por no atenderlo a tiempo.</p></div>
-                <div className="flex gap-3 opacity-60"><X className="h-5 w-5 text-slate-500 shrink-0" /> <p><strong>No hacemos:</strong> Marketing, promesas mágicas de ventas o publicidad. Eso depende de tu producto y estrategia.</p></div>
+                <div className="flex gap-3"><CheckCircle className="h-5 w-5 text-[#00D1FF] shrink-0" /> <p><strong>{idioma === 'en' ? 'We do:' : 'Hacemos:'}</strong> {idioma === 'en' ? '24/7 automated tech, advanced memory, natural voice, immediate support.' : 'Tecnología que atiende 24/7, memoria avanzada, voz natural, soporte técnico inmediato.'}</p></div>
+                <div className="flex gap-3"><CheckCircle className="h-5 w-5 text-[#00D1FF] shrink-0" /> <p><strong>{idioma === 'en' ? 'We guarantee:' : 'Garantizamos:'}</strong> {idioma === 'en' ? 'You will never lose a client for failing to respond on time.' : 'Que nunca más perderás un cliente por no atenderlo a tiempo.'}</p></div>
               </div>
             </div>
 
-            {/* Tarjeta 2: Garantía con Exclusiones */}
             <div className="bg-[#00D1FF]/5 border border-[#00D1FF]/20 rounded-3xl p-8 backdrop-blur-sm shadow-[0_0_30px_rgba(0,209,255,0.05)] flex flex-col justify-between">
               <div>
                 <h3 className="font-display font-bold text-xl text-white mb-4 flex items-center gap-3">
                   <ShieldCheck className="h-8 w-8 text-[#00D1FF]" />
-                  Garantía de Funcionamiento
+                  {idioma === 'en' ? 'Operational Guarantee' : 'Garantía de Funcionamiento'}
                 </h3>
                 <p className="font-body text-[13px] text-slate-300 mb-4 leading-relaxed">
-                  Garantizamos un uptime del 99.5%. Si por un fallo <strong>exclusivo de nuestra infraestructura</strong> el servicio se interrumpe por más de 4 horas continuas, te acreditamos el 10% de tu mensualidad (50% si supera las 24 horas).
-                </p>
-              </div>
-              
-              <div className="bg-black/30 border border-white/5 rounded-xl p-4 mt-2">
-                <p className="font-body text-[11px] text-slate-400 leading-relaxed">
-                  <strong className="text-white/80">Exclusiones:</strong> No aplica por mantenimientos programados, fallos de tu conectividad, bloqueos por mal uso, ni por caídas de plataformas de terceros (Meta, WhatsApp, Bold, Nequi, Etc). La implementación es un servicio dedicado y no es reembolsable.
+                  {idioma === 'en' ? 'We guarantee 99.5% uptime infrastructure reliability.' : 'Garantizamos un uptime del 99.5% en nuestra infraestructura.'}
                 </p>
               </div>
             </div>
-
           </div>
-          {/* AQUI TERMINA EL BLOQUE DE TRANSPARENCIA Y GARANTÍA */}
 
           {/* TOGGLE DE PAGO */}
           <div className="mb-12 max-w-3xl mx-auto">
             <div className="glass-strong border border-white/10 rounded-[16px] p-1.5 flex flex-col sm:flex-row gap-1.5">
               <button onClick={() => setContract(1)} className={`flex-1 text-left rounded-[12px] px-4 py-3.5 transition-all border ${contract === 1 ? "bg-white text-black border-white shadow-[0_4px_20px_rgba(255,255,255,0.15)]" : "bg-transparent text-white/60 border-transparent hover:bg-white/[0.05] hover:text-white/90"}`}>
-                <div className="font-display text-[13px] font-semibold tracking-tight">Mensual (Sin permanencia)</div>
-                <div className={`font-body text-[12px] mt-1 leading-snug ${contract === 1 ? "text-black/60" : "text-white/40"}`}>Implementación según plan</div>
+                <div className="font-display text-[13px] font-semibold tracking-tight">{idioma === 'en' ? 'Monthly (No lock-in)' : 'Mensual (Sin permanencia)'}</div>
+                <div className={`font-body text-[12px] mt-1 leading-snug ${contract === 1 ? "text-black/60" : "text-white/40"}`}>{idioma === 'en' ? 'Standard setup fee' : 'Implementación según plan'}</div>
               </button>
               <button onClick={() => setContract(2)} className={`flex-1 text-left rounded-[12px] px-4 py-3.5 transition-all border relative overflow-hidden ${contract === 2 ? "bg-[#00D1FF] text-black border-[#00D1FF] shadow-[0_8px_32px_rgba(0,209,255,0.35)]" : "bg-transparent text-white/60 border-transparent hover:bg-white/[0.05] hover:text-white/90"}`}>
                 {contract === 2 && <div className="absolute inset-0 bg-gradient-to-br from-white/25 to-transparent pointer-events-none" />}
                 <div className="relative flex items-center gap-2">
-                  <span className="font-display text-[13px] font-bold tracking-tight">12 meses</span>
+                  <span className="font-display text-[13px] font-bold tracking-tight">{idioma === 'en' ? '12 Months' : '12 meses'}</span>
                   <span className={`font-body text-[10px] font-bold px-2 py-0.5 rounded-full tracking-wide ${contract === 2 ? "bg-black text-[#00D1FF]" : "bg-[#00D1FF] text-black"}`}>RECOMENDADO</span>
                 </div>
-                <div className={`relative font-body text-[12px] mt-1 leading-snug ${contract === 2 ? "text-black/70" : "text-white/40"}`}>Implementación 50% OFF</div>
+                <div className={`relative font-body text-[12px] mt-1 leading-snug ${contract === 2 ? "text-black/70" : "text-white/40"}`}>{idioma === 'en' ? 'Setup 50% OFF' : 'Implementación 50% OFF'}</div>
               </button>
               <button onClick={() => setContract(3)} className={`flex-1 text-left rounded-[12px] px-4 py-3.5 transition-all border ${contract === 3 ? "bg-white text-black border-white shadow-[0_4px_20px_rgba(255,255,255,0.15)]" : "bg-transparent text-white/60 border-transparent hover:bg-white/[0.05] hover:text-white/90"}`}>
-                <div className="font-display text-[13px] font-semibold tracking-tight">Prepago Anual</div>
-                <div className={`font-body text-[12px] mt-1 leading-snug ${contract === 3 ? "text-black/60" : "text-white/40"}`}>Implementación INCLUIDA (Mayor ahorro)</div>
+                <div className="font-display text-[13px] font-semibold tracking-tight">{idioma === 'en' ? 'Annual Prepaid' : 'Prepago Anual'}</div>
+                <div className={`font-body text-[12px] mt-1 leading-snug ${contract === 3 ? "text-black/60" : "text-white/40"}`}>{idioma === 'en' ? 'Setup INCLUDED (Best value)' : 'Implementación INCLUIDA (Mayor ahorro)'}</div>
               </button>
             </div>
           </div>
 
-          {/* GUÍA DE ELECCIÓN */}
-          <div className="max-w-4xl mx-auto mb-12 flex flex-wrap justify-center gap-3">
-            <div className="bg-white/5 border border-white/10 rounded-full px-4 py-2 text-xs font-mono text-white/70">¿Solo tienes WhatsApp y quieres vender más? → <strong className="text-white">PYME</strong></div>
-            <div className="bg-white/5 border border-white/10 rounded-full px-4 py-2 text-xs font-mono text-white/70">¿Atiendes más de 50 chats al día? → <strong className="text-[#00D1FF]">Ejecutivo de Chat</strong></div>
-            <div className="bg-white/5 border border-white/10 rounded-full px-4 py-2 text-xs font-mono text-white/70">¿Te llaman por teléfono y pierdes citas? → <strong className="text-[#00D1FF]">Ejecutivo de Voz</strong></div>
-            <div className="bg-[#00D1FF]/10 border border-[#00D1FF]/30 rounded-full px-4 py-2 text-xs font-mono text-[#00D1FF]">¿Quieres todo integrado con reportes avanzados? → <strong className="text-white">Director Omnicanal</strong></div>
-          </div>
-
-          {/* TABLA DE PRECIOS */}
+          {/* TABLA DE PRECIOS ADAPTATIVA (COP vs USD) */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5 mb-12">
             {PLANS.map((plan) => {
               const impl = getImplLabel(plan);
+              const displayPrice = idioma === 'en' ? `$${plan.priceUsd}` : fmt(plan.price);
+              
               return (
                 <div key={plan.id} className={`relative rounded-[24px] border p-[1px] flex flex-col group transition-all duration-300 ${plan.popular ? "border-[#00D1FF]/50 shadow-[0_0_80px_rgba(0,209,255,0.18)]" : "border-white/10 hover:border-white/[0.14]"}`}>
                   {plan.popular && (
@@ -574,8 +593,8 @@ export default function Home() {
 
                     <div className="mb-5">
                       <div className="flex items-baseline gap-2">
-                        <span className="font-display text-[32px] font-bold tracking-[-0.03em] leading-none">{fmt(plan.price)}</span>
-                        <span className="font-body text-[13px] text-white/40 font-medium">/ mes</span>
+                        <span className="font-display text-[32px] font-bold tracking-[-0.03em] leading-none">{displayPrice}</span>
+                        <span className="font-body text-[13px] text-white/40 font-medium">{idioma === 'en' ? '/ mo' : '/ mes'}</span>
                       </div>
                       <div className="mt-2 flex items-center gap-2">
                         <span className={`font-display text-[13px] font-semibold tracking-tight ${impl.free ? "text-[#00D1FF]" : "text-white/90"}`}>{impl.main}</span>
@@ -585,7 +604,7 @@ export default function Home() {
                     </div>
 
                     <div className="mb-5">
-                      <div className="font-body text-[10px] font-semibold tracking-[0.16em] uppercase text-[#00D1FF]/70 mb-1.5">Capacidad</div>
+                      <div className="font-body text-[10px] font-semibold tracking-[0.16em] uppercase text-[#00D1FF]/70 mb-1.5">{idioma === 'en' ? 'Capacity' : 'Capacidad'}</div>
                       <div className="font-display text-[13.5px] font-semibold text-white/90 leading-tight">{plan.capacityLabel}</div>
                       <div className="font-body text-[12.5px] text-white/50 mt-1 leading-snug">{plan.capacityDesc}</div>
                     </div>
@@ -593,7 +612,7 @@ export default function Home() {
                     <div className="h-[1px] bg-gradient-to-r from-white/10 to-transparent mb-5" />
 
                     <div className="mb-6 flex-1">
-                      <div className="font-body text-[10px] font-semibold tracking-[0.16em] uppercase text-white/30 mb-3">Incluye empleado digital</div>
+                      <div className="font-body text-[10px] font-semibold tracking-[0.16em] uppercase text-white/30 mb-3">{idioma === 'en' ? 'Includes digital worker' : 'Incluye empleado digital'}</div>
                       
                       <div className="space-y-2">
                         {INCLUDED_BASE.map((feat) => (
@@ -606,7 +625,7 @@ export default function Home() {
 
                       {(plan.id === "negocio" || plan.id === "pro") && (
                         <div className="mt-5">
-                          <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase mb-2.5 text-[#00D1FF]/90">+ Capacidades de Texto</div>
+                          <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase mb-2.5 text-[#00D1FF]/90">+ Texto IA</div>
                           <div className="space-y-1.5">
                             {EXTRA_NEGOCIO.map((e) => (
                               <div key={e} className="flex gap-2 font-body text-[12px] text-white/70 leading-snug">
@@ -619,7 +638,7 @@ export default function Home() {
 
                       {(plan.id === "voz" || plan.id === "pro") && (
                         <div className="mt-5">
-                          <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase mb-2.5 text-[#00D1FF]">+ Potencia de Voz (Vapi)</div>
+                          <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase mb-2.5 text-[#00D1FF]">+ Voz IA (Vapi)</div>
                           <div className="space-y-1.5">
                             {EXTRA_VOZ.map((e) => (
                               <div key={e} className="flex gap-2 font-body text-[12px] text-white/70 leading-snug">
@@ -629,24 +648,11 @@ export default function Home() {
                           </div>
                         </div>
                       )}
-
-                      {plan.id === "pro" && (
-                        <div className="mt-5">
-                          <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase text-[#00D1FF] mb-2.5">+ Nivel Corporativo Máximo</div>
-                          <div className="space-y-1.5">
-                            {EXTRA_PRO.map((e) => (
-                              <div key={e} className="flex gap-2 font-body text-[12.5px] text-[#00D1FF] font-medium leading-snug">
-                                <span className="text-[#00D1FF] drop-shadow-[0_0_5px_rgba(0,209,255,0.8)]">✦</span> {e}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
                     </div>
 
                     <div className="mt-auto pt-4 border-t border-white/5">
                       <button onClick={() => setCheckoutPlan(plan)} className="w-full h-[46px] rounded-[12px] bg-[#00D1FF] text-black font-display font-bold text-[14px] tracking-tight hover:bg-[#33DDFF] transition-colors shadow-[0_0_28px_rgba(0,209,255,0.35)] flex items-center justify-center gap-2">
-                        Quiero automatizar mis ventas <span className="text-[16px] font-medium">→</span>
+                        {idioma === 'en' ? 'Automate my sales' : 'Quiero automatizar mis ventas'} <span className="text-[16px] font-medium">→</span>
                       </button>
                     </div>
                   </div>
@@ -658,7 +664,7 @@ export default function Home() {
       </section>
 
       {/* ========================================== */}
-      {/* PROCESO Y FOOTER (B2B OPTIMIZED) */}
+      {/* PROCESO Y FOOTER */}
       {/* ========================================== */}
       <section id="proceso" className="relative border-t border-white/5 bg-[#03050a] overflow-hidden">
         <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-[#00D1FF]/[0.03] rounded-full blur-[120px] pointer-events-none" />
@@ -667,17 +673,17 @@ export default function Home() {
           <div className="max-w-3xl mb-16">
             <p className="text-xs font-mono uppercase tracking-[0.3em] text-[#00D1FF] mb-4">/02_onboarding</p>
             <h2 className="text-3xl font-display font-bold text-white sm:text-4xl tracking-tight">
-              Implementación corporativa en <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00D1FF] to-blue-500">4 pasos exactos.</span>
+              {idioma === 'en' ? 'Enterprise implementation in 4 exact steps.' : 'Implementación corporativa en 4 pasos exactos.'}
             </h2>
-            <p className="mt-4 text-slate-400 text-lg">Un proceso de ingeniería estructurado para que tu operación no se detenga mientras hacemos la transición a la IA.</p>
+            <p className="mt-4 text-slate-400 text-lg">{idioma === 'en' ? 'Structured engineering process so your operations never stop.' : 'Un proceso de ingeniería estructurado para que tu operación no se detenga.'}</p>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {[
-              { title: "Auditoría de Arquitectura", desc: "Mapeamos tus procesos, embudos y base de conocimientos para diseñar el 'cerebro' ideal de tu IA." },
-              { title: "Entrenamiento (RAG)", desc: "Inyectamos tus catálogos, PDFs y reglas de negocio para evitar 'alucinaciones' y asegurar precisión." },
-              { title: "Despliegue Oficial", desc: "Conexión segura de infraestructura con WhatsApp Cloud API (Meta) y Centrales de Voz Vapi." },
-              { title: "Operación Autónoma", desc: "Tu agente asume el control 24/7. Monitorea métricas y respuestas desde tu Dashboard en tiempo real." }
+              { title: idioma === 'en' ? "Architecture Audit" : "Auditoría de Arquitectura", desc: idioma === 'en' ? "We map your funnels to design the ideal AI brain." : "Mapeamos tus procesos y embudos para diseñar el cerebro ideal." },
+              { title: idioma === 'en' ? "RAG Training" : "Entrenamiento (RAG)", desc: idioma === 'en' ? "We inject your catalogs and business rules." : "Inyectamos tus catálogos y reglas de negocio para asegurar precisión." },
+              { title: idioma === 'en' ? "Official Deployment" : "Despliegue Oficial", desc: idioma === 'en' ? "Secure connection with WhatsApp Cloud API and Vapi Voice." : "Conexión segura con WhatsApp Cloud API y Centrales de Voz." },
+              { title: idioma === 'en' ? "Autonomous Operations" : "Operación Autónoma", desc: idioma === 'en' ? "Your agent takes control 24/7 with real-time analytics." : "Tu agente asume el control 24/7 con métricas en tiempo real." }
             ].map((step, index) => (
               <div key={step.title} className="rounded-[24px] border border-white/10 bg-white/[0.02] p-8 relative overflow-hidden group transition-all hover:bg-white/[0.04] hover:border-[#00D1FF]/30">
                 <div className="absolute top-0 right-0 p-6 opacity-[0.03] font-display text-8xl font-bold text-white group-hover:text-[#00D1FF] group-hover:opacity-10 transition-all">
@@ -701,26 +707,23 @@ export default function Home() {
         <div className="relative z-10 mx-auto flex max-w-[95rem] flex-col gap-10 px-6 py-24 lg:flex-row lg:items-center lg:justify-between lg:px-12">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400 mb-6">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" /> Tus competidores ya usan IA
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" /> {idioma === 'en' ? 'Your competitors are already using AI' : 'Tus competidores ya usan IA'}
             </div>
             <h2 className="text-4xl font-display font-bold text-white sm:text-5xl tracking-tight mb-6">
-              No pierdas más clientes por <br className="hidden md:block"/>falta de atención inmediata.
+              {idioma === 'en' ? 'Never lose clients due to lack of immediate response.' : 'No pierdas más clientes por falta de atención inmediata.'}
             </h2>
             <p className="text-slate-400 text-lg leading-relaxed">
-              Tus competidores ya están automatizando sus canales. Agenda una auditoría de infraestructura hoy mismo y descubre el ROI exacto de implementar nuestra tecnología en tu empresa.
+              {idioma === 'en' ? 'Schedule an infrastructure audit today and discover the exact ROI.' : 'Agenda una auditoría de infraestructura hoy mismo y descubre el ROI exacto.'}
             </p>
           </div>
 
           <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8 md:p-10 backdrop-blur-xl shadow-2xl flex flex-col items-center text-center lg:min-w-[420px]">
-            <p className="text-sm font-semibold text-white/70 mb-6 uppercase tracking-widest">Habla con un Ingeniero</p>
+            <p className="text-sm font-semibold text-white/70 mb-6 uppercase tracking-widest">{idioma === 'en' ? 'Talk to an Engineer' : 'Habla con un Ingeniero'}</p>
             <button onClick={() => window.dispatchEvent(new Event("abrir-chat"))} className="w-full h-[56px] rounded-[16px] bg-[#00D1FF] text-black font-display font-bold text-[16px] tracking-tight hover:bg-[#33DDFF] hover:scale-[1.02] transition-all shadow-[0_0_30px_rgba(0,209,255,0.4)] flex items-center justify-center gap-3">
-              Automatizar mi operación hoy <ArrowRight className="h-5 w-5" />
-            </button>
-            <button onClick={() => window.dispatchEvent(new Event("abrir-chat"))} className="mt-4 text-[12px] font-semibold text-white/40 hover:text-white transition-colors underline decoration-white/20 underline-offset-4">
-              Mantener mi operación manual
+              {idioma === 'en' ? 'Automate my operations today' : 'Automatizar mi operación hoy'} <ArrowRight className="h-5 w-5" />
             </button>
             <p className="text-[11px] text-slate-500 mt-6 flex items-center justify-center gap-1.5 border-t border-white/10 pt-4 w-full">
-              <ShieldCheck className="h-3.5 w-3.5 text-[#00D1FF]/70" /> Análisis de viabilidad 100% gratuito.
+              <ShieldCheck className="h-3.5 w-3.5 text-[#00D1FF]/70" /> {idioma === 'en' ? '100% Free feasibility analysis.' : 'Análisis de viabilidad 100% gratuito.'}
             </p>
           </div>
         </div>
@@ -738,29 +741,23 @@ export default function Home() {
           </div>
 
           <div className="flex gap-8 text-[11px] font-mono tracking-widest text-white/40">
-  <Link href="/terminos" className="hover:text-[#00D1FF] transition-colors uppercase">
-    Términos de Servicio
-  </Link>
-  <Link href="/privacy" className="hover:text-[#00D1FF] transition-colors uppercase">
-    Privacidad (Ley 1581)
-  </Link>
-</div>
+            <Link href="/terminos" className="hover:text-[#00D1FF] transition-colors uppercase">Términos</Link>
+            <Link href="/privacy" className="hover:text-[#00D1FF] transition-colors uppercase">Privacidad</Link>
+          </div>
 
           <p className="text-[10px] font-mono text-white/30">© 2026 UPWAY BUSINESS. ALL RIGHTS RESERVED.</p>
         </div>
       </footer>
 
-      {/* ========================================== */}
       {/* STICKY CTA (MÓVIL) */}
-      {/* ========================================== */}
       <div className="md:hidden fixed bottom-0 left-0 w-full z-50 p-4 bg-[#0A0E14]/90 backdrop-blur-xl border-t border-white/10">
         <button onClick={() => window.dispatchEvent(new Event("abrir-chat"))} className="w-full h-[50px] rounded-[14px] bg-[#00D1FF] text-black font-display font-bold text-[14px] tracking-tight flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(0,209,255,0.3)]">
-           Probar gratis con Sophie V2 <ArrowRight className="h-4 w-4" />
+           {idioma === 'en' ? 'Try Sophie V2 Free' : 'Probar gratis con Sophie V2'} <ArrowRight className="h-4 w-4" />
         </button>
       </div>
 
       {/* ========================================== */}
-      {/* MODAL DE CHECKOUT (BOLD) */}
+      {/* MODAL DE CHECKOUT (ADAPTATIVO COP / USD) */}
       {/* ========================================== */}
       <AnimatePresence>
         {checkoutPlan && (
@@ -774,44 +771,55 @@ export default function Home() {
                   <span className="text-[28px]">{checkoutPlan.emoji}</span>
                   <div>
                     <h3 className="font-display text-[18px] font-bold text-white">Plan {checkoutPlan.name}</h3>
-                    <p className="font-body text-[12px] text-white/50">Activación de infraestructura corporativa</p>
+                    <p className="font-body text-[12px] text-white/50">{idioma === 'en' ? 'Corporate infrastructure activation' : 'Activación de infraestructura corporativa'}</p>
                   </div>
                 </div>
 
                 {(() => {
-                  const valorImplementacion = contract === 2 ? checkoutPlan.cuota : contract === 3 ? 0 : checkoutPlan.implFull;
-                  const totalApagar = checkoutPlan.price + valorImplementacion;
+                  const isEn = idioma === 'en';
+                  const planPrice = isEn ? checkoutPlan.priceUsd : checkoutPlan.price;
+                  const valorImplementacion = contract === 2 
+                    ? (isEn ? checkoutPlan.cuotaUsd : checkoutPlan.cuota) 
+                    : contract === 3 
+                    ? 0 
+                    : (isEn ? checkoutPlan.implFullUsd : checkoutPlan.implFull);
+                  const totalApagar = planPrice + valorImplementacion;
+                  const formatMoney = (n: number) => isEn ? `$${n}` : fmt(n);
 
                   return (
                     <>
                       <div className="glass rounded-[16px] p-4 mb-6 border border-white/5">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="font-body text-[13px] text-white/70">Mensualidad Infraestructura</span>
-                          <span className="font-display text-[14px] font-semibold">{fmt(checkoutPlan.price)}</span>
+                          <span className="font-body text-[13px] text-white/70">{isEn ? 'Monthly Infrastructure' : 'Mensualidad Infraestructura'}</span>
+                          <span className="font-display text-[14px] font-semibold">{formatMoney(planPrice)}</span>
                         </div>
                         <div className="flex justify-between items-center mb-4">
                           <span className="font-body text-[13px] text-white/70">
-                            {contract === 2 ? "Implementación (Cuota 1/4)" : contract === 3 ? "Implementación (Gratis)" : "Implementación (Full)"}
+                            {contract === 2 
+                              ? (isEn ? "Setup (Installment 1/4)" : "Implementación (Cuota 1/4)") 
+                              : contract === 3 
+                              ? (isEn ? "Setup (Free)" : "Implementación (Gratis)") 
+                              : (isEn ? "Setup (Full)" : "Implementación (Full)")}
                           </span>
                           <span className="font-display text-[14px] font-semibold text-[#00D1FF]">
-                            {contract === 3 ? "$0" : fmt(valorImplementacion)}
+                            {contract === 3 ? (isEn ? "$0" : "$0") : formatMoney(valorImplementacion)}
                           </span>
                         </div>
                         <div className="h-[1px] bg-white/10 w-full my-3" />
                         <div className="flex justify-between items-center">
-                          <span className="font-display font-bold text-[14px] text-white">Total a pagar hoy</span>
-                          <span className="font-display font-bold text-[20px] text-white">{fmt(totalApagar)}</span>
+                          <span className="font-display font-bold text-[14px] text-white">{isEn ? 'Total due today' : 'Total a pagar hoy'}</span>
+                          <span className="font-display font-bold text-[20px] text-white">{formatMoney(totalApagar)}</span>
                         </div>
                       </div>
 
                       <button onClick={() => iniciarPago(checkoutPlan.name, totalApagar)} disabled={procesandoPago} className="w-full h-[50px] rounded-[12px] bg-gradient-to-r from-blue-600 to-[#00D1FF] text-white font-display font-bold text-[15px] hover:shadow-[0_0_20px_rgba(0,209,255,0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
-                        {procesandoPago ? 'Conectando con Bold...' : '🔒 Pagar de forma segura con Bold'}
+                        {procesandoPago ? (isEn ? 'Connecting...' : 'Conectando con pasarela...') : (isEn ? '🔒 Pay securely' : '🔒 Pagar de forma segura')}
                       </button>
                     </>
                   );
                 })()}
 
-                <p className="text-center font-body text-[10px] text-white/30 mt-4">Transacción segura procesada mediante pasarela Bold.</p>
+                <p className="text-center font-body text-[10px] text-white/30 mt-4">{idioma === 'en' ? 'Secure checkout process.' : 'Transacción segura procesada mediante pasarela.'}</p>
               </div>
             </motion.div>
           </motion.div>
