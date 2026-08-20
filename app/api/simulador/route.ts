@@ -256,7 +256,7 @@ export async function POST(req: NextRequest) {
     
     INFORMACIÓN VITAL PARA TI (SOPHIE):
     - Hoy es: ${fechaActual} (Hora de Colombia). Usa esta fecha actual para calcular los días.
-    - REGLA DE ORO ESTRICTA: Cuando el usuario te pida agendar una reunión y te dé los detalles (Asunto, Fecha y Hora), ESTÁS OBLIGADA a utilizar la herramienta 'agendar_reunion'. NUNCA generes texto simulando que programaste la cita. DEBES ejecutar la herramienta.
+    - REGLA DE ORO ESTRICTA: Когда el usuario te pida agendar una reunión y te dé los detalles (Asunto, Fecha y Hora), ESTÁS OBLIGADA a utilizar la herramienta 'agendar_reunion'. NUNCA generes texto simulando que programaste la cita. DEBES ejecutar la herramienta.
     
     === BASE DE DATOS (SISTEMA RAG) ===
     ${contextoInventario}
@@ -289,14 +289,14 @@ export async function POST(req: NextRequest) {
       }
     }];
 
-    // 3. LA NUEVA CASCADA BLINDADA (Gratis -> OpenRouter Free -> Gemini Premium Escudo)
+    // 3. LA CASCADA ACTUALIZADA CON EL NUEVO MODELO DE GROQ
     const providers = [
       {
         name: 'Groq 🚀',
         enabled: !!groqClient,
         execute: async () => {
           const completion = await groqClient!.chat.completions.create({
-            model: 'llama-3.1-70b-versatile',
+            model: 'openai/gpt-oss-120b', // Modelo actualizado recomendado por Groq
             messages: formattedMessages,
             temperature: 0.3,
             tools: herramientas_ia,
