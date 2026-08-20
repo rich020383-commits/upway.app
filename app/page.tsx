@@ -133,14 +133,14 @@ const INCLUDED_BASE = [
   "Atención corporativa automatizada 24/7",
   "Toma de pedidos y ventas inteligente",
   "Conexión oficial con Catálogo e Inventario",
-  "Soporte técnico inmediato en Colombia",
+  "Soporte técnico inmediato",
   "Reporte de ventas y conversaciones",
 ];
 
 const EXTRA_NEGOCIO = [
   "Procesamiento avanzado de Notas de Voz",
   "Lectura de Imágenes y Recibos (PDF)",
-  "Pasarela de Pagos integrada (Bold/Nequi)",
+  "Pasarela de Pagos integrada",
   "Cerebro RAG (Memoria unificada)",
 ];
 
@@ -280,16 +280,16 @@ export default function Home() {
           </a>
 
           <div className="hidden items-center gap-8 text-sm text-white/60 md:flex font-mono tracking-wider">
-            <a href="#ventajas" className="transition hover:text-cyan-400">/ventajas</a>
-            <a href="#planes" className="transition text-cyan-400 hover:text-cyan-300">/planes</a>
-            <a href="#proceso" className="transition hover:text-cyan-400">/proceso</a>
-            <a href="#contacto" className="transition hover:text-cyan-400">/contacto</a>
+            <a href="#ventajas" className="transition hover:text-cyan-400">{idioma === 'en' ? '/advantages' : '/ventajas'}</a>
+            <a href="#planes" className="transition text-cyan-400 hover:text-cyan-300">{idioma === 'en' ? '/plans' : '/planes'}</a>
+            <a href="#proceso" className="transition hover:text-cyan-400">{idioma === 'en' ? '/process' : '/proceso'}</a>
+            <a href="#contacto" className="transition hover:text-cyan-400">{idioma === 'en' ? '/contact' : '/contacto'}</a>
           </div>
 
           <div className="hidden items-center gap-4 md:flex">
             {deferredPrompt && (
               <button onClick={instalarApp} className="text-sm font-mono text-[#00D1FF] transition hover:text-white flex items-center gap-2 border border-[#00D1FF]/30 px-3 py-1.5 rounded-full bg-[#00D1FF]/10">
-                ↓ Instalar App
+                ↓ {idioma === 'en' ? 'Install App' : 'Instalar App'}
               </button>
             )}
             <BotonIdioma />
@@ -312,18 +312,18 @@ export default function Home() {
                   <span className="text-white/50 text-xs">IDIOMA / LANGUAGE</span>
                   <BotonIdioma />
                 </div>
-                <a href="#ventajas" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white">/ventajas_upway</a>
-                <a href="#planes" onClick={() => setIsMobileMenuOpen(false)} className="text-[#00D1FF]">/planes</a>
-                <a href="#proceso" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white">/proceso</a>
-                <a href="#contacto" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white">/contacto</a>
+                <a href="#ventajas" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white">{idioma === 'en' ? '/advantages' : '/ventajas'}</a>
+                <a href="#planes" onClick={() => setIsMobileMenuOpen(false)} className="text-[#00D1FF]">{idioma === 'en' ? '/plans' : '/planes'}</a>
+                <a href="#proceso" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white">{idioma === 'en' ? '/process' : '/proceso'}</a>
+                <a href="#contacto" onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white">{idioma === 'en' ? '/contact' : '/contacto'}</a>
                 <div className="h-[1px] bg-white/10 w-full my-2" />
                 {deferredPrompt && (
                   <button onClick={() => { instalarApp(); setIsMobileMenuOpen(false); }} className="w-full text-center py-3 rounded-lg border border-[#00D1FF]/40 bg-[#00D1FF]/10 text-[#00D1FF] font-bold">
-                    ↓ DESCARGAR APP UPWAY
+                    ↓ {idioma === 'en' ? 'DOWNLOAD UPWAY APP' : 'DESCARGAR APP UPWAY'}
                   </button>
                 )}
-                <a href="/login" className="w-full text-center py-3 rounded-lg border border-white/20 bg-white/5 text-white/80">INICIAR SESIÓN</a>
-                <a href="/dashboard/bots" className="w-full text-center py-3 rounded-lg bg-[#00D1FF] text-black font-bold shadow-[0_0_15px_rgba(0,209,255,0.4)]">ENTRAR AL PANEL →</a>
+                <a href="/login" className="w-full text-center py-3 rounded-lg border border-white/20 bg-white/5 text-white/80">{idioma === 'en' ? 'LOG IN' : 'INICIAR SESIÓN'}</a>
+                <a href="/dashboard/bots" className="w-full text-center py-3 rounded-lg bg-[#00D1FF] text-black font-bold shadow-[0_0_15px_rgba(0,209,255,0.4)]">{idioma === 'en' ? 'ENTER DASHBOARD →' : 'ENTRAR AL PANEL →'}</a>
               </div>
             </motion.div>
           )}
@@ -345,14 +345,14 @@ export default function Home() {
         <div className="absolute right-6 top-1/2 z-20 -translate-y-1/2">
           <button onClick={() => setIsHudOpen(true)} className={`group flex flex-col items-center gap-3 rounded-full border border-cyan-500/40 bg-white/[0.02] p-4 backdrop-blur-md transition-all hover:bg-cyan-500/20 hover:shadow-[0_0_30px_rgba(6,182,212,0.4)] ${isHudOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
             <Menu className="h-6 w-6 text-cyan-400" />
-            <span className="writing-vertical text-[10px] font-mono tracking-[0.3em] text-cyan-300" style={{ writingMode: 'vertical-rl' }}>INICIAR_SISTEMA</span>
+            <span className="writing-vertical text-[10px] font-mono tracking-[0.3em] text-cyan-300" style={{ writingMode: 'vertical-rl' }}>{idioma === 'en' ? 'START_SYSTEM' : 'INICIAR_SISTEMA'}</span>
           </button>
         </div>
 
         <div className="absolute bottom-8 left-8 z-20 hidden md:block">
           <div className="flex flex-col gap-1.5 border-l-2 border-cyan-500/50 pl-3">
-             <p className="text-[10px] font-mono text-cyan-400 tracking-widest">ESTADO: ONLINE</p>
-             <p className="text-[10px] font-mono text-white/50 tracking-widest">MODELO: SOPHIE_V2</p>
+             <p className="text-[10px] font-mono text-cyan-400 tracking-widest">STATUS: ONLINE</p>
+             <p className="text-[10px] font-mono text-white/50 tracking-widest">MODEL: SOPHIE_V2</p>
           </div>
         </div>
 
@@ -365,32 +365,34 @@ export default function Home() {
                   <X className="h-5 w-5" />
                 </button>
                 <div className="mb-4 inline-flex items-center gap-2 border-r-2 border-cyan-500 pr-3 text-[10px] font-mono text-cyan-400 tracking-widest w-fit">
-                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping"></span> INTELIGENCIA DE VOZ ACTIVA
+                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping"></span> {idioma === 'en' ? 'VOICE AI ACTIVE' : 'INTELIGENCIA DE VOZ ACTIVA'}
                 </div>
                 <h1 className="mt-4 text-4xl font-extrabold leading-[1.1] tracking-tight text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
-                  Hola, soy Sophie V2, la <br/><span className="text-transparent bg-clip-text bg-gradient-to-l from-cyan-300 to-blue-400 drop-shadow-[0_0_15px_rgba(6,182,212,0.4)]">empleada digital de UpWay.</span>
+                  {idioma === 'en' ? 'Hi, I am Sophie V2, UpWay’s' : 'Hola, soy Sophie V2, la'} <br/><span className="text-transparent bg-clip-text bg-gradient-to-l from-cyan-300 to-blue-400 drop-shadow-[0_0_15px_rgba(6,182,212,0.4)]">{idioma === 'en' ? 'digital employee.' : 'empleada digital de UpWay.'}</span>
                 </h1>
                 <p className="mt-6 text-sm leading-relaxed text-white/90 font-medium drop-shadow-md">
-                  Estoy aquí para atenderte. ¿Quieres que una como yo trabaje para tu empresa? No nos cuentes. Habla conmigo ahora mismo y juzga tú mismo el nivel de la tecnología.
+                  {idioma === 'en' 
+                    ? 'I am here to assist you. Want an AI like me working for your business? Talk to me right now and judge the technology level yourself.' 
+                    : 'Estoy aquí para atenderte. ¿Quieres que una como yo trabaje para tu empresa? No nos cuentes. Habla conmigo ahora mismo y juzga tú mismo el nivel de la tecnología.'}
                 </p>
                 <div className="mt-10 flex flex-col gap-4">
                   <button onClick={() => { setIsHudOpen(false); window.dispatchEvent(new Event("abrir-chat")); }} className="group relative flex w-full items-center justify-center gap-3 border border-[#00D1FF]/60 bg-[#00D1FF]/20 px-6 py-4 text-sm font-display font-bold tracking-widest text-[#00D1FF] backdrop-blur-md transition-all hover:bg-[#00D1FF] hover:text-slate-950 hover:shadow-[0_0_30px_rgba(0,209,255,0.6)]">
-                    <Cpu className="h-4 w-4" /> PROBAR AGENTE GRATIS <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    <Cpu className="h-4 w-4" /> {idioma === 'en' ? 'TRY AGENT FREE' : 'PROBAR AGENTE GRATIS'} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </button>
                   <a href="#planes" onClick={() => setIsHudOpen(false)} className="flex w-full items-center justify-center rounded-none border border-white/20 bg-black/20 px-6 py-4 text-sm font-mono tracking-widest text-white/80 backdrop-blur-md transition hover:bg-white/10 hover:text-white">
-                    VER PLANES Y PRECIOS
+                    {idioma === 'en' ? 'VIEW PLANS & PRICING' : 'VER PLANES Y PRECIOS'}
                   </a>
                 </div>
 
                 <div className="mt-6 bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl flex items-start gap-3">
                   <Info className="h-5 w-5 text-blue-400 shrink-0 mt-0.5" />
                   <p className="text-xs text-blue-200/80 leading-relaxed font-body">
-                    <strong>Aclaración importante:</strong> Configura un empleado digital de demostración y vive la experiencia aquí en la web. La conexión con tu WhatsApp real se realiza únicamente después de contratar un plan.
+                    <strong>{idioma === 'en' ? 'Important note:' : 'Aclaración importante:'}</strong> {idioma === 'en' ? 'Configure a demo digital employee and experience it here on the web. Connection to your real WhatsApp is done only after purchasing a plan.' : 'Configura un empleado digital de demostración y vive la experiencia aquí en la web. La conexión con tu WhatsApp real se realiza únicamente después de contratar un plan.'}
                   </p>
                 </div>
 
                 <div className="mt-auto border-t border-white/20 pt-6">
-                  <p className="text-[10px] font-mono text-white/60 tracking-widest drop-shadow-sm">UPWAY BUSINESS // COLOMBIA HQ</p>
+                  <p className="text-[10px] font-mono text-white/60 tracking-widest drop-shadow-sm">UPWAY BUSINESS // GLOBAL HQ</p>
                 </div>
               </motion.div>
             </>
@@ -399,7 +401,7 @@ export default function Home() {
       </section>
 
       {/* ========================================== */}
-      {/* EL EMPLEADO DIGITAL (NUEVAS VENTAJAS B2B) */}
+      {/* EL EMPLEADO DIGITAL (VENTAJAS B2B) */}
       {/* ========================================== */}
       <section id="ventajas" className="relative py-32 bg-[#0A0E14] border-t border-white/5 overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#00D1FF]/5 rounded-full blur-[120px] pointer-events-none"></div>
@@ -408,17 +410,19 @@ export default function Home() {
           
           <div className="text-center max-w-4xl mx-auto mb-20">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#00D1FF]/30 bg-[#00D1FF]/10 px-4 py-1.5 text-xs font-bold text-[#00D1FF] mb-6 tracking-widest uppercase shadow-[0_0_15px_rgba(0,209,255,0.15)]">
-              <Sparkles className="h-4 w-4" /> Tu empresa merece algo más que un chatbot
+              <Sparkles className="h-4 w-4" /> {idioma === 'en' ? 'Your business deserves more than a chatbot' : 'Tu empresa merece algo más que un chatbot'}
             </div>
             <h2 className="text-4xl md:text-6xl font-display font-bold text-white mb-8 tracking-tight leading-[1.1]">
-              No es un bot de respuestas. <br className="hidden lg:block"/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00D1FF] to-blue-500">Es tu Empleado Digital.</span>
+              {idioma === 'en' ? 'It is not just a response bot.' : 'No es un bot de respuestas.'} <br className="hidden lg:block"/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00D1FF] to-blue-500">{idioma === 'en' ? 'It is your Digital Employee.' : 'Es tu Empleado Digital.'}</span>
             </h2>
             <p className="text-xl text-slate-300 font-medium tracking-wide">
-              Habla. Escucha. Entiende. Atiende. Ejecuta.
+              {idioma === 'en' ? 'Speaks. Listens. Understands. Attends. Executes.' : 'Habla. Escucha. Entiende. Atiende. Ejecuta.'}
             </p>
             <p className="mt-4 text-slate-400 text-lg leading-relaxed max-w-3xl mx-auto">
-              Una IA conversacional diseñada para trabajar junto à tu empresa 24/7, atender clientes, gestionar solicitudes y ejecutar procesos con precisión milimétrica.
+              {idioma === 'en' 
+                ? 'An AI conversational agent designed to work alongside your business 24/7, servicing clients, handling requests and executing processes with absolute precision.' 
+                : 'Una IA conversacional diseñada para trabajar junto a tu empresa 24/7, atender clientes, gestionar solicitudes y ejecutar procesos con precisión milimétrica.'}
             </p>
           </div>
 
@@ -429,19 +433,23 @@ export default function Home() {
                 <svg className="w-32 h-32 text-[#00D1FF]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
               </div>
               <div className="relative z-10">
-                <div className="inline-block px-3 py-1 bg-[#00D1FF]/20 border border-[#00D1FF]/30 text-[#00D1FF] rounded-lg text-xs font-bold font-mono mb-6">🎙️ TECNOLOGÍA DE VOZ AUTÓNOMA</div>
-                <h3 className="text-3xl font-display font-bold text-white mb-4">También puede hablar (y escuchar)</h3>
+                <div className="inline-block px-3 py-1 bg-[#00D1FF]/20 border border-[#00D1FF]/30 text-[#00D1FF] rounded-lg text-xs font-bold font-mono mb-6">🎙️ {idioma === 'en' ? 'AUTONOMOUS VOICE TECHNOLOGY' : 'TECNOLOGÍA DE VOZ AUTÓNOMA'}</div>
+                <h3 className="text-3xl font-display font-bold text-white mb-4">{idioma === 'en' ? 'It can also speak (and listen)' : 'También puede hablar (y escuchar)'}</h3>
                 <p className="text-slate-300 text-lg leading-relaxed mb-6 max-w-xl">
-                  Tu cliente llama. Tu Empleado Digital responde con una <strong>voz natural</strong> y una experiencia conversacional fluida. Cero menús robóticos.
+                  {idioma === 'en' 
+                    ? 'Your client calls. Your Digital Employee responds with a natural voice and a fluid conversational experience. Zero robotic menus.' 
+                    : 'Tu cliente llama. Tu Empleado Digital responde con una voz natural y una experiencia conversacional fluida. Cero menús robóticos.'}
                 </p>
                 
                 <div className="bg-black/40 border border-white/10 rounded-2xl p-5 backdrop-blur-md max-w-xl border-l-4 border-l-[#00D1FF]">
                   <p className="text-sm font-bold text-white mb-2 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-[#00D1FF] animate-pulse"></span>
-                    Interrupción Inteligente (Barge-in)
+                    {idioma === 'en' ? 'Smart Interruption (Barge-in)' : 'Interrupción Inteligente (Barge-in)'}
                   </p>
                   <p className="text-sm text-slate-400 leading-relaxed">
-                    Si el agente está hablando y el cliente lo interrumpe, <strong>la IA se calla inmediatamente, escucha el nuevo contexto y adapta su respuesta al instante.</strong>
+                    {idioma === 'en' 
+                      ? 'If the agent is speaking and the client interrupts, the AI stops immediately, listens to the new context, and instantly adapts its response.' 
+                      : 'Si el agente está hablando y el cliente lo interrumpe, la IA se calla inmediatamente, escucha el nuevo contexto y adapta su respuesta al instante.'}
                   </p>
                 </div>
               </div>
@@ -451,13 +459,13 @@ export default function Home() {
               <div className="h-14 w-14 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-6 border border-purple-500/20">
                 <span className="text-2xl">🧠</span>
               </div>
-              <h3 className="text-xl font-bold text-white mb-3">Entiende el Contexto</h3>
+              <h3 className="text-xl font-bold text-white mb-3">{idioma === 'en' ? 'Understands Context' : 'Entiende el Contexto'}</h3>
               <p className="text-sm text-slate-400 leading-relaxed mb-6">
-                No se trata solo de responder mensajes. Mantiene el hilo de la conversación y utiliza la información previa para ofrecer respuestas relevantes.
+                {idioma === 'en' ? 'It maintains conversation threads and uses prior information to deliver relevant answers.' : 'No se trata solo de responder mensajes. Mantiene el hilo y utiliza información previa.'}
               </p>
-              <h4 className="font-bold text-white mb-2 text-sm">Escucha Audios</h4>
+              <h4 className="font-bold text-white mb-2 text-sm">{idioma === 'en' ? 'Listens to Audio' : 'Escucha Audios'}</h4>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Tus clientes no tienen que escribir. El sistema procesa notas de voz, las entiende y continúa con naturalidad.
+                {idioma === 'en' ? 'Processes long voice notes, understands them and keeps the flow naturally.' : 'Procesa notas de voz kilométricas, las entiende y continúa con naturalidad.'}
               </p>
             </div>
 
@@ -465,9 +473,9 @@ export default function Home() {
               <div className="h-14 w-14 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6 border border-blue-500/20">
                 <span className="text-2xl">💬</span>
               </div>
-              <h3 className="text-xl font-bold text-white mb-3">Conversaciones Fluidas</h3>
+              <h3 className="text-xl font-bold text-white mb-3">{idioma === 'en' ? 'Fluid Conversations' : 'Conversaciones Fluidas'}</h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Olvídate de los menús rígidos y reglas mecánicas. Tu Empleado Digital responde de forma natural por WhatsApp o Web.
+                {idioma === 'en' ? 'Forget rigid menus and mechanical rules. Your Digital Employee responds naturally via WhatsApp or Web.' : 'Olvídate de los menús rígidos. Tu Empleado Digital responde de forma natural por WhatsApp o Web.'}
               </p>
             </div>
 
@@ -476,18 +484,25 @@ export default function Home() {
                 <div className="h-14 w-14 rounded-2xl bg-[#00D1FF]/10 flex items-center justify-center border border-[#00D1FF]/20">
                   <span className="text-2xl">🤖</span>
                 </div>
-                <h3 className="text-2xl font-display font-bold text-white">Más que responder: Trabaja</h3>
+                <h3 className="text-2xl font-display font-bold text-white">{idioma === 'en' ? 'More than answering: It Works' : 'Más que responder: Trabaja'}</h3>
               </div>
               
               <div className="grid sm:grid-cols-2 gap-y-4 gap-x-8 mt-6">
-                {[
+                {(idioma === 'en' ? [
+                  "Service clients 24/7 without rest",
+                  "Real-time catalog & inventory lookup",
+                  "Appointment & schedule management (Calendar)",
+                  "Payment gateway & system integrations",
+                  "Take orders and automate sales",
+                  "Human agent handoff when necessary"
+                ] : [
                   "Atender clientes 24/7 sin descanso",
                   "Consultar catálogo e inventario en tiempo real",
                   "Gestionar reservas y agenda (Calendario)",
                   "Integrarse con pasarelas de pago y sistemas",
                   "Tomar pedidos y automatizar ventas",
                   "Transferir a un asesor humano cuando sea necesario"
-                ].map((task, i) => (
+                ]).map((task, i) => (
                   <div key={i} className="flex items-start gap-3">
                     <div className="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-[#00D1FF]/20 flex items-center justify-center border border-[#00D1FF]/40">
                       <svg className="w-3 h-3 text-[#00D1FF]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
@@ -618,14 +633,14 @@ export default function Home() {
                         {INCLUDED_BASE.map((feat) => (
                           <div key={feat} className="flex items-center gap-2.5 font-body text-[13px] text-white/70 leading-snug">
                             <CheckCircle className="w-[16px] h-[16px] text-[#00D1FF] shrink-0" />
-                            {feat}
+                            {idioma === 'en' && feat === 'Soporte técnico inmediato' ? 'Immediate technical support' : feat}
                           </div>
                         ))}
                       </div>
 
                       {(plan.id === "negocio" || plan.id === "pro") && (
                         <div className="mt-5">
-                          <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase mb-2.5 text-[#00D1FF]/90">+ Texto IA</div>
+                          <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase mb-2.5 text-[#00D1FF]/90">+ {idioma === 'en' ? 'AI Text' : 'Texto IA'}</div>
                           <div className="space-y-1.5">
                             {EXTRA_NEGOCIO.map((e) => (
                               <div key={e} className="flex gap-2 font-body text-[12px] text-white/70 leading-snug">
@@ -638,7 +653,7 @@ export default function Home() {
 
                       {(plan.id === "voz" || plan.id === "pro") && (
                         <div className="mt-5">
-                          <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase mb-2.5 text-[#00D1FF]">+ Voz IA (Vapi)</div>
+                          <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase mb-2.5 text-[#00D1FF]">+ {idioma === 'en' ? 'AI Voice (Vapi)' : 'Voz IA (Vapi)'}</div>
                           <div className="space-y-1.5">
                             {EXTRA_VOZ.map((e) => (
                               <div key={e} className="flex gap-2 font-body text-[12px] text-white/70 leading-snug">
@@ -741,8 +756,8 @@ export default function Home() {
           </div>
 
           <div className="flex gap-8 text-[11px] font-mono tracking-widest text-white/40">
-            <Link href="/terminos" className="hover:text-[#00D1FF] transition-colors uppercase">Términos</Link>
-            <Link href="/privacy" className="hover:text-[#00D1FF] transition-colors uppercase">Privacidad</Link>
+            <Link href="/terminos" className="hover:text-[#00D1FF] transition-colors uppercase">{idioma === 'en' ? 'Terms' : 'Términos'}</Link>
+            <Link href="/privacy" className="hover:text-[#00D1FF] transition-colors uppercase">{idioma === 'en' ? 'Privacy' : 'Privacidad'}</Link>
           </div>
 
           <p className="text-[10px] font-mono text-white/30">© 2026 UPWAY BUSINESS. ALL RIGHTS RESERVED.</p>
