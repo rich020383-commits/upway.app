@@ -39,12 +39,8 @@ async function crearEventoCalendario(asunto: string, fechaInicio: string, fechaF
 }
 
 // ==========================================
-// 🧠 INICIALIZACIÓN DE LOS 5 NIVELES (SaaS)
+// 🧠 INICIALIZACIÓN DE MOTORES DE CASCADA (SaaS Upway)
 // ==========================================
-const cerebrasClient = process.env.CEREBRAS_API_KEY 
-  ? new OpenAI({ apiKey: process.env.CEREBRAS_API_KEY, baseURL: 'https://api.cerebras.ai/v1' }) 
-  : null;
-
 const groqClient = process.env.GROQ_API_KEY 
   ? new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' }) 
   : null;
@@ -53,15 +49,13 @@ const mistralClient = process.env.MISTRAL_API_KEY
   ? new OpenAI({ apiKey: process.env.MISTRAL_API_KEY, baseURL: 'https://api.mistral.ai/v1' }) 
   : null;
 
-const kimiApiKey = process.env.KIMI_API_KEY;
-const kimiApiUrl = process.env.KIMI_API_URL || 'https://api.moonshot.ai/v1';
-const kimiModelName = process.env.KIMI_MODEL || 'moonshot-v1-8k';
-const kimiClient = kimiApiKey
-  ? new OpenAI({ apiKey: kimiApiKey, baseURL: kimiApiUrl })
+const openRouterClient = process.env.OPENROUTER_API_KEY 
+  ? new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY, baseURL: 'https://openrouter.ai/api/v1' }) 
   : null;
 
-const geminiFlashApiKey = process.env.GEMINI_FLASH_API_KEY;
-const geminiGenAI = geminiFlashApiKey ? new GenerativeAI.GoogleGenerativeAI(geminiFlashApiKey) : null;
+// El escudo final: Tu Gemini Premium con saldo precargado
+const geminiPremiumApiKey = process.env.GEMINI_PREMIUM_API_KEY;
+const geminiGenAI = geminiPremiumApiKey ? new GenerativeAI.GoogleGenerativeAI(geminiPremiumApiKey) : null;
 
 const ALERT_WEBHOOK_URL = process.env.ALERT_WEBHOOK_URL;
 const AUDIO_TRANSCRIPTION_TIMEOUT_MS = 5000;
@@ -100,83 +94,48 @@ const sendProviderAlert = async (provider: string, error: unknown) => {
 };
 
 // ==========================================
-// 🎤 TRANSCRIPCIÓN DE AUDIO (Whisper V3)
+// 🎤 TRANSCRIPCIÓN DE AUDIO (Whisper V3 - Groq)
 // ==========================================
 async function transcribirAudioUsuario(audioUsuario: string) {
   const base64Data = audioUsuario.split(',')[1] || audioUsuario;
   const buffer = Buffer.from(base64Data, 'base64');
 
-  const attemptGroq = async () => {
-    const groqApiKey = process.env.GROQ_API_KEY;
-    if (!groqApiKey) throw new Error('Falta GROQ_API_KEY');
+  const groqApiKey = process.env.GROQ_API_KEY;
+  if (!groqApiKey) throw new Error('Falta GROQ_API_KEY');
 
-    const blob = new Blob([buffer], { type: 'audio/webm' });
-    const formData = new FormData();
-    formData.append('file', blob, 'nota_de_voz.webm');
-    formData.append('model', 'whisper-large-v3');
-    formData.append('language', 'es');
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), AUDIO_TRANSCRIPTION_TIMEOUT_MS);
-    try {
-      const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${groqApiKey}` },
-        body: formData,
-        signal: controller.signal
-      });
-
-      const data = await response.json();
-      if (!response.ok || data.error) {
-        throw new Error(data.error?.message || 'Error en transcripción Groq Whisper');
-      }
-
-      return String(data.text || '');
-    } catch (error) {
-      if ((error as { name?: string })?.name === 'AbortError') {
-        throw new Error('Groq Whisper agotó el timeout de transcripción');
-      }
-      throw error;
-    } finally {
-      clearTimeout(timeoutId);
-    }
-  };
-
-  const attemptKimi = async () => {
-    if (!kimiClient) throw new Error('Kimi no configurado');
-    const audioBlob = new Blob([buffer], { type: 'audio/webm' });
-    const result = await withTimeout(
-      kimiClient.audio.transcriptions.create({
-        file: audioBlob,
-        model: 'whisper-1',
-        language: 'es'
-      }),
-      AUDIO_TRANSCRIPTION_TIMEOUT_MS,
-      'Kimi Transcripción'
-    );
-    return String(result.text || '');
-  };
-
-  let lastError: unknown;
-
+  const blob = new Blob([buffer], { type: 'audio/webm' });
+  const formData = new FormData();
+  formData.append('file', blob, 'nota_de_voz.webm');
+  formData.append('model', 'whisper-large-v3');
+  formData.append('language', 'es');
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), AUDIO_TRANSCRIPTION_TIMEOUT_MS);
+  
   try {
-    const texto = await attemptGroq();
+    const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${groqApiKey}` },
+      body: formData,
+      signal: controller.signal
+    });
+
+    const data = await response.json();
+    if (!response.ok || data.error) {
+      throw new Error(data.error?.message || 'Error en transcripción Groq Whisper');
+    }
+
+    const texto = String(data.text || '');
     if (!texto.trim()) throw new Error('Transcripción Groq devolvió texto vacío');
     return texto;
-  } catch (groqError) {
-    console.warn('⚠️ Groq Whisper falló. Intentando respaldo Kimi/Moonshot...');
-    lastError = groqError;
+  } catch (error) {
+    if ((error as { name?: string })?.name === 'AbortError') {
+      throw new Error('Groq Whisper agotó el timeout de transcripción');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  try {
-    const texto = await attemptKimi();
-    if (!texto.trim()) throw new Error('Transcripción Kimi devolvió texto vacío');
-    return texto;
-  } catch (kimiError) {
-    console.warn('⚠️ Kimi/Moonshot falló en la transcripción de audio.');
-    lastError = kimiError;
-  }
-
-  throw new Error(`Transcripción de audio falló: ${lastError}`);
 }
 
 const formatProviderError = (error: unknown) => {
@@ -290,10 +249,8 @@ export async function POST(req: NextRequest) {
        contextoInventario = `PRODUCTOS ENCONTRADOS RELEVANTES A LA CONSULTA ACTUAL:\n${productosRelevantes.map(p => `- ${p.nombre} (Categoría: ${p.categoria || 'N/A'}) - Precio: $${p.precio}`).join('\n')}`;
     }
 
-    // --- CONTEXTO TEMPORAL PARA SOPHIE ---
     const fechaActual = new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' });
 
-    // 🛡️ REGLA ESTRICTA AÑADIDA PARA FORZAR EL USO DE LA HERRAMIENTA
     const systemPromptText = `Comportate ESTRICTAMENTE según estas instrucciones de tu jefe: 
     ${promptMaestro}
     
@@ -315,7 +272,6 @@ export async function POST(req: NextRequest) {
       { role: 'user', content: textoProcesado }
     ];
 
-    // --- DEFINICIÓN DE LA HERRAMIENTA (FUNCTION CALLING) ---
     const herramientas_ia = [{
       type: "function" as const,
       function: {
@@ -333,14 +289,14 @@ export async function POST(req: NextRequest) {
       }
     }];
 
-    // 3. EL CASCADEO DE 5 NIVELES
+    // 3. LA NUEVA CASCADA BLINDADA (Gratis -> OpenRouter Free -> Gemini Premium Escudo)
     const providers = [
       {
         name: 'Groq 🚀',
         enabled: !!groqClient,
         execute: async () => {
           const completion = await groqClient!.chat.completions.create({
-            model: 'llama-3.1-8b-instant',
+            model: 'llama-3.3-70b-versatile',
             messages: formattedMessages,
             temperature: 0.3,
             tools: herramientas_ia,
@@ -349,7 +305,6 @@ export async function POST(req: NextRequest) {
           const message = completion.choices[0]?.message;
           const textoRespuesta = message?.content || '';
 
-          // 1. Camino Correcto
           if (message?.tool_calls && message.tool_calls.length > 0) {
             console.log("🛠️ ¡Sophie usó Calendar con Groq de forma nativa!");
             const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
@@ -359,9 +314,7 @@ export async function POST(req: NextRequest) {
             return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
           }
 
-          // 2. Camino Rebelde (Si escupe JSON en el chat)
           if (textoRespuesta.includes('agendar_reunion') && textoRespuesta.includes('{')) {
-            console.log("⚠️ Groq escribió el JSON en el texto. Interceptando...");
             try {
               const jsonMatch = textoRespuesta.match(/\{[\s\S]*\}/);
               if (jsonMatch) {
@@ -378,86 +331,7 @@ export async function POST(req: NextRequest) {
               console.log("Fallo al forzar el JSON de Groq:", e);
             }
           }
-
           return textoRespuesta;
-        }
-      },
-      {
-        name: 'Kimi K3 ✨',
-        enabled: !!kimiClient,
-        execute: async () => {
-          const completion = await kimiClient!.chat.completions.create({
-            model: kimiModelName,
-            messages: formattedMessages,
-            temperature: 0.3,
-            tools: herramientas_ia,
-            tool_choice: "auto"
-          });
-          const message = completion.choices[0]?.message;
-          const textoRespuesta = message?.content || '';
-
-          // 1. Camino Correcto
-          if (message?.tool_calls && message.tool_calls.length > 0) {
-            console.log("🛠️ ¡Sophie usó Calendar con Kimi de forma nativa!");
-            const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
-            const inicio = args.fechaInicio || args.fecha_inicio;
-            const fin = args.fechaFin || args.fecha_fin;
-            await crearEventoCalendario(args.asunto, inicio, fin);
-            return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
-          }
-
-          // 2. Camino Rebelde (Si escupe JSON en el chat)
-          if (textoRespuesta.includes('agendar_reunion') && textoRespuesta.includes('{')) {
-            console.log("⚠️ Kimi escribió el JSON en el texto. Interceptando...");
-            try {
-              const jsonMatch = textoRespuesta.match(/\{[\s\S]*\}/);
-              if (jsonMatch) {
-                const parsed = JSON.parse(jsonMatch[0]);
-                let args = parsed;
-                if (parsed.tool_calls) args = parsed.tool_calls[0].args || (parsed.tool_calls[0].function && parsed.tool_calls[0].function.arguments);
-                if (typeof args === 'string') args = JSON.parse(args);
-                const inicio = args.fechaInicio || args.fecha_inicio;
-                const fin = args.fechaFin || args.fecha_fin;
-                await crearEventoCalendario(args.asunto, inicio, fin);
-                return `¡Listo! Logré agendar tu cita "${args.asunto}". Todo confirmado.`;
-              }
-            } catch (e) {
-              console.log("Fallo al forzar el JSON de Kimi:", e);
-            }
-          }
-
-          return textoRespuesta;
-        }
-      },
-      {
-        name: 'Cerebras AI ⚡',
-        enabled: !!cerebrasClient,
-        execute: async () => {
-          const completion = await cerebrasClient!.chat.completions.create({
-            model: 'gpt-oss-120b',
-            messages: formattedMessages,
-            temperature: 0.3,
-          });
-          return completion.choices[0]?.message?.content || '';
-        }
-      },
-      {
-        name: 'Gemini Flash 🛡️',
-        enabled: !!geminiGenAI,
-        execute: async () => {
-          const geminiModel = geminiGenAI!.getGenerativeModel({
-            model: 'gemini-3.6-flash',
-            systemInstruction: systemPromptText
-          });
-          const contents = formattedMessages
-            .filter(m => m.role !== 'system')
-            .map(m => ({
-              role: m.role === 'assistant' ? 'model' : 'user',
-              parts: [{ text: m.content }]
-            }));
-
-          const result = await geminiModel.generateContent({ contents });
-          return result.response.text();
         }
       },
       {
@@ -474,7 +348,6 @@ export async function POST(req: NextRequest) {
           const message = completion.choices[0]?.message;
           const textoRespuesta = message?.content || '';
 
-          // 1. Camino Correcto
           if (message?.tool_calls && message.tool_calls.length > 0) {
             console.log("🛠️ ¡Sophie usó Calendar con Mistral de forma nativa!");
             const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
@@ -484,9 +357,7 @@ export async function POST(req: NextRequest) {
             return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
           }
 
-          // 2. Camino Rebelde (Si escupe JSON en el chat)
           if (textoRespuesta.includes('agendar_reunion') && textoRespuesta.includes('{')) {
-            console.log("⚠️ Mistral escribió el JSON en el texto. Interceptando...");
             try {
               const jsonMatch = textoRespuesta.match(/\{[\s\S]*\}/);
               if (jsonMatch) {
@@ -503,8 +374,69 @@ export async function POST(req: NextRequest) {
               console.log("Fallo al forzar el JSON de Mistral:", e);
             }
           }
-
           return textoRespuesta;
+        }
+      },
+      {
+        name: 'OpenRouter 🃏 (Free Tier)',
+        enabled: !!openRouterClient,
+        execute: async () => {
+          const completion = await openRouterClient!.chat.completions.create({
+            model: 'openrouter/free',
+            messages: formattedMessages,
+            temperature: 0.3,
+            tools: herramientas_ia,
+            tool_choice: "auto"
+          });
+          const message = completion.choices[0]?.message;
+          const textoRespuesta = message?.content || '';
+
+          if (message?.tool_calls && message.tool_calls.length > 0) {
+            console.log("🛠️ ¡Sophie usó Calendar con OpenRouter de forma nativa!");
+            const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
+            const inicio = args.fechaInicio || args.fecha_inicio;
+            const fin = args.fechaFin || args.fecha_fin;
+            await crearEventoCalendario(args.asunto, inicio, fin);
+            return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
+          }
+
+          if (textoRespuesta.includes('agendar_reunion') && textoRespuesta.includes('{')) {
+            try {
+              const jsonMatch = textoRespuesta.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                const parsed = JSON.parse(jsonMatch[0]);
+                let args = parsed;
+                if (parsed.tool_calls) args = parsed.tool_calls[0].args || (parsed.tool_calls[0].function && parsed.tool_calls[0].function.arguments);
+                if (typeof args === 'string') args = JSON.parse(args);
+                const inicio = args.fechaInicio || args.fecha_inicio;
+                const fin = args.fechaFin || args.fecha_fin;
+                await crearEventoCalendario(args.asunto, inicio, fin);
+                return `¡Listo! Logré agendar tu cita "${args.asunto}". Todo confirmado.`;
+              }
+            } catch (e) {
+              console.log("Fallo al forzar el JSON de OpenRouter:", e);
+            }
+          }
+          return textoRespuesta;
+        }
+      },
+      {
+        name: 'Gemini Premium 🛡️ (Escudo Final)',
+        enabled: !!geminiGenAI,
+        execute: async () => {
+          const geminiModel = geminiGenAI!.getGenerativeModel({
+            model: 'gemini-1.5-flash',
+            systemInstruction: systemPromptText
+          });
+          const contents = formattedMessages
+            .filter(m => m.role !== 'system')
+            .map(m => ({
+              role: m.role === 'assistant' ? 'model' : 'user',
+              parts: [{ text: m.content }]
+            }));
+
+          const result = await geminiModel.generateContent({ contents });
+          return result.response.text();
         }
       }
     ];
@@ -523,18 +455,17 @@ export async function POST(req: NextRequest) {
       } catch (providerError) {
         const errorMessage = formatProviderError(providerError);
         if (isBillingOrAuthError(providerError)) {
-          console.warn(`⚠️ ${provider.name} no disponible por error de autorización/facturación: ${errorMessage}. Usando relevo siguiente...`);
+          console.warn(`⚠️ ${provider.name} no disponible por error de facturación: ${errorMessage}. Relevo siguiente...`);
         } else {
-          console.warn(`⚠️ ${provider.name} falló. Activando relevo siguiente... ${errorMessage}`);
+          console.warn(`⚠️ ${provider.name} falló. Activando relevo... ${errorMessage}`);
         }
         await sendProviderAlert(provider.name, providerError);
-        console.warn(providerError);
         lastError = providerError;
       }
     }
 
     if (!usedProvider) {
-      console.error('🔴 CRÍTICO: Todos los motores fallaron.', lastError);
+      console.error('🔴 CRÍTICO: Todos los motores de la cascada fallaron.', lastError);
       botReply = "⚠️ Error crítico: Los sistemas de IA están experimentando alta demanda. Intenta en un momento.";
       usedProvider = 'Ninguno (Fallo en Cascada)';
     }
