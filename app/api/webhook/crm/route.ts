@@ -16,7 +16,9 @@ export async function POST(req: Request) {
 
     const callData = body.message.call;
     const vapiAssistantId = callData?.assistantId;
-    const toolCalls = body.message.toolWithToolCallList || [];
+    
+    // Captura robusta para todas las versiones de payloads de Vapi
+    const toolCalls = body.message.toolCalls || body.message.toolWithToolCallList || [];
 
     if (!vapiAssistantId || toolCalls.length === 0) {
       return new NextResponse('Faltan datos clave', { status: 400 });
@@ -32,7 +34,7 @@ export async function POST(req: Request) {
     if (!tienda) {
       return NextResponse.json({
         results: toolCalls.map((item: any) => ({
-          toolCallId: item.toolCall?.id,
+          toolCallId: item.id || item.toolCall?.id,
           result: "Error: No se encontró la base de datos de la empresa."
         }))
       });
@@ -42,18 +44,28 @@ export async function POST(req: Request) {
     const toolCallResults = [];
 
     for (const item of toolCalls) {
-      const toolName = item.tool?.function?.name;
-      const toolCallId = item.toolCall?.id;
-      const args = item.toolCall?.function?.arguments;
+      // Extracción segura del nombre y ID de la herramienta
+      const toolName = item.function?.name || item.tool?.function?.name;
+      const toolCallId = item.id || item.toolCall?.id;
+      let args = item.function?.arguments || item.toolCall?.function?.arguments;
 
-      console.log(`🛠️ DEPURACIÓN: Vapi envió la herramienta llamada: "${toolName}"`);
+      // Si vienen como string plano, los convertimos a objeto de forma segura
+      if (typeof args === 'string') {
+        try {
+          args = JSON.parse(args);
+        } catch (e) {
+          args = {};
+        }
+      }
+
+      console.log(`🛠️ DEPURACIÓN REAL: Vapi envió la herramienta llamada: "${toolName}" con argumentos:`, args);
 
       // ==========================================
       // 🔍 HERRAMIENTA 1: CONSULTAR PACIENTE
       // ==========================================
       if (toolName === 'consultar_paciente') {
         try {
-          const { documento } = args;
+          const { documento } = args || {};
           
           const pacienteEncontrado = await prisma.lead.findFirst({
             where: { 
@@ -86,7 +98,7 @@ export async function POST(req: Request) {
       // ==========================================
       else if (toolName === 'perfilamiento_y_agenda' || toolName === 'agendar_cita' || toolName === 'guardar_lead') {
         try {
-          const { nombrePaciente, documento, motivoConsulta, telefono, fecha } = args;
+          const { nombrePaciente, documento, motivoConsulta, telefono, fecha } = args || {};
           console.log(`💾 [Upway CRM] Datos recibidos -> Nombre: ${nombrePaciente}, Doc: ${documento}, Tel: ${telefono}, Fecha: ${fecha}`);
 
           // Buscamos si ya existe para no duplicar
