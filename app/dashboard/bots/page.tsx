@@ -25,11 +25,12 @@ export default function AgentesBotPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [calendarConnected, setCalendarConnected] = useState(false);
 
-  // 📊 ESTADOS PARA MÉTRICAS REALES
+  // 📊 ESTADOS PARA MÉTRICAS, ESTADO DE WHATSAPP Y TELÉFONO CONECTADO
   const [metricas, setMetricas] = useState({ leads: 0, citas: 0, horasAhorradas: 0, resolucion: 0 });
+  const [whatsappStatus, setWhatsappStatus] = useState<'active' | 'pending' | 'disconnected'>('disconnected');
+  const [telefonoConectado, setTelefonoConectado] = useState<string | null>(null);
   const [loadingMetricas, setLoadingMetricas] = useState(true);
   
-  // ID duro que usas en tu código actual para guardar. Lo usaremos para consultar.
   const tiendaIdActual = '1172769935927318';
 
   useEffect(() => {
@@ -43,7 +44,7 @@ export default function AgentesBotPage() {
     });
   }, []);
 
-  // 🔥 NUEVO EFECTO: Buscar Métricas en Base de Datos
+  // 🔥 EFECTO: Buscar Métricas, Estado y Teléfono de WhatsApp en la Base de Datos
   useEffect(() => {
     if (servicioActivo === 'dashboard') {
       const fetchMetricas = async () => {
@@ -57,6 +58,18 @@ export default function AgentesBotPage() {
               horasAhorradas: data.horasAhorradas || 0,
               resolucion: data.resolucion || 0
             });
+
+            // Guardamos el número de teléfono que viene de Meta en la BD
+            setTelefonoConectado(data.telefono || null);
+
+            // Lógica de los 3 estados para WhatsApp
+            if (data.isWhatsAppActive) {
+              setWhatsappStatus('active');
+            } else if (data.metaPhoneNumberId) {
+              setWhatsappStatus('pending'); // Hay ID guardado pero en revisión de Meta
+            } else {
+              setWhatsappStatus('disconnected'); // No hay nada conectado
+            }
           }
         } catch (error) {
           console.error("Error cargando métricas reales:", error);
@@ -73,8 +86,6 @@ export default function AgentesBotPage() {
   const [nicho, setNicho] = useState('general'); 
   const [promptMaestro, setPromptMaestro] = useState('');
   const [guardando, setGuardando] = useState(false);
-  
-  const [procesandoPago, setProcesandoPago] = useState(false);
   
   // Estados Simulador WhatsApp
   const [mensajePrueba, setMensajePrueba] = useState('');
@@ -100,9 +111,6 @@ export default function AgentesBotPage() {
     if(servicioActivo === 'whatsapp') scrollToBottom();
   }, [historialChat, cargandoPrueba, isRecording, servicioActivo]);
 
-  // ==========================================
-  // 🔥 LÓGICA BACKEND INTACTA
-  // ==========================================
   const guardarConfiguracion = async () => {
     if (!nombreAgente || !promptMaestro) {
       alert('Completa el nombre del agente y las reglas antes de guardar.');
@@ -520,7 +528,7 @@ export default function AgentesBotPage() {
   }
 
   // ==========================================
-  // RENDER 4: DASHBOARD TELEMETRÍA (NUEVO POR DEFECTO CON MÉTRICAS REALES)
+  // RENDER 4: DASHBOARD TELEMETRÍA (CON 3 ESTADOS + TELÉFONO)
   // ==========================================
   return (
     <div className="min-h-screen bg-[#07090C] text-[#F5F7FA] font-sans pb-20 selection:bg-[#19C8E8] selection:text-[#07090C]">
@@ -546,7 +554,7 @@ export default function AgentesBotPage() {
           </button>
         </div>
 
-        {/* 📊 KPI'S DE IMPACTO EN EL NEGOCIO (DATOS REALES) */}
+        {/* 📊 KPI'S DE IMPACTO EN EL NEGOCIO */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
           <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-6 transition-all hover:border-[#19C8E8]/30">
             <div className="flex justify-between items-start mb-4">
@@ -619,10 +627,31 @@ export default function AgentesBotPage() {
                 <MessageSquare className="h-6 w-6 text-[#19C8E8]" />
               </div>
               <div className="text-2xl font-bold text-[#F5F7FA] mb-2">WhatsApp API</div>
-              <p className="text-[10px] font-mono font-medium flex items-center w-fit gap-1.5 bg-[#F59E0B]/10 text-[#F59E0B] px-2 py-1 rounded-md border border-[#F59E0B]/20 mb-2">
-                <ShieldCheck className="h-3 w-3" /> DESCONECTADO
+              
+              {/* 🔥 BADGE DINÁMICO DE LOS 3 ESTADOS (Verde, Naranja, Rojo) */}
+              <p className={`text-[10px] font-mono font-medium flex items-center w-fit gap-1.5 px-2.5 py-1 rounded-md border mb-2 ${
+                whatsappStatus === 'active' 
+                  ? 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/20' 
+                  : whatsappStatus === 'pending'
+                  ? 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20'
+                  : 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20'
+              }`}>
+                <ShieldCheck className="h-3 w-3" /> 
+                {whatsappStatus === 'active' 
+                  ? 'WHATSAPP CONECTADO' 
+                  : whatsappStatus === 'pending' 
+                  ? 'PENDIENTE REVISIÓN META (24-48H)' 
+                  : 'DESCONECTADO'}
               </p>
+
+              {/* 🔥 MUESTRA EL TELÉFONO VINCULADO SI EXISTE */}
+              {telefonoConectado && (
+                <p className="text-xs text-[#8994A6] font-mono mt-2">
+                  Línea activa: <span className="text-[#F5F7FA] font-semibold">{telefonoConectado}</span>
+                </p>
+              )}
             </div>
+
             <button onClick={handleActivarWhatsApp} className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#1E293B] px-4 py-3 text-sm font-semibold text-[#F5F7FA] hover:bg-[#2A3B4C] transition-all">
               <Rocket className="h-4 w-4" /> Configurar WhatsApp
             </button>
