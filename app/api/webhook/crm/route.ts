@@ -98,7 +98,13 @@ export async function POST(req: Request) {
       // ==========================================
       else if (toolName === 'perfilamiento_y_agenda' || toolName === 'agendar_cita' || toolName === 'guardar_lead') {
         try {
-          const { nombrePaciente, documento, motivoConsulta, telefono, fecha } = args || {};
+          // Captura flexible para aceptar nombrePaciente o nombreCliente
+          const nombrePaciente = args?.nombrePaciente || args?.nombreCliente || 'Sin Nombre';
+          const documento = args?.documento;
+          const motivoConsulta = args?.motivoConsulta || args?.motivo || 'No especificado';
+          const telefono = args?.telefono;
+          const fecha = args?.fecha;
+
           console.log(`💾 [Upway CRM] Datos recibidos -> Nombre: ${nombrePaciente}, Doc: ${documento}, Tel: ${telefono}, Fecha: ${fecha}`);
 
           // Buscamos si ya existe para no duplicar
@@ -123,9 +129,9 @@ export async function POST(req: Request) {
             const nuevoLeadCreado = await prisma.lead.create({
               data: {
                 tiendaId: tienda.id,
-                nombre: nombrePaciente || 'Sin Nombre',
+                nombre: nombrePaciente,
                 documento: documento || 'No proporcionado',
-                motivo: motivoConsulta || 'No especificado',
+                motivo: motivoConsulta,
                 origen: 'Llamada Vapi',
                 estado: 'Nuevo'
               }
