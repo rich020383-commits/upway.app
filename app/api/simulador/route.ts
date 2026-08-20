@@ -296,7 +296,7 @@ export async function POST(req: NextRequest) {
         enabled: !!groqClient,
         execute: async () => {
           const completion = await groqClient!.chat.completions.create({
-            model: 'llama-3.3-70b-versatile',
+            model: 'llama-3.1-70b-versatile',
             messages: formattedMessages,
             temperature: 0.3,
             tools: herramientas_ia,
