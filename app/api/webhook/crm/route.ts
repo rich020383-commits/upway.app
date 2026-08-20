@@ -76,6 +76,7 @@ export async function POST(req: Request) {
             });
           }
         } catch (error) {
+          console.error("❌ Error en consultar_paciente:", error);
           toolCallResults.push({ toolCallId, result: "Error al consultar la base de datos." });
         }
       }
@@ -85,10 +86,10 @@ export async function POST(req: Request) {
       // ==========================================
       else if (toolName === 'perfilamiento_y_agenda' || toolName === 'agendar_cita' || toolName === 'guardar_lead') {
         try {
-          const { nombrePaciente, documento, motivoConsulta } = args;
-          console.log(`💾 [Upway CRM] Intentando guardar lead para documento: ${documento}`);
+          const { nombrePaciente, documento, motivoConsulta, telefono, fecha } = args;
+          console.log(`💾 [Upway CRM] Datos recibidos -> Nombre: ${nombrePaciente}, Doc: ${documento}, Tel: ${telefono}, Fecha: ${fecha}`);
 
-          // Buscamos si ya existe para no crear duplicados
+          // Buscamos si ya existe para no duplicar
           const leadExistente = await prisma.lead.findFirst({
             where: { tiendaId: tienda.id, documento: documento }
           });
@@ -96,7 +97,10 @@ export async function POST(req: Request) {
           if (leadExistente) {
             await prisma.lead.update({
               where: { id: leadExistente.id },
-              data: { motivo: motivoConsulta, estado: "Cita_Agendada" }
+              data: { 
+                motivo: motivoConsulta, 
+                estado: "Cita_Agendada"
+              }
             });
             console.log(`✅ [Upway CRM] Lead actualizado: ${leadExistente.nombre}`);
             toolCallResults.push({
@@ -125,7 +129,7 @@ export async function POST(req: Request) {
           toolCallResults.push({ toolCallId, result: "Error interno al guardar en la base de datos." });
         }
       }
-    }
+    } // Fin del bucle for
 
     // 4. RESPUESTA A VAPI
     return NextResponse.json({ results: toolCallResults });
