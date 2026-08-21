@@ -19,6 +19,7 @@ export default function Paso07Activacion() {
   const [sdkCargado, setSdkCargado] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [whatsappConectado, setWhatsappConectado] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false); // NUEVO ESTADO PARA EL GUARDIA
 
   const inicializarFacebook = () => {
     if (!window.FB) return;
@@ -51,11 +52,43 @@ export default function Paso07Activacion() {
       return;
     }
     setError(null);
+    setIsProcessing(true); // Encendemos el spinner de carga
 
     // Llamada oficial al SDK de Meta
-    window.FB.login((response: any) => {
-      // 🎬 TRUCO PARA EL VIDEO DE REVISIÓN Y UX FLUIDA
-      setWhatsappConectado(true);
+    window.FB.login(async (response: any) => {
+      
+      // 1. Verificamos si el usuario terminó el proceso o cerró la ventana
+      if (response.authResponse) {
+        try {
+          // 2. Enviamos el código secreto de Meta a tu backend
+          const res = await fetch('/api/whatsapp/guardar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              metaCode: response.authResponse.code,
+              metaAccessToken: response.authResponse.accessToken,
+              // OJO: ID de tienda temporal, luego será dinámico
+              tienda_id: 'tienda_revisor_001' 
+            })
+          });
+
+          // 3. El Guardia decide si te deja pasar
+          if (res.ok) {
+            setWhatsappConectado(true); // ¡Éxito! Base de datos actualizada
+          } else {
+            const errorData = await res.json();
+            setError(errorData.error || 'Error al guardar credenciales en la base de datos.');
+          }
+        } catch (err) {
+          setError('Fallo de conexión con el servidor interno de Upway.');
+        } finally {
+          setIsProcessing(false); // Apagamos el spinner
+        }
+      } else {
+        // El usuario canceló la ventana a la mitad
+        setError('Cancelaste la conexión con Meta. Es obligatorio completarla para operar.');
+        setIsProcessing(false);
+      }
     }, {
       config_id: '2018640519013518',
       scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging',
@@ -120,10 +153,14 @@ export default function Paso07Activacion() {
                     
                     <button 
                       onClick={iniciarConexionMeta}
-                      disabled={!sdkCargado}
+                      disabled={!sdkCargado || isProcessing}
                       className="w-full bg-[#1877F2] text-white py-3.5 rounded-xl font-bold hover:bg-[#166FE5] transition-all flex justify-center items-center gap-3 shadow-[0_0_20px_rgba(24,119,242,0.2)] disabled:opacity-50"
                     >
-                      {!sdkCargado ? <><Loader2 className="animate-spin" size={18}/> Inicializando Meta...</> : 'Vincular con Facebook'}
+                      {!sdkCargado || isProcessing ? (
+                        <><Loader2 className="animate-spin" size={18}/> {isProcessing ? 'Sincronizando base de datos...' : 'Inicializando Meta...'}</>
+                      ) : (
+                        'Vincular con Facebook'
+                      )}
                     </button>
                     {error && (
                       <div className="mt-4 w-full rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-left flex gap-3 items-start">
@@ -206,10 +243,11 @@ export default function Paso07Activacion() {
           <div className="mt-16 flex justify-center">
             <button 
               onClick={() => router.push('/dashboard/bots')}
+              disabled={!whatsappConectado}
               className={`flex items-center gap-3 transition-all font-bold px-10 py-4 rounded-xl shadow-2xl ${
                 whatsappConectado 
                   ? 'bg-[#F5F7FA] text-[#07090C] hover:bg-[#E2E8F0] shadow-[0_0_30px_rgba(255,255,255,0.1)]' 
-                  : 'bg-[#121821] text-[#8994A6] border border-[#1E293B] hover:text-[#F5F7FA] hover:border-[#8994A6]/50'
+                  : 'bg-[#121821] text-[#8994A6] border border-[#1E293B] cursor-not-allowed opacity-60'
               }`}
             >
               Ir al Panel de Control Central <ArrowRight size={18} />
