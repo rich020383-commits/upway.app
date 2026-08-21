@@ -19,7 +19,7 @@ export default function Paso07Activacion() {
   const [sdkCargado, setSdkCargado] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [whatsappConectado, setWhatsappConectado] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false); // NUEVO ESTADO PARA EL GUARDIA
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const inicializarFacebook = () => {
     if (!window.FB) return;
@@ -52,43 +52,39 @@ export default function Paso07Activacion() {
       return;
     }
     setError(null);
-    setIsProcessing(true); // Encendemos el spinner de carga
+    setIsProcessing(true);
 
-    // Llamada oficial al SDK de Meta
-    window.FB.login(async (response: any) => {
-      
-      // 1. Verificamos si el usuario terminó el proceso o cerró la ventana
-      if (response.authResponse) {
+    // FUNCIÓN TRADICIONAL (NO ASÍNCRONA) PARA SATISFACER AL SDK DE META
+    window.FB.login(function (response: any) {
+      // IIFE (Inmediatly Invoked Function Expression) para ejecutar el async adentro
+      (async () => {
         try {
-          // 2. Enviamos el código secreto de Meta a tu backend
-          const res = await fetch('/api/whatsapp/guardar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              metaCode: response.authResponse.code,
-              metaAccessToken: response.authResponse.accessToken,
-              // OJO: ID de tienda temporal, luego será dinámico
-              tienda_id: 'tienda_revisor_001' 
-            })
-          });
+          if (response && response.authResponse) {
+            const res = await fetch('/api/whatsapp/guardar', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                metaCode: response.authResponse.code,
+                metaAccessToken: response.authResponse.accessToken,
+                tienda_id: 'tienda_revisor_001' 
+              })
+            });
 
-          // 3. El Guardia decide si te deja pasar
-          if (res.ok) {
-            setWhatsappConectado(true); // ¡Éxito! Base de datos actualizada
+            if (res.ok) {
+              setWhatsappConectado(true);
+            } else {
+              const errorData = await res.json();
+              setError(errorData.error || 'Error al guardar credenciales en la base de datos.');
+            }
           } else {
-            const errorData = await res.json();
-            setError(errorData.error || 'Error al guardar credenciales en la base de datos.');
+            setError('Ventana de Meta cerrada o cancelada por el usuario.');
           }
         } catch (err) {
           setError('Fallo de conexión con el servidor interno de Upway.');
         } finally {
-          setIsProcessing(false); // Apagamos el spinner
+          setIsProcessing(false);
         }
-      } else {
-        // El usuario canceló la ventana a la mitad
-        setError('Cancelaste la conexión con Meta. Es obligatorio completarla para operar.');
-        setIsProcessing(false);
-      }
+      })();
     }, {
       config_id: '2018640519013518',
       scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging',
@@ -106,7 +102,6 @@ export default function Paso07Activacion() {
         
         <div className="w-full max-w-5xl px-6 pt-16 md:pt-24">
           
-          {/* Cabecera de Éxito */}
           <header className="text-center mb-16">
             <div className="inline-flex items-center justify-center h-20 w-20 bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20 rounded-2xl mb-6 shadow-[0_0_30px_rgba(16,185,129,0.15)] relative">
               <CheckCircle2 size={40} />
@@ -120,7 +115,7 @@ export default function Paso07Activacion() {
 
           <div className="grid md:grid-cols-2 gap-8">
             
-            {/* TARJETA 1: CONEXIÓN WHATSAPP (META OFICIAL) */}
+            {/* TARJETA 1: CONEXIÓN WHATSAPP */}
             {modulosSeleccionados.includes('whatsapp') && (
               <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-8 shadow-xl flex flex-col relative overflow-hidden transition-all">
                 <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#10B981 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
@@ -157,7 +152,7 @@ export default function Paso07Activacion() {
                       className="w-full bg-[#1877F2] text-white py-3.5 rounded-xl font-bold hover:bg-[#166FE5] transition-all flex justify-center items-center gap-3 shadow-[0_0_20px_rgba(24,119,242,0.2)] disabled:opacity-50"
                     >
                       {!sdkCargado || isProcessing ? (
-                        <><Loader2 className="animate-spin" size={18}/> {isProcessing ? 'Sincronizando base de datos...' : 'Inicializando Meta...'}</>
+                        <><Loader2 className="animate-spin" size={18}/> {isProcessing ? 'Sincronizando...' : 'Inicializando Meta...'}</>
                       ) : (
                         'Vincular con Facebook'
                       )}
@@ -168,37 +163,23 @@ export default function Paso07Activacion() {
                         <p className="text-xs text-red-200">{error}</p>
                       </div>
                     )}
-                    
-                    <p className="text-[10px] text-[#8994A6] mt-5 flex items-center justify-center gap-1.5 uppercase tracking-wider font-semibold">
-                      <ShieldAlert size={12} /> Requiere cuenta Business validada
-                    </p>
                   </div>
                 ) : (
-                  // PANTALLA DE ÉXITO DE WHATSAPP
                   <div className="flex-1 flex flex-col items-center justify-center text-center py-4 relative z-10 animate-in fade-in zoom-in duration-500">
                     <div className="h-20 w-20 bg-[#10B981]/10 border border-[#10B981]/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
                       <CheckCircle2 className="h-10 w-10 text-[#10B981]" />
                     </div>
                     <h3 className="text-lg font-bold text-[#F5F7FA] mb-2">Línea Sincronizada</h3>
                     <p className="text-[#8994A6] text-sm mb-6">El webhook está recibiendo eventos en tiempo real.</p>
-                    
-                    <div className="w-full bg-[#07090C] border border-[#1E293B] rounded-xl p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3 text-sm">
-                        <Server size={16} className="text-[#8994A6]" />
-                        <span className="text-[#F5F7FA] font-mono tracking-wider">WABA ID</span>
-                      </div>
-                      <span className="text-[#10B981] font-mono text-sm">CONECTADO</span>
-                    </div>
                   </div>
                 )}
               </div>
             )}
 
-            {/* TARJETA 2: CENTRAL TELEFÓNICA (VAPI) */}
+            {/* TARJETA 2: CENTRAL TELEFÓNICA */}
             {modulosSeleccionados.includes('voz') && (
               <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-8 shadow-xl flex flex-col relative overflow-hidden">
                 <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#19C8E8 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-                
                 <div className="relative z-10 flex items-center justify-between mb-8 pb-6 border-b border-[#1E293B]">
                   <div className="flex items-center gap-4">
                     <div className="p-3 bg-[#19C8E8]/10 border border-[#19C8E8]/20 rounded-xl text-[#19C8E8]">
@@ -213,27 +194,19 @@ export default function Paso07Activacion() {
                     <span className="h-1.5 w-1.5 bg-[#19C8E8] rounded-full animate-pulse"></span> ONLINE
                   </span>
                 </div>
-
                 <div className="flex-1 flex flex-col justify-center relative z-10">
                   <div className="bg-[#07090C] border border-[#1E293B] rounded-xl p-6">
                     <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#1E293B]">
                       <span className="text-xs font-semibold uppercase tracking-wider text-[#8994A6]">Latencia de red</span>
-                      <span className="text-xs font-mono text-[#10B981] flex items-center gap-2">
-                        <Activity size={14} /> 12ms
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold uppercase tracking-wider text-[#8994A6]">SIP Trunk</span>
-                      <span className="text-[11px] font-mono text-[#8994A6]">ENRUTADO</span>
+                      <span className="text-xs font-mono text-[#10B981] flex items-center gap-2"><Activity size={14} /> 12ms</span>
                     </div>
                     <div className="flex items-center justify-between mt-4">
                       <span className="text-sm font-semibold text-[#F5F7FA]">Número Asignado</span>
                       <span className="font-mono text-[#19C8E8] text-lg tracking-wider">+1 (800) 555-0199</span>
                     </div>
                   </div>
-                  
-                  <button className="mt-6 w-full border border-[#1E293B] text-[#F5F7FA] bg-[#121821] py-3.5 rounded-xl hover:bg-[#1E293B] hover:border-[#8994A6]/50 transition-all font-semibold flex justify-center items-center gap-2 text-sm">
-                    <PhoneCall size={16} className="text-[#8994A6]" /> Realizar Llamada de Prueba
+                  <button className="mt-6 w-full border border-[#1E293B] text-[#F5F7FA] bg-[#121821] py-3.5 rounded-xl hover:bg-[#1E293B] transition-all font-semibold text-sm">
+                     Realizar Llamada de Prueba
                   </button>
                 </div>
               </div>
@@ -246,14 +219,13 @@ export default function Paso07Activacion() {
               disabled={!whatsappConectado}
               className={`flex items-center gap-3 transition-all font-bold px-10 py-4 rounded-xl shadow-2xl ${
                 whatsappConectado 
-                  ? 'bg-[#F5F7FA] text-[#07090C] hover:bg-[#E2E8F0] shadow-[0_0_30px_rgba(255,255,255,0.1)]' 
+                  ? 'bg-[#F5F7FA] text-[#07090C] hover:bg-[#E2E8F0]' 
                   : 'bg-[#121821] text-[#8994A6] border border-[#1E293B] cursor-not-allowed opacity-60'
               }`}
             >
               Ir al Panel de Control Central <ArrowRight size={18} />
             </button>
           </div>
-
         </div>
       </main>
     </>
