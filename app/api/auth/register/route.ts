@@ -34,6 +34,15 @@ export async function POST(req: Request) {
       },
     });
 
+    // 4. 🔥 GATILLO: Auto-creamos la Tienda para este nuevo usuario
+    await prisma.tienda.create({
+      data: {
+        id: newUser.id,          // Vinculamos el ID de la tienda al ID del usuario
+        userId: newUser.id,      // Relación en la base de datos
+        nombre: `Workspace de ${newUser.name}`, 
+      },
+    });
+
     // Devolvemos los datos del nuevo usuario (sin la contraseña)
     return NextResponse.json({
       id: newUser.id,

@@ -64,7 +64,6 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      // 🔥 AÑADIMOS ESTO: Pedimos acceso offline y el scope del calendario
       authorization: {
         params: {
           prompt: "consent",
@@ -85,14 +84,25 @@ export const authOptions: NextAuthOptions = {
             where: { email: user.email }
           });
 
+          // Si el usuario no existe, lo creamos JUNTO con su Tienda
           if (!existingUser) {
-            await prisma.user.create({
+            const newUser = await prisma.user.create({
               data: {
                 email: user.email,
                 name: user.name || "Usuario de Google",
               }
             });
-            console.log("✅ [Google Auth] Nuevo usuario creado en BD:", user.email);
+            
+            // 🔥 GATILLO DE AUTO-CREACIÓN DE TIENDA
+            await prisma.tienda.create({
+              data: {
+                id: newUser.id,          // Vinculamos el ID de la tienda al ID del usuario
+                userId: newUser.id,      // Relación en la base de datos
+                nombre: `Workspace de ${newUser.name || 'Empresa'}`, 
+              }
+            });
+
+            console.log("✅ [Google Auth] Nuevo usuario y Tienda creados en BD:", user.email);
           }
         } catch (error) {
           console.error("🚨 Error al sincronizar usuario de Google en BD:", error);
@@ -102,7 +112,6 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     async jwt({ token, user, account }) {
-      // 🔥 AÑADIMOS ESTO: Guardamos el token de acceso de Google si viene en la cuenta
       if (account && account.provider === 'google') {
         token.accessToken = account.access_token;
       }
@@ -126,7 +135,6 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }: any) {
       if (token && session.user) {
         session.user.id = token.id as string;
-        // 🔥 AÑADIMOS ESTO: Pasamos el token de Google a la sesión del cliente
         session.accessToken = token.accessToken;
       }
       return session;
