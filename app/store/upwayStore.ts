@@ -17,7 +17,7 @@ interface UpwayState {
   totalMensual: number;
   toggleModulo: (moduloId: string) => void;
 
-  // PASOS 04 y 05: Personalización (Migrado de tu código anterior)
+  // PASOS 04 y 05: Personalización
   nombreAgente: string;
   nicho: string;
   promptMaestro: string;
@@ -29,18 +29,21 @@ interface UpwayState {
   setPromptMaestro: (prompt: string) => void;
   setVozSeleccionada: (voz: string) => void;
   setTonoWhatsapp: (tono: Partial<UpwayState['tonoWhatsapp']>) => void;
+
+  // 🔥 NUEVO: Función para limpiar todo tras el pago exitoso
+  resetOnboarding: () => void;
 }
 
 export const useUpwayStore = create<UpwayState>((set) => ({
   // Valores Iniciales (Mochila vacía)
   objetivoPrincipal: null,
   modulosSeleccionados: [],
-  totalMensual: 0, // El "AI Brain" base arranca en $0
+  totalMensual: 0,
   
   nombreAgente: '',
   nicho: 'general',
   promptMaestro: '',
-  vozSeleccionada: 'femenina_estrella', // Tu default "Celeste"
+  vozSeleccionada: 'femenina_estrella',
   tonoWhatsapp: { formalidad: 50, cercania: 50, persuasion: 50 },
 
   // Acciones (Las conexiones neuronales)
@@ -49,12 +52,10 @@ export const useUpwayStore = create<UpwayState>((set) => ({
   toggleModulo: (moduloId) => set((state) => {
     const yaEstaSeleccionado = state.modulosSeleccionados.includes(moduloId);
     const nuevosModulos = yaEstaSeleccionado 
-      ? state.modulosSeleccionados.filter(id => id !== moduloId) // Lo quita si ya estaba
-      : [...state.modulosSeleccionados, moduloId]; // Lo agrega si es nuevo
+      ? state.modulosSeleccionados.filter(id => id !== moduloId) 
+      : [...state.modulosSeleccionados, moduloId]; 
       
-    // Recalcula la mensualidad en milisegundos
     const nuevoTotal = nuevosModulos.reduce((suma, id) => suma + (PRECIOS_MODULOS[id] || 0), 0);
-    
     return { modulosSeleccionados: nuevosModulos, totalMensual: nuevoTotal };
   }),
 
@@ -65,4 +66,16 @@ export const useUpwayStore = create<UpwayState>((set) => ({
   setTonoWhatsapp: (tono) => set((state) => ({ 
     tonoWhatsapp: { ...state.tonoWhatsapp, ...tono } 
   })),
+
+  // 🔥 NUEVO: Implementación de la limpieza (Resetea a los valores base)
+  resetOnboarding: () => set({
+    objetivoPrincipal: null,
+    modulosSeleccionados: [],
+    totalMensual: 0,
+    nombreAgente: '',
+    nicho: 'general',
+    promptMaestro: '',
+    vozSeleccionada: 'femenina_estrella',
+    tonoWhatsapp: { formalidad: 50, cercania: 50, persuasion: 50 },
+  }),
 }));

@@ -9,7 +9,9 @@ export default function Paso06Checkout() {
   const router = useRouter();
   const { 
     modulosSeleccionados, 
-    nombreAgente 
+    nombreAgente,
+    promptMaestro, // Extraemos esto para guardarlo
+    resetOnboarding // Extraemos la función para limpiar
   } = useUpwayStore();
   
   const [procesando, setProcesando] = useState(false);
@@ -30,12 +32,37 @@ export default function Paso06Checkout() {
 
   const handleSimularPago = async () => {
     setProcesando(true);
+    
     try {
+      // 1. Guardamos el agente en la base de datos de Neon de forma silenciosa
+      const res = await fetch('/api/tienda/aprovisionar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: "user_test_001", // ID de prueba (Luego lo cambias por la sesión de NextAuth)
+          nombreNegocio: "Empresa Cliente", 
+          nombreAgente: nombreAgente || 'Asistente IA',
+          promptMaestro: promptMaestro || 'Eres un asistente útil.', 
+          modulosSeleccionados: modulosSeleccionados,
+        })
+      });
+
+      // 2. Simulación visual de la pasarela para UX
       await new Promise(resolve => setTimeout(resolve, 2000));
-      // Cambia la ruta a donde quieres que vaya tras el pago exitoso (Activación/Dashboard)
+
+      if (res.ok) {
+        console.log("Infraestructura creada en BD");
+        resetOnboarding(); // Limpiamos la memoria temporal
+      }
+
+      // 3. Pase lo que pase, redirigimos para que puedas grabar el panel de Meta
       router.push('/dashboard/onboarding/activacion');
+
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error de despliegue:', error);
+      // Salvavidas: te envía a la pantalla de Meta incluso si el servidor falla en desarrollo
+      router.push('/dashboard/onboarding/activacion');
+    } finally {
       setProcesando(false);
     }
   };
