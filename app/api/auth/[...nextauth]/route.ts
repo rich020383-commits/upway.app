@@ -23,14 +23,8 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Por favor ingresa tu correo y contraseña");
         }
 
-        // 🚀 ACCESO DIRECTO PARA EL REVISOR DE META
         if (credentials.email === 'revisor_meta@upway.business' && credentials.password === 'MetaReview2026') {
-          console.log("🤖 [META REVIEW] Acceso concedido al revisor de Meta");
-          return { 
-            id: 'meta-reviewer', 
-            name: 'Meta Reviewer', 
-            email: 'revisor_meta@upway.business' 
-          };
+          return { id: 'meta-reviewer', name: 'Meta Reviewer', email: 'revisor_meta@upway.business' };
         }
 
         try {
@@ -48,15 +42,8 @@ export const authOptions: NextAuthOptions = {
             throw new Error("Contraseña incorrecta");
           }
 
-          console.log("✅ [INFORMANTE] Autenticación exitosa para:", user.email);
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-          };
-
+          return { id: user.id, name: user.name, email: user.email };
         } catch (error: any) {
-          console.error("🚨 Error en authorize:", error.message || error);
           throw new Error(error.message || "Error interno al procesar el acceso");
         }
       }
@@ -80,30 +67,48 @@ export const authOptions: NextAuthOptions = {
         if (!user.email) return false;
 
         try {
-          const existingUser = await prisma.user.findUnique({
+          let dbUser = await prisma.user.findUnique({
             where: { email: user.email }
           });
 
-          // Si el usuario no existe, lo creamos JUNTO con su Tienda
-          if (!existingUser) {
-            const newUser = await prisma.user.create({
+          // 1. Si no existe el usuario, lo creamos
+          if (!dbUser) {
+            dbUser = await prisma.user.create({
               data: {
                 email: user.email,
                 name: user.name || "Usuario de Google",
               }
             });
-            
-            // 🔥 GATILLO DE AUTO-CREACIÓN DE TIENDA
+            console.log("✅ [Google Auth] Nuevo usuario creado en BD");
+          }
+
+          // 2. 🔥 SALVAVIDAS: Verificamos si tiene Tienda (importante para usuarios viejos como Rich/Barakah)
+          const tiendaExistente = await prisma.tienda.findFirst({
+            where: { userId: dbUser.id }
+          });
+
+          if (!tiendaExistente) {
             await prisma.tienda.create({
               data: {
-                id: newUser.id,          // Vinculamos el ID de la tienda al ID del usuario
-                userId: newUser.id,      // Relación en la base de datos
-                nombre: `Workspace de ${newUser.name || 'Empresa'}`, 
+                id: dbUser.id,
+                userId: dbUser.id,
+                nombre: `Workspace de ${dbUser.name || 'Empresa'}`, 
               }
             });
-
-            console.log("✅ [Google Auth] Nuevo usuario y Tienda creados en BD:", user.email);
+            console.log(`✅ [Google Auth] Tienda retroactiva creada para: ${dbUser.email}`);
           }
+
+          // 3. Guardar el Token en Neon (ahora sí hay una Tienda donde guardarlo)
+          if (account.refresh_token) {
+            await prisma.tienda.updateMany({
+              where: { userId: dbUser.id },
+              data: {
+                googleRefreshToken: account.refresh_token
+              }
+            });
+            console.log("✅ [Google Auth] Token de Calendar guardado con éxito en NEON");
+          }
+
         } catch (error) {
           console.error("🚨 Error al sincronizar usuario de Google en BD:", error);
           return false;
@@ -115,19 +120,14 @@ export const authOptions: NextAuthOptions = {
       if (account && account.provider === 'google') {
         token.accessToken = account.access_token;
       }
-
       if (user) {
         token.id = user.id;
       } else if (token.email && !token.id) {
         if (token.email === 'revisor_meta@upway.business') {
           token.id = 'meta-reviewer';
         } else {
-          const dbUser = await prisma.user.findUnique({
-            where: { email: token.email as string }
-          });
-          if (dbUser) {
-            token.id = dbUser.id;
-          }
+          const dbUser = await prisma.user.findUnique({ where: { email: token.email as string } });
+          if (dbUser) token.id = dbUser.id;
         }
       }
       return token;
@@ -140,12 +140,8 @@ export const authOptions: NextAuthOptions = {
       return session;
     }
   },
-  pages: {
-    signIn: '/login',
-  },
-  session: {
-    strategy: "jwt",
-  },
+  pages: { signIn: '/login' },
+  session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,
 };
 
