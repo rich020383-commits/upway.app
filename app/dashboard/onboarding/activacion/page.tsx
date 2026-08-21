@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { CheckCircle2, MessageSquare, PhoneCall, QrCode, ArrowRight, ShieldAlert, Loader2, Server, Activity } from 'lucide-react';
-import { useUpwayStore } from '../../../store/upwayStore'; // Ajusta la ruta si es necesario
+import { useUpwayStore } from '../../../store/upwayStore';
 import { useRouter } from 'next/navigation';
 import Script from 'next/script';
 
@@ -18,7 +18,7 @@ export default function Paso07Activacion() {
   
   const [sdkCargado, setSdkCargado] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [whatsappConectado, setWhatsappConectado] = useState(false);
+  const [estadowhatsapp, setEstadowhatsapp] = useState<'INACTIVE' | 'PENDING' | 'ACTIVE'>('INACTIVE');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const inicializarFacebook = () => {
@@ -54,9 +54,7 @@ export default function Paso07Activacion() {
     setError(null);
     setIsProcessing(true);
 
-    // FUNCIÓN TRADICIONAL (NO ASÍNCRONA) PARA SATISFACER AL SDK DE META
     window.FB.login(function (response: any) {
-      // IIFE (Inmediatly Invoked Function Expression) para ejecutar el async adentro
       (async () => {
         try {
           if (response && response.authResponse) {
@@ -71,7 +69,8 @@ export default function Paso07Activacion() {
             });
 
             if (res.ok) {
-              setWhatsappConectado(true);
+              // Como la verificación de empresa de Meta toma de 24 a 48h, lo dejamos como PENDING
+              setEstadowhatsapp('PENDING');
             } else {
               const errorData = await res.json();
               setError(errorData.error || 'Error al guardar credenciales en la base de datos.');
@@ -130,14 +129,19 @@ export default function Paso07Activacion() {
                       <p className="text-xs font-mono text-[#8994A6] uppercase tracking-widest mt-1">API Cloud Meta</p>
                     </div>
                   </div>
-                  {whatsappConectado && (
-                    <span className="text-[10px] font-mono tracking-widest text-[#10B981] bg-[#10B981]/10 px-2 py-1 rounded-md border border-[#10B981]/20 flex items-center gap-1.5">
-                      <span className="h-1.5 w-1.5 bg-[#10B981] rounded-full animate-pulse"></span> ACTIVO
+                  {estadowhatsapp !== 'INACTIVE' && (
+                    <span className={`text-[10px] font-mono tracking-widest px-2 py-1 rounded-md border flex items-center gap-1.5 ${
+                      estadowhatsapp === 'ACTIVE' 
+                        ? 'text-[#10B981] bg-[#10B981]/10 border-[#10B981]/20' 
+                        : 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20'
+                    }`}>
+                      <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${estadowhatsapp === 'ACTIVE' ? 'bg-[#10B981]' : 'bg-yellow-500'}`}></span> 
+                      {estadowhatsapp === 'ACTIVE' ? 'ACTIVO' : 'PENDIENTE VERIFICACIÓN'}
                     </span>
                   )}
                 </div>
 
-                {!whatsappConectado ? (
+                {estadowhatsapp === 'INACTIVE' ? (
                   <div className="flex-1 flex flex-col items-center justify-center text-center py-2 relative z-10">
                     <div className="mb-6 p-4 bg-[#07090C] border border-[#1E293B] rounded-2xl">
                       <QrCode className="h-16 w-16 text-[#8994A6]" />
@@ -166,11 +170,19 @@ export default function Paso07Activacion() {
                   </div>
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center text-center py-4 relative z-10 animate-in fade-in zoom-in duration-500">
-                    <div className="h-20 w-20 bg-[#10B981]/10 border border-[#10B981]/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
-                      <CheckCircle2 className="h-10 w-10 text-[#10B981]" />
+                    <div className="h-20 w-20 bg-yellow-500/10 border border-yellow-500/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(234,179,8,0.2)]">
+                      <Loader2 className="h-10 w-10 text-yellow-500 animate-spin" />
                     </div>
-                    <h3 className="text-lg font-bold text-[#F5F7FA] mb-2">Línea Sincronizada</h3>
-                    <p className="text-[#8994A6] text-sm mb-6">El webhook está recibiendo eventos en tiempo real.</p>
+                    <h3 className="text-lg font-bold text-[#F5F7FA] mb-2">Vinculación Registrada</h3>
+                    <p className="text-[#8994A6] text-sm mb-4">Tus datos se enviaron a Meta. La verificación empresarial de la cuenta puede tardar de 24 a 48 horas.</p>
+                    
+                    <div className="w-full bg-[#07090C] border border-[#1E293B] rounded-xl p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3 text-sm">
+                        <Server size={16} className="text-[#8994A6]" />
+                        <span className="text-[#F5F7FA] font-mono tracking-wider">ESTADO WABA</span>
+                      </div>
+                      <span className="text-yellow-500 font-mono text-xs">EN REVISIÓN DE META</span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -216,9 +228,9 @@ export default function Paso07Activacion() {
           <div className="mt-16 flex justify-center">
             <button 
               onClick={() => router.push('/dashboard/bots')}
-              disabled={!whatsappConectado}
+              disabled={estadowhatsapp === 'INACTIVE'}
               className={`flex items-center gap-3 transition-all font-bold px-10 py-4 rounded-xl shadow-2xl ${
-                whatsappConectado 
+                estadowhatsapp !== 'INACTIVE' 
                   ? 'bg-[#F5F7FA] text-[#07090C] hover:bg-[#E2E8F0]' 
                   : 'bg-[#121821] text-[#8994A6] border border-[#1E293B] cursor-not-allowed opacity-60'
               }`}
