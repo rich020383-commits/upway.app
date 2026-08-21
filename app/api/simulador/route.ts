@@ -425,7 +425,7 @@ export async function POST(req: NextRequest) {
         enabled: !!geminiGenAI,
         execute: async () => {
           const geminiModel = geminiGenAI!.getGenerativeModel({
-            model: 'gemini-1.5-flash',
+            model: 'gemini-2.0-pro',
             systemInstruction: systemPromptText
           });
           const contents = formattedMessages
