@@ -5,14 +5,15 @@ import Link from 'next/link';
 import { Package, Bot, Sparkles, UserCircle } from 'lucide-react';
 import LogoutButton from '@/components/LogoutButton'; 
 import { usePathname } from 'next/navigation';
-import { useSession } from 'next-auth/react'; // 🔥 Usamos useSession para lectura instantánea
+import { useSession } from 'next-auth/react'; 
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isOnboarding = pathname.includes('/onboarding');
   
-  // Obtenemos la sesión en tiempo real gracias al SessionProvider global
-  const { data: session } = useSession();
+  // 🔥 BLINDAJE PARA EL BUILD: Capturamos el contexto de forma segura para evitar el error "undefined"
+  const sessionContext = useSession() || {};
+  const session = sessionContext.data;
   
   const userName = session?.user?.name || session?.user?.email?.split('@')[0] || "Usuario Upway";
 

@@ -9,12 +9,16 @@ import {
   TerminalSquare, Server, CheckCircle2, Database, Timer, CalendarCheck, Users, TrendingUp, PhoneCall, Calendar
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { getSession, signIn } from 'next-auth/react'; 
+import { useSession, signIn } from 'next-auth/react'; // 🔥 Importamos useSession reactivo
 import { useUpwayStore } from '../../store/upwayStore'; 
 import Link from 'next/link';
 
 export default function AgentesBotPage() {
   const router = useRouter();
+  
+  // 🔥 BLINDAJE PARA EL BUILD: Evita desestructurar undefined durante la compilación
+  const sessionContext = useSession() || {};
+  const session = sessionContext.data;
   
   // 🚀 ESTADO MAESTRO
   const [servicioActivo, setServicioActivo] = useState<'dashboard' | 'hub' | 'whatsapp' | 'voz'>('dashboard');
@@ -33,16 +37,15 @@ export default function AgentesBotPage() {
   
   const tiendaIdActual = '1172769935927318';
 
+  // 🔥 EFECTO: Lee la sesión reactiva de NextAuth sin romper el servidor
   useEffect(() => {
-    getSession().then((session: any) => {
-      if (session?.user?.email) {
-        setUserEmail(session.user.email);
-      }
-      if (session?.accessToken) {
-        setCalendarConnected(true);
-      }
-    });
-  }, []);
+    if (session?.user?.email) {
+      setUserEmail(session.user.email);
+    }
+    if ((session as any)?.accessToken) {
+      setCalendarConnected(true);
+    }
+  }, [session]);
 
   // 🔥 EFECTO: Buscar Métricas, Estado y Teléfono de WhatsApp en la Base de Datos
   useEffect(() => {

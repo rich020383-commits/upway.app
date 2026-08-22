@@ -7,7 +7,8 @@ import PwaRegister from "@/components/PwaRegister";
 // 🔥 1. IMPORTAMOS EL CEREBRO DEL IDIOMA
 import { LanguageProvider } from "@/context/LanguageContext";
 
-// 🔥 Eliminamos la importación del Footer Global
+// 🔥 2. IMPORTAMOS EL CEREBRO DE LA SESIÓN (NEXTAUTH)
+import { Providers } from "./providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,18 +44,22 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-slate-950 text-white">
         
-        {/* 🔥 2. ENVOLVEMOS TODA LA APP CON EL PROVEEDOR DE IDIOMA */}
-        <LanguageProvider>
-          {/* Contenedor principal libre de elementos duplicados */}
-          <main className="flex-grow">
-            {children}
-          </main>
+        {/* 🔥 3. ENVOLVEMOS TODA LA APP CON EL PROVEEDOR DE SESIÓN PRIMERO */}
+        <Providers>
+          {/* 🔥 4. LUEGO EL PROVEEDOR DE IDIOMA */}
+          <LanguageProvider>
+            
+            {/* Contenedor principal libre de elementos duplicados */}
+            <main className="flex-grow">
+              {children}
+            </main>
 
-          {/* 🔥 Footer global eliminado. Ahora solo aparecerá donde lo llamemos explícitamente (en la landing page) */}
-
-          <Chatbot /> 
-          <PwaRegister />
-        </LanguageProvider>
+            {/* Componentes Globales */}
+            <Chatbot /> 
+            <PwaRegister />
+            
+          </LanguageProvider>
+        </Providers>
 
       </body>
     </html>
