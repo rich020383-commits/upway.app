@@ -71,7 +71,6 @@ export const authOptions: NextAuthOptions = {
             where: { email: user.email }
           });
 
-          // 1. Si no existe el usuario, lo creamos
           if (!dbUser) {
             dbUser = await prisma.user.create({
               data: {
@@ -82,7 +81,6 @@ export const authOptions: NextAuthOptions = {
             console.log("✅ [Google Auth] Nuevo usuario creado en BD");
           }
 
-          // 2. 🔥 SALVAVIDAS: Verificamos si tiene Tienda (importante para usuarios viejos como Rich/Barakah)
           const tiendaExistente = await prisma.tienda.findFirst({
             where: { userId: dbUser.id }
           });
@@ -98,7 +96,6 @@ export const authOptions: NextAuthOptions = {
             console.log(`✅ [Google Auth] Tienda retroactiva creada para: ${dbUser.email}`);
           }
 
-          // 3. Guardar el Token en Neon (ahora sí hay una Tienda donde guardarlo)
           if (account.refresh_token) {
             await prisma.tienda.updateMany({
               where: { userId: dbUser.id },
@@ -120,14 +117,17 @@ export const authOptions: NextAuthOptions = {
       if (account && account.provider === 'google') {
         token.accessToken = account.access_token;
       }
+      
+      // 🔥 LOGICA DE SINCRONIZACIÓN DE ID (Aseguramos que token.id sea siempre el UUID de nuestra BD)
       if (user) {
-        token.id = user.id;
-      } else if (token.email && !token.id) {
-        if (token.email === 'revisor_meta@upway.business') {
+        if (user.email === 'revisor_meta@upway.business') {
           token.id = 'meta-reviewer';
         } else {
-          const dbUser = await prisma.user.findUnique({ where: { email: token.email as string } });
-          if (dbUser) token.id = dbUser.id;
+          // Buscamos el ID real en Neon usando el email, garantizando que el ID coincida con el registro de la BD
+          const dbUser = await prisma.user.findUnique({ 
+            where: { email: user.email as string } 
+          });
+          token.id = dbUser ? dbUser.id : user.id;
         }
       }
       return token;
