@@ -118,18 +118,31 @@ export const authOptions: NextAuthOptions = {
         token.accessToken = account.access_token;
       }
       
-      // 🔥 LOGICA DE SINCRONIZACIÓN DE ID (Aseguramos que token.id sea siempre el UUID de nuestra BD)
+      // 1. Momento exacto del login (existe 'user')
       if (user) {
         if (user.email === 'revisor_meta@upway.business') {
           token.id = 'meta-reviewer';
         } else {
-          // Buscamos el ID real en Neon usando el email, garantizando que el ID coincida con el registro de la BD
           const dbUser = await prisma.user.findUnique({ 
             where: { email: user.email as string } 
           });
           token.id = dbUser ? dbUser.id : user.id;
         }
+      } 
+      // 2. 🔥 SALVAVIDAS DE PERSISTENCIA: Si el usuario navega o recarga la página ('user' ya no viene, pero está el email)
+      else if (token.email && !token.id) {
+        if (token.email === 'revisor_meta@upway.business') {
+          token.id = 'meta-reviewer';
+        } else {
+          const dbUser = await prisma.user.findUnique({ 
+            where: { email: token.email as string } 
+          });
+          if (dbUser) {
+            token.id = dbUser.id;
+          }
+        }
       }
+
       return token;
     },
     async session({ session, token }: any) {
