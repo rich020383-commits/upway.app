@@ -4,11 +4,14 @@ import React, { useState } from 'react';
 import { ShieldCheck, Bot, Loader2, ExternalLink, Lock, Server } from 'lucide-react';
 import { useUpwayStore } from '../../../store/upwayStore';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react'; // 🔥 1. Importamos useSession
+import { useSession } from 'next-auth/react';
 
 export default function Paso06Checkout() {
   const router = useRouter();
-  const { data: session } = useSession(); // 🔥 2. Extraemos la sesión real del usuario
+  
+  // 🔥 HOTFIX: Evitamos que Next.js explote al compilar en estático en Render
+  const sessionContext = useSession() || {};
+  const session = sessionContext.data;
   
   const { 
     modulosSeleccionados, 
@@ -36,7 +39,7 @@ export default function Paso06Checkout() {
   const handleSimularPago = async () => {
     setProcesando(true);
     
-    // 🔥 3. Validamos que el usuario esté realmente logueado antes de avanzar
+    // Validamos que el usuario esté realmente logueado antes de avanzar
     const userIdReal = (session?.user as any)?.id;
     if (!userIdReal) {
       alert("No se detectó una sesión activa. Por favor, recarga la página o vuelve a iniciar sesión.");
@@ -50,7 +53,7 @@ export default function Paso06Checkout() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: userIdReal, // 👈 ¡Aquí va el ID real obtenido de la sesión de NextAuth!
+          userId: userIdReal, // ID real obtenido de la sesión de NextAuth
           nombreNegocio: "Empresa Cliente", 
           nombreAgente: nombreAgente || 'Asistente IA',
           promptMaestro: promptMaestro || 'Eres un asistente útil.', 
