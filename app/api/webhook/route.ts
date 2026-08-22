@@ -116,9 +116,9 @@ function buscarEnInventarioLocal(mensaje: string, todosLosProductos: Producto[])
   });
 }
 
-async function generarRespuesta(textoCliente: string, phoneId: string) {
+// 🔥 CAMBIO 1: Recibimos tiendaRecord pre-consultada
+async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRecord: any) {
     let systemPromptText = "";
-    let tiendaRecord: any = null;
 
     if (phoneId === UPWAY_PHONE_ID) {
         console.log("👑 Entró mensaje al canal de Upway. Activando a Sophie...");
@@ -138,21 +138,9 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
         systemPromptText = promptSophie;
 
     } else {
-        console.log(`🏢 Buscando base de datos del cliente para el número: ${phoneId}`);
+        console.log(`🏢 Usando base de datos del cliente para el número: ${phoneId}`);
         
-        const tienda = await prisma.tienda.findFirst({
-            where: { metaPhoneNumberId: phoneId },
-            include: { productos: true }
-        });
-
-        if (!tienda) {
-            console.warn(`⚠️ Mensaje a un número no registrado en BD: ${phoneId}`);
-            return "Hola. Este número aún no tiene un agente de Upway activo. Regístrate en https://upway.business para activar el tuyo.";
-        }
-
-        tiendaRecord = tienda;
-
-        const inventarioCompleto: Producto[] = tienda.productos.map((p: { nombre?: unknown; categoria?: unknown; precio?: unknown }) => ({
+        const inventarioCompleto: Producto[] = (tiendaRecord?.productos || []).map((p: { nombre?: unknown; categoria?: unknown; precio?: unknown }) => ({
             nombre: String(p.nombre),
             categoria: p.categoria ? String(p.categoria) : "General",
             precio: Number(p.precio)
@@ -165,7 +153,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
            contextoInventario = `PRODUCTOS ENCONTRADOS:\n${productosRelevantes.map(p => `- ${p.nombre} - Precio: $${p.precio}`).join('\n')}`;
         }
 
-        const promptCliente = tienda.systemPrompt || "Eres un asistente de ventas. Responde corto y con emojis.";
+        const promptCliente = tiendaRecord?.systemPrompt || "Eres un asistente de ventas. Responde corto y con emojis.";
         systemPromptText = `${promptCliente}\n\n=== BASE DE DATOS (SISTEMA RAG) ===\n${contextoInventario}\nRegla RAG: Basa tus respuestas de inventario SOLO en la información de la base de datos entregada arriba.`;
     }
 
@@ -310,16 +298,11 @@ async function generarRespuesta(textoCliente: string, phoneId: string) {
     }
 }
 
-// ==========================================
-// ENVÍO DE MENSAJES META (ESTÁNDAR V20.0)
-// ==========================================
-async function enviarMensajePorWhatsApp(destinoTelefono: string, mensaje: string, phoneId: string) {
-  const token = process.env.WHATSAPP_TOKEN;
-  const phoneNumberId = phoneId || process.env.WHATSAPP_PHONE_NUMBER_ID;
+// 🔥 CAMBIO 2: Inyectamos el dynamicToken aquí
+async function enviarMensajePorWhatsApp(destinoTelefono: string, mensaje: string, phoneId: string, dynamicToken: string) {
+  if (!dynamicToken || !phoneId) throw new Error('Credenciales de WhatsApp no configuradas para esta tienda.');
 
-  if (!token || !phoneNumberId) throw new Error('Credenciales de WhatsApp no configuradas.');
-
-  const url = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`;
+  const url = `https://graph.facebook.com/v20.0/${phoneId}/messages`;
   
   const payload: any = {
     messaging_product: 'whatsapp',
@@ -331,7 +314,7 @@ async function enviarMensajePorWhatsApp(destinoTelefono: string, mensaje: string
   try {
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${dynamicToken}` },
       body: JSON.stringify(payload),
     });
 
@@ -380,10 +363,30 @@ export async function POST(req: Request) {
               // 🛡️ BARRERA ANTIBUCLES
               const response = new NextResponse(null, { status: 200 });
 
+              // 🔥 CAMBIO 3: Orquestación Multi-Tenant
               void (async () => {
                 try {
-                  const respuesta = await generarRespuesta(textoCliente, phoneIdDestino);
-                  await enviarMensajePorWhatsApp(userPhone, respuesta, phoneIdDestino);
+                  let tiendaRecord = null;
+                  let dynamicToken = process.env.WHATSAPP_TOKEN || ""; // Fallback por si le escriben al master
+
+                  // Si le escriben a un cliente tuyo y no a tu número de Upway
+                  if (phoneIdDestino !== UPWAY_PHONE_ID) {
+                    tiendaRecord = await prisma.tienda.findFirst({
+                      where: { metaPhoneNumberId: phoneIdDestino },
+                      include: { productos: true } // Traemos los productos para el RAG
+                    });
+
+                    if (!tiendaRecord) {
+                      console.warn(`⚠️ Mensaje ignorado: No hay tienda vinculada al número ${phoneIdDestino}`);
+                      return; 
+                    }
+                    // Sacamos el token que se guardó en el proceso de Onboarding de Meta
+                    dynamicToken = tiendaRecord.metaAccessToken || "";
+                  }
+
+                  const respuesta = await generarRespuesta(textoCliente, phoneIdDestino, tiendaRecord);
+                  await enviarMensajePorWhatsApp(userPhone, respuesta, phoneIdDestino, dynamicToken);
+                  
                 } catch (error) {
                   console.error('Fallo general en la respuesta del bot.', error);
                 }

@@ -5,6 +5,7 @@ import { CheckCircle2, MessageSquare, PhoneCall, QrCode, ArrowRight, ShieldAlert
 import { useUpwayStore } from '../../../store/upwayStore';
 import { useRouter } from 'next/navigation';
 import Script from 'next/script';
+import { useSession } from 'next-auth/react'; // 🔥 INYECCIÓN DE SESIÓN REAL
 
 declare global {
   interface Window {
@@ -14,6 +15,7 @@ declare global {
 
 export default function Paso07Activacion() {
   const router = useRouter();
+  const { data: session } = useSession(); // 🔥 EXTRAEMOS EL USUARIO REAL
   const { nombreAgente, modulosSeleccionados } = useUpwayStore();
   
   const [sdkCargado, setSdkCargado] = useState(false);
@@ -51,39 +53,49 @@ export default function Paso07Activacion() {
       setError('Meta no está listo. Desactiva tu bloqueador de anuncios y recarga la página.');
       return;
     }
+
+    // 🔥 TRUCO TYPESCRIPT: Usamos (session?.user as any)?.id para engañar al inspector
+    if (!(session?.user as any)?.id) {
+      setError('No se detectó tu sesión. Por favor, recarga la página.');
+      return;
+    }
+
     setError(null);
     setIsProcessing(true);
 
     window.FB.login(function (response: any) {
       (async () => {
         try {
-          // 🛡️ MODO BLINDADO PARA GRABACIÓN: 
-          // Intentamos hacer el fetch al backend de forma silenciosa. 
-          // Si falla o da error 400 por el ID de prueba, NO rompemos la UI del usuario.
           if (response && response.authResponse) {
-            try {
-              await fetch('/api/whatsapp/guardar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                  metaCode: response.authResponse.code,
-                  metaAccessToken: response.authResponse.accessToken,
-                  tienda_id: 'tienda_revisor_001' 
-                })
-              });
-            } catch (backendErr) {
-              console.log("Aviso de backend ignorado para asegurar el flujo de video:", backendErr);
-            }
-          }
-          
-          // ¡ÉXITO GARANTIZADO PARA EL VIDEO! 
-          // Sin importar si el popup se completó o si el backend dio un pequeño aviso, 
-          // la interfaz avanza con éxito a estado PENDIENTE y te deja pasar al panel.
-          setEstadowhatsapp('PENDING');
+            
+            // 🔥 CONEXIÓN REAL CON TU BACKEND DE PRISMA
+            const res = await fetch('/api/whatsapp/guardar', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                code: response.authResponse.code, // El token temporal de Meta
+                // 🔥 TRUCO TYPESCRIPT: Usamos (session.user as any).id
+                userId: (session?.user as any)?.id
+              })
+            });
 
+            if (res.ok) {
+              console.log("¡Éxito! Meta vinculado y guardado en Neon DB");
+              setEstadowhatsapp('PENDING');
+            } else {
+              const errData = await res.json();
+              console.error("Fallo en backend:", errData);
+              setError(errData.error || 'Error al guardar la configuración en la base de datos.');
+              setEstadowhatsapp('INACTIVE');
+            }
+          } else {
+            setError('Cancelaste el proceso o Meta no devolvió los permisos.');
+            setEstadowhatsapp('INACTIVE');
+          }
         } catch (err) {
-          // Salvavidas total: aun si algo explota, pasamos a PENDING para que grabes sin trabas
-          setEstadowhatsapp('PENDING');
+          console.error('Error de red:', err);
+          setError('Fallo de conexión. Inténtalo nuevamente.');
+          setEstadowhatsapp('INACTIVE');
         } finally {
           setIsProcessing(false);
         }

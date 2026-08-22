@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `x-api-key ${apiKey}` // 🔑 Formato exacto requerido por Bold
+        'Authorization': `x-api-key ${apiKey}` 
       },
       body: JSON.stringify(payload)
     });

@@ -39,7 +39,7 @@ export default function Paso06Checkout() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: "user_test_001", // ID de prueba (Luego lo cambias por la sesión de NextAuth)
+          userId: "TU_ID_REAL_DE_NEON", // El ID largo que sacaste de Prisma Studio
           nombreNegocio: "Empresa Cliente", 
           nombreAgente: nombreAgente || 'Asistente IA',
           promptMaestro: promptMaestro || 'Eres un asistente útil.', 

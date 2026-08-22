@@ -4,11 +4,13 @@ import { prisma } from '@/lib/prisma'; // Asegúrate de que apunte a tu cliente 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { code, tiendaId } = body;
+    
+    // 🔥 CAMBIO CLAVE: Recibimos userId, no tiendaId
+    const { code, userId } = body;
 
     // 1. Validaciones iniciales
-    if (!code || !tiendaId) {
-      return NextResponse.json({ error: 'Falta el código de autorización o el ID de la tienda' }, { status: 400 });
+    if (!code || !userId) {
+      return NextResponse.json({ error: 'Falta el código de autorización o el ID de usuario' }, { status: 400 });
     }
 
     const appId = process.env.META_CLIENT_ID;
@@ -19,7 +21,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Configuración interna del servidor incompleta.' }, { status: 500 });
     }
 
-    // 2. Intercambiamos el 'code' por el Access Token definitivo
+    // 2. BUSCAMOS LA TIENDA DEL USUARIO EN NEON DB
+    const tienda = await prisma.tienda.findFirst({
+      where: { userId: userId }
+      // 🔥 Borramos la línea de orderBy para que no moleste
+    });
+
+    if (!tienda) {
+      console.error(`No se encontró tienda para el usuario: ${userId}`);
+      return NextResponse.json({ error: 'No se encontró infraestructura (tienda) para vincular.' }, { status: 404 });
+    }
+
+    // 3. Intercambiamos el 'code' por el Access Token definitivo
     const tokenResponse = await fetch(`https://graph.facebook.com/v20.0/oauth/access_token?client_id=${appId}&client_secret=${appSecret}&code=${code}`);
     const tokenData = await tokenResponse.json();
 
@@ -30,7 +43,7 @@ export async function POST(request: Request) {
 
     const accessToken = tokenData.access_token;
 
-    // 3. 🚀 MAGIA EXTRA: Extraemos los IDs automáticamente consultando a Meta 
+    // 4. 🚀 MAGIA EXTRA: Extraemos los IDs automáticamente consultando a Meta 
     let finalWabaId = null;
     let finalPhoneId = null;
     let finalPhoneNumber = null;
@@ -62,9 +75,9 @@ export async function POST(request: Request) {
       console.error("No se pudieron extraer los IDs automáticos, pero se guardará el token:", metaErr);
     }
 
-    // 4. Guardamos todo en Prisma
+    // 5. Guardamos todo en Prisma, usando el ID de la tienda que encontramos en el Paso 2
     const tiendaActualizada = await prisma.tienda.update({
-      where: { id: tiendaId },
+      where: { id: tienda.id },
       data: {
         metaAccessToken: accessToken,
         metaWabaId: finalWabaId || null,
