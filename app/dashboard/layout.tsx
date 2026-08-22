@@ -1,33 +1,20 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { Package, Bot, Sparkles, UserCircle } from 'lucide-react';
 import LogoutButton from '@/components/LogoutButton'; 
 import { usePathname } from 'next/navigation';
-import { getSession } from 'next-auth/react'; // 🔥 Importamos getSession
+import { useSession } from 'next-auth/react'; // 🔥 Usamos useSession para lectura instantánea
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isOnboarding = pathname.includes('/onboarding');
   
-  // Estado para guardar el nombre real del usuario
-  const [userName, setUserName] = useState<string>("Cargando...");
-
-  useEffect(() => {
-    // Obtenemos la sesión real
-    getSession().then((session) => {
-      if (session?.user?.name) {
-        setUserName(session.user.name);
-      } else if (session?.user?.email) {
-        // Si no tiene nombre registrado, le mostramos la primera parte del correo
-        setUserName(session.user.email.split('@')[0]);
-      } else {
-        // Fallback por si acaso entran sin sesión en modo desarrollo
-        setUserName("Usuario Upway");
-      }
-    });
-  }, []);
+  // Obtenemos la sesión en tiempo real gracias al SessionProvider global
+  const { data: session } = useSession();
+  
+  const userName = session?.user?.name || session?.user?.email?.split('@')[0] || "Usuario Upway";
 
   return (
     // Fondo oscuro Enterprise Luxury unificado
