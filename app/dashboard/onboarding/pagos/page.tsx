@@ -13,8 +13,8 @@ export default function Paso06Checkout() {
   const { 
     modulosSeleccionados, 
     nombreAgente,
-    promptMaestro, 
-    resetOnboarding 
+    promptMaestro
+    // 🔥 Eliminamos resetOnboarding de aquí para que la memoria no se borre
   } = useUpwayStore();
   
   const [procesando, setProcesando] = useState(false);
@@ -63,7 +63,7 @@ export default function Paso06Checkout() {
 
       if (res.ok) {
         console.log("Infraestructura creada en BD con éxito");
-        resetOnboarding(); 
+        // 🔥 MAGIA APLICADA: Ya no borramos la memoria. La página de Activación sabrá que compraste WhatsApp.
       } else {
         const errorData = await res.json();
         console.error("Error del servidor:", errorData);
