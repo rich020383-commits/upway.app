@@ -15,7 +15,9 @@ declare global {
 
 export default function Paso07Activacion() {
   const router = useRouter();
-  const { data: session } = useSession(); // 🔥 EXTRAEMOS EL USUARIO REAL
+  // 🔥 HOTFIX: Evitamos que Next.js explote al compilar sin usuario
+  const sessionContext = useSession() || {}; 
+  const session = sessionContext.data;
   const { nombreAgente, modulosSeleccionados } = useUpwayStore();
   
   const [sdkCargado, setSdkCargado] = useState(false);
