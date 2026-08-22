@@ -2,16 +2,19 @@
 
 import React, { useState } from 'react';
 import { ShieldCheck, Bot, Loader2, ExternalLink, Lock, Server } from 'lucide-react';
-import { useUpwayStore } from '../../../store/upwayStore'; // Ajusta la ruta si es necesario
+import { useUpwayStore } from '../../../store/upwayStore';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react'; // 🔥 1. Importamos useSession
 
 export default function Paso06Checkout() {
   const router = useRouter();
+  const { data: session } = useSession(); // 🔥 2. Extraemos la sesión real del usuario
+  
   const { 
     modulosSeleccionados, 
     nombreAgente,
-    promptMaestro, // Extraemos esto para guardarlo
-    resetOnboarding // Extraemos la función para limpiar
+    promptMaestro, 
+    resetOnboarding 
   } = useUpwayStore();
   
   const [procesando, setProcesando] = useState(false);
@@ -33,13 +36,21 @@ export default function Paso06Checkout() {
   const handleSimularPago = async () => {
     setProcesando(true);
     
+    // 🔥 3. Validamos que el usuario esté realmente logueado antes de avanzar
+    const userIdReal = (session?.user as any)?.id;
+    if (!userIdReal) {
+      alert("No se detectó una sesión activa. Por favor, recarga la página o vuelve a iniciar sesión.");
+      setProcesando(false);
+      return;
+    }
+    
     try {
-      // 1. Guardamos el agente en la base de datos de Neon de forma silenciosa
+      // 1. Guardamos el agente en la base de datos de Neon enviando el ID REAL
       const res = await fetch('/api/tienda/aprovisionar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: "TU_ID_REAL_DE_NEON", // El ID largo que sacaste de Prisma Studio
+          userId: userIdReal, // 👈 ¡Aquí va el ID real obtenido de la sesión de NextAuth!
           nombreNegocio: "Empresa Cliente", 
           nombreAgente: nombreAgente || 'Asistente IA',
           promptMaestro: promptMaestro || 'Eres un asistente útil.', 
@@ -51,16 +62,18 @@ export default function Paso06Checkout() {
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       if (res.ok) {
-        console.log("Infraestructura creada en BD");
+        console.log("Infraestructura creada en BD con éxito");
         resetOnboarding(); // Limpiamos la memoria temporal
+      } else {
+        const errorData = await res.json();
+        console.error("Error del servidor al aprovisionar:", errorData);
       }
 
-      // 3. Pase lo que pase, redirigimos para que puedas grabar el panel de Meta
+      // 3. Redirigimos al paso de Meta para continuar el flujo
       router.push('/dashboard/onboarding/activacion');
 
     } catch (error) {
       console.error('Error de despliegue:', error);
-      // Salvavidas: te envía a la pantalla de Meta incluso si el servidor falla en desarrollo
       router.push('/dashboard/onboarding/activacion');
     } finally {
       setProcesando(false);
@@ -145,7 +158,6 @@ export default function Paso06Checkout() {
           {/* COLUMNA DERECHA: Pasarela de Pago */}
           <div className="bg-[#0D1117] border border-[#1E293B] p-8 md:p-10 rounded-2xl shadow-2xl flex flex-col justify-center relative overflow-hidden">
             
-            {/* Patrón de fondo sutil */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#F5F7FA 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
 
             <div className="relative z-10">
