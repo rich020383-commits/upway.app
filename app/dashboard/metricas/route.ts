@@ -4,15 +4,24 @@ import { prisma } from '@/lib/prisma';
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const email = searchParams.get('email');
 
-    if (!userId) {
-      return NextResponse.json({ error: 'Falta el ID del usuario' }, { status: 400 });
+    if (!email) {
+      return NextResponse.json({ error: 'Falta el correo del usuario' }, { status: 400 });
     }
 
-    // 🔥 Buscamos la tienda real vinculada a este usuario
+    // Buscamos a tu usuario real
+    const user = await prisma.user.findUnique({
+      where: { email: email },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
+    }
+
+    // 🔥 CORRECCIÓN: Buscamos la tienda sin el "orderBy" que rompía TypeScript
     const tienda = await prisma.tienda.findFirst({
-      where: { userId: userId },
+      where: { userId: user.id }
     });
 
     if (!tienda) {
@@ -20,7 +29,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({
-      tiendaId: tienda.id, // Devolvemos el ID real de la base de datos
+      tiendaId: tienda.id,
       isWhatsAppActive: tienda.isWhatsAppActive,
       metaPhoneNumberId: tienda.metaPhoneNumberId,
       telefono: tienda.metaPhoneNumberId, 

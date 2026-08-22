@@ -16,56 +16,46 @@ import Link from 'next/link';
 export default function AgentesBotPage() {
   const router = useRouter();
   
-  // 🔥 1. BLINDAJE Y EXTRACCIÓN DE USER ID
+  // 🔥 BLINDAJE Y EXTRACCIÓN SEGURA (USAMOS EMAIL)
   const sessionContext = useSession() || {};
   const session = sessionContext.data;
-  const userId = (session?.user as any)?.id; // <-- Extraemos tu ID real
+  const userEmail = session?.user?.email; // <-- El email NUNCA falla
   
   // 🚀 ESTADO MAESTRO
   const [servicioActivo, setServicioActivo] = useState<'dashboard' | 'hub' | 'whatsapp' | 'voz'>('dashboard');
 
   const { nombreAgente: nombreStore } = useUpwayStore();
   const [iaActiva, setIaActiva] = useState(true); 
-  
-  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [calendarConnected, setCalendarConnected] = useState(false);
 
-  // 📊 ESTADOS DINÁMICOS PARA LA TIENDA Y LAS MÉTRICAS
-  const [tiendaIdActual, setTiendaIdActual] = useState<string | null>(null); // <-- Ya no es fijo
+  // 📊 ESTADOS DINÁMICOS
+  const [tiendaIdActual, setTiendaIdActual] = useState<string | null>(null);
   const [metricas, setMetricas] = useState({ leads: 0, citas: 0, horasAhorradas: 0, resolucion: 0 });
   const [whatsappStatus, setWhatsappStatus] = useState<'active' | 'pending' | 'disconnected'>('disconnected');
   const [telefonoConectado, setTelefonoConectado] = useState<string | null>(null);
   const [loadingMetricas, setLoadingMetricas] = useState(true);
   
-  // 🔥 EFECTO: Lee la sesión reactiva
   useEffect(() => {
-    if (session?.user?.email) {
-      setUserEmail(session.user.email);
-    }
-    if ((session as any)?.accessToken) {
-      setCalendarConnected(true);
-    }
+    if ((session as any)?.accessToken) setCalendarConnected(true);
   }, [session]);
 
-  // 🔥 2. EFECTO DINÁMICO: Buscar tu Tienda y tus métricas usando tu USER ID
+  // 🔥 EFECTO DINÁMICO: Buscar usando tu EMAIL
   useEffect(() => {
-    if (servicioActivo === 'dashboard' && userId) {
+    if (servicioActivo === 'dashboard' && userEmail) {
       const fetchMetricas = async () => {
         try {
-          const res = await fetch(`/api/dashboard/metricas?userId=${userId}`);
+          const res = await fetch(`/api/dashboard/metricas?email=${userEmail}`);
           const data = await res.json();
           if (res.ok) {
-            setTiendaIdActual(data.tiendaId); // Guardamos tu tienda real en memoria
+            setTiendaIdActual(data.tiendaId); 
             setMetricas({
               leads: data.leads || 0,
               citas: data.citas || 0,
               horasAhorradas: data.horasAhorradas || 0,
               resolucion: data.resolucion || 0
             });
-
             setTelefonoConectado(data.telefono || null);
 
-            // Lógica del semáforo de WhatsApp
             if (data.isWhatsAppActive) {
               setWhatsappStatus('active');
             } else if (data.metaPhoneNumberId) {
@@ -82,7 +72,7 @@ export default function AgentesBotPage() {
       };
       fetchMetricas();
     }
-  }, [servicioActivo, userId]); // Dependemos de que el usuario cargue
+  }, [servicioActivo, userEmail]);
 
   // ESTADOS DE FORMULARIOS Y LÓGICA
   const [nombreAgente, setNombreAgente] = useState('');
