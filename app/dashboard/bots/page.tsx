@@ -16,9 +16,10 @@ import Link from 'next/link';
 export default function AgentesBotPage() {
   const router = useRouter();
   
-  // 🔥 BLINDAJE PARA EL BUILD: Evita desestructurar undefined durante la compilación
+  // 🔥 1. BLINDAJE Y EXTRACCIÓN DE USER ID
   const sessionContext = useSession() || {};
   const session = sessionContext.data;
+  const userId = (session?.user as any)?.id; // <-- Extraemos tu ID real
   
   // 🚀 ESTADO MAESTRO
   const [servicioActivo, setServicioActivo] = useState<'dashboard' | 'hub' | 'whatsapp' | 'voz'>('dashboard');
@@ -29,15 +30,14 @@ export default function AgentesBotPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [calendarConnected, setCalendarConnected] = useState(false);
 
-  // 📊 ESTADOS PARA MÉTRICAS, ESTADO DE WHATSAPP Y TELÉFONO CONECTADO
+  // 📊 ESTADOS DINÁMICOS PARA LA TIENDA Y LAS MÉTRICAS
+  const [tiendaIdActual, setTiendaIdActual] = useState<string | null>(null); // <-- Ya no es fijo
   const [metricas, setMetricas] = useState({ leads: 0, citas: 0, horasAhorradas: 0, resolucion: 0 });
   const [whatsappStatus, setWhatsappStatus] = useState<'active' | 'pending' | 'disconnected'>('disconnected');
   const [telefonoConectado, setTelefonoConectado] = useState<string | null>(null);
   const [loadingMetricas, setLoadingMetricas] = useState(true);
   
-  const tiendaIdActual = '1172769935927318';
-
-  // 🔥 EFECTO: Lee la sesión reactiva de NextAuth sin romper el servidor
+  // 🔥 EFECTO: Lee la sesión reactiva
   useEffect(() => {
     if (session?.user?.email) {
       setUserEmail(session.user.email);
@@ -47,14 +47,15 @@ export default function AgentesBotPage() {
     }
   }, [session]);
 
-  // 🔥 EFECTO: Buscar Métricas, Estado y Teléfono de WhatsApp en la Base de Datos
+  // 🔥 2. EFECTO DINÁMICO: Buscar tu Tienda y tus métricas usando tu USER ID
   useEffect(() => {
-    if (servicioActivo === 'dashboard') {
+    if (servicioActivo === 'dashboard' && userId) {
       const fetchMetricas = async () => {
         try {
-          const res = await fetch(`/api/dashboard/metricas?tiendaId=${tiendaIdActual}`);
+          const res = await fetch(`/api/dashboard/metricas?userId=${userId}`);
           const data = await res.json();
           if (res.ok) {
+            setTiendaIdActual(data.tiendaId); // Guardamos tu tienda real en memoria
             setMetricas({
               leads: data.leads || 0,
               citas: data.citas || 0,
@@ -62,16 +63,15 @@ export default function AgentesBotPage() {
               resolucion: data.resolucion || 0
             });
 
-            // Guardamos el número de teléfono que viene de Meta en la BD
             setTelefonoConectado(data.telefono || null);
 
-            // Lógica de los 3 estados para WhatsApp
+            // Lógica del semáforo de WhatsApp
             if (data.isWhatsAppActive) {
               setWhatsappStatus('active');
             } else if (data.metaPhoneNumberId) {
-              setWhatsappStatus('pending'); // Hay ID guardado pero en revisión de Meta
+              setWhatsappStatus('pending'); 
             } else {
-              setWhatsappStatus('disconnected'); // No hay nada conectado
+              setWhatsappStatus('disconnected'); 
             }
           }
         } catch (error) {
@@ -82,7 +82,7 @@ export default function AgentesBotPage() {
       };
       fetchMetricas();
     }
-  }, [servicioActivo]);
+  }, [servicioActivo, userId]); // Dependemos de que el usuario cargue
 
   // ESTADOS DE FORMULARIOS Y LÓGICA
   const [nombreAgente, setNombreAgente] = useState('');
@@ -115,6 +115,10 @@ export default function AgentesBotPage() {
   }, [historialChat, cargandoPrueba, isRecording, servicioActivo]);
 
   const guardarConfiguracion = async () => {
+    if (!tiendaIdActual) {
+      alert('Cargando tu tienda, por favor espera un momento.');
+      return;
+    }
     if (!nombreAgente || !promptMaestro) {
       alert('Completa el nombre del agente y las reglas antes de guardar.');
       return;
@@ -142,6 +146,10 @@ export default function AgentesBotPage() {
   };
 
   const crearAgenteVoz = async () => {
+    if (!tiendaIdActual) {
+      alert('Cargando tu tienda, por favor espera un momento.');
+      return;
+    }
     if (!nombreAgente || !promptMaestro) {
       alert('Completa el nombre y el guion antes de activar el agente.');
       return;
