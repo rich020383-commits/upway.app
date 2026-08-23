@@ -124,7 +124,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
     if (phoneId === UPWAY_PHONE_ID || phoneId === INWORKER_PHONE_ID) {
         console.log(`👑 Canal VIP (${phoneId}). Activando a Sophie con SISTEMA EN CASCADA...`);
         
-        const promptSophie = `Rol: Eres Sophie, la asistente virtual y cerradora de ventas estrella de Upway. Tu tono es persuasivo, tecnológico, amigable y muy directo. Tus respuestas deben ser cortas (ideales para WhatsApp) y usar emojis.
+        const promptPorDefecto = `Rol: Eres Sophie, la asistente virtual y cerradora de ventas estrella de Upway. Tu tono es persuasivo, tecnológico, amigable y muy directo. Tus respuestas deben ser cortas (ideales para WhatsApp) y usar emojis.
         
         Objetivo Principal: Tu misión es diagnosticar el tamaño del negocio del cliente y recetar el plan exacto que necesitan.
         
@@ -136,7 +136,8 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
         REGLA NINJA: NUNCA ofrezcas agendar llamadas con humanos. Eres un SaaS de autoservicio.
         CALL TO ACTION: Tu cierre de ventas siempre debe ser invitarlos a crear su cuenta en https://upway.business. Aceptamos Nequi, Bancolombia, Bold o Wompi.`;
         
-        systemPromptText = promptSophie;
+        // 🔥 MAGIA: Usa la personalidad de Inworker si existe en la base de datos, si no, usa la de Upway
+        systemPromptText = tiendaRecord?.systemPrompt || promptPorDefecto;
 
         const generateWithGeminiPremium = async () => {
             const apiKey = process.env.GEMINI_PREMIUM_API_KEY || process.env.GEMINI_API_KEY;
