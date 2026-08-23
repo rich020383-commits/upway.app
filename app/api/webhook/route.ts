@@ -379,8 +379,8 @@ export async function POST(req: Request) {
                   let tiendaRecord = null;
                   let dynamicToken = process.env.WHATSAPP_TOKEN || ""; 
 
-                  // 🚀 EXCLUIMOS A INWORKER Y UPWAY DE BUSCAR EN LA BASE DE DATOS
-                  if (phoneIdDestino !== UPWAY_PHONE_ID && phoneIdDestino !== INWORKER_PHONE_ID) {
+                  // 🚀 SOLO EXCLUIMOS A UPWAY. INWORKER SE BUSCA EN LA BASE DE DATOS COMO CUALQUIER CLIENTE
+                  if (phoneIdDestino !== UPWAY_PHONE_ID) {
                     tiendaRecord = await prisma.tienda.findFirst({
                       where: { metaPhoneNumberId: phoneIdDestino },
                       include: { productos: true } 
@@ -390,6 +390,7 @@ export async function POST(req: Request) {
                       console.warn(`⚠️ Mensaje ignorado: No hay tienda vinculada al número ${phoneIdDestino}`);
                       return; 
                     }
+                    // ¡EL TOKEN SE EXTRAE MÁGICAMENTE DE LA BASE DE DATOS!
                     dynamicToken = tiendaRecord.metaAccessToken || "";
                   }
 
