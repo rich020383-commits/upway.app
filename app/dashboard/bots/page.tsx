@@ -44,7 +44,7 @@ export default function AgentesBotPage() {
     if (servicioActivo === 'dashboard' && userEmail) {
       const fetchMetricas = async () => {
         try {
-          const res = await fetch(`/api/dashboard/metricas?email=${userEmail}`);
+          const res = await fetch(`/dashboard/metricas?email=${userEmail}`);
           const data = await res.json();
           if (res.ok) {
             setTiendaIdActual(data.tiendaId); 
