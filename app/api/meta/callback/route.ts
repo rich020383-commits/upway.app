@@ -54,8 +54,7 @@ export async function POST(req: Request) {
 
     const code = metaCode || metaAccessToken;
     const redirect = redirectUri || process.env.NEXT_PUBLIC_APP_URL || 'https://upway.business';
-    const tiendaId = tiendaIdFromBody || 'tienda_revisor_001';
-
+    
     if (!code) {
       return NextResponse.json(
         { error: 'Falta el código o token de acceso de Meta.' },
@@ -63,7 +62,7 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log(`Procesando callback de Meta para la tienda: ${tiendaId}`);
+    console.log(`Procesando callback de Meta...`);
 
     let accessToken = code;
 
@@ -77,7 +76,6 @@ export async function POST(req: Request) {
       try {
         const pinDeRegistro = '123456';
 
-        // 🧹 REGRESO A V20.0
         const registroMeta = await fetch(`https://graph.facebook.com/v20.0/${metaPhoneNumberId}/register`, {
           method: 'POST',
           headers: {
@@ -101,29 +99,40 @@ export async function POST(req: Request) {
       }
     }
 
-    const tienda = await prisma.tienda.findUnique({ where: { id: tiendaId } });
+    // 🔥 LA MAGIA: Buscamos tu tienda real de forma dinámica
+    let tienda;
+    
+    if (tiendaIdFromBody) {
+      tienda = await prisma.tienda.findUnique({ where: { id: tiendaIdFromBody } });
+    } else {
+      // Si no mandan ID, buscamos tu tienda principal en la base de datos
+      tienda = await prisma.tienda.findFirst();
+    }
+
     if (!tienda) {
       return NextResponse.json(
-        { error: `No existe la tienda ${tiendaId} en la base de datos.` },
+        { error: `No se encontró ninguna tienda en la base de datos.` },
         { status: 404 }
       );
     }
 
-    // 🧹 LIMPIO: Sin metaUsername, para evitar errores 500 con Prisma
+    const tiendaIdReal = tienda.id;
+
+    // 🧹 LIMPIO: Actualizamos TU tienda, no la del revisor
     await prisma.tienda.update({
-      where: { id: tiendaId },
+      where: { id: tiendaIdReal },
       data: {
         metaPhoneNumberId,
         metaWabaId,
         metaAccessToken: accessToken,
-        isWhatsAppActive: true,
+        isWhatsAppActive: true, // 🔥 ESTO ENCIENDE EL VERDE EN TU DASHBOARD
       },
     });
 
     return NextResponse.json({
       success: true,
       message: 'Línea de WhatsApp activada y conectada exitosamente',
-      tiendaId,
+      tiendaId: tiendaIdReal,
     });
   } catch (error) {
     console.error('Error crítico guardando credenciales de Meta:', error);
