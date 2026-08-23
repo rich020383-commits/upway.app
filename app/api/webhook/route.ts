@@ -4,7 +4,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import Groq from 'groq-sdk'; 
 import { prisma } from '@/lib/prisma';
 
-const VERIFY_TOKEN = 'upway_webhook_secreto';
+const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || 'upway_inworker_seguro_2026';
 const UPWAY_PHONE_ID = '1172769935927318'; // 👑 EL NÚMERO VIP DE UPWAY
 
 const kimiApiKey = process.env.KIMI_API_KEY;
