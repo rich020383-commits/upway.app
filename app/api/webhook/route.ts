@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 
 const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || 'upway_inworker_seguro_2026';
 const UPWAY_PHONE_ID = '1172769935927318'; // 👑 EL NÚMERO VIP DE UPWAY
+const INWORKER_PHONE_ID = '1334640129724588'; // 🚀 EL NUEVO NÚMERO DE INWORKER (SOPHIE)
 
 const kimiApiKey = process.env.KIMI_API_KEY;
 const kimiApiUrl = process.env.KIMI_API_URL || 'https://api.moonshot.ai/v1';
@@ -116,12 +117,12 @@ function buscarEnInventarioLocal(mensaje: string, todosLosProductos: Producto[])
   });
 }
 
-// 🔥 CAMBIO 1: Recibimos tiendaRecord pre-consultada
 async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRecord: any) {
     let systemPromptText = "";
 
-    if (phoneId === UPWAY_PHONE_ID) {
-        console.log("👑 Entró mensaje al canal de Upway. Activando a Sophie...");
+    // 🚀 AHORA INWORKER Y UPWAY TIENEN LOS MISMOS PRIVILEGIOS Y LA CASCADA COMPLETA
+    if (phoneId === UPWAY_PHONE_ID || phoneId === INWORKER_PHONE_ID) {
+        console.log(`👑 Canal VIP (${phoneId}). Activando a Sophie con SISTEMA EN CASCADA...`);
         
         const promptSophie = `Rol: Eres Sophie, la asistente virtual y cerradora de ventas estrella de Upway. Tu tono es persuasivo, tecnológico, amigable y muy directo. Tus respuestas deben ser cortas (ideales para WhatsApp) y usar emojis.
         
@@ -136,6 +137,74 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
         CALL TO ACTION: Tu cierre de ventas siempre debe ser invitarlos a crear su cuenta en https://upway.business. Aceptamos Nequi, Bancolombia, Bold o Wompi.`;
         
         systemPromptText = promptSophie;
+
+        const generateWithGeminiPremium = async () => {
+            const apiKey = process.env.GEMINI_PREMIUM_API_KEY || process.env.GEMINI_API_KEY;
+            if (!apiKey) throw new Error('Falta llave de Gemini Premium en el .env');
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const model = genAI.getGenerativeModel({ 
+                model: 'gemini-2.5-flash', 
+                systemInstruction: systemPromptText,
+                generationConfig: { temperature: 0.45, maxOutputTokens: 280 }
+            });
+            const result = await model.generateContent(textoCliente);
+            return result.response.text();
+        };
+
+        const generateWithGroq = async () => {
+            const groqApiKey = process.env.GROQ_API_KEY;
+            if (!groqApiKey) throw new Error('Falta GROQ_API_KEY');
+            const groqClient = new Groq({ apiKey: groqApiKey });
+            const chatCompletion = await groqClient.chat.completions.create({
+                messages: [
+                    { role: 'system', content: systemPromptText },
+                    { role: 'user', content: textoCliente }
+                ],
+                model: "llama3-8b-8192",
+                temperature: 0.45,
+            });
+            return chatCompletion.choices[0]?.message?.content || "";
+        };
+
+        const generateWithKimi = async () => {
+            if (!kimiClient) throw new Error('Falta KIMI_API_KEY para fallback');
+            const completion = await kimiClient.chat.completions.create({
+                model: kimiModelName,
+                messages: [
+                    { role: 'system', content: systemPromptText },
+                    { role: 'user', content: textoCliente }
+                ],
+                temperature: 0.45,
+                max_tokens: 280,
+            });
+            return completion.choices[0]?.message?.content || '';
+        };
+
+        try {
+            const result = await withTimeout(generateWithGeminiPremium(), 4000, 'Gemini Premium');
+            console.log("✅ [SOPHIE] Respondido con motor principal (Gemini Premium)");
+            return result;
+        } catch (err1) {
+            console.warn("⚠️ [SOPHIE] Gemini Premium falló. Activando relevo Groq (Llama 3)...", err1);
+            await sendProviderAlert('Gemini Premium', err1);
+            try {
+                const groqResult = await withTimeout(generateWithGroq(), 3500, 'Groq Llama 3');
+                console.log("✅ [SOPHIE] Groq salvó la conversación");
+                return groqResult;
+            } catch (err2) {
+                console.warn('⚠️ [SOPHIE] Groq falló. Intentando fallback final con Kimi...', err2);
+                await sendProviderAlert('Groq', err2);
+                try {
+                    const kimiResult = await withTimeout(generateWithKimi(), 3500, 'Kimi');
+                    console.log('✅ [SOPHIE] Kimi respondió como último respaldo.');
+                    return kimiResult;
+                } catch (err3) {
+                    console.warn('❌ [SOPHIE] Kimi falló. Cascada agotada.', err3);
+                    await sendProviderAlert('Kimi', err3);
+                    throw err3; 
+                }
+            }
+        }
 
     } else {
         console.log(`🏢 Usando base de datos del cliente para el número: ${phoneId}`);
@@ -155,63 +224,13 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
 
         const promptCliente = tiendaRecord?.systemPrompt || "Eres un asistente de ventas. Responde corto y con emojis.";
         systemPromptText = `${promptCliente}\n\n=== BASE DE DATOS (SISTEMA RAG) ===\n${contextoInventario}\nRegla RAG: Basa tus respuestas de inventario SOLO en la información de la base de datos entregada arriba.`;
-    }
 
-    const faqStaticResponse = resolveStaticFaqResponse(textoCliente, tiendaRecord ? { direccion: tiendaRecord.direccion } : undefined);
-    if (faqStaticResponse) {
-      console.log('🔍 Respuesta rápida desde caché FAQ o reglas estáticas.');
-      return faqStaticResponse;
-    }
-
-    if (phoneId === UPWAY_PHONE_ID) {
-        console.log("🧠 Generando respuesta comercial (Gemini Premium)...");
-        const apiKey = process.env.GEMINI_PREMIUM_API_KEY || process.env.GEMINI_API_KEY;
-        if (!apiKey) throw new Error('Falta llave de Gemini Premium en el .env');
-
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ 
-          model: 'gemini-2.5-flash', 
-          systemInstruction: systemPromptText,
-          generationConfig: {
-            temperature: 0.45,
-            maxOutputTokens: 280,
-          }
-        });
-
-        const generateWithGemini = async () => {
-          const result = await model.generateContent(textoCliente);
-          return result.response.text();
-        };
-
-        const generateWithKimiFallback = async () => {
-          if (!kimiClient) throw new Error('Falta KIMI_API_KEY para fallback de Upway');
-          const completion = await kimiClient.chat.completions.create({
-            model: kimiModelName,
-            messages: [
-              { role: 'system', content: systemPromptText },
-              { role: 'user', content: textoCliente }
-            ],
-            temperature: 0.45,
-            max_tokens: 280,
-          });
-          return completion.choices[0]?.message?.content || '';
-        };
-
-        try {
-          return await withTimeout(generateWithGemini(), 4000, 'Gemini Premium');
-        } catch (geminiError) {
-          console.warn('⚠️ Gemini Premium falló para Upway. Intentando fallback con Kimi...', geminiError);
-          await sendProviderAlert('Gemini Premium', geminiError);
-          try {
-            return await withTimeout(generateWithKimiFallback(), 4000, 'Kimi Fallback');
-          } catch (kimiError) {
-            console.warn('⚠️ Kimi falló en el fallback de Upway.', kimiError);
-            await sendProviderAlert('Kimi', kimiError);
-            throw kimiError;
-          }
+        const faqStaticResponse = resolveStaticFaqResponse(textoCliente, tiendaRecord ? { direccion: tiendaRecord.direccion } : undefined);
+        if (faqStaticResponse) {
+          console.log('🔍 Respuesta rápida desde caché FAQ o reglas estáticas.');
+          return faqStaticResponse;
         }
 
-    } else {
         console.log(`🤝 Generando respuesta para cliente de tienda. Usando RUTA GRATUITA...`);
         const generateWithGeminiFree = async () => {
             const freeApiKey = process.env.GEMINI_FREE_API_KEY;
@@ -298,7 +317,6 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
     }
 }
 
-// 🔥 CAMBIO 2: Inyectamos el dynamicToken aquí
 async function enviarMensajePorWhatsApp(destinoTelefono: string, mensaje: string, phoneId: string, dynamicToken: string) {
   if (!dynamicToken || !phoneId) throw new Error('Credenciales de WhatsApp no configuradas para esta tienda.');
 
@@ -329,9 +347,6 @@ async function enviarMensajePorWhatsApp(destinoTelefono: string, mensaje: string
   }
 }
 
-// ==========================================
-// 1. VERIFICACIÓN DE META (GET)
-// ==========================================
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   if (searchParams.get('hub.mode') === 'subscribe' && searchParams.get('hub.verify_token') === VERIFY_TOKEN) {
@@ -340,9 +355,6 @@ export async function GET(req: Request) {
   return new NextResponse('Acceso denegado', { status: 403 });
 }
 
-// ==========================================
-// 2. RECEPCIÓN DE MENSAJES Y EVENTOS (POST)
-// ==========================================
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -356,31 +368,28 @@ export async function POST(req: Request) {
             if (value?.messages?.length) {
               const mensajeEntrante = value.messages[0];
               
-              const userPhone = mensajeEntrante.from; // Número de teléfono clásico
+              const userPhone = mensajeEntrante.from;
               const textoCliente = mensajeEntrante.text?.body ?? '';
               const phoneIdDestino = value.metadata?.phone_number_id || ""; 
 
-              // 🛡️ BARRERA ANTIBUCLES
               const response = new NextResponse(null, { status: 200 });
 
-              // 🔥 CAMBIO 3: Orquestación Multi-Tenant
               void (async () => {
                 try {
                   let tiendaRecord = null;
-                  let dynamicToken = process.env.WHATSAPP_TOKEN || ""; // Fallback por si le escriben al master
+                  let dynamicToken = process.env.WHATSAPP_TOKEN || ""; 
 
-                  // Si le escriben a un cliente tuyo y no a tu número de Upway
-                  if (phoneIdDestino !== UPWAY_PHONE_ID) {
+                  // 🚀 EXCLUIMOS A INWORKER Y UPWAY DE BUSCAR EN LA BASE DE DATOS
+                  if (phoneIdDestino !== UPWAY_PHONE_ID && phoneIdDestino !== INWORKER_PHONE_ID) {
                     tiendaRecord = await prisma.tienda.findFirst({
                       where: { metaPhoneNumberId: phoneIdDestino },
-                      include: { productos: true } // Traemos los productos para el RAG
+                      include: { productos: true } 
                     });
 
                     if (!tiendaRecord) {
                       console.warn(`⚠️ Mensaje ignorado: No hay tienda vinculada al número ${phoneIdDestino}`);
                       return; 
                     }
-                    // Sacamos el token que se guardó en el proceso de Onboarding de Meta
                     dynamicToken = tiendaRecord.metaAccessToken || "";
                   }
 
@@ -395,7 +404,6 @@ export async function POST(req: Request) {
               return response;
             }
           }
-
         }
       }
       return new NextResponse(null, { status: 200 });
