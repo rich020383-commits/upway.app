@@ -9,7 +9,7 @@ import {
   TerminalSquare, Server, CheckCircle2, Database, Timer, CalendarCheck, Users, TrendingUp, PhoneCall, Calendar
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useSession, signIn } from 'next-auth/react'; // 🔥 Importamos useSession reactivo
+import { useSession, signIn } from 'next-auth/react'; 
 import { useUpwayStore } from '../../store/upwayStore'; 
 import Link from 'next/link';
 
@@ -26,6 +26,7 @@ export default function AgentesBotPage() {
 
   const { nombreAgente: nombreStore } = useUpwayStore();
   const [iaActiva, setIaActiva] = useState(true); 
+  const [loadingToggle, setLoadingToggle] = useState(false); // Estado para el botón de pausa
   const [calendarConnected, setCalendarConnected] = useState(false);
 
   // 📊 ESTADOS DINÁMICOS
@@ -55,6 +56,11 @@ export default function AgentesBotPage() {
               resolucion: data.resolucion || 0
             });
             setTelefonoConectado(data.telefono || null);
+            
+            // Sincronizamos el estado de la IA con la BD
+            if (data.isAiActive !== undefined) {
+              setIaActiva(data.isAiActive);
+            }
 
             if (data.isWhatsAppActive) {
               setWhatsappStatus('active');
@@ -73,6 +79,32 @@ export default function AgentesBotPage() {
       fetchMetricas();
     }
   }, [servicioActivo, userEmail]);
+
+  // 🔥 NUEVA FUNCIÓN: PAUSA INTELIGENTE
+  const handleToggleAI = async () => {
+    if (!tiendaIdActual) return;
+    setLoadingToggle(true);
+    const nuevoEstado = !iaActiva;
+    
+    try {
+      const res = await fetch('/api/tienda/toggle-ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          tiendaId: tiendaIdActual, 
+          isAiActive: nuevoEstado 
+        })
+      });
+
+      if (res.ok) {
+        setIaActiva(nuevoEstado);
+      }
+    } catch (error) {
+      console.error("Error cambiando estado de la IA:", error);
+    } finally {
+      setLoadingToggle(false);
+    }
+  };
 
   // ESTADOS DE FORMULARIOS Y LÓGICA
   const [nombreAgente, setNombreAgente] = useState('');
@@ -616,8 +648,19 @@ export default function AgentesBotPage() {
                 {iaActiva ? 'La IA está respondiendo y agendando en tiempo real.' : 'IA en pausa. Estás respondiendo manualmente.'}
               </p>
             </div>
-            <button onClick={() => setIaActiva(!iaActiva)} className={`mt-6 flex w-full justify-center gap-2 rounded-xl border px-4 py-3 font-bold transition-all ${iaActiva ? 'border-[#F59E0B]/30 bg-[#F59E0B]/10 text-[#F59E0B] hover:bg-[#F59E0B]/20' : 'border-[#10B981]/30 bg-[#10B981]/10 text-[#10B981] hover:bg-[#10B981]/20'}`}>
-              <Power className="h-4 w-4" /> {iaActiva ? 'Pausar Inteligencia' : 'Reactivar Inteligencia'}
+            
+            {/* 🔥 BOTÓN CONECTADO AL BACKEND CON ESTADO DE CARGA */}
+            <button 
+              onClick={handleToggleAI} 
+              disabled={loadingToggle}
+              className={`mt-6 flex w-full justify-center items-center gap-2 rounded-xl border px-4 py-3 font-bold transition-all ${
+                iaActiva 
+                  ? 'border-[#F59E0B]/30 bg-[#F59E0B]/10 text-[#F59E0B] hover:bg-[#F59E0B]/20' 
+                  : 'border-[#10B981]/30 bg-[#10B981]/10 text-[#10B981] hover:bg-[#10B981]/20'
+              } disabled:opacity-50`}
+            >
+              {loadingToggle ? <Loader2 className="h-5 w-5 animate-spin" /> : <Power className="h-5 w-5" />}
+              {loadingToggle ? 'Procesando...' : (iaActiva ? 'Pausar Inteligencia' : 'Reactivar Inteligencia')}
             </button>
           </div>
 
@@ -653,9 +696,23 @@ export default function AgentesBotPage() {
               )}
             </div>
 
-            <button onClick={handleActivarWhatsApp} className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#1E293B] px-4 py-3 text-sm font-semibold text-[#F5F7FA] hover:bg-[#2A3B4C] transition-all">
-              <Rocket className="h-4 w-4" /> Configurar WhatsApp
-            </button>
+            {/* 🔥 BOTONES DIVIDIDOS: CONFIGURAR Y BUZÓN OMNICANAL */}
+            <div className="flex gap-4 mt-6">
+              <button 
+                onClick={handleActivarWhatsApp} 
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#1E293B] border border-[#1E293B] px-4 py-3 text-sm font-semibold text-[#F5F7FA] hover:bg-[#2A3B4C] hover:border-[#8994A6]/30 transition-all"
+              >
+                <Rocket className="h-4 w-4 shrink-0" /> <span className="hidden sm:inline">Configurar</span>
+              </button>
+              
+              {/* ESTE ES EL BOTÓN AL NUEVO CHAT EN VIVO */}
+              <button 
+                onClick={() => router.push('/dashboard/inbox')} 
+                className="flex flex-[1.5] items-center justify-center gap-2 rounded-xl bg-[#19C8E8] px-4 py-3 text-sm font-bold text-[#07090C] hover:bg-[#33DDFF] transition-all shadow-[0_0_15px_rgba(25,200,232,0.3)] hover:shadow-[0_0_25px_rgba(25,200,232,0.5)]"
+              >
+                <MessageCircleMore className="h-5 w-5 shrink-0" /> Chat en Vivo
+              </button>
+            </div>
           </div>
         </div>
 

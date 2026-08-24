@@ -19,7 +19,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
     }
 
-    // 🔥 CORRECCIÓN: Buscamos la tienda sin el "orderBy" que rompía TypeScript
+    // Buscamos la tienda sin el "orderBy" que rompía TypeScript
     const tienda = await prisma.tienda.findFirst({
       where: { userId: user.id }
     });
@@ -28,11 +28,14 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Tienda no encontrada' }, { status: 404 });
     }
 
+    // 🔥 Retornamos los datos inyectando la nueva memoria del panel
     return NextResponse.json({
       tiendaId: tienda.id,
       isWhatsAppActive: tienda.isWhatsAppActive,
       metaPhoneNumberId: tienda.metaPhoneNumberId,
-      telefono: tienda.metaPhoneNumberId, 
+      telefono: tienda.telefono || tienda.metaPhoneNumberId, // Tomamos el teléfono real de la base de datos
+      isAiActive: tienda.isAiActive,         // 🤖 Controla si el botón de pausa arranca verde o naranja
+      whatsappStatus: tienda.whatsappStatus, // 🟢 Controla el letrero de "WhatsApp Conectado"
       leads: 0, 
       citas: 0,
       horasAhorradas: 0,

@@ -76,20 +76,23 @@ model Tienda {
   metaWabaId          String?  
   metaAccessToken     String?  @db.Text
   isWhatsAppActive    Boolean  @default(false)
+  whatsappStatus      String   @default("PENDING") // 🟢 Para el letrero verde inteligente del frontend
+  isAiActive          Boolean  @default(true)      // 🛑 Botón del panel: true = IA responde, false = Humano responde
 
   // 🎙️ CAMPOS VAPI (Agentes de Voz)
   vapiAssistantId     String?  
   vapiPhoneNumber     String?  
   isVapiActive        Boolean  @default(false)
 
-  // 📅 INTEGRACIÓN GOOGLE CALENDAR (NUEVO)
+  // 📅 INTEGRACIÓN GOOGLE CALENDAR
   googleRefreshToken  String?  @db.Text
   googleCalendarId    String?  @default("primary")
   
-  user                User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   productos           Producto[]
   llamadas            LlamadaLog[]
   leads               Lead[]
+  conversations       Conversation[] // 💬 Relación con el buzón omnicanal
 }
 
 model Producto {
@@ -120,20 +123,54 @@ model LlamadaLog {
 
   tienda            Tienda   @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
 }
+
 // ==========================================
 // 4. MÓDULO CRM (LEADS Y PACIENTES)
 // ==========================================
 
 model Lead {
-  id             String   @id @default(cuid())
-  tiendaId       String
-  nombre         String
-  documento      String?  // Cédula, NIT o Pasaporte
-  motivo         String?  @db.Text // El resumen de la consulta o intención
-  origen         String   @default("Voz (Vapi)") // Voz, WhatsApp, Web, etc.
-  estado         String   @default("Nuevo") // Nuevo, Contactado, Cita_Agendada
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id          String   @id @default(cuid())
+  tiendaId    String
+  nombre      String
+  documento   String?  // Cédula, NIT o Pasaporte
+  motivo      String?  @db.Text // El resumen de la consulta o intención
+  origen      String   @default("Voz (Vapi)") // Voz, WhatsApp, Web, etc.
+  estado      String   @default("Nuevo") // Nuevo, Contactado, Cita_Agendada
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  tienda         Tienda   @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  tienda      Tienda   @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// 5. BUZÓN OMNICANAL Y MÉTRICAS META (CHAT EN VIVO)
+// ==========================================
+
+model Conversation {
+  id            String    @id @default(cuid())
+  tiendaId      String
+  clientPhone   String    // El número de WhatsApp del cliente
+  clientName    String?   // Nombre del cliente
+  status        String    @default("active") // "active", "resolved" (SLA)
+  metaCategory  String?   // "service", "utility", "marketing" (Métricas de cobro Meta)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  tienda        Tienda    @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  messages      Message[]
+
+  // Un cliente solo debería tener una conversación activa por tienda a la vez
+  @@unique([tiendaId, clientPhone])
+}
+
+model Message {
+  id              String    @id @default(cuid())
+  conversationId  String
+  metaMessageId   String?   @unique // ID real de Meta para cruzar los estados (entregado/leído)
+  senderRole      String    // Quién envió: "USER" (cliente), "AI" (Sofía), o "HUMAN" (Tú)
+  content         String    @db.Text
+  status          String    @default("sent") // "sent", "delivered", "read", "failed" (Check azul)
+  createdAt       DateTime  @default(now())
+
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 }

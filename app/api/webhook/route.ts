@@ -11,27 +11,22 @@ const INWORKER_PHONE_ID = '1334640129724588'; // 🚀 EL NUEVO NÚMERO DE INWORK
 // 🧠 INICIALIZACIÓN DE MOTORES DE CASCADA 
 // ==========================================
 
-// 1. Groq (Ahora es el Plan A - Rápido y límite alto)
 const groqClient = process.env.GROQ_API_KEY 
   ? new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' }) 
   : null;
 
-// 2. SambaNova (El nuevo Plan B - Velocidad Extrema)
 const sambanovaClient = process.env.SAMBANOVA_API_KEY 
   ? new OpenAI({ apiKey: process.env.SAMBANOVA_API_KEY, baseURL: 'https://api.sambanova.ai/v1' }) 
   : null;
 
-// 3. Mistral (Plan C)
 const mistralClient = process.env.MISTRAL_API_KEY 
   ? new OpenAI({ apiKey: process.env.MISTRAL_API_KEY, baseURL: 'https://api.mistral.ai/v1' }) 
   : null;
 
-// 4. OpenRouter (Plan D)
 const openRouterClient = process.env.OPENROUTER_API_KEY 
   ? new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY, baseURL: 'https://openrouter.ai/api/v1' }) 
   : null;
 
-// 5. Gemini Premium (EL ESCUDO FINAL)
 const geminiPremiumApiKey = process.env.GEMINI_PREMIUM_API_KEY || process.env.GEMINI_API_KEY;
 const geminiGenAI = geminiPremiumApiKey ? new GoogleGenerativeAI(geminiPremiumApiKey) : null;
 
@@ -127,7 +122,6 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
     let systemPromptText = "";
     const isVip = (phoneId === UPWAY_PHONE_ID || phoneId === INWORKER_PHONE_ID);
 
-    // 1. ARMADO DEL PROMPT (VIP vs CLIENTE)
     if (isVip) {
         console.log(`👑 Canal VIP (${phoneId}). Preparando IA...`);
         const promptPorDefecto = `Rol: Eres Sophie, la asistente virtual y cerradora de ventas estrella de Upway. Tu tono es persuasivo, tecnológico, amigable y muy directo. Tus respuestas deben ser cortas (ideales para WhatsApp) y usar emojis.
@@ -166,7 +160,6 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
         systemPromptText = `${promptCliente}\n\n=== BASE DE DATOS (SISTEMA RAG) ===\n${contextoInventario}\nRegla RAG: Basa tus respuestas de inventario SOLO en la información de la base de datos entregada arriba.`;
     }
 
-    // 2. EJECUCIÓN DE LA CASCADA UNIFICADA
     const formattedMessages = [
         { role: 'system' as const, content: systemPromptText },
         { role: 'user' as const, content: textoCliente }
@@ -192,7 +185,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
             timeout: 3500,
             execute: async () => {
                 const completion = await sambanovaClient!.chat.completions.create({
-                    model: 'Meta-Llama-3.1-8B-Instruct', // Modelo oficial súper rápido de SambaNova
+                    model: 'Meta-Llama-3.1-8B-Instruct',
                     messages: formattedMessages,
                     temperature: 0.3,
                 });
@@ -265,7 +258,8 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
 // ==========================================
 // 📱 CONEXIÓN CON META (WHATSAPP)
 // ==========================================
-async function enviarMensajePorWhatsApp(destinoTelefono: string, mensaje: string, phoneId: string, dynamicToken: string) {
+// 🔥 MODIFICADO: Ahora devuelve el ID del mensaje que genera Meta
+async function enviarMensajePorWhatsApp(destinoTelefono: string, mensaje: string, phoneId: string, dynamicToken: string): Promise<string | null> {
   if (!dynamicToken || !phoneId) throw new Error('Credenciales de WhatsApp no configuradas para esta tienda.');
 
   const url = `https://graph.facebook.com/v20.0/${phoneId}/messages`;
@@ -290,8 +284,12 @@ async function enviarMensajePorWhatsApp(destinoTelefono: string, mensaje: string
     }
     
     console.log(`✅ Mensaje enviado exitosamente a ${destinoTelefono}`);
+    
+    // Devolvemos el ID generado por Meta para guardarlo en la base de datos
+    return data.messages?.[0]?.id || null;
   } catch (error) {
     console.error('❌ Error enviando a Meta:', error);
+    return null;
   }
 }
 
@@ -310,45 +308,118 @@ export async function POST(req: Request) {
     if (body?.object === 'whatsapp_business_account') {
       for (const entry of body.entry || []) {
         for (const change of entry.changes || []) {
-          if (change.field === 'messages') {
-            const value = change.value;
-            if (value?.messages?.length) {
-              const mensajeEntrante = value.messages[0];
-              const userPhone = mensajeEntrante.from;
-              const textoCliente = mensajeEntrante.text?.body ?? '';
-              const phoneIdDestino = value.metadata?.phone_number_id || ""; 
+          const value = change.value;
 
-              const response = new NextResponse(null, { status: 200 });
-
-              void (async () => {
-                try {
-                  let tiendaRecord = null;
-                  let dynamicToken = process.env.WHATSAPP_TOKEN || ""; 
-
-                  // 🚀 SOLO EXCLUIMOS A UPWAY. INWORKER SE BUSCA EN LA DB
-                  if (phoneIdDestino !== UPWAY_PHONE_ID) {
-                    tiendaRecord = await prisma.tienda.findFirst({
-                      where: { metaPhoneNumberId: phoneIdDestino },
-                      include: { productos: true } 
-                    });
-
-                    if (!tiendaRecord) {
-                      console.warn(`⚠️ Mensaje ignorado: No hay tienda vinculada al número ${phoneIdDestino}`);
-                      return; 
-                    }
-                    dynamicToken = tiendaRecord.metaAccessToken || "";
-                  }
-
-                  const respuesta = await generarRespuesta(textoCliente, phoneIdDestino, tiendaRecord);
-                  await enviarMensajePorWhatsApp(userPhone, respuesta, phoneIdDestino, dynamicToken);
-                  
-                } catch (error) {
-                  console.error('Fallo general en la respuesta del bot.', error);
-                }
-              })();
-
-              return response;
+          // ====================================================
+          // 📡 PARTE 1: CAPTURAR EL "DOBLE CHECK AZUL" (STATUSES)
+          // ====================================================
+          if (value?.statuses?.length) {
+            for (const statusObj of value.statuses) {
+              const metaMessageId = statusObj.id;
+              const currentStatus = statusObj.status; // 'sent', 'delivered', 'read', 'failed'
+              
+              // Actualizamos el estado del mensaje en silencio
+              try {
+                await prisma.message.update({
+                  where: { metaMessageId: metaMessageId },
+                  data: { status: currentStatus }
+                });
+              } catch (e) {
+                // Si el mensaje no existe en la DB (ej. un mensaje viejo), ignoramos el error
+              }
             }
+          }
+
+          // ====================================================
+          // 💬 PARTE 2: CAPTURAR Y RESPONDER MENSAJES ENTRANTES
+          // ====================================================
+          if (value?.messages?.length) {
+            const mensajeEntrante = value.messages[0];
+            const userPhone = mensajeEntrante.from;
+            const textoCliente = mensajeEntrante.text?.body ?? '';
+            const phoneIdDestino = value.metadata?.phone_number_id || ""; 
+            const msgIdEntrante = mensajeEntrante.id;
+            const userName = value.contacts?.[0]?.profile?.name || 'Cliente';
+
+            const response = new NextResponse(null, { status: 200 });
+
+            // Ejecutamos en segundo plano para no bloquear a Meta
+            void (async () => {
+              try {
+                let tiendaRecord = null;
+                let dynamicToken = process.env.WHATSAPP_TOKEN || ""; 
+                let conversationId: string | null = null;
+
+                // 🚀 Búsqueda de Tienda y Memoria CRM
+                if (phoneIdDestino !== UPWAY_PHONE_ID) {
+                  tiendaRecord = await prisma.tienda.findFirst({
+                    where: { metaPhoneNumberId: phoneIdDestino },
+                    include: { productos: true } 
+                  });
+
+                  if (!tiendaRecord) {
+                    console.warn(`⚠️ Mensaje ignorado: No hay tienda vinculada al número ${phoneIdDestino}`);
+                    return; 
+                  }
+                  dynamicToken = tiendaRecord.metaAccessToken || "";
+
+                  // 🗄️ GUARDAMOS LA CONVERSACIÓN Y EL MENSAJE DEL CLIENTE
+                  const conversation = await prisma.conversation.upsert({
+                    where: {
+                      tiendaId_clientPhone: { tiendaId: tiendaRecord.id, clientPhone: userPhone }
+                    },
+                    update: { updatedAt: new Date(), clientName: userName },
+                    create: {
+                      tiendaId: tiendaRecord.id,
+                      clientPhone: userPhone,
+                      clientName: userName
+                    }
+                  });
+                  
+                  conversationId = conversation.id;
+
+                  await prisma.message.create({
+                    data: {
+                      conversationId: conversation.id,
+                      metaMessageId: msgIdEntrante,
+                      senderRole: 'USER',
+                      content: textoCliente,
+                      status: 'delivered' // Lo asumimos entregado porque ya llegó al bot
+                    }
+                  });
+
+                  // 🛑 BOTÓN DE PAUSA: Si está en falso, nos callamos y cortamos la ejecución.
+                  if (!tiendaRecord.isAiActive) {
+                    console.log(`🛑 [MODO HUMANO ACTIVO] Mensaje de ${userPhone} guardado en Inbox. IA silenciada.`);
+                    return; 
+                  }
+                }
+
+                // 🤖 GENERACIÓN DE IA (SI ESTÁ ACTIVA)
+                const respuesta = await generarRespuesta(textoCliente, phoneIdDestino, tiendaRecord);
+                
+                // 📤 ENVÍO A META Y OBTENCIÓN DEL ID
+                const outMessageId = await enviarMensajePorWhatsApp(userPhone, respuesta, phoneIdDestino, dynamicToken);
+                
+                // 🗄️ GUARDAMOS LA RESPUESTA DE LA IA
+                if (conversationId && outMessageId) {
+                  await prisma.message.create({
+                    data: {
+                      conversationId: conversationId,
+                      metaMessageId: outMessageId,
+                      senderRole: 'AI',
+                      content: respuesta,
+                      status: 'sent'
+                    }
+                  });
+                }
+                
+              } catch (error) {
+                console.error('Fallo general en la respuesta del bot.', error);
+              }
+            })();
+
+            return response;
           }
         }
       }
