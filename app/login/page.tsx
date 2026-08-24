@@ -36,7 +36,8 @@ export default function LoginPage() {
         setError('Credenciales incorrectas. Verifica tu correo y contraseña.');
         setCargando(false);
       } else if (result?.ok) {
-        router.push('/dashboard/onboarding/lienzo');
+        // 🔥 CAMBIO CLAVE: Redirigimos a la compuerta inteligente en lugar del lienzo forzado
+        router.push('/dashboard');
       }
     } catch (err) {
       console.error('Error en login:', err);
@@ -123,7 +124,8 @@ export default function LoginPage() {
           {/* Botón de Google OAuth */}
           <button
             type="button"
-            onClick={() => signIn("google", { callbackUrl: "/dashboard/onboarding/lienzo" })}
+            // 🔥 CAMBIO CLAVE: Apuntamos a la compuerta /dashboard en lugar del lienzo directo
+            onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
             className="w-full flex items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 py-4 text-sm font-semibold text-white transition-all hover:bg-white/10 hover:border-white/20 shadow-lg"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -134,7 +136,7 @@ export default function LoginPage() {
             </svg>
             Continuar con Google
           </button>
-        </form> {/* 🔥 AQUÍ CERRAMOS EL FORMULARIO CORRECTAMENTE 🔥 */}
+        </form>
 
         <div className="mt-8 text-center">
           <p className="text-sm text-slate-500">
