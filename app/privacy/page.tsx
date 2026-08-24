@@ -32,7 +32,7 @@ export default function PrivacyPolicyPage() {
                 Política de Privacidad
               </h1>
               <p className="text-sm text-slate-400">
-                Upway Business (BARAKAH TECH HUB S.A.S.) — Última actualización: 17 de agosto de 2026
+                Upway Business (BARAKAH TECH HUB S.A.S.) — Última actualización: 23 de agosto de 2026
               </p>
             </div>
           </div>
@@ -74,7 +74,7 @@ export default function PrivacyPolicyPage() {
               </ul>
             </section>
 
-            {/* 🚀 INYECCIÓN OBLIGATORIA DE GOOGLE */}
+            {/* 🚀 INYECCIÓN OBLIGATORIA DE GOOGLE ACTUALIZADA */}
             <section className="space-y-3 bg-blue-950/30 p-6 rounded-2xl border border-blue-500/20">
               <h2 className="text-xl font-semibold text-white">3. Integración con Google Calendar y APIs de Google</h2>
               <p>
@@ -82,6 +82,12 @@ export default function PrivacyPolicyPage() {
               </p>
               <p className="text-slate-400 mt-2">
                 Específicamente, solicitamos acceso a tu Google Calendar únicamente para permitir que el Empleado Digital (IA) agende, modifique o consulte disponibilidad de citas a petición tuya o de tus clientes. No utilizamos los datos de tu calendario para entrenar modelos de Inteligencia Artificial Generativa ni vendemos esta información a terceros.
+              </p>
+              <p className="text-slate-400 mt-2">
+                Nuestros servicios protegen los datos sensibles mediante cifrado en tránsito (HTTPS) y en reposo. Asimismo, confirmamos que no transferimos datos de Workspace a proveedores de IA de terceros para el entrenamiento de modelos generalizados.
+              </p>
+              <p className="text-xs text-slate-500 mt-4 italic border-t border-blue-500/20 pt-4">
+                (Compliance Statement: The use of raw or derived user data received from Workspace APIs will adhere to the Google User Data Policy, including the Limited Use requirements. Google Workspace APIs are not used to develop, improve, or train generalized AI and/or ML models).
               </p>
             </section>
 
