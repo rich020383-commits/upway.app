@@ -42,27 +42,27 @@ async function crearEventoCalendario(asunto: string, fechaInicio: string, fechaF
 // 🧠 INICIALIZACIÓN DE MOTORES DE CASCADA 
 // ==========================================
 
-// 1. DeepSeek (Plan A - Free Tier Fuerte)
+// 1. DeepSeek (Plan A)
 const deepseekClient = process.env.DEEPSEEK_API_KEY 
   ? new OpenAI({ apiKey: process.env.DEEPSEEK_API_KEY, baseURL: 'https://api.deepseek.com/v1' }) 
   : null;
 
-// 2. Groq (Plan B - Free Tier Veloz)
+// 2. Groq (Plan B)
 const groqClient = process.env.GROQ_API_KEY 
   ? new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' }) 
   : null;
 
-// 3. Mistral (Plan C - Free Tier)
+// 3. Mistral (Plan C)
 const mistralClient = process.env.MISTRAL_API_KEY 
   ? new OpenAI({ apiKey: process.env.MISTRAL_API_KEY, baseURL: 'https://api.mistral.ai/v1' }) 
   : null;
 
-// 4. OpenRouter (Plan D - Free Tier)
+// 4. OpenRouter (Plan D)
 const openRouterClient = process.env.OPENROUTER_API_KEY 
   ? new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY, baseURL: 'https://openrouter.ai/api/v1' }) 
   : null;
 
-// 5. Gemini Premium (EL ESCUDO FINAL - Paid Tier)
+// 5. Gemini Premium (EL ESCUDO FINAL)
 const geminiPremiumApiKey = process.env.GEMINI_PREMIUM_API_KEY;
 const geminiGenAI = geminiPremiumApiKey ? new GenerativeAI.GoogleGenerativeAI(geminiPremiumApiKey) : null;
 
@@ -71,6 +71,7 @@ const geminiGenAI = geminiPremiumApiKey ? new GenerativeAI.GoogleGenerativeAI(ge
 // ==========================================
 const ALERT_WEBHOOK_URL = process.env.ALERT_WEBHOOK_URL;
 const AUDIO_TRANSCRIPTION_TIMEOUT_MS = 5000;
+// ⏳ Para el simulador web usamos 8 segundos generales porque el navegador aguanta más que WhatsApp
 const PROVIDER_TIMEOUT_MS = 8000; 
 
 const sendMonitorAlert = async (message: string) => {
@@ -205,7 +206,7 @@ function buscarEnInventarioLocal(mensaje: string, todosLosProductos: InventoryIt
 }
 
 // ==========================================
-// 🚀 ENDPOINT PRINCIPAL (POST)
+// 🚀 ENDPOINT PRINCIPAL (POST) - SIMULADOR
 // ==========================================
 export async function POST(req: NextRequest) {
   try {
@@ -302,16 +303,15 @@ export async function POST(req: NextRequest) {
     }];
 
     // ==========================================
-    // 🛡️ 3. LA CASCADA INQUEBRANTABLE 
-    // Orden estricto: Capas Gratuitas Primero -> Escudo Premium al final
+    // 🛡️ 3. LA CASCADA INQUEBRANTABLE (SIMULADOR)
     // ==========================================
     const providers = [
       {
-        name: 'DeepSeek 🧠 (Plan A - Free Tier)',
+        name: 'DeepSeek 🧠 (Plan A)',
         enabled: !!deepseekClient,
         execute: async () => {
           const completion = await deepseekClient!.chat.completions.create({
-            model: 'deepseek-chat',
+            model: 'deepseek-v4-flash', // 👈 Actualizado a V4
             messages: formattedMessages,
             temperature: 0.3,
             tools: herramientas_ia,
@@ -331,11 +331,11 @@ export async function POST(req: NextRequest) {
         }
       },
       {
-        name: 'Groq 🚀 (Plan B - Free Tier)',
+        name: 'Groq 🚀 (Plan B)',
         enabled: !!groqClient,
         execute: async () => {
           const completion = await groqClient!.chat.completions.create({
-            model: 'llama-3.1-8b-instant', // Modelo súper rápido y con altos límites gratuitos
+            model: 'openai/gpt-oss-20b', // 👈 Actualizado al modelo super veloz de OSS
             messages: formattedMessages,
             temperature: 0.3,
             tools: herramientas_ia,
@@ -355,11 +355,11 @@ export async function POST(req: NextRequest) {
         }
       },
       {
-        name: 'Mistral 🔥 (Plan C - Free Tier)',
+        name: 'Mistral 🔥 (Plan C)',
         enabled: !!mistralClient,
         execute: async () => {
           const completion = await mistralClient!.chat.completions.create({
-            model: 'mistral-small-latest', // Modelo API actual de Mistral
+            model: 'mistral-small-latest', 
             messages: formattedMessages,
             temperature: 0.3,
             tools: herramientas_ia,
@@ -379,7 +379,7 @@ export async function POST(req: NextRequest) {
         }
       },
       {
-        name: 'OpenRouter 🃏 (Plan D - Free Tier)',
+        name: 'OpenRouter 🃏 (Plan D)',
         enabled: !!openRouterClient,
         execute: async () => {
           const completion = await openRouterClient!.chat.completions.create({
@@ -403,7 +403,7 @@ export async function POST(req: NextRequest) {
         }
       },
       {
-        name: 'Gemini Premium 🛡️ (ESCUDO FINAL DE PAGO)',
+        name: 'Gemini Premium 🛡️ (Escudo Final)',
         enabled: !!geminiGenAI,
         execute: async () => {
           const geminiModel = geminiGenAI!.getGenerativeModel({
@@ -433,7 +433,7 @@ export async function POST(req: NextRequest) {
         }
         botReply = reply;
         usedProvider = provider.name;
-        break; // 👈 Si el proveedor funciona, ROMPE el ciclo y no cobra en los siguientes
+        break; 
       } catch (providerError) {
         const errorMessage = formatProviderError(providerError);
         if (isBillingOrAuthError(providerError)) {
@@ -447,7 +447,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!usedProvider) {
-      console.error('🔴 CRÍTICO: Todos los motores de la cascada fallaron.', lastError);
+      console.error('🔴 CRÍTICO: Todos los motores de la cascada fallaron en el Simulador.', lastError);
       botReply = "⚠️ Error crítico: Los sistemas de IA están experimentando alta demanda. Intenta en un momento.";
       usedProvider = 'Ninguno (Fallo en Cascada Total)';
     }
@@ -455,7 +455,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ respuesta: botReply, provider: usedProvider });
 
   } catch (error) {
-    console.error('Error en el endpoint de mensajería:', error);
+    console.error('Error en el endpoint del simulador:', error);
     return NextResponse.json({ error: 'Fallo al procesar el mensaje' }, { status: 500 });
   }
 }

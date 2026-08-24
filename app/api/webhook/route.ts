@@ -170,9 +170,10 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
         {
             name: 'DeepSeek 🧠 (Plan A)',
             enabled: !!deepseekClient,
+            timeout: 6000, // 👈 6 segundos completos para que DeepSeek piense
             execute: async () => {
                 const completion = await deepseekClient!.chat.completions.create({
-                    model: 'deepseek-chat',
+                    model: 'deepseek-v4-flash', // 👈 Modelo actualizado a la V4
                     messages: formattedMessages,
                     temperature: 0.3,
                 });
@@ -182,9 +183,10 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
         {
             name: 'Groq 🚀 (Plan B)',
             enabled: !!groqClient,
+            timeout: 3500, // 👈 Rápidos 3.5 segundos para el resto
             execute: async () => {
                 const completion = await groqClient!.chat.completions.create({
-                    model: 'llama-3.1-8b-instant',
+                    model: 'openai/gpt-oss-20b', // 👈 ¡El modelo a 1000 Tokens/Segundo!
                     messages: formattedMessages,
                     temperature: 0.3,
                 });
@@ -194,6 +196,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
         {
             name: 'Mistral 🔥 (Plan C)',
             enabled: !!mistralClient,
+            timeout: 3500,
             execute: async () => {
                 const completion = await mistralClient!.chat.completions.create({
                     model: 'mistral-small-latest',
@@ -206,6 +209,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
         {
             name: 'OpenRouter 🃏 (Plan D)',
             enabled: !!openRouterClient,
+            timeout: 3500,
             execute: async () => {
                 const completion = await openRouterClient!.chat.completions.create({
                     model: 'openrouter/free',
@@ -218,6 +222,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
         {
             name: 'Gemini Premium 🛡️ (Escudo Final)',
             enabled: !!geminiGenAI,
+            timeout: 4500,
             execute: async () => {
                 const model = geminiGenAI!.getGenerativeModel({
                     model: 'gemini-2.5-flash',
@@ -234,8 +239,8 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
     for (const provider of providers) {
         if (!provider.enabled) continue;
         try {
-            // Un timeout de 3.5s por proveedor garantiza que Meta no cierre la conexión del webhook
-            const reply = await withTimeout(provider.execute(), 3500, provider.name);
+            // Utilizamos el timeout personalizado de cada proveedor
+            const reply = await withTimeout(provider.execute(), provider.timeout, provider.name);
             if (!reply || !reply.trim()) throw new Error(`${provider.name} devolvió respuesta vacía`);
             
             console.log(`✅ [WEBHOOK] Respondido exitosamente con: ${provider.name}`);
