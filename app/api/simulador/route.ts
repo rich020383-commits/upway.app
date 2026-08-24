@@ -39,24 +39,36 @@ async function crearEventoCalendario(asunto: string, fechaInicio: string, fechaF
 }
 
 // ==========================================
-// 🧠 INICIALIZACIÓN DE MOTORES DE CASCADA (SaaS Upway)
+// 🧠 INICIALIZACIÓN DE MOTORES DE CASCADA 
 // ==========================================
+
+// 1. DeepSeek (Plan A - Free Tier Fuerte)
+const deepseekClient = process.env.DEEPSEEK_API_KEY 
+  ? new OpenAI({ apiKey: process.env.DEEPSEEK_API_KEY, baseURL: 'https://api.deepseek.com/v1' }) 
+  : null;
+
+// 2. Groq (Plan B - Free Tier Veloz)
 const groqClient = process.env.GROQ_API_KEY 
   ? new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' }) 
   : null;
 
+// 3. Mistral (Plan C - Free Tier)
 const mistralClient = process.env.MISTRAL_API_KEY 
   ? new OpenAI({ apiKey: process.env.MISTRAL_API_KEY, baseURL: 'https://api.mistral.ai/v1' }) 
   : null;
 
+// 4. OpenRouter (Plan D - Free Tier)
 const openRouterClient = process.env.OPENROUTER_API_KEY 
   ? new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY, baseURL: 'https://openrouter.ai/api/v1' }) 
   : null;
 
-// El escudo final: Tu Gemini Premium con saldo precargado
+// 5. Gemini Premium (EL ESCUDO FINAL - Paid Tier)
 const geminiPremiumApiKey = process.env.GEMINI_PREMIUM_API_KEY;
 const geminiGenAI = geminiPremiumApiKey ? new GenerativeAI.GoogleGenerativeAI(geminiPremiumApiKey) : null;
 
+// ==========================================
+// ⚙️ CONFIGURACIONES DE ALERTA Y TIMEOUTS
+// ==========================================
 const ALERT_WEBHOOK_URL = process.env.ALERT_WEBHOOK_URL;
 const AUDIO_TRANSCRIPTION_TIMEOUT_MS = 5000;
 const PROVIDER_TIMEOUT_MS = 8000; 
@@ -289,14 +301,41 @@ export async function POST(req: NextRequest) {
       }
     }];
 
-    // 3. LA CASCADA ACTUALIZADA
+    // ==========================================
+    // 🛡️ 3. LA CASCADA INQUEBRANTABLE 
+    // Orden estricto: Capas Gratuitas Primero -> Escudo Premium al final
+    // ==========================================
     const providers = [
       {
-        name: 'Groq 🚀',
+        name: 'DeepSeek 🧠 (Plan A - Free Tier)',
+        enabled: !!deepseekClient,
+        execute: async () => {
+          const completion = await deepseekClient!.chat.completions.create({
+            model: 'deepseek-chat',
+            messages: formattedMessages,
+            temperature: 0.3,
+            tools: herramientas_ia,
+            tool_choice: "auto"
+          });
+          const message = completion.choices[0]?.message;
+          const textoRespuesta = message?.content || '';
+
+          if (message?.tool_calls && message.tool_calls.length > 0) {
+            const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
+            const inicio = args.fechaInicio || args.fecha_inicio;
+            const fin = args.fechaFin || args.fecha_fin;
+            await crearEventoCalendario(args.asunto, inicio, fin);
+            return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
+          }
+          return textoRespuesta;
+        }
+      },
+      {
+        name: 'Groq 🚀 (Plan B - Free Tier)',
         enabled: !!groqClient,
         execute: async () => {
           const completion = await groqClient!.chat.completions.create({
-            model: 'openai/gpt-oss-120b', // Modelo actualizado recomendado por Groq
+            model: 'llama-3.1-8b-instant', // Modelo súper rápido y con altos límites gratuitos
             messages: formattedMessages,
             temperature: 0.3,
             tools: herramientas_ia,
@@ -306,40 +345,21 @@ export async function POST(req: NextRequest) {
           const textoRespuesta = message?.content || '';
 
           if (message?.tool_calls && message.tool_calls.length > 0) {
-            console.log("🛠️ ¡Sophie usó Calendar con Groq de forma nativa!");
             const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
             const inicio = args.fechaInicio || args.fecha_inicio;
             const fin = args.fechaFin || args.fecha_fin;
             await crearEventoCalendario(args.asunto, inicio, fin);
             return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
           }
-
-          if (textoRespuesta.includes('agendar_reunion') && textoRespuesta.includes('{')) {
-            try {
-              const jsonMatch = textoRespuesta.match(/\{[\s\S]*\}/);
-              if (jsonMatch) {
-                const parsed = JSON.parse(jsonMatch[0]);
-                let args = parsed;
-                if (parsed.tool_calls) args = parsed.tool_calls[0].args || (parsed.tool_calls[0].function && parsed.tool_calls[0].function.arguments);
-                if (typeof args === 'string') args = JSON.parse(args);
-                const inicio = args.fechaInicio || args.fecha_inicio;
-                const fin = args.fechaFin || args.fecha_fin;
-                await crearEventoCalendario(args.asunto, inicio, fin);
-                return `¡Listo! Logré agendar tu cita "${args.asunto}". Todo confirmado.`;
-              }
-            } catch (e) {
-              console.log("Fallo al forzar el JSON de Groq:", e);
-            }
-          }
           return textoRespuesta;
         }
       },
       {
-        name: 'Mistral 🔥',
+        name: 'Mistral 🔥 (Plan C - Free Tier)',
         enabled: !!mistralClient,
         execute: async () => {
           const completion = await mistralClient!.chat.completions.create({
-            model: 'ministral-3b-2512',
+            model: 'mistral-small-latest', // Modelo API actual de Mistral
             messages: formattedMessages,
             temperature: 0.3,
             tools: herramientas_ia,
@@ -349,36 +369,17 @@ export async function POST(req: NextRequest) {
           const textoRespuesta = message?.content || '';
 
           if (message?.tool_calls && message.tool_calls.length > 0) {
-            console.log("🛠️ ¡Sophie usó Calendar con Mistral de forma nativa!");
             const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
             const inicio = args.fechaInicio || args.fecha_inicio;
             const fin = args.fechaFin || args.fecha_fin;
             await crearEventoCalendario(args.asunto, inicio, fin);
             return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
           }
-
-          if (textoRespuesta.includes('agendar_reunion') && textoRespuesta.includes('{')) {
-            try {
-              const jsonMatch = textoRespuesta.match(/\{[\s\S]*\}/);
-              if (jsonMatch) {
-                const parsed = JSON.parse(jsonMatch[0]);
-                let args = parsed;
-                if (parsed.tool_calls) args = parsed.tool_calls[0].args || (parsed.tool_calls[0].function && parsed.tool_calls[0].function.arguments);
-                if (typeof args === 'string') args = JSON.parse(args);
-                const inicio = args.fechaInicio || args.fecha_inicio;
-                const fin = args.fechaFin || args.fecha_fin;
-                await crearEventoCalendario(args.asunto, inicio, fin);
-                return `¡Listo! Logré agendar tu cita "${args.asunto}". Todo confirmado.`;
-              }
-            } catch (e) {
-              console.log("Fallo al forzar el JSON de Mistral:", e);
-            }
-          }
           return textoRespuesta;
         }
       },
       {
-        name: 'OpenRouter 🃏 (Free Tier)',
+        name: 'OpenRouter 🃏 (Plan D - Free Tier)',
         enabled: !!openRouterClient,
         execute: async () => {
           const completion = await openRouterClient!.chat.completions.create({
@@ -392,36 +393,17 @@ export async function POST(req: NextRequest) {
           const textoRespuesta = message?.content || '';
 
           if (message?.tool_calls && message.tool_calls.length > 0) {
-            console.log("🛠️ ¡Sophie usó Calendar con OpenRouter de forma nativa!");
             const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
             const inicio = args.fechaInicio || args.fecha_inicio;
             const fin = args.fechaFin || args.fecha_fin;
             await crearEventoCalendario(args.asunto, inicio, fin);
             return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
           }
-
-          if (textoRespuesta.includes('agendar_reunion') && textoRespuesta.includes('{')) {
-            try {
-              const jsonMatch = textoRespuesta.match(/\{[\s\S]*\}/);
-              if (jsonMatch) {
-                const parsed = JSON.parse(jsonMatch[0]);
-                let args = parsed;
-                if (parsed.tool_calls) args = parsed.tool_calls[0].args || (parsed.tool_calls[0].function && parsed.tool_calls[0].function.arguments);
-                if (typeof args === 'string') args = JSON.parse(args);
-                const inicio = args.fechaInicio || args.fecha_inicio;
-                const fin = args.fechaFin || args.fecha_fin;
-                await crearEventoCalendario(args.asunto, inicio, fin);
-                return `¡Listo! Logré agendar tu cita "${args.asunto}". Todo confirmado.`;
-              }
-            } catch (e) {
-              console.log("Fallo al forzar el JSON de OpenRouter:", e);
-            }
-          }
           return textoRespuesta;
         }
       },
       {
-        name: 'Gemini Premium 🛡️ (Escudo Final)',
+        name: 'Gemini Premium 🛡️ (ESCUDO FINAL DE PAGO)',
         enabled: !!geminiGenAI,
         execute: async () => {
           const geminiModel = geminiGenAI!.getGenerativeModel({
@@ -451,7 +433,7 @@ export async function POST(req: NextRequest) {
         }
         botReply = reply;
         usedProvider = provider.name;
-        break;
+        break; // 👈 Si el proveedor funciona, ROMPE el ciclo y no cobra en los siguientes
       } catch (providerError) {
         const errorMessage = formatProviderError(providerError);
         if (isBillingOrAuthError(providerError)) {
@@ -467,13 +449,13 @@ export async function POST(req: NextRequest) {
     if (!usedProvider) {
       console.error('🔴 CRÍTICO: Todos los motores de la cascada fallaron.', lastError);
       botReply = "⚠️ Error crítico: Los sistemas de IA están experimentando alta demanda. Intenta en un momento.";
-      usedProvider = 'Ninguno (Fallo en Cascada)';
+      usedProvider = 'Ninguno (Fallo en Cascada Total)';
     }
 
     return NextResponse.json({ respuesta: botReply, provider: usedProvider });
 
   } catch (error) {
-    console.error('Error en el simulador:', error);
-    return NextResponse.json({ error: 'Fallo al procesar la simulación' }, { status: 500 });
+    console.error('Error en el endpoint de mensajería:', error);
+    return NextResponse.json({ error: 'Fallo al procesar el mensaje' }, { status: 500 });
   }
 }
