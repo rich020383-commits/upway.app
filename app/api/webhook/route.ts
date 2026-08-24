@@ -10,22 +10,28 @@ const INWORKER_PHONE_ID = '1334640129724588'; // 🚀 EL NUEVO NÚMERO DE INWORK
 // ==========================================
 // 🧠 INICIALIZACIÓN DE MOTORES DE CASCADA 
 // ==========================================
-const deepseekClient = process.env.DEEPSEEK_API_KEY 
-  ? new OpenAI({ apiKey: process.env.DEEPSEEK_API_KEY, baseURL: 'https://api.deepseek.com/v1' }) 
-  : null;
 
+// 1. Groq (Ahora es el Plan A - Rápido y límite alto)
 const groqClient = process.env.GROQ_API_KEY 
   ? new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' }) 
   : null;
 
+// 2. SambaNova (El nuevo Plan B - Velocidad Extrema)
+const sambanovaClient = process.env.SAMBANOVA_API_KEY 
+  ? new OpenAI({ apiKey: process.env.SAMBANOVA_API_KEY, baseURL: 'https://api.sambanova.ai/v1' }) 
+  : null;
+
+// 3. Mistral (Plan C)
 const mistralClient = process.env.MISTRAL_API_KEY 
   ? new OpenAI({ apiKey: process.env.MISTRAL_API_KEY, baseURL: 'https://api.mistral.ai/v1' }) 
   : null;
 
+// 4. OpenRouter (Plan D)
 const openRouterClient = process.env.OPENROUTER_API_KEY 
   ? new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY, baseURL: 'https://openrouter.ai/api/v1' }) 
   : null;
 
+// 5. Gemini Premium (EL ESCUDO FINAL)
 const geminiPremiumApiKey = process.env.GEMINI_PREMIUM_API_KEY || process.env.GEMINI_API_KEY;
 const geminiGenAI = geminiPremiumApiKey ? new GoogleGenerativeAI(geminiPremiumApiKey) : null;
 
@@ -168,12 +174,12 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
 
     const providers = [
         {
-            name: 'DeepSeek 🧠 (Plan A)',
-            enabled: !!deepseekClient,
-            timeout: 6000, // 👈 6 segundos completos para que DeepSeek piense
+            name: 'Groq 🚀 (Plan A)',
+            enabled: !!groqClient,
+            timeout: 3500,
             execute: async () => {
-                const completion = await deepseekClient!.chat.completions.create({
-                    model: 'deepseek-v4-flash', // 👈 Modelo actualizado a la V4
+                const completion = await groqClient!.chat.completions.create({
+                    model: 'openai/gpt-oss-20b',
                     messages: formattedMessages,
                     temperature: 0.3,
                 });
@@ -181,12 +187,12 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
             }
         },
         {
-            name: 'Groq 🚀 (Plan B)',
-            enabled: !!groqClient,
-            timeout: 3500, // 👈 Rápidos 3.5 segundos para el resto
+            name: 'SambaNova ⚡ (Plan B)',
+            enabled: !!sambanovaClient,
+            timeout: 3500,
             execute: async () => {
-                const completion = await groqClient!.chat.completions.create({
-                    model: 'openai/gpt-oss-20b', // 👈 ¡El modelo a 1000 Tokens/Segundo!
+                const completion = await sambanovaClient!.chat.completions.create({
+                    model: 'Meta-Llama-3.1-8B-Instruct', // Modelo oficial súper rápido de SambaNova
                     messages: formattedMessages,
                     temperature: 0.3,
                 });
@@ -239,13 +245,13 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
     for (const provider of providers) {
         if (!provider.enabled) continue;
         try {
-            // Utilizamos el timeout personalizado de cada proveedor
             const reply = await withTimeout(provider.execute(), provider.timeout, provider.name);
             if (!reply || !reply.trim()) throw new Error(`${provider.name} devolvió respuesta vacía`);
             
             console.log(`✅ [WEBHOOK] Respondido exitosamente con: ${provider.name}`);
             return reply;
         } catch (error) {
+            console.warn(`🔴 ERROR EXACTO DE ${provider.name}:`, error); 
             console.warn(`⚠️ [WEBHOOK] ${provider.name} falló. Activando relevo...`);
             await sendProviderAlert(provider.name, error);
             lastError = error;

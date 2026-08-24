@@ -42,14 +42,14 @@ async function crearEventoCalendario(asunto: string, fechaInicio: string, fechaF
 // 🧠 INICIALIZACIÓN DE MOTORES DE CASCADA 
 // ==========================================
 
-// 1. DeepSeek (Plan A)
-const deepseekClient = process.env.DEEPSEEK_API_KEY 
-  ? new OpenAI({ apiKey: process.env.DEEPSEEK_API_KEY, baseURL: 'https://api.deepseek.com/v1' }) 
-  : null;
-
-// 2. Groq (Plan B)
+// 1. Groq (Plan A - 1000 RPM / Velocidad brutal)
 const groqClient = process.env.GROQ_API_KEY 
   ? new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' }) 
+  : null;
+
+// 2. SambaNova (Plan B - Velocidad Extrema)
+const sambanovaClient = process.env.SAMBANOVA_API_KEY 
+  ? new OpenAI({ apiKey: process.env.SAMBANOVA_API_KEY, baseURL: 'https://api.sambanova.ai/v1' }) 
   : null;
 
 // 3. Mistral (Plan C)
@@ -71,7 +71,7 @@ const geminiGenAI = geminiPremiumApiKey ? new GenerativeAI.GoogleGenerativeAI(ge
 // ==========================================
 const ALERT_WEBHOOK_URL = process.env.ALERT_WEBHOOK_URL;
 const AUDIO_TRANSCRIPTION_TIMEOUT_MS = 5000;
-// ⏳ Para el simulador web usamos 8 segundos generales porque el navegador aguanta más que WhatsApp
+// ⏳ Para el simulador web usamos 8 segundos generales porque el navegador web espera más que WhatsApp
 const PROVIDER_TIMEOUT_MS = 8000; 
 
 const sendMonitorAlert = async (message: string) => {
@@ -114,7 +114,7 @@ async function transcribirAudioUsuario(audioUsuario: string) {
   const buffer = Buffer.from(base64Data, 'base64');
 
   const groqApiKey = process.env.GROQ_API_KEY;
-  if (!groqApiKey) throw new Error('Falta GROQ_API_KEY');
+  if (!groqApiKey) throw new Error('Falta GROQ_API_KEY para transcribir');
 
   const blob = new Blob([buffer], { type: 'audio/webm' });
   const formData = new FormData();
@@ -285,6 +285,7 @@ export async function POST(req: NextRequest) {
       { role: 'user', content: textoProcesado }
     ];
 
+    // Herramienta de Calendario
     const herramientas_ia = [{
       type: "function" as const,
       function: {
@@ -307,11 +308,11 @@ export async function POST(req: NextRequest) {
     // ==========================================
     const providers = [
       {
-        name: 'DeepSeek 🧠 (Plan A)',
-        enabled: !!deepseekClient,
+        name: 'Groq 🚀 (Plan A)',
+        enabled: !!groqClient,
         execute: async () => {
-          const completion = await deepseekClient!.chat.completions.create({
-            model: 'deepseek-v4-flash', // 👈 Actualizado a V4
+          const completion = await groqClient!.chat.completions.create({
+            model: 'openai/gpt-oss-20b',
             messages: formattedMessages,
             temperature: 0.3,
             tools: herramientas_ia,
@@ -331,11 +332,11 @@ export async function POST(req: NextRequest) {
         }
       },
       {
-        name: 'Groq 🚀 (Plan B)',
-        enabled: !!groqClient,
+        name: 'SambaNova ⚡ (Plan B)',
+        enabled: !!sambanovaClient,
         execute: async () => {
-          const completion = await groqClient!.chat.completions.create({
-            model: 'openai/gpt-oss-20b', // 👈 Actualizado al modelo super veloz de OSS
+          const completion = await sambanovaClient!.chat.completions.create({
+            model: 'Meta-Llama-3.1-8B-Instruct',
             messages: formattedMessages,
             temperature: 0.3,
             tools: herramientas_ia,
@@ -435,6 +436,9 @@ export async function POST(req: NextRequest) {
         usedProvider = provider.name;
         break; 
       } catch (providerError) {
+        // 👇 El chismoso para saber exactamente qué falla en el simulador
+        console.warn(`🔴 ERROR EXACTO DE ${provider.name}:`, providerError); 
+        
         const errorMessage = formatProviderError(providerError);
         if (isBillingOrAuthError(providerError)) {
           console.warn(`⚠️ ${provider.name} no disponible por error de facturación: ${errorMessage}. Relevo siguiente...`);
