@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai'; 
-import { prisma } from '@/lib/prisma';
 
 const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || 'upway_inworker_seguro_2026';
 const UPWAY_PHONE_ID = '1172769935927318'; // 👑 EL NÚMERO VIP DE UPWAY
@@ -33,16 +33,69 @@ const geminiGenAI = geminiPremiumApiKey ? new GoogleGenerativeAI(geminiPremiumAp
 const ALERT_WEBHOOK_URL = process.env.ALERT_WEBHOOK_URL;
 
 // ==========================================
+// 🎙️ TRANSCRIPCIÓN DE AUDIO (Groq Whisper V3)
+// ==========================================
+async function transcribirAudioWhatsApp(mediaId: string, metaAccessToken: string): Promise<string> {
+  const groqApiKey = process.env.GROQ_API_KEY;
+  if (!groqApiKey) throw new Error('Falta GROQ_API_KEY para transcribir');
+
+  // 1. Obtener la URL temporal de descarga desde la API de Meta
+  const mediaMetaRes = await fetch(`https://graph.facebook.com/v20.0/${mediaId}`, {
+    headers: { Authorization: `Bearer ${metaAccessToken}` }
+  });
+  
+  const mediaMetaData = await mediaMetaRes.json();
+  if (!mediaMetaRes.ok || !mediaMetaData.url) {
+    throw new Error('No se pudo obtener la URL del audio desde Meta');
+  }
+
+  // 2. Descargar el archivo binario del audio usando el token de Meta
+  const audioFileRes = await fetch(mediaMetaData.url, {
+    headers: { Authorization: `Bearer ${metaAccessToken}` }
+  });
+
+  if (!audioFileRes.ok) {
+    throw new Error('Error al descargar el archivo de audio de los servidores de Meta');
+  }
+
+  const arrayBuffer = await audioFileRes.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  // 3. Enviar el buffer a Groq Whisper V3
+  const blob = new Blob([buffer], { type: 'audio/ogg' });
+  const formData = new FormData();
+  formData.append('file', blob, 'whatsapp_audio.ogg');
+  formData.append('model', 'whisper-large-v3');
+  formData.append('language', 'es');
+
+  const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${groqApiKey}` },
+    body: formData
+  });
+
+  const data = await response.json();
+  if (!response.ok || data.error) {
+    throw new Error(data.error?.message || 'Error en transcripción Groq Whisper para WhatsApp');
+  }
+
+  const texto = String(data.text || '');
+  if (!texto.trim()) throw new Error('La transcripción de WhatsApp devolvió texto vacío');
+  
+  return texto;
+}
+
+// ==========================================
 // 🗄️ SISTEMA FAQ Y RAG
 // ==========================================
 const FAQ_CACHE = new Map<string, string>();
 
 const BASIC_FAQ_LOOKUPS: Array<{ pattern: RegExp; reply: string; }> = [
-  { pattern: /\b(hola|buenas|buenos días|buenas tardes|buenas noches|qué tal|hey)\b/i, reply: '¡Hola! 👋 Soy el asistente digital de Upway. ¿Quieres conocer los planes o ver cómo funciona el panel en vivo?' },
-  { pattern: /\b(precio|plan|costo|cuesta|valor)\b/i, reply: 'Nuestros planes van desde $149.900 COP/mes para texto y catálogo básico, hasta $499.900 COP/mes para automación avanzada, audio y reportes. ¿Quieres que te recomiende el mejor según tu negocio?' },
-  { pattern: /\b(direcci[oó]n|d[oó]nde est[aá]|ubicaci[oó]n)\b/i, reply: 'Estamos listos para ayudarte desde nuestro panel de Upway. Para conocer la dirección exacta de la tienda, responde con el nombre del local o el tipo de negocio.' },
-  { pattern: /\b(horario|horarios|abre|abren|atenci[oó]n)\b/i, reply: 'Atendemos por WhatsApp y nuestro asistente virtual está disponible 24/7 para responder tus consultas comerciales.' },
-  { pattern: /\b(demo|probar|ver demo|simular|cómo funciona)\b/i, reply: '¡Claro que sí! La mejor forma de verlo es en acción. Entra a nuestro panel gratis ahora mismo y mira cómo respondería tu agente en tiempo real. [BOTON_REGISTRO]' }
+  { pattern: /\b(hola|buenas|buenos días|buenas tardes|buenas noches|qué tal|hey)\b/i, reply: '¡Hola! 👋 Soy el asistente digital. ¿Quieres conocer los planes o ver cómo funciona el panel en vivo?' },
+  { pattern: /\b(precio|plan|costo|cuesta|valor)\b/i, reply: 'Nuestros planes se adaptan a lo que tu negocio necesita. ¿Quieres que te recomiende el mejor?' },
+  { pattern: /\b(direcci[oó]n|d[oó]nde est[aá]|ubicaci[oó]n)\b/i, reply: 'Para conocer la dirección exacta, responde con el nombre del local o el tipo de servicio.' },
+  { pattern: /\b(horario|horarios|abre|abren|atenci[oó]n)\b/i, reply: 'Nuestro asistente virtual está disponible 24/7 para responder tus consultas comerciales.' },
+  { pattern: /\b(demo|probar|ver demo|simular|cómo funciona)\b/i, reply: '¡Claro que sí! La mejor forma de verlo es en acción. Entra a nuestro panel gratis ahora mismo. [BOTON_REGISTRO]' }
 ];
 
 const sendMonitorAlert = async (message: string) => {
@@ -124,14 +177,9 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
 
     if (isVip) {
         console.log(`👑 Canal VIP (${phoneId}). Preparando IA...`);
-        const promptPorDefecto = `Rol: Eres Sophie, la asistente virtual y cerradora de ventas estrella de Upway. Tu tono es persuasivo, tecnológico, amigable y muy directo. Tus respuestas deben ser cortas (ideales para WhatsApp) y usar emojis.
-        Objetivo Principal: Tu misión es diagnosticar el tamaño del negocio del cliente y recetar el plan exacto que necesitan.
-        Planes y Precios:
-        🔵 PLAN EMPRENDEDOR ($149.900 COP/mes): Atención por texto. Hasta 500 productos.
-        🔵 PLAN NEGOCIO ($299.900 COP/mes) - EL MÁS POPULAR: Capacidad de procesar audios. Toma de pedidos automatizada. 2.000 productos.
-        🟣 PLAN EMPRESA ($499.900 COP/mes): Lectura de PDFs. 10.000 productos.
-        REGLA NINJA: NUNCA ofrezcas agendar llamadas con humanos. Eres un SaaS de autoservicio.
-        CALL TO ACTION: Tu cierre de ventas siempre debe ser invitarlos a crear su cuenta en https://upway.business. Aceptamos Nequi, Bancolombia, Bold o Wompi.`;
+        const promptPorDefecto = `Rol: Eres Sophie, la asistente virtual y cerradora de ventas estrella. Tu tono es persuasivo, tecnológico, amigable y muy directo. Tus respuestas deben ser cortas (ideales para WhatsApp) y usar emojis.
+        Objetivo Principal: Tu misión es diagnosticar el negocio del cliente y guiarlo en su automatización.
+        CALL TO ACTION: Tu cierre de ventas siempre debe ser invitarlos a crear su cuenta en https://upway.business.`;
         
         systemPromptText = tiendaRecord?.systemPrompt || promptPorDefecto;
     } else {
@@ -172,7 +220,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
             timeout: 3500,
             execute: async () => {
                 const completion = await groqClient!.chat.completions.create({
-                    model: 'openai/gpt-oss-20b', // ⬅️ Restaurado a tu versión
+                    model: 'openai/gpt-oss-20b',
                     messages: formattedMessages,
                     temperature: 0.3,
                 });
@@ -224,7 +272,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
             timeout: 4500,
             execute: async () => {
                 const model = geminiGenAI!.getGenerativeModel({
-                    model: 'gemini-2.5-flash', // ⬅️ Restaurado a tu versión
+                    model: 'gemini-2.5-flash',
                     systemInstruction: systemPromptText,
                     generationConfig: { temperature: 0.45, maxOutputTokens: 280 }
                 });
@@ -283,7 +331,6 @@ async function enviarMensajePorWhatsApp(destinoTelefono: string, mensaje: string
     }
     
     console.log(`✅ Mensaje enviado exitosamente a ${destinoTelefono}`);
-    
     return data.messages?.[0]?.id || null;
   } catch (error) {
     console.error('❌ Error enviando a Meta:', error);
@@ -328,15 +375,15 @@ export async function POST(req: Request) {
           }
 
           // ====================================================
-          // 💬 PARTE 2: CAPTURAR Y RESPONDER MENSAJES ENTRANTES
+          // 💬 PARTE 2: CAPTURAR Y RESPONDER MENSAJES ENTRANTES (TEXTO Y AUDIO)
           // ====================================================
           if (value?.messages?.length) {
             const mensajeEntrante = value.messages[0];
             const userPhone = mensajeEntrante.from;
-            const textoCliente = mensajeEntrante.text?.body ?? '';
             const phoneIdDestino = value.metadata?.phone_number_id || ""; 
             const msgIdEntrante = mensajeEntrante.id;
             const userName = value.contacts?.[0]?.profile?.name || 'Cliente';
+            const messageType = mensajeEntrante.type; // 'text' o 'audio'
 
             const response = new NextResponse(null, { status: 200 });
 
@@ -347,7 +394,7 @@ export async function POST(req: Request) {
                 let dynamicToken = process.env.WHATSAPP_TOKEN || ""; 
                 let conversationId: string | null = null;
 
-                // 🚀 Búsqueda de Tienda y Memoria CRM
+                // 🚀 Búsqueda de Tienda y Token
                 if (phoneIdDestino !== UPWAY_PHONE_ID) {
                   tiendaRecord = await prisma.tienda.findFirst({
                     where: { metaPhoneNumberId: phoneIdDestino },
@@ -359,8 +406,38 @@ export async function POST(req: Request) {
                     return; 
                   }
                   dynamicToken = tiendaRecord.metaAccessToken || "";
+                }
 
-                  // 🗄️ GUARDAMOS LA CONVERSACIÓN Y EL MENSAJE DEL CLIENTE
+                // ====================================================
+                // 🎙️ PASO CLAVE: EXTRACCIÓN DE TEXTO O TRANSCRIBIR AUDIO
+                // ====================================================
+                let textoCliente = '';
+
+                if (messageType === 'text') {
+                  textoCliente = mensajeEntrante.text?.body ?? '';
+                } else if (messageType === 'audio') {
+                  const mediaId = mensajeEntrante.audio?.id;
+                  if (mediaId && dynamicToken) {
+                    try {
+                      console.log(`🎤 Nota de voz detectada en WhatsApp. Transcribiendo con Groq Whisper...`);
+                      textoCliente = await transcribirAudioWhatsApp(mediaId, dynamicToken);
+                      console.log(`✅ Audio transcrito con éxito: "${textoCliente}"`);
+                    } catch (audioErr) {
+                      console.error('❌ Error transcribiendo audio de WhatsApp:', audioErr);
+                      textoCliente = "Hola, intenté enviarte una nota de voz pero no logré procesarla bien. ¿Podrías escribirme tu consulta?";
+                    }
+                  } else {
+                    textoCliente = "Recibí tu nota de voz, pero faltan credenciales de audio.";
+                  }
+                } else {
+                  // Si envían imágenes, documentos o stickers
+                  textoCliente = `[El cliente envió un archivo multimedia de tipo: ${messageType}]`;
+                }
+
+                if (!textoCliente.trim()) return;
+
+                // Si es tienda de cliente real, guardamos en CRM
+                if (phoneIdDestino !== UPWAY_PHONE_ID && tiendaRecord) {
                   const conversation = await prisma.conversation.upsert({
                     where: {
                       tiendaId_clientPhone: { tiendaId: tiendaRecord.id, clientPhone: userPhone }
@@ -385,42 +462,39 @@ export async function POST(req: Request) {
                     }
                   });
 
-                  // 🛑 BOTÓN DE PAUSA: Si está en falso, nos callamos y cortamos la ejecución.
+                  // 🛑 BOTÓN DE PAUSA: Si IA está inactiva, silenciamos bot
                   if (!tiendaRecord.isAiActive) {
                     console.log(`🛑 [MODO HUMANO ACTIVO] Mensaje de ${userPhone} guardado en Inbox. IA silenciada.`);
                     return; 
                   }
                 }
 
-                // 🤖 GENERACIÓN DE IA (SI ESTÁ ACTIVA)
+                // 🤖 GENERACIÓN DE IA
                 const respuesta = await generarRespuesta(textoCliente, phoneIdDestino, tiendaRecord);
                 
-                // 🔥==============================================🔥
-                // 🚨 HUMAN HANDOFF INTELIGENTE: PAUSA Y NOTIFICACIÓN
-                // 🔥==============================================🔥
+                // ==============================================
+                // 🚨 HUMAN HANDOFF INTELIGENTE & DINÁMICO
+                // ==============================================
                 if (respuesta.includes('[TRANSFERIR_HUMANO]')) {
                   console.log('🚨 SOLICITUD DE HUMANO DETECTADA. Apagando IA...');
                   
                   if (tiendaRecord && tiendaRecord.id) {
-                    // A. Apagamos a la IA en la base de datos para esta tienda
                     await prisma.tienda.update({
                       where: { id: tiendaRecord.id },
                       data: { isAiActive: false }
                     });
                   }
 
-                  // B. Le avisamos al cliente para darle tranquilidad
                   const msgCliente = "Comprendo perfectamente. Te voy a transferir con uno de nuestros asesores humanos. Por favor, dame un momento.";
                   await enviarMensajePorWhatsApp(userPhone, msgCliente, phoneIdDestino, dynamicToken);
 
-                  // C. 🚨 ALERTA AL CELULAR DE ADMINISTRACIÓN (PON TU NÚMERO AQUÍ)
-                  const numeroAdmin = "573116778098"; // <--- ⚠️ CAMBIA ESTO POR TU CELULAR REAL CON EL CÓDIGO 57 (EJ. 573100000000)
+                  // 🚀 DINÁMICO: Usamos el celular guardado por el admin en su onboarding (o un fallback)
+                  const numeroAdmin = tiendaRecord?.telefonoAdmin || "573116778098"; 
                   const linkPanel = "https://upway.business/dashboard/inbox";
-                  const msgAdmin = `🚨 *ALERTA INWORKER*\n\nEl cliente ${userName || userPhone} requiere asistencia humana.\nLa IA se ha pausado automáticamente.\n\nAtiende el chat aquí:\n${linkPanel}`;
+                  const msgAdmin = `🚨 *ALERTA UPWAY*\n\nEl cliente ${userName || userPhone} requiere asistencia humana.\nLa IA se ha pausado automáticamente.\n\nAtiende el chat aquí:\n${linkPanel}`;
                   
                   await enviarMensajePorWhatsApp(numeroAdmin, msgAdmin, phoneIdDestino, dynamicToken);
 
-                  // D. Guardamos el registro del apagado en el chat
                   if (conversationId) {
                     await prisma.message.create({
                       data: { 
@@ -432,15 +506,12 @@ export async function POST(req: Request) {
                       }
                     });
                   }
-                  
-                  // Detenemos la ejecución para que no envíe '[TRANSFERIR_HUMANO]' a Meta
                   return; 
                 }
                 
-                // 📤 ENVÍO A META Y OBTENCIÓN DEL ID (Si no es transferencia)
+                // 📤 ENVÍO A META
                 const outMessageId = await enviarMensajePorWhatsApp(userPhone, respuesta, phoneIdDestino, dynamicToken);
                 
-                // 🗄️ GUARDAMOS LA RESPUESTA DE LA IA
                 if (conversationId && outMessageId) {
                   await prisma.message.create({
                     data: {

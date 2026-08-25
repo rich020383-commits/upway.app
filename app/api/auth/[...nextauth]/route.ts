@@ -56,7 +56,6 @@ export const authOptions: NextAuthOptions = {
           prompt: "consent",
           access_type: "offline",
           response_type: "code",
-          // 🔥 AQUÍ ESTÁ EL CAMBIO: Solo pedimos perfil y correo, cero calendarios.
           scope: "openid email profile"
         }
       }
@@ -97,15 +96,7 @@ export const authOptions: NextAuthOptions = {
             console.log(`✅ [Google Auth] Tienda retroactiva creada para: ${dbUser.email}`);
           }
 
-          if (account.refresh_token) {
-            await prisma.tienda.updateMany({
-              where: { userId: dbUser.id },
-              data: {
-                googleRefreshToken: account.refresh_token
-              }
-            });
-            console.log("✅ [Google Auth] Token de Google guardado con éxito en NEON");
-          }
+          // 🗑️ (Se eliminó el bloque de googleRefreshToken que causaba el fallo en build)
 
         } catch (error) {
           console.error("🚨 Error al sincronizar usuario de Google en BD:", error);
@@ -130,7 +121,7 @@ export const authOptions: NextAuthOptions = {
           token.id = dbUser ? dbUser.id : user.id;
         }
       } 
-      // 2. 🔥 SALVAVIDAS DE PERSISTENCIA: Si el usuario navega o recarga la página ('user' ya no viene, pero está el email)
+      // 2. 🔥 SALVAVIDAS DE PERSISTENCIA
       else if (token.email && !token.id) {
         if (token.email === 'revisor_meta@upway.business') {
           token.id = 'meta-reviewer';
