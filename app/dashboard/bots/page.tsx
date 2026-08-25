@@ -735,23 +735,23 @@ export default function AgentesBotPage() {
             </Link>
           </div>
 
-          <div className="rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8 hover:border-[#8994A6]/30 transition-all flex flex-col justify-between">
+          {/* TARJETA: AGENDA NATIVA UPWAY */}
+          <div className="rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8 hover:border-[#19C8E8]/30 transition-all flex flex-col justify-between">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-md border border-[#10B981]/30 bg-[#10B981]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-[#10B981] mb-4">
-                <Calendar className="h-3 w-3" /> Calendario
+              <div className="inline-flex items-center gap-2 rounded-md border border-[#19C8E8]/30 bg-[#19C8E8]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-[#19C8E8] mb-4">
+                <Calendar className="h-3 w-3" /> Motor Propietario
               </div>
-              <h2 className="text-xl font-bold text-[#F5F7FA] mb-2">Google Calendar</h2>
-              <p className="text-[#8994A6] text-sm mb-6">Conecta tu agenda bidireccional para que la IA asigne citas validando espacios.</p>
+              <h2 className="text-xl font-bold text-[#F5F7FA] mb-2">Agenda Nativa Upway</h2>
+              <p className="text-[#8994A6] text-sm mb-6">Sistema de agendamiento inteligente integrado directamente con el chat de WhatsApp y tus recordatorios automáticos.</p>
             </div>
-            {calendarConnected ? (
-              <div className="w-full flex justify-center items-center gap-2 rounded-xl bg-[#10B981]/10 border border-[#10B981]/20 py-3 font-semibold text-[#10B981] text-sm">
-                <CheckCircle2 className="h-4 w-4" /> Sincronizado
-              </div>
-            ) : (
-              <button onClick={() => signIn("google")} className="w-full rounded-xl bg-[#F5F7FA] text-[#07090C] py-3 font-bold hover:bg-[#E2E8F0] transition-all text-sm">
-                Sincronizar Agenda
-              </button>
-            )}
+            <div className="w-full flex items-center justify-between pt-4 border-t border-[#1E293B]/60">
+              <span className="text-xs text-[#10B981] font-medium flex items-center gap-1">
+                ● En desarrollo activo
+              </span>
+              <span className="text-xs font-semibold text-[#19C8E8]">
+                Próximamente
+              </span>
+            </div>
           </div>
 
           <div className="rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8 hover:border-[#19C8E8]/30 transition-all flex flex-col justify-between relative overflow-hidden">
