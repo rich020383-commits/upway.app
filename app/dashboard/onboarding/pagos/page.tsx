@@ -13,7 +13,8 @@ export default function Paso06Checkout() {
   const { 
     modulosSeleccionados, 
     nombreAgente,
-    promptMaestro
+    promptMaestro,
+    telefonoAdmin // 🚀 NUEVO: Extraemos el celular del Human Handoff
     // 🔥 Eliminamos resetOnboarding de aquí para que la memoria no se borre
   } = useUpwayStore();
   
@@ -56,6 +57,7 @@ export default function Paso06Checkout() {
           nombreAgente: nombreAgente || 'Asistente IA',
           promptMaestro: promptMaestro || 'Eres un asistente útil.', 
           modulosSeleccionados: modulosSeleccionados,
+          telefonoAdmin: telefonoAdmin || '', // 🚀 NUEVO: Se envía al backend
         })
       });
 

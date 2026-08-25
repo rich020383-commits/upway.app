@@ -5,7 +5,8 @@ const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {
-    const { tienda_id, nombre, reglas } = await req.json();
+    // 🚀 1. Extraemos el telefonoAdmin que nos enviará el frontend
+    const { tienda_id, nombre, reglas, telefonoAdmin } = await req.json();
 
     if (!tienda_id) {
       return NextResponse.json({ error: 'Falta el ID de la tienda' }, { status: 400 });
@@ -17,7 +18,8 @@ export async function POST(req: Request) {
          where: { id: tienda_id },
          data: {
            agentName: nombre,
-           systemPrompt: reglas
+           systemPrompt: reglas,
+           telefonoAdmin: telefonoAdmin // 🚀 2. Lo guardamos en la base de datos
          }
        });
        return NextResponse.json({ success: true, tienda: tiendaActualizada });

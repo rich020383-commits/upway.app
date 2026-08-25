@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import { MessageCircleMore, Headphones, CalendarDays, BarChart3, Sparkles, ArrowRight, Check } from 'lucide-react';
 import { useUpwayStore } from '../../../store/upwayStore'; // Ajusta la ruta si es necesario
 import { useRouter } from 'next/navigation';
+import Link from 'next/link'; // 🚀 IMPORTACIÓN NUEVA
 
 export default function Paso01Infraestructura() {
   const router = useRouter();
@@ -60,8 +61,22 @@ export default function Paso01Infraestructura() {
   const fmt = (n: number) => `$${n.toLocaleString("es-CO")}`;
 
   return (
-    <main className="min-h-screen bg-[#07090C] text-[#F5F7FA] pb-32 font-sans selection:bg-[#19C8E8] selection:text-[#07090C]">
+    // 🚀 OJO AQUÍ: Le agregué "relative" al inicio de las clases
+    <main className="relative min-h-screen bg-[#07090C] text-[#F5F7FA] pb-32 font-sans selection:bg-[#19C8E8] selection:text-[#07090C]">
       
+      {/* 🚀 NUEVO BOTÓN DE SALTAR (Esquina superior derecha) */}
+      <div className="absolute top-6 right-6 sm:top-8 sm:right-10 z-10">
+        <Link 
+          href="/dashboard" 
+          className="text-sm font-semibold text-[#8994A6] hover:text-[#19C8E8] flex items-center gap-2 bg-[#1E293B]/30 hover:bg-[#1E293B] px-5 py-2.5 rounded-xl transition-all duration-300 border border-[#1E293B]/50 hover:border-[#19C8E8]/30"
+        >
+          Ir al Panel
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
+      </div>
+
       {/* Contenedor centralizado */}
       <div className="max-w-4xl mx-auto px-6 pt-12 md:pt-20">
         

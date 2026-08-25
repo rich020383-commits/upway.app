@@ -70,8 +70,9 @@ model Tienda {
   agentName           String?
   systemPrompt        String?  @db.Text
   
-  // 🔥 CAMPOS META WHATSAPP
-  telefono            String?  
+  // 🔥 CAMPOS META WHATSAPP Y HANDOFF
+  telefono            String?  // El número oficial de la empresa en Meta
+  telefonoAdmin       String?  // Celular personal del dueño para Human Handoff
   metaPhoneNumberId   String?  
   metaWabaId          String?  
   metaAccessToken     String?  @db.Text
@@ -84,9 +85,7 @@ model Tienda {
   vapiPhoneNumber     String?  
   isVapiActive        Boolean  @default(false)
 
-  // 📅 INTEGRACIÓN GOOGLE CALENDAR
-  googleRefreshToken  String?  @db.Text
-  googleCalendarId    String?  @default("primary")
+  // 🗑️ (Se eliminaron los campos de Google Calendar por el pivot estratégico)
   
   user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   productos           Producto[]

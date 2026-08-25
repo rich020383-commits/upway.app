@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Store, Mic2, ArrowRight, Terminal, User, Sparkles } from 'lucide-react';
+import { Store, Mic2, ArrowRight, Terminal, User, Sparkles, Phone } from 'lucide-react'; // 🚀 Añadido Phone
 import { useUpwayStore } from '../../../store/upwayStore'; // Ajusta la ruta si es necesario
 import { useRouter } from 'next/navigation';
 
@@ -12,7 +12,8 @@ export default function Paso03Personalizacion() {
     nicho, setNicho, 
     promptMaestro, setPromptMaestro,
     vozSeleccionada, setVozSeleccionada,
-    modulosSeleccionados
+    modulosSeleccionados,
+    telefonoAdmin, setTelefonoAdmin // 🚀 Extraído del Store (asegúrate de tenerlos definidos allá)
   } = useUpwayStore();
 
   const [isMounted, setIsMounted] = useState(false);
@@ -96,6 +97,27 @@ export default function Paso03Personalizacion() {
                     </select>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* 🚀 NUEVA CARD: Configuración de Notificación Human Handoff */}
+            <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-8">
+              <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                <Phone className="text-[#9B5CFF] h-5 w-5" /> Notificaciones de Humano (Handoff)
+              </h3>
+              <p className="text-[#8994A6] text-sm mb-6">
+                Ingresa tu número de WhatsApp personal o corporativo para recibir alertas instantáneas cuando un cliente requiera intervención humana.
+              </p>
+              
+              <div>
+                <label className="block text-sm font-medium text-[#8994A6] mb-2 uppercase tracking-wider text-xs">Celular del Administrador (con código de país)</label>
+                <input 
+                  type="text" 
+                  value={telefonoAdmin || ''} 
+                  onChange={(e) => setTelefonoAdmin(e.target.value)} 
+                  placeholder="Ej. +573001234567" 
+                  className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3.5 text-sm text-[#F5F7FA] placeholder-[#8994A6]/50 outline-none transition-all focus:border-[#9B5CFF] focus:ring-1 focus:ring-[#9B5CFF]" 
+                />
               </div>
             </div>
 

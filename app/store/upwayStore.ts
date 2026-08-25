@@ -24,13 +24,19 @@ interface UpwayState {
   vozSeleccionada: string;
   tonoWhatsapp: { formalidad: number; cercania: number; persuasion: number };
   
+  // 🔥 NUEVO: Teléfono para Notificaciones Human Handoff
+  telefonoAdmin: string; 
+  
   setNombreAgente: (nombre: string) => void;
   setNicho: (nicho: string) => void;
   setPromptMaestro: (prompt: string) => void;
   setVozSeleccionada: (voz: string) => void;
   setTonoWhatsapp: (tono: Partial<UpwayState['tonoWhatsapp']>) => void;
+  
+  // 🔥 NUEVO: Función para actualizar el teléfono
+  setTelefonoAdmin: (telefono: string) => void;
 
-  // 🔥 NUEVO: Función para limpiar todo tras el pago exitoso
+  // Función para limpiar todo tras el pago exitoso
   resetOnboarding: () => void;
 }
 
@@ -45,6 +51,9 @@ export const useUpwayStore = create<UpwayState>((set) => ({
   promptMaestro: '',
   vozSeleccionada: 'femenina_estrella',
   tonoWhatsapp: { formalidad: 50, cercania: 50, persuasion: 50 },
+  
+  // 🔥 NUEVO: Inicia vacío
+  telefonoAdmin: '', 
 
   // Acciones (Las conexiones neuronales)
   setObjetivoPrincipal: (objetivo) => set({ objetivoPrincipal: objetivo }),
@@ -66,8 +75,11 @@ export const useUpwayStore = create<UpwayState>((set) => ({
   setTonoWhatsapp: (tono) => set((state) => ({ 
     tonoWhatsapp: { ...state.tonoWhatsapp, ...tono } 
   })),
+  
+  // 🔥 NUEVO: Acción que guarda el teléfono ingresado
+  setTelefonoAdmin: (telefono) => set({ telefonoAdmin: telefono }), 
 
-  // 🔥 NUEVO: Implementación de la limpieza (Resetea a los valores base)
+  // Implementación de la limpieza (Resetea a los valores base)
   resetOnboarding: () => set({
     objetivoPrincipal: null,
     modulosSeleccionados: [],
@@ -77,5 +89,8 @@ export const useUpwayStore = create<UpwayState>((set) => ({
     promptMaestro: '',
     vozSeleccionada: 'femenina_estrella',
     tonoWhatsapp: { formalidad: 50, cercania: 50, persuasion: 50 },
+    
+    // 🔥 NUEVO: Se limpia también al hacer reset
+    telefonoAdmin: '', 
   }),
 }));

@@ -14,7 +14,8 @@ export async function POST(req: Request) {
       nombreNegocio, 
       nombreAgente, 
       promptMaestro, 
-      modulosSeleccionados, 
+      modulosSeleccionados,
+      telefonoAdmin // 🚀 NUEVO: Atrapamos el número del Human Handoff 
     } = data;
 
     if (!userId || !nombreNegocio || !nombreAgente) {
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
     // Traducción de módulos del carrito a la base de datos
     const hasWhatsApp = Array.isArray(modulosSeleccionados) && modulosSeleccionados.includes('whatsapp');
     const hasVoice = Array.isArray(modulosSeleccionados) && modulosSeleccionados.includes('voz');
-    const hasCalendar = Array.isArray(modulosSeleccionados) && modulosSeleccionados.includes('calendario');
+    // 🗑️ Se eliminó la validación del calendario ya que se retiró del modelo.
 
     // 🔍 Verificamos si ya existe una tienda para este usuario de manera segura
     let nuevaTienda = await prisma.tienda.findFirst({
@@ -60,7 +61,7 @@ export async function POST(req: Request) {
           systemPrompt: promptMaestro,
           isWhatsAppActive: hasWhatsApp,
           isVapiActive: hasVoice,
-          googleCalendarId: hasCalendar ? 'primary' : null,
+          telefonoAdmin: telefonoAdmin || null, // 🚀 NUEVO: Lo guardamos en BD
         }
       });
     } else {
@@ -73,7 +74,7 @@ export async function POST(req: Request) {
           systemPrompt: promptMaestro,
           isWhatsAppActive: hasWhatsApp,
           isVapiActive: hasVoice,
-          googleCalendarId: hasCalendar ? 'primary' : null, 
+          telefonoAdmin: telefonoAdmin || null, // 🚀 NUEVO: Lo guardamos en BD
         }
       });
     }
