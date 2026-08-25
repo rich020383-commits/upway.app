@@ -56,7 +56,8 @@ export const authOptions: NextAuthOptions = {
           prompt: "consent",
           access_type: "offline",
           response_type: "code",
-          scope: "openid email profile https://www.googleapis.com/auth/calendar.events"
+          // 🔥 AQUÍ ESTÁ EL CAMBIO: Solo pedimos perfil y correo, cero calendarios.
+          scope: "openid email profile"
         }
       }
     }),
@@ -103,7 +104,7 @@ export const authOptions: NextAuthOptions = {
                 googleRefreshToken: account.refresh_token
               }
             });
-            console.log("✅ [Google Auth] Token de Calendar guardado con éxito en NEON");
+            console.log("✅ [Google Auth] Token de Google guardado con éxito en NEON");
           }
 
         } catch (error) {
