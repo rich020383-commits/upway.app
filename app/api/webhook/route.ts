@@ -172,7 +172,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
             timeout: 3500,
             execute: async () => {
                 const completion = await groqClient!.chat.completions.create({
-                    model: 'openai/gpt-oss-20b',
+                    model: 'llama3-8b-8192', // Asegúrate de usar un modelo de Groq válido aquí
                     messages: formattedMessages,
                     temperature: 0.3,
                 });
@@ -224,7 +224,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
             timeout: 4500,
             execute: async () => {
                 const model = geminiGenAI!.getGenerativeModel({
-                    model: 'gemini-2.5-flash',
+                    model: 'gemini-1.5-flash',
                     systemInstruction: systemPromptText,
                     generationConfig: { temperature: 0.45, maxOutputTokens: 280 }
                 });
@@ -258,7 +258,6 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
 // ==========================================
 // 📱 CONEXIÓN CON META (WHATSAPP)
 // ==========================================
-// 🔥 MODIFICADO: Ahora devuelve el ID del mensaje que genera Meta
 async function enviarMensajePorWhatsApp(destinoTelefono: string, mensaje: string, phoneId: string, dynamicToken: string): Promise<string | null> {
   if (!dynamicToken || !phoneId) throw new Error('Credenciales de WhatsApp no configuradas para esta tienda.');
 
@@ -285,7 +284,6 @@ async function enviarMensajePorWhatsApp(destinoTelefono: string, mensaje: string
     
     console.log(`✅ Mensaje enviado exitosamente a ${destinoTelefono}`);
     
-    // Devolvemos el ID generado por Meta para guardarlo en la base de datos
     return data.messages?.[0]?.id || null;
   } catch (error) {
     console.error('❌ Error enviando a Meta:', error);
@@ -316,16 +314,15 @@ export async function POST(req: Request) {
           if (value?.statuses?.length) {
             for (const statusObj of value.statuses) {
               const metaMessageId = statusObj.id;
-              const currentStatus = statusObj.status; // 'sent', 'delivered', 'read', 'failed'
+              const currentStatus = statusObj.status; 
               
-              // Actualizamos el estado del mensaje en silencio
               try {
                 await prisma.message.update({
                   where: { metaMessageId: metaMessageId },
                   data: { status: currentStatus }
                 });
               } catch (e) {
-                // Si el mensaje no existe en la DB (ej. un mensaje viejo), ignoramos el error
+                // Ignoramos si el mensaje no existe en la DB
               }
             }
           }
@@ -384,7 +381,7 @@ export async function POST(req: Request) {
                       metaMessageId: msgIdEntrante,
                       senderRole: 'USER',
                       content: textoCliente,
-                      status: 'delivered' // Lo asumimos entregado porque ya llegó al bot
+                      status: 'delivered' 
                     }
                   });
 
@@ -398,7 +395,49 @@ export async function POST(req: Request) {
                 // 🤖 GENERACIÓN DE IA (SI ESTÁ ACTIVA)
                 const respuesta = await generarRespuesta(textoCliente, phoneIdDestino, tiendaRecord);
                 
-                // 📤 ENVÍO A META Y OBTENCIÓN DEL ID
+                // 🔥==============================================🔥
+                // 🚨 HUMAN HANDOFF INTELIGENTE: PAUSA Y NOTIFICACIÓN
+                // 🔥==============================================🔥
+                if (respuesta.includes('[TRANSFERIR_HUMANO]')) {
+                  console.log('🚨 SOLICITUD DE HUMANO DETECTADA. Apagando IA...');
+                  
+                  if (tiendaRecord && tiendaRecord.id) {
+                    // A. Apagamos a la IA en la base de datos para esta tienda
+                    await prisma.tienda.update({
+                      where: { id: tiendaRecord.id },
+                      data: { isAiActive: false }
+                    });
+                  }
+
+                  // B. Le avisamos al cliente para darle tranquilidad
+                  const msgCliente = "Comprendo perfectamente. Te voy a transferir con uno de nuestros asesores humanos. Por favor, dame un momento.";
+                  await enviarMensajePorWhatsApp(userPhone, msgCliente, phoneIdDestino, dynamicToken);
+
+                  // C. 🚨 ALERTA AL CELULAR DE ADMINISTRACIÓN (PON TU NÚMERO AQUÍ)
+                  const numeroAdmin = "573116778098"; // <--- ⚠️ CAMBIA ESTO POR TU CELULAR REAL CON EL CÓDIGO 57 (EJ. 573100000000)
+                  const linkPanel = "https://upway.business/dashboard/inbox";
+                  const msgAdmin = `🚨 *ALERTA INWORKER*\n\nEl cliente ${userName || userPhone} requiere asistencia humana.\nLa IA se ha pausado automáticamente.\n\nAtiende el chat aquí:\n${linkPanel}`;
+                  
+                  await enviarMensajePorWhatsApp(numeroAdmin, msgAdmin, phoneIdDestino, dynamicToken);
+
+                  // D. Guardamos el registro del apagado en el chat
+                  if (conversationId) {
+                    await prisma.message.create({
+                      data: { 
+                        conversationId, 
+                        metaMessageId: "handoff_" + Date.now(), 
+                        senderRole: 'AI', 
+                        content: msgCliente, 
+                        status: 'sent' 
+                      }
+                    });
+                  }
+                  
+                  // Detenemos la ejecución para que no envíe '[TRANSFERIR_HUMANO]' a Meta
+                  return; 
+                }
+                
+                // 📤 ENVÍO A META Y OBTENCIÓN DEL ID (Si no es transferencia)
                 const outMessageId = await enviarMensajePorWhatsApp(userPhone, respuesta, phoneIdDestino, dynamicToken);
                 
                 // 🗄️ GUARDAMOS LA RESPUESTA DE LA IA
