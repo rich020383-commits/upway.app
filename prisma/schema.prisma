@@ -92,6 +92,7 @@ model Tienda {
   llamadas            LlamadaLog[]
   leads               Lead[]
   conversations       Conversation[] // 💬 Relación con el buzón omnicanal
+  citas               Cita[]         // 📅 Relación con la Agenda Nativa Upway
 }
 
 model Producto {
@@ -172,4 +173,23 @@ model Message {
   createdAt       DateTime  @default(now())
 
   conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// 6. AGENDA NATIVA UPWAY (CITAS)
+// ==========================================
+
+model Cita {
+  id              String   @id @default(cuid())
+  tiendaId        String
+  clienteNombre   String
+  clienteTelefono String
+  fechaHora       DateTime
+  estado          String   @default("CONFIRMADA") // CONFIRMADA, CANCELADA, REPROGRAMADA
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tienda          Tienda   @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+
+  @@index([tiendaId])
 }
