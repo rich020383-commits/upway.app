@@ -172,7 +172,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
             timeout: 3500,
             execute: async () => {
                 const completion = await groqClient!.chat.completions.create({
-                    model: 'llama3-8b-8192', // Asegúrate de usar un modelo de Groq válido aquí
+                    model: 'openai/gpt-oss-20b', // ⬅️ Restaurado a tu versión
                     messages: formattedMessages,
                     temperature: 0.3,
                 });
@@ -224,7 +224,7 @@ async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRec
             timeout: 4500,
             execute: async () => {
                 const model = geminiGenAI!.getGenerativeModel({
-                    model: 'gemini-1.5-flash',
+                    model: 'gemini-2.5-flash', // ⬅️ Restaurado a tu versión
                     systemInstruction: systemPromptText,
                     generationConfig: { temperature: 0.45, maxOutputTokens: 280 }
                 });
