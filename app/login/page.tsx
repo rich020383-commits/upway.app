@@ -25,7 +25,6 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      // 🚀 Autenticación unificada con NextAuth (Soporta credenciales y al Revisor de Meta)
       const result = await signIn('credentials', {
         email,
         password,
@@ -36,8 +35,8 @@ export default function LoginPage() {
         setError('Credenciales incorrectas. Verifica tu correo y contraseña.');
         setCargando(false);
       } else if (result?.ok) {
-        // 🔥 CAMBIO CLAVE: Redirigimos a la compuerta inteligente en lugar del lienzo forzado
-        router.push('/dashboard');
+        // 🔒 Ruta segura original al onboarding/lienzo
+        router.push('/dashboard/onboarding/lienzo');
       }
     } catch (err) {
       console.error('Error en login:', err);
@@ -49,12 +48,10 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-[#050508] text-white flex flex-col items-center justify-center relative overflow-hidden font-sans p-6">
       
-      {/* Luces de fondo estilo Upway 2.0 */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-blue-600/10 blur-[150px] rounded-full pointer-events-none"></div>
 
       <div className="w-full max-w-md z-10">
         
-        {/* Cabecera del Login */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center h-16 w-16 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-2xl mb-6 shadow-[0_0_30px_rgba(59,130,246,0.15)]">
             <ShieldCheck size={32} />
@@ -63,7 +60,6 @@ export default function LoginPage() {
           <p className="text-slate-400 text-sm">Ingresa a tu centro de mando inteligente</p>
         </div>
 
-        {/* Formulario */}
         <form onSubmit={handleLogin} className="bg-[#0A0E14]/80 backdrop-blur-xl border border-white/10 p-8 rounded-[32px] shadow-2xl">
           <div className="space-y-5 mb-6">
             <div>
@@ -95,9 +91,8 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Manejo de Errores */}
           {error && (
-            <div className="mb-6 p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-sm font-medium animate-in fade-in zoom-in duration-300">
+            <div className="mb-6 p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-sm font-medium">
               {error}
             </div>
           )}
@@ -105,7 +100,7 @@ export default function LoginPage() {
           <button 
             type="submit"
             disabled={cargando}
-            className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-500 transition-all flex justify-center items-center gap-2 shadow-[0_0_20px_rgba(37,99,235,0.3)] disabled:opacity-50 disabled:hover:bg-blue-600"
+            className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-500 transition-all flex justify-center items-center gap-2 shadow-[0_0_20px_rgba(37,99,235,0.3)] disabled:opacity-50"
           >
             {cargando ? (
               <><Loader2 className="animate-spin h-5 w-5" /> Autenticando...</>
@@ -114,18 +109,15 @@ export default function LoginPage() {
             )}
           </button>
 
-          {/* Separador */}
           <div className="relative flex py-6 items-center">
             <div className="flex-grow border-t border-white/10"></div>
             <span className="flex-shrink mx-4 text-xs text-slate-500 uppercase tracking-widest">o continúa con</span>
             <div className="flex-grow border-t border-white/10"></div>
           </div>
 
-          {/* Botón de Google OAuth */}
           <button
             type="button"
-            // 🔥 CAMBIO CLAVE: Apuntamos a la compuerta /dashboard en lugar del lienzo directo
-            onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+            onClick={() => signIn("google", { callbackUrl: "/dashboard/onboarding/lienzo" })}
             className="w-full flex items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 py-4 text-sm font-semibold text-white transition-all hover:bg-white/10 hover:border-white/20 shadow-lg"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">
