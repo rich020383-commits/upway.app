@@ -108,7 +108,7 @@ export async function POST(req: Request) {
     console.error('❌ Error crítico aprovisionando tienda:', error);
     return NextResponse.json(
       { error: 'Fallo interno al crear la tienda en la base de datos.' },
-      { status: 500 }
+      { status: 500}
     );
   }
 }
