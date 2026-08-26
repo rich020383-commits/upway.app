@@ -57,30 +57,38 @@ export default function Paso06Checkout() {
           nombreAgente: nombreAgente || 'Asistente IA',
           promptMaestro: promptMaestro || 'Eres un asistente útil.', 
           modulosSeleccionados: modulosSeleccionados,
-          telefonoAdmin: telefonoAdmin || '', // 🚀 NUEVO: Se envía al backend
+          telefonoAdmin: telefonoAdmin || '', 
         })
       });
 
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       if (res.ok) {
-        console.log("Infraestructura creada en BD con éxito");
-        // 🔥 MAGIA APLICADA: Ya no borramos la memoria. La página de Activación sabrá que compraste WhatsApp.
+        console.log("✅ Infraestructura creada en BD con éxito");
+        
+        // 🚦 EL CANDADO VOLÓ: Enrutamiento Inteligente
+        if (modulosSeleccionados.includes('whatsapp')) {
+          // Si compró WhatsApp, lo mandamos a escanear el QR de Meta
+          router.push('/dashboard/onboarding/activacion');
+        } else {
+          // Si SOLO compró Voz (o cualquier otra cosa), ¡Vía libre al Centro de Mando!
+          router.push('/dashboard');
+        }
+        
       } else {
         const errorData = await res.json();
-        console.error("Error del servidor:", errorData);
+        console.error("❌ Error del servidor:", errorData);
+        alert("Hubo un error en el despliegue, pero serás redirigido a tu panel.");
+        router.push('/dashboard'); // Ante la duda, los mandamos al panel
       }
 
-      router.push('/dashboard/onboarding/activacion');
-
     } catch (error) {
-      console.error('Error de despliegue:', error);
-      router.push('/dashboard/onboarding/activacion');
+      console.error('❌ Error de despliegue:', error);
+      router.push('/dashboard'); // Evitamos dejarlos atrapados en una pantalla de carga infinita
     } finally {
       setProcesando(false);
     }
-  };
-
+};
   return (
     <main className="min-h-screen bg-[#07090C] text-[#F5F7FA] pb-20 font-sans selection:bg-[#19C8E8] selection:text-[#07090C] flex justify-center items-center">
       
