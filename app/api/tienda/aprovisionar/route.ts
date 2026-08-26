@@ -11,6 +11,7 @@ export async function POST(req: Request) {
     
     const { 
       userId, 
+      email, // 🚀 AÑADIDO: Atrapamos el correo real que viene del Frontend
       nombreNegocio, 
       nombreAgente, 
       promptMaestro, 
@@ -25,7 +26,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const targetEmail = userId === 'meta-reviewer' ? 'revisor_meta@upway.business' : `${userId}@upway.local`;
+    // 🚀 AÑADIDO: Usamos tu correo real primero. Solo si no existe, usamos el de emergencia.
+    const targetEmail = email || (userId === 'meta-reviewer' ? 'revisor_meta@upway.business' : `${userId}@upway.local`);
 
     // 🛡️ BARRERA DEFENSIVA INTELIGENTE: Buscamos por ID o por Email para evitar colisiones P2002
     let userExists = await prisma.user.findFirst({

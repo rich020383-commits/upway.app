@@ -14,8 +14,7 @@ export default function Paso06Checkout() {
     modulosSeleccionados, 
     nombreAgente,
     promptMaestro,
-    telefonoAdmin // 🚀 NUEVO: Extraemos el celular del Human Handoff
-    // 🔥 Eliminamos resetOnboarding de aquí para que la memoria no se borre
+    telefonoAdmin // 🚀 Extraemos el celular del Human Handoff
   } = useUpwayStore();
   
   const [procesando, setProcesando] = useState(false);
@@ -36,9 +35,10 @@ export default function Paso06Checkout() {
 
   const handleSimularPago = async () => {
     // Verificación de seguridad
-    if (status === 'loading') return;
+    if ((status as string) === 'loading') return;
     
     const userIdReal = (session?.user as any)?.id;
+    const userEmailReal = (session?.user as any)?.email; // 🚀 EXTRAEMOS TU CORREO REAL
     
     if (!userIdReal) {
       alert("❌ Error: Sesión no detectada. Por favor, recarga la página o vuelve a iniciar sesión.");
@@ -53,6 +53,7 @@ export default function Paso06Checkout() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: userIdReal,
+          email: userEmailReal, // 🚀 SE LO ENVIAMOS AL BACKEND
           nombreNegocio: "Empresa Cliente", 
           nombreAgente: nombreAgente || 'Asistente IA',
           promptMaestro: promptMaestro || 'Eres un asistente útil.', 
@@ -88,7 +89,8 @@ export default function Paso06Checkout() {
     } finally {
       setProcesando(false);
     }
-};
+  };
+
   return (
     <main className="min-h-screen bg-[#07090C] text-[#F5F7FA] pb-20 font-sans selection:bg-[#19C8E8] selection:text-[#07090C] flex justify-center items-center">
       
@@ -108,7 +110,7 @@ export default function Paso06Checkout() {
             Revisa la configuración final de <strong className="text-[#F5F7FA]">{nombreAgente || 'tu agente'}</strong> y autoriza el aprovisionamiento de infraestructura en nuestros servidores.
           </p>
           <p className="text-[#8994A6] text-xs mt-2">
-            Sesión: {status === 'loading' ? 'Cargando...' : (session?.user as any)?.email || 'No iniciada'}
+            Sesión: {(status as string) === 'loading' ? 'Cargando...' : (session?.user as any)?.email || 'No iniciada'}
           </p>
         </div>
 
@@ -185,7 +187,7 @@ export default function Paso06Checkout() {
 
               <button 
                 onClick={handleSimularPago}
-                disabled={procesando || totalMensual === 0 || status === 'loading'}
+                disabled={procesando || totalMensual === 0 || (status as string) === 'loading'}
                 className={`w-full py-4 rounded-xl font-bold flex justify-center items-center gap-3 transition-all ${
                   procesando 
                     ? 'bg-[#19C8E8]/10 text-[#19C8E8] border border-[#19C8E8]/30 cursor-not-allowed'
