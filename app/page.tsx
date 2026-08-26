@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // 🚀 AÑADIDO: El router para el puente
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
@@ -20,6 +21,15 @@ import LeadModal from "@/components/LeadModal";
 // 🔥 IMPORTACIONES DE IDIOMA
 import { useLanguage } from "@/context/LanguageContext";
 import BotonIdioma from "@/components/BotonIdioma";
+
+// ==========================================
+// ICONO META OFICIAL
+// ==========================================
+const MetaIcon = () => (
+  <svg className="w-5 h-5 shrink-0" viewBox="0 0 512 512" fill="currentColor">
+    <path d="M435.5 174.1c-22-19.1-51.2-26.6-79.8-26.6-43.1 0-81.8 19.3-100.8 52.6-18.7-33-57-52.6-100-52.6-28.7 0-58 7.5-80 26.6-47.5 41.3-43.8 116.5 13.4 153.3 27.6 17.8 61.1 23 93.3 23 48.7 0 88.5-22.3 107.5-43 2.1-2.2 4.2-4.7 6.1-7.2 4.9 8.2 10.9 16 18.2 23 20.2 19.2 48.2 27.2 76.5 27.2 32.2 0 65.7-5.2 93.3-23 57.2-36.8 60.9-112 13.4-153.3zm-308.2 129c-27.1 0-52-8.5-68.5-19.1-33.1-21.3-33-64.4 2-94.8 13.9-12.1 33.7-16.7 54-16.7 32 0 62.5 15.6 77.4 42.4-11.4 14-23.7 30.1-35.8 44.9-10.4-8.8-19.3-13.9-29.2-13.9-15.6 0-25 11.2-25 24 0 13.3 11 25.1 27.1 25.1 11.7 0 23.3-5.2 36-13.9-10.3 13.2-21.3 26.6-32.3 39.3-13.6-11.1-28.8-17.3-45.9-17.3z"/>
+  </svg>
+);
 
 // ==========================================
 // TIPOS Y DATOS DE LOS PLANES (High-Ticket B2B - Multimoneda)
@@ -51,9 +61,6 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-// ==========================================
-// 1. PLANES CON DOBLE MONEDA (COP / USD)
-// ==========================================
 const PLANS: Plan[] = [
   {
     id: "emprendedor",
@@ -127,20 +134,20 @@ const PLANS: Plan[] = [
 ];
 
 // ==========================================
-// 2. FUNCIONES Y FEATURE GATING
+// FUNCIONES Y FEATURE GATING ACTUALIZADOS
 // ==========================================
 const INCLUDED_BASE = [
   "Atención corporativa automatizada 24/7",
-  "Toma de pedidos y ventas inteligente",
-  "Conexión oficial con Catálogo e Inventario",
+  "Infraestructura Meta Oficial (Cero baneos)", // 🚀 Agregado
+  "Conexión directa con Catálogo e Inventario",
   "Soporte técnico inmediato",
   "Reporte de ventas y conversaciones",
 ];
 
 const EXTRA_NEGOCIO = [
+  "Embedded Signup Meta Oficial", // 🚀 Agregado
   "Procesamiento avanzado de Notas de Voz",
   "Lectura de Imágenes y Recibos (PDF)",
-  "Pasarela de Pagos integrada",
   "Cerebro RAG (Memoria unificada)",
 ];
 
@@ -151,19 +158,13 @@ const EXTRA_VOZ = [
   "Transcripción y análisis de llamadas"
 ];
 
-const EXTRA_PRO = [
-  "Todo el poder de Texto y Voz",
-  "Agenda Inteligente (Google Calendar)",
-  "Transferencia a Asesor Humano (Handoff)",
-  "Dashboard de Analítica y Telemetría"
-];
-
 const fmt = (n: number) => `$${n.toLocaleString("es-CO")}`;
 
 // ==========================================
-// COMPONENTE PRINCIPAL (LANDING PAGE)
+// COMPONENTE PRINCIPAL
 // ==========================================
 export default function Home() {
+  const router = useRouter(); // 🚀 El puente al Onboarding
   const { idioma } = useLanguage();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHudOpen, setIsHudOpen] = useState(false); 
@@ -201,33 +202,12 @@ export default function Home() {
     return () => window.removeEventListener("abrir-modal-lead", abrirModal);
   }, []);
 
-  const iniciarPago = async (nombrePlan: string, totalPagar: number) => {
+  // 🚀 NUEVA FUNCIÓN: Enviar al Onboarding en lugar de cobrar en frío
+  const iniciarFlujoOnboarding = async () => {
     setProcesandoPago(true);
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plan: nombrePlan,
-          precio: totalPagar,
-          descripcion: `Suscripción Upway - Plan ${nombrePlan}`
-        })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data?.payment_url) {
-        const message = data?.message || 'Hubo un error al generar el link de pago. Revisa tu backend.';
-        throw new Error(message);
-      }
-
-      window.location.assign(data.payment_url);
-    } catch (error) {
-      console.error("Error:", error);
-      alert("Error de conexión con la pasarela de pagos.");
-    } finally {
-      setProcesandoPago(false);
-    }
+    setTimeout(() => {
+      router.push('/dashboard/onboarding');
+    }, 800);
   };
 
   const getImplLabel = (plan: Plan) => {
@@ -269,9 +249,7 @@ export default function Home() {
         <ParticleBackground />
       </div>
 
-      {/* ========================================== */}
       {/* NAVEGACIÓN SUPERIOR Y MENÚ MÓVIL */}
-      {/* ========================================== */}
       <nav className="fixed w-full top-0 z-[60] border-b border-white/5 bg-black/10 backdrop-blur-md transition-all duration-300">
         <div className="mx-auto flex max-w-[95rem] items-center justify-between px-6 py-4 lg:px-12">
           <a href="#top" className="flex items-center gap-3">
@@ -330,9 +308,7 @@ export default function Home() {
         </AnimatePresence>
       </nav>
 
-      {/* ========================================== */}
       {/* HERO SECTION: SOPHIE V2 */}
-      {/* ========================================== */}
       <section id="top" className="relative h-screen w-full overflow-hidden z-10">
         <video autoPlay loop muted playsInline preload="metadata" className="absolute inset-0 z-0 h-full w-full object-cover scale-[1.02] transform-gpu brightness-[1.15]">
           <source src="/sophie-animada.webm" type="video/webm" />
@@ -387,7 +363,7 @@ export default function Home() {
                 <div className="mt-6 bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl flex items-start gap-3">
                   <Info className="h-5 w-5 text-blue-400 shrink-0 mt-0.5" />
                   <p className="text-xs text-blue-200/80 leading-relaxed font-body">
-                    <strong>{idioma === 'en' ? 'Important note:' : 'Aclaración importante:'}</strong> {idioma === 'en' ? 'Configure a demo digital employee and experience it here on the web. Connection to your real WhatsApp is done only after purchasing a plan.' : 'Configura un empleado digital de demostración y vive la experiencia aquí en la web. La conexión con tu WhatsApp real se realiza únicamente después de contratar un plan.'}
+                    <strong>{idioma === 'en' ? 'Important note:' : 'Aclaración importante:'}</strong> {idioma === 'en' ? 'Configure a demo digital employee and experience it here on the web. Connection to your real WhatsApp is done only after purchasing a plan.' : 'Configura un empleado digital de demostración y vive la experiencia aquí en la web. La conexión oficial y sin riesgos con tu WhatsApp real se realiza en tu panel al contratar un plan.'}
                   </p>
                 </div>
 
@@ -400,9 +376,7 @@ export default function Home() {
         </AnimatePresence>
       </section>
 
-      {/* ========================================== */}
       {/* EL EMPLEADO DIGITAL (VENTAJAS B2B) */}
-      {/* ========================================== */}
       <section id="ventajas" className="relative py-32 bg-[#0A0E14] border-t border-white/5 overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#00D1FF]/5 rounded-full blur-[120px] pointer-events-none"></div>
         
@@ -469,13 +443,13 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="rounded-[32px] border border-white/10 bg-white/[0.02] p-8 hover:bg-white/[0.04] transition-all">
-              <div className="h-14 w-14 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6 border border-blue-500/20">
-                <span className="text-2xl">💬</span>
+            <div className="rounded-[32px] border border-blue-500/20 bg-blue-500/5 p-8 hover:bg-blue-500/10 transition-all shadow-[0_0_20px_rgba(59,130,246,0.05)]">
+              <div className="h-14 w-14 rounded-2xl bg-blue-500/20 flex items-center justify-center mb-6 border border-blue-500/30 text-blue-400">
+                <MetaIcon />
               </div>
-              <h3 className="text-xl font-bold text-white mb-3">{idioma === 'en' ? 'Fluid Conversations' : 'Conversaciones Fluidas'}</h3>
+              <h3 className="text-xl font-bold text-white mb-3">{idioma === 'en' ? '100% Official API' : 'Conexión 100% Oficial'}</h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                {idioma === 'en' ? 'Forget rigid menus and mechanical rules. Your Digital Employee responds naturally via WhatsApp or Web.' : 'Olvídate de los menús rígidos. Tu Empleado Digital responde de forma natural por WhatsApp o Web.'}
+                {idioma === 'en' ? 'Forget about unstable QR codes. We integrate your business via Official Meta Cloud API. Zero ban risk, infinite stability.' : 'Olvídate de los códigos QR inestables. Integramos tu negocio vía Cloud API Oficial de Meta. Cero riesgo de baneo, estabilidad absoluta.'}
               </p>
             </div>
 
@@ -517,9 +491,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ========================================== */}
       {/* SECCIÓN DE PRECIOS Y TRANSPARENCIA (MULTIMONEDA) */}
-      {/* ========================================== */}
       <section id="planes" className="relative z-20 py-24 bg-gradient-to-b from-[#0A0E14] to-[#03050a]">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute -top-[10%] left-[20%] w-[60%] h-[30%] bg-[#00D1FF]/[0.05] blur-[140px] rounded-full" />
@@ -532,34 +504,42 @@ export default function Home() {
             <h2 className="text-4xl md:text-5xl font-display font-bold text-white mb-6 leading-tight">
               {idioma === 'en' ? 'Hire your digital executive starting at $149/mo.' : 'Contrata a tu ejecutivo digital desde $249.900/mes.'}
             </h2>
-            <p className="text-xl text-slate-300 max-w-3xl mx-auto font-medium">
+            <p className="text-xl text-slate-300 max-w-3xl mx-auto font-medium mb-8">
               {idioma === 'en' ? 'Never miss another sale due to unanswered calls or messages.' : 'Nunca más pierdas una venta por una llamada o mensaje no atendido.'}
             </p>
           </div>
 
-          {/* TRANSPARENCIA Y GARANTÍA */}
-          <div className="max-w-5xl mx-auto mb-16 grid md:grid-cols-2 gap-6">
+          {/* 🚀 NUEVA SECCIÓN: TRANSPARENCIA Y GARANTÍA B2B CON META */}
+          <div className="max-w-6xl mx-auto mb-16 grid lg:grid-cols-3 gap-6">
             <div className="bg-white/[0.02] border border-white/10 rounded-3xl p-8 backdrop-blur-sm">
               <h3 className="font-display font-bold text-xl text-white mb-6 flex items-center gap-3">
                 <span className="w-8 h-8 rounded-full bg-[#00D1FF]/10 flex items-center justify-center text-[#00D1FF]">⚖️</span>
-                {idioma === 'en' ? 'Transparency before you hire' : 'Claridad antes de que contrates'}
+                {idioma === 'en' ? 'Clear Expectations' : 'Claridad Absoluta'}
               </h3>
               <div className="space-y-4 font-body text-sm text-slate-300">
-                <div className="flex gap-3"><CheckCircle className="h-5 w-5 text-[#00D1FF] shrink-0" /> <p><strong>{idioma === 'en' ? 'We do:' : 'Hacemos:'}</strong> {idioma === 'en' ? '24/7 automated tech, advanced memory, natural voice, immediate support.' : 'Tecnología que atiende 24/7, memoria avanzada, voz natural, soporte técnico inmediato.'}</p></div>
-                <div className="flex gap-3"><CheckCircle className="h-5 w-5 text-[#00D1FF] shrink-0" /> <p><strong>{idioma === 'en' ? 'We guarantee:' : 'Garantizamos:'}</strong> {idioma === 'en' ? 'You will never lose a client for failing to respond on time.' : 'Que nunca más perderás un cliente por no atenderlo a tiempo.'}</p></div>
+                <div className="flex gap-3"><CheckCircle className="h-5 w-5 text-[#00D1FF] shrink-0" /> <p><strong>{idioma === 'en' ? 'We do:' : 'Hacemos:'}</strong> {idioma === 'en' ? '24/7 automated tech, advanced memory, natural voice.' : 'Atención 24/7, memoria avanzada, voz natural y flujos precisos.'}</p></div>
+                <div className="flex gap-3"><CheckCircle className="h-5 w-5 text-[#00D1FF] shrink-0" /> <p><strong>{idioma === 'en' ? 'We guarantee:' : 'Garantizamos:'}</strong> {idioma === 'en' ? 'You will never lose a client for failing to respond.' : 'Que nunca más perderás un cliente por no atenderlo a tiempo.'}</p></div>
               </div>
             </div>
 
-            <div className="bg-[#00D1FF]/5 border border-[#00D1FF]/20 rounded-3xl p-8 backdrop-blur-sm shadow-[0_0_30px_rgba(0,209,255,0.05)] flex flex-col justify-between">
-              <div>
-                <h3 className="font-display font-bold text-xl text-white mb-4 flex items-center gap-3">
-                  <ShieldCheck className="h-8 w-8 text-[#00D1FF]" />
-                  {idioma === 'en' ? 'Operational Guarantee' : 'Garantía de Funcionamiento'}
-                </h3>
-                <p className="font-body text-[13px] text-slate-300 mb-4 leading-relaxed">
-                  {idioma === 'en' ? 'We guarantee 99.5% uptime infrastructure reliability.' : 'Garantizamos un uptime del 99.5% en nuestra infraestructura.'}
-                </p>
-              </div>
+            <div className="bg-[#00D1FF]/5 border border-[#00D1FF]/20 rounded-3xl p-8 backdrop-blur-sm shadow-[0_0_30px_rgba(0,209,255,0.05)]">
+              <h3 className="font-display font-bold text-xl text-white mb-4 flex items-center gap-3">
+                <ShieldCheck className="h-8 w-8 text-[#00D1FF]" />
+                {idioma === 'en' ? '99.5% Uptime' : 'Garantía 99.5% Uptime'}
+              </h3>
+              <p className="font-body text-[13px] text-slate-300 leading-relaxed mb-4">
+                {idioma === 'en' ? 'Our infrastructure is designed for Enterprise volume. We guarantee your operations never stop.' : 'Nuestra infraestructura está diseñada para volumen corporativo. Garantizamos que tu operación comercial nunca se detendrá.'}
+              </p>
+            </div>
+
+            <div className="bg-blue-600/10 border border-blue-500/30 rounded-3xl p-8 backdrop-blur-sm">
+              <h3 className="font-display font-bold text-xl text-white mb-4 flex items-center gap-3">
+                <div className="text-blue-400 bg-blue-500/20 p-2 rounded-full"><MetaIcon /></div>
+                {idioma === 'en' ? 'Official Meta Partner' : 'Infraestructura Oficial Meta'}
+              </h3>
+              <p className="font-body text-[13px] text-slate-300 leading-relaxed">
+                {idioma === 'en' ? 'No shady QR codes. We connect via WhatsApp Cloud API (Embedded Signup). 100% legal, zero ban risk.' : 'Cero códigos QR piratas. Integramos tu línea vía WhatsApp Cloud API Oficial mediante Embedded Signup. 100% legal, 0% riesgo de baneo.'}
+              </p>
             </div>
           </div>
 
@@ -632,7 +612,10 @@ export default function Home() {
                       <div className="space-y-2">
                         {INCLUDED_BASE.map((feat) => (
                           <div key={feat} className="flex items-center gap-2.5 font-body text-[13px] text-white/70 leading-snug">
-                            <CheckCircle className="w-[16px] h-[16px] text-[#00D1FF] shrink-0" />
+                            {feat.includes('Meta') 
+                              ? <MetaIcon /> // 🚀 Si menciona Meta, ponemos el loguito
+                              : <CheckCircle className="w-[16px] h-[16px] text-[#00D1FF] shrink-0" />
+                            }
                             {idioma === 'en' && feat === 'Soporte técnico inmediato' ? 'Immediate technical support' : feat}
                           </div>
                         ))}
@@ -640,7 +623,9 @@ export default function Home() {
 
                       {(plan.id === "negocio" || plan.id === "pro") && (
                         <div className="mt-5">
-                          <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase mb-2.5 text-[#00D1FF]/90">+ {idioma === 'en' ? 'AI Text' : 'Texto IA'}</div>
+                          <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase mb-2.5 text-[#00D1FF]/90 flex items-center gap-1.5">
+                            <MetaIcon /> + {idioma === 'en' ? 'AI Text (Meta API)' : 'Texto IA (API Meta)'}
+                          </div>
                           <div className="space-y-1.5">
                             {EXTRA_NEGOCIO.map((e) => (
                               <div key={e} className="flex gap-2 font-body text-[12px] text-white/70 leading-snug">
@@ -678,9 +663,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ========================================== */}
       {/* PROCESO Y FOOTER */}
-      {/* ========================================== */}
       <section id="proceso" className="relative border-t border-white/5 bg-[#03050a] overflow-hidden">
         <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-[#00D1FF]/[0.03] rounded-full blur-[120px] pointer-events-none" />
 
@@ -764,16 +747,13 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* STICKY CTA (MÓVIL) */}
       <div className="md:hidden fixed bottom-0 left-0 w-full z-50 p-4 bg-[#0A0E14]/90 backdrop-blur-xl border-t border-white/10">
         <button onClick={() => window.dispatchEvent(new Event("abrir-chat"))} className="w-full h-[50px] rounded-[14px] bg-[#00D1FF] text-black font-display font-bold text-[14px] tracking-tight flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(0,209,255,0.3)]">
            {idioma === 'en' ? 'Try Sophie V2 Free' : 'Probar gratis con Sophie V2'} <ArrowRight className="h-4 w-4" />
         </button>
       </div>
 
-      {/* ========================================== */}
       {/* MODAL DE CHECKOUT (ADAPTATIVO COP / USD) */}
-      {/* ========================================== */}
       <AnimatePresence>
         {checkoutPlan && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -822,19 +802,25 @@ export default function Home() {
                         </div>
                         <div className="h-[1px] bg-white/10 w-full my-3" />
                         <div className="flex justify-between items-center">
-                          <span className="font-display font-bold text-[14px] text-white">{isEn ? 'Total due today' : 'Total a pagar hoy'}</span>
+                          <span className="font-display font-bold text-[14px] text-white">{isEn ? 'Total reference value' : 'Valor total de referencia'}</span>
                           <span className="font-display font-bold text-[20px] text-white">{formatMoney(totalApagar)}</span>
                         </div>
                       </div>
 
-                      <button onClick={() => iniciarPago(checkoutPlan.name, totalApagar)} disabled={procesandoPago} className="w-full h-[50px] rounded-[12px] bg-gradient-to-r from-blue-600 to-[#00D1FF] text-white font-display font-bold text-[15px] hover:shadow-[0_0_20px_rgba(0,209,255,0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
-                        {procesandoPago ? (isEn ? 'Connecting...' : 'Conectando con pasarela...') : (isEn ? '🔒 Pay securely' : '🔒 Pagar de forma segura')}
+                      {/* 🚀 EL GRAN BOTÓN PUENTE QUE LOS LLEVA A LA FÁBRICA DE AGENTES */}
+                      <button onClick={iniciarFlujoOnboarding} disabled={procesandoPago} className="w-full h-[50px] rounded-[12px] bg-gradient-to-r from-blue-600 to-[#00D1FF] text-white font-display font-bold text-[15px] hover:shadow-[0_0_20px_rgba(0,209,255,0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                        {procesandoPago 
+                          ? (isEn ? 'Preparing workspace...' : 'Preparando entorno...') 
+                          : (isEn ? '⚙️ Configure my AI Agent' : '⚙️ Configurar mi Agente IA')}
                       </button>
                     </>
                   );
                 })()}
 
-                <p className="text-center font-body text-[10px] text-white/30 mt-4">{idioma === 'en' ? 'Secure checkout process.' : 'Transacción segura procesada mediante pasarela.'}</p>
+                <p className="text-center font-body text-[10px] text-white/30 mt-4 flex items-center justify-center gap-1">
+                  <ShieldCheck className="h-3 w-3" /> 
+                  {idioma === 'en' ? 'Step 1 of 2: Infrastructure Setup' : 'Paso 1 de 2: Configuración de Entorno'}
+                </p>
               </div>
             </motion.div>
           </motion.div>
