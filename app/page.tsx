@@ -738,12 +738,20 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex gap-8 text-[11px] font-mono tracking-widest text-white/40">
-            <Link href="/terminos" className="hover:text-[#00D1FF] transition-colors uppercase">{idioma === 'en' ? 'Terms' : 'Términos'}</Link>
-            <Link href="/privacy" className="hover:text-[#00D1FF] transition-colors uppercase">{idioma === 'en' ? 'Privacy' : 'Privacidad'}</Link>
+          <div className="flex flex-col items-center md:items-start gap-2">
+            <a href="mailto:contacto@upway.business" className="flex items-center gap-2 group">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#00D1FF] group-hover:animate-ping" />
+              <span className="text-[11px] font-mono tracking-widest text-[#00D1FF]/80 group-hover:text-[#00D1FF] transition-colors uppercase">
+                contacto@upway.business
+              </span>
+            </a>
+            <div className="flex gap-8 text-[11px] font-mono tracking-widest text-white/40">
+              <Link href="/terminos" className="hover:text-[#00D1FF] transition-colors uppercase">{idioma === 'en' ? 'Terms' : 'Términos'}</Link>
+              <Link href="/privacy" className="hover:text-[#00D1FF] transition-colors uppercase">{idioma === 'en' ? 'Privacy' : 'Privacidad'}</Link>
+            </div>
           </div>
 
-          <p className="text-[10px] font-mono text-white/30">© 2026 UPWAY BUSINESS. ALL RIGHTS RESERVED.</p>
+          <p className="text-[10px] font-mono text-white/30 text-center md:text-right">© 2026 UPWAY BUSINESS. ALL RIGHTS RESERVED.</p>
         </div>
       </footer>
 
