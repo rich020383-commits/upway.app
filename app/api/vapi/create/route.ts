@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     const options = {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${process.env.VAPI_PRIVATE_KEY}`,
+        Authorization: `Bearer ${process.env.VAPI_PRIVATE_API_KEY}`, // 🚀 ¡Corregido aquí!
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
