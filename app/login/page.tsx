@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { Mail, Lock, Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -53,8 +54,15 @@ export default function LoginPage() {
       <div className="w-full max-w-md z-10">
         
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center h-16 w-16 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-2xl mb-6 shadow-[0_0_30px_rgba(59,130,246,0.15)]">
-            <ShieldCheck size={32} />
+          {/* 🚀 LOGO DE UPWAY INYECTADO AQUÍ */}
+          <div className="inline-flex items-center justify-center h-20 w-20 bg-white/[0.02] border border-white/10 backdrop-blur-md rounded-3xl mb-6 shadow-[0_0_30px_rgba(0,209,255,0.15)] overflow-hidden p-2">
+            <Image 
+              src="/upway.png" 
+              alt="Logo Upway Business" 
+              width={64} 
+              height={64} 
+              className="object-contain drop-shadow-md"
+            />
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Bienvenido a Upway</h1>
           <p className="text-slate-400 text-sm">Ingresa a tu centro de mando inteligente</p>
