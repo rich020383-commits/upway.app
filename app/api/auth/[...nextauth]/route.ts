@@ -1,6 +1,7 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+import LinkedInProvider from "next-auth/providers/linkedin"; // 🚀 1. Importamos LinkedIn
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
@@ -60,10 +61,30 @@ export const authOptions: NextAuthOptions = {
         }
       }
     }),
+    // 🚀 2. INYECTAMOS EL MOTOR DE LINKEDIN B2B
+    LinkedInProvider({
+      clientId: process.env.LINKEDIN_CLIENT_ID!,
+      clientSecret: process.env.LINKEDIN_CLIENT_SECRET!,
+      authorization: {
+        params: { scope: 'openid profile email' },
+      },
+      issuer: 'https://www.linkedin.com',
+      jwks_endpoint: 'https://www.linkedin.com/oauth/openid/jwks',
+      profile(profile, tokens) {
+        const defaultImage = 'https://cdn-icons-png.flaticon.com/512/174/174857.png';
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture || defaultImage,
+        };
+      },
+    }),
   ],
   callbacks: {
     async signIn({ user, account }) {
-      if (account?.provider === "google") {
+      // 🚀 3. Hacemos que la creación en BD funcione para Google Y para LinkedIn
+      if (account?.provider === "google" || account?.provider === "linkedin") {
         if (!user.email) return false;
 
         try {
@@ -75,10 +96,10 @@ export const authOptions: NextAuthOptions = {
             dbUser = await prisma.user.create({
               data: {
                 email: user.email,
-                name: user.name || "Usuario de Google",
+                name: user.name || `Usuario de ${account.provider}`,
               }
             });
-            console.log("✅ [Google Auth] Nuevo usuario creado en BD");
+            console.log(`✅ [${account.provider.toUpperCase()} Auth] Nuevo usuario creado en BD`);
           }
 
           const tiendaExistente = await prisma.tienda.findFirst({
@@ -93,20 +114,19 @@ export const authOptions: NextAuthOptions = {
                 nombre: `Workspace de ${dbUser.name || 'Empresa'}`, 
               }
             });
-            console.log(`✅ [Google Auth] Tienda retroactiva creada para: ${dbUser.email}`);
+            console.log(`✅ [${account.provider.toUpperCase()} Auth] Tienda retroactiva creada para: ${dbUser.email}`);
           }
 
-          // 🗑️ (Se eliminó el bloque de googleRefreshToken que causaba el fallo en build)
-
         } catch (error) {
-          console.error("🚨 Error al sincronizar usuario de Google en BD:", error);
+          console.error(`🚨 Error al sincronizar usuario de ${account.provider} en BD:`, error);
           return false;
         }
       }
       return true;
     },
     async jwt({ token, user, account }) {
-      if (account && account.provider === 'google') {
+      // También guardamos el token si viene de Google o LinkedIn
+      if (account && (account.provider === 'google' || account.provider === 'linkedin')) {
         token.accessToken = account.access_token;
       }
       
