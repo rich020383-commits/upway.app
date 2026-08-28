@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // 🚀 AÑADIDO: El router para el puente
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
@@ -17,8 +17,6 @@ import {
 } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import LeadModal from "@/components/LeadModal";
-
-// 🔥 IMPORTACIONES DE IDIOMA
 import { useLanguage } from "@/context/LanguageContext";
 import BotonIdioma from "@/components/BotonIdioma";
 
@@ -32,10 +30,10 @@ const MetaIcon = () => (
 );
 
 // ==========================================
-// TIPOS Y DATOS DE LOS PLANES (High-Ticket B2B - Multimoneda)
+// TIPOS Y DATOS DE LOS PLANES (Añadido el Plan Starter)
 // ==========================================
 type ContractOption = 1 | 2 | 3;
-type PlanId = "emprendedor" | "negocio" | "voz" | "pro";
+type PlanId = "starter" | "emprendedor" | "negocio" | "voz" | "pro";
 
 interface Plan {
   id: PlanId;
@@ -63,11 +61,28 @@ interface BeforeInstallPromptEvent extends Event {
 
 const PLANS: Plan[] = [
   {
+    id: "starter",
+    emoji: "🌱",
+    name: "Starter",
+    capacityLabel: "Prueba la magia (Fricción Cero)",
+    capacityDesc: "Ideal para validar la IA en tu embudo de ventas.",
+    price: 99900,
+    priceUsd: 49,
+    implFull: 199900,
+    implFullUsd: 99,
+    implDiscount: 99900,
+    implDiscountUsd: 49,
+    cuota: 24975,
+    cuotaUsd: 12,
+    first4: 99900,
+    first4Usd: 49,
+  },
+  {
     id: "emprendedor",
     emoji: "🏪",
     name: "PYME",
     capacityLabel: "Tu vendedor digital de WhatsApp",
-    capacityDesc: "WhatsApp inteligente para tiendas, salones y negocios de barrio.",
+    capacityDesc: "Automatización inteligente para tiendas y negocios.",
     price: 249900,
     priceUsd: 149,
     implFull: 499900,
@@ -80,28 +95,11 @@ const PLANS: Plan[] = [
     first4Usd: 149,
   },
   {
-    id: "negocio",
-    emoji: "💬",
-    name: "Ejecutivo de Chat",
-    capacityLabel: "Atención Masiva 24/7",
-    capacityDesc: "Atención masiva por WhatsApp con memoria, pagos y reportes.",
-    price: 399900,
-    priceUsd: 299,
-    implFull: 799900,
-    implFullUsd: 599,
-    implDiscount: 399900,
-    implDiscountUsd: 299,
-    cuota: 99975,
-    cuotaUsd: 75,
-    first4: 399900,
-    first4Usd: 299,
-  },
-  {
     id: "voz",
     emoji: "🎧",
     name: "Ejecutivo de Voz",
-    capacityLabel: "El Poder de la Voz IA",
-    capacityDesc: "Llamadas autónomas con acento natural y análisis de conversaciones.",
+    capacityLabel: "El Poder de la Voz IA (Vapi)",
+    capacityDesc: "Llamadas autónomas (Incluye 300 min/mes).",
     price: 599900,
     priceUsd: 499,
     implFull: 1199900,
@@ -117,9 +115,9 @@ const PLANS: Plan[] = [
   {
     id: "pro",
     emoji: "🚀",
-    name: "Director Omnicanal",
+    name: "Omnicanal",
     capacityLabel: "Infraestructura Total",
-    capacityDesc: "Voz, texto, agenda y analítica avanzada para operaciones corporativas.",
+    capacityDesc: "Voz y texto unificados (Incluye 500 min/mes).",
     price: 899900,
     priceUsd: 799,
     implFull: 1799900,
@@ -134,27 +132,25 @@ const PLANS: Plan[] = [
 ];
 
 // ==========================================
-// FUNCIONES Y FEATURE GATING ACTUALIZADOS
+// FEATURE GATING ACTUALIZADOS
 // ==========================================
 const INCLUDED_BASE = [
   "Atención corporativa automatizada 24/7",
-  "Infraestructura Meta Oficial (Cero baneos)", // 🚀 Agregado
-  "Conexión directa con Catálogo e Inventario",
-  "Soporte técnico inmediato",
-  "Reporte de ventas y conversaciones",
+  "Infraestructura Meta Oficial (Cero baneos)", 
+  "Entrenamiento express (Tu PDF/Excel)",
+  "Soporte técnico y reportes",
 ];
 
 const EXTRA_NEGOCIO = [
-  "Embedded Signup Meta Oficial", // 🚀 Agregado
-  "Procesamiento avanzado de Notas de Voz",
-  "Lectura de Imágenes y Recibos (PDF)",
+  "Conexión con Catálogo e Inventario",
+  "Lectura de audios y PDF",
   "Cerebro RAG (Memoria unificada)",
 ];
 
 const EXTRA_VOZ = [
-  "Llamadas autónomas (Salientes/Entrantes)",
-  "IA con acento natural y ultra baja latencia",
-  "Gestión automática de citas médicas",
+  "Llamadas autónomas con baja latencia",
+  "Bolsa de minutos de Voz / Mes",
+  "Gestión automática de citas (Calendar)",
   "Transcripción y análisis de llamadas"
 ];
 
@@ -164,7 +160,7 @@ const fmt = (n: number) => `$${n.toLocaleString("es-CO")}`;
 // COMPONENTE PRINCIPAL
 // ==========================================
 export default function Home() {
-  const router = useRouter(); // 🚀 El puente al Onboarding
+  const router = useRouter(); 
   const { idioma } = useLanguage();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHudOpen, setIsHudOpen] = useState(false); 
@@ -202,7 +198,6 @@ export default function Home() {
     return () => window.removeEventListener("abrir-modal-lead", abrirModal);
   }, []);
 
-  // 🚀 NUEVA FUNCIÓN: Enviar al Onboarding en lugar de cobrar en frío
   const iniciarFlujoOnboarding = async () => {
     setProcesandoPago(true);
     setTimeout(() => {
@@ -376,8 +371,66 @@ export default function Home() {
         </AnimatePresence>
       </section>
 
+      {/* 🚀 INTEGRACIONES LOCALES (NUEVA FRANJA DE CONFIANZA) */}
+      <div className="border-b border-white/5 bg-[#0a0e14] py-8 opacity-80 flex flex-col items-center">
+        <p className="text-xs font-semibold tracking-widest text-gray-500 uppercase mb-5">
+          {idioma === 'en' ? 'Ready to sync with your current tools' : 'Listo para sincronizarse con tu operación actual'}
+        </p>
+        <div className="flex flex-wrap justify-center items-center gap-10 opacity-60 grayscale hover:grayscale-0 transition-all">
+          <span className="text-xl font-bold font-display text-white">Siigo</span>
+          <span className="text-xl font-bold font-display text-white">Alegra</span>
+          <span className="text-xl font-bold font-display text-white flex items-center gap-2"><MetaIcon/> WhatsApp API</span>
+          <span className="text-xl font-bold font-display text-white">Google Calendar</span>
+        </div>
+      </div>
+
+      {/* 🚀 CASO DE ÉXITO: EL EQUIPO Y BARAKAH (NUEVA SECCIÓN DE PRUEBA SOCIAL) */}
+      <section className="py-24 bg-[#07090c] border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-4 py-1.5 text-xs font-bold text-purple-400 mb-6 tracking-widest uppercase">
+              {idioma === 'en' ? 'Real Founders. Real Results.' : 'Fundadores reales. Resultados crudos.'}
+            </div>
+            <h2 className="text-4xl font-display font-bold text-white mb-6 leading-tight">
+              {idioma === 'en' ? 'We built this because we were drowning in our own operations.' : 'Construimos esto porque estábamos ahogados en la operación de nuestra empresa.'}
+            </h2>
+            <p className="text-gray-400 text-lg mb-8 leading-relaxed">
+              {idioma === 'en' 
+                ? 'We are not just selling software. We are business owners who needed an intelligent filter, not a simple chatbot, to stop losing money on unanswered requests.'
+                : 'No somos una agencia vendiendo software. Somos empresarios que necesitábamos un filtro inteligente, no un simple chatbot, para dejar de perder dinero por cotizaciones sin responder.'}
+            </p>
+            
+            <div className="bg-[#0A0E14] border border-cyan-500/30 p-6 rounded-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 blur-3xl rounded-full pointer-events-none"></div>
+              <h4 className="font-display font-bold text-white mb-2 flex items-center gap-2">
+                <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span>
+                {idioma === 'en' ? 'Internal Case Study: Barakah (Heavy Machinery)' : 'Caso Interno: Barakah (Alquiler de Maquinaria)'}
+              </h4>
+              <p className="text-sm text-gray-300 italic mb-5 leading-relaxed">
+                {idioma === 'en' 
+                  ? '"Sophie handles 100% of excavator rental requests, filters out unqualified leads, quotes based on inventory, and hands over hot deals. We saved 40 manual hours a month."'
+                  : '"Sophie atiende el 100% de las solicitudes de alquiler de retroexcavadoras, filtra a los curiosos, cotiza según disponibilidad y nos entrega leads calientes listos para cierre."'}
+              </p>
+              <div className="flex gap-4 text-xs font-bold uppercase tracking-wide text-cyan-400">
+                <span>{idioma === 'en' ? '+40 Hrs Saved/Mo' : '+40 Hrs Ahorradas/Mes'}</span>
+                <span>•</span>
+                <span>{idioma === 'en' ? '24/7 Availability' : 'Atención 24/7'}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="relative h-[400px] bg-[#0A0E14] rounded-3xl border border-white/10 flex items-center justify-center overflow-hidden shadow-2xl group">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
+            {/* Espacio reservado para la foto de Inworker/Barakah o los fundadores */}
+            <span className="relative z-20 text-gray-500 font-mono text-sm tracking-widest uppercase">
+              [ ESPACIO PARA FOTO DEL EQUIPO O DASHBOARD ]
+            </span>
+          </div>
+        </div>
+      </section>
+
       {/* EL EMPLEADO DIGITAL (VENTAJAS B2B) */}
-      <section id="ventajas" className="relative py-32 bg-[#0A0E14] border-t border-white/5 overflow-hidden">
+      <section id="ventajas" className="relative py-32 bg-[#0A0E14] overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#00D1FF]/5 rounded-full blur-[120px] pointer-events-none"></div>
         
         <div className="relative z-10 max-w-[95rem] mx-auto px-6 lg:px-12">
@@ -449,7 +502,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold text-white mb-3">{idioma === 'en' ? '100% Official API' : 'Conexión 100% Oficial'}</h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                {idioma === 'en' ? 'Forget about unstable QR codes. We integrate your business via Official Meta Cloud API. Zero ban risk, infinite stability.' : 'Olvídate de los códigos QR inestables. Integramos tu negocio vía Cloud API Oficial de Meta. Cero riesgo de baneo, estabilidad absoluta.'}
+                {idioma === 'en' ? 'Forget about unstable QR codes. We integrate your business via Official Meta Cloud API. Zero ban risk, infinite stability.' : 'Olvídate de los códigos QR inestables. Integramos tu línea vía WhatsApp Cloud API Oficial mediante Embedded Signup. 100% legal, 0% riesgo de baneo.'}
               </p>
             </div>
 
@@ -492,7 +545,7 @@ export default function Home() {
       </section>
 
       {/* SECCIÓN DE PRECIOS Y TRANSPARENCIA (MULTIMONEDA) */}
-      <section id="planes" className="relative z-20 py-24 bg-gradient-to-b from-[#0A0E14] to-[#03050a]">
+      <section id="planes" className="relative z-20 py-24 bg-gradient-to-b from-[#0A0E14] to-[#03050a] border-t border-white/5">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute -top-[10%] left-[20%] w-[60%] h-[30%] bg-[#00D1FF]/[0.05] blur-[140px] rounded-full" />
         </div>
@@ -502,14 +555,13 @@ export default function Home() {
           <div className="text-center mb-16">
             <p className="text-xs font-mono uppercase tracking-[0.3em] text-cyan-400 mb-4">/precios_upway</p>
             <h2 className="text-4xl md:text-5xl font-display font-bold text-white mb-6 leading-tight">
-              {idioma === 'en' ? 'Hire your digital executive starting at $149/mo.' : 'Contrata a tu ejecutivo digital desde $249.900/mes.'}
+              {idioma === 'en' ? 'Hire your digital executive starting at $49/mo.' : 'Escala tu negocio sin crecer tu nómina.'}
             </h2>
             <p className="text-xl text-slate-300 max-w-3xl mx-auto font-medium mb-8">
               {idioma === 'en' ? 'Never miss another sale due to unanswered calls or messages.' : 'Nunca más pierdas una venta por una llamada o mensaje no atendido.'}
             </p>
           </div>
 
-          {/* 🚀 NUEVA SECCIÓN: TRANSPARENCIA Y GARANTÍA B2B CON META */}
           <div className="max-w-6xl mx-auto mb-16 grid lg:grid-cols-3 gap-6">
             <div className="bg-white/[0.02] border border-white/10 rounded-3xl p-8 backdrop-blur-sm">
               <h3 className="font-display font-bold text-xl text-white mb-6 flex items-center gap-3">
@@ -543,7 +595,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* TOGGLE DE PAGO */}
           <div className="mb-12 max-w-3xl mx-auto">
             <div className="glass-strong border border-white/10 rounded-[16px] p-1.5 flex flex-col sm:flex-row gap-1.5">
               <button onClick={() => setContract(1)} className={`flex-1 text-left rounded-[12px] px-4 py-3.5 transition-all border ${contract === 1 ? "bg-white text-black border-white shadow-[0_4px_20px_rgba(255,255,255,0.15)]" : "bg-transparent text-white/60 border-transparent hover:bg-white/[0.05] hover:text-white/90"}`}>
@@ -565,8 +616,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* TABLA DE PRECIOS ADAPTATIVA (COP vs USD) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5 mb-8">
             {PLANS.map((plan) => {
               const impl = getImplLabel(plan);
               const displayPrice = idioma === 'en' ? `$${plan.priceUsd}` : fmt(plan.price);
@@ -613,15 +663,15 @@ export default function Home() {
                         {INCLUDED_BASE.map((feat) => (
                           <div key={feat} className="flex items-center gap-2.5 font-body text-[13px] text-white/70 leading-snug">
                             {feat.includes('Meta') 
-                              ? <MetaIcon /> // 🚀 Si menciona Meta, ponemos el loguito
+                              ? <MetaIcon /> 
                               : <CheckCircle className="w-[16px] h-[16px] text-[#00D1FF] shrink-0" />
                             }
-                            {idioma === 'en' && feat === 'Soporte técnico inmediato' ? 'Immediate technical support' : feat}
+                            {idioma === 'en' && feat === 'Soporte técnico y reportes' ? 'Technical support & reports' : feat}
                           </div>
                         ))}
                       </div>
 
-                      {(plan.id === "negocio" || plan.id === "pro") && (
+                      {plan.id !== "starter" && (
                         <div className="mt-5">
                           <div className="font-body text-[10px] font-bold tracking-[0.14em] uppercase mb-2.5 text-[#00D1FF]/90 flex items-center gap-1.5">
                             <MetaIcon /> + {idioma === 'en' ? 'AI Text (Meta API)' : 'Texto IA (API Meta)'}
@@ -651,8 +701,11 @@ export default function Home() {
                     </div>
 
                     <div className="mt-auto pt-4 border-t border-white/5">
-                      <button onClick={() => setCheckoutPlan(plan)} className="w-full h-[46px] rounded-[12px] bg-[#00D1FF] text-black font-display font-bold text-[14px] tracking-tight hover:bg-[#33DDFF] transition-colors shadow-[0_0_28px_rgba(0,209,255,0.35)] flex items-center justify-center gap-2">
-                        {idioma === 'en' ? 'Automate my sales' : 'Quiero automatizar mis ventas'} <span className="text-[16px] font-medium">→</span>
+                      <button onClick={() => setCheckoutPlan(plan)} className={`w-full h-[46px] rounded-[12px] text-black font-display font-bold text-[14px] tracking-tight transition-colors flex items-center justify-center gap-2 ${plan.id === "starter" ? "bg-white hover:bg-gray-200" : "bg-[#00D1FF] hover:bg-[#33DDFF] shadow-[0_0_28px_rgba(0,209,255,0.35)]"}`}>
+                        {plan.id === "starter" 
+                          ? (idioma === 'en' ? 'Start Free Trial' : 'Iniciar Prueba') 
+                          : (idioma === 'en' ? 'Automate my sales' : 'Quiero automatizar mis ventas')} 
+                        <span className="text-[16px] font-medium">→</span>
                       </button>
                     </div>
                   </div>
@@ -660,38 +713,44 @@ export default function Home() {
               );
             })}
           </div>
+
+          {/* 🚀 NOTA LEGAL Y DE TRANSPARENCIA PARA BLINDAR COSTOS DE TERCEROS */}
+          <div className="max-w-4xl mx-auto bg-black/40 border border-white/10 p-6 rounded-2xl text-center">
+            <p className="text-xs text-slate-400 leading-relaxed font-body">
+              <strong className="text-white">{idioma === 'en' ? 'Infrastructure Transparency:' : 'Transparencia de Infraestructura:'}</strong> 
+              {idioma === 'en' 
+                ? ' To guarantee your total control, WhatsApp message traffic is managed directly from your company\'s Official Meta account (consumption is billed by Meta). AI Voice plans include a monthly minute allocation managed by Upway. For corporate volumes, we offer minute reload packages at preferential rates.' 
+                : ' Para garantizar tu control total, el tráfico de mensajes de WhatsApp se gestiona directamente desde la cuenta oficial de Meta de tu empresa (el consumo es facturado por Meta). Los planes de Voz IA incluyen una asignación mensual de minutos gestionada por Upway. Para recargas adicionales, ofrecemos paquetes corporativos.'}
+            </p>
+          </div>
+
         </div>
       </section>
 
-      {/* PROCESO Y FOOTER */}
+      {/* 🚀 PROCESO (NUEVO ONBOARDING EXPRESS DE 3 PASOS - CERO FRICCIÓN) */}
       <section id="proceso" className="relative border-t border-white/5 bg-[#03050a] overflow-hidden">
         <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-[#00D1FF]/[0.03] rounded-full blur-[120px] pointer-events-none" />
 
         <div className="relative z-10 mx-auto max-w-[95rem] px-6 py-24 lg:px-12">
-          <div className="max-w-3xl mb-16">
+          <div className="max-w-3xl mb-16 text-center mx-auto">
             <p className="text-xs font-mono uppercase tracking-[0.3em] text-[#00D1FF] mb-4">/02_onboarding</p>
             <h2 className="text-3xl font-display font-bold text-white sm:text-4xl tracking-tight">
-              {idioma === 'en' ? 'Enterprise implementation in 4 exact steps.' : 'Implementación corporativa en 4 pasos exactos.'}
+              {idioma === 'en' ? 'Your employee ready in 15 minutes.' : 'Tu empleado listo en 15 minutos.'}
             </h2>
-            <p className="mt-4 text-slate-400 text-lg">{idioma === 'en' ? 'Structured engineering process so your operations never stop.' : 'Un proceso de ingeniería estructurado para que tu operación no se detenga.'}</p>
+            <p className="mt-4 text-slate-400 text-lg">{idioma === 'en' ? 'Zero friction. Upload your data and hit play.' : 'Cero fricción corporativa. Sube tu data y dale play.'}</p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-8 md:grid-cols-3 max-w-5xl mx-auto text-center">
             {[
-              { title: idioma === 'en' ? "Architecture Audit" : "Auditoría de Arquitectura", desc: idioma === 'en' ? "We map your funnels to design the ideal AI brain." : "Mapeamos tus procesos y embudos para diseñar el cerebro ideal." },
-              { title: idioma === 'en' ? "RAG Training" : "Entrenamiento (RAG)", desc: idioma === 'en' ? "We inject your catalogs and business rules." : "Inyectamos tus catálogos y reglas de negocio para asegurar precisión." },
-              { title: idioma === 'en' ? "Official Deployment" : "Despliegue Oficial", desc: idioma === 'en' ? "Secure connection with WhatsApp Cloud API and Vapi Voice." : "Conexión segura con WhatsApp Cloud API y Centrales de Voz." },
-              { title: idioma === 'en' ? "Autonomous Operations" : "Operación Autónoma", desc: idioma === 'en' ? "Your agent takes control 24/7 with real-time analytics." : "Tu agente asume el control 24/7 con métricas en tiempo real." }
+              { title: idioma === 'en' ? "Upload Knowledge" : "Sube tu conocimiento", desc: idioma === 'en' ? "Drag your catalog in PDF, Excel pricing, or manual. The AI memorizes it instantly." : "Arrastra tu catálogo en PDF, lista de precios en Excel o manual. La IA lo memoriza al instante." },
+              { title: idioma === 'en' ? "Define Personality" : "Define la personalidad", desc: idioma === 'en' ? "Choose the tone of voice and select common objections from a template." : "Elige el tono de voz y selecciona las objeciones comunes de una plantilla rápida." },
+              { title: idioma === 'en' ? "Connect & Ignite" : "Conecta y enciende", desc: idioma === 'en' ? "Link your Meta number or Vapi voice trunk with one click. Autopilot engaged." : "Vincula tu número de Meta o asigna tu línea de voz con un solo clic. Piloto automático activado." }
             ].map((step, index) => (
-              <div key={step.title} className="rounded-[24px] border border-white/10 bg-white/[0.02] p-8 relative overflow-hidden group transition-all hover:bg-white/[0.04] hover:border-[#00D1FF]/30">
-                <div className="absolute top-0 right-0 p-6 opacity-[0.03] font-display text-8xl font-bold text-white group-hover:text-[#00D1FF] group-hover:opacity-10 transition-all">
+              <div key={step.title} className="rounded-[24px] border border-white/10 bg-white/[0.02] p-10 relative overflow-hidden group transition-all hover:bg-white/[0.04] hover:border-[#00D1FF]/30 flex flex-col items-center">
+                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-[#00D1FF] text-xl font-bold text-black shadow-[0_0_20px_rgba(0,209,255,0.4)] group-hover:scale-110 transition-transform">
                   {index + 1}
                 </div>
-                
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#00D1FF]/10 text-lg font-mono font-bold text-[#00D1FF] mb-6 shadow-[0_0_20px_rgba(0,209,255,0.15)] group-hover:scale-110 transition-transform">
-                  0{index + 1}
-                </div>
-                <h3 className="mt-4 text-xl font-bold text-white mb-3">{step.title}</h3>
+                <h3 className="mt-8 text-xl font-bold text-white mb-3">{step.title}</h3>
                 <p className="text-sm text-slate-400 leading-relaxed">{step.desc}</p>
               </div>
             ))}
@@ -815,7 +874,6 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {/* 🚀 EL GRAN BOTÓN PUENTE QUE LOS LLEVA A LA FÁBRICA DE AGENTES */}
                       <button onClick={iniciarFlujoOnboarding} disabled={procesandoPago} className="w-full h-[50px] rounded-[12px] bg-gradient-to-r from-blue-600 to-[#00D1FF] text-white font-display font-bold text-[15px] hover:shadow-[0_0_20px_rgba(0,209,255,0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
                         {procesandoPago 
                           ? (isEn ? 'Preparing workspace...' : 'Preparando entorno...') 
