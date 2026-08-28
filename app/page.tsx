@@ -400,21 +400,21 @@ export default function Home() {
                 : 'No somos una agencia vendiendo software. Somos empresarios que necesitábamos un filtro inteligente, no un simple chatbot, para dejar de perder dinero por cotizaciones sin responder.'}
             </p>
             
-            <div className="bg-[#0A0E14] border border-cyan-500/30 p-6 rounded-2xl relative overflow-hidden">
+            <div className="bg-[#0A0E14] border border-cyan-500/30 p-6 rounded-2xl relative overflow-hidden mt-6">
               <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 blur-3xl rounded-full pointer-events-none"></div>
               <h4 className="font-display font-bold text-white mb-2 flex items-center gap-2">
                 <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span>
-                {idioma === 'en' ? 'Internal Case Study: Barakah (Heavy Machinery)' : 'Caso Interno: Barakah (Alquiler de Maquinaria)'}
+                {idioma === 'en' ? 'Internal Case Study: Inworker.co' : 'Caso de Éxito: Inworker.co'}
               </h4>
               <p className="text-sm text-gray-300 italic mb-5 leading-relaxed">
                 {idioma === 'en' 
-                  ? '"Sophie handles 100% of excavator rental requests, filters out unqualified leads, quotes based on inventory, and hands over hot deals. We saved 40 manual hours a month."'
-                  : '"Sophie atiende el 100% de las solicitudes de alquiler de retroexcavadoras, filtra a los curiosos, cotiza según disponibilidad y nos entrega leads calientes listos para cierre."'}
+                  ? '"Sophie handles user onboarding, filters level 1 support, and qualifies leads for our service platform 24/7. We automated 80% of our manual interactions."'
+                  : '"Sophie gestiona el onboarding de usuarios, filtra el soporte técnico de nivel 1 y califica prospectos para nuestra plataforma 24/7. Automatizamos el 80% de nuestras interacciones manuales."'}
               </p>
               <div className="flex gap-4 text-xs font-bold uppercase tracking-wide text-cyan-400">
-                <span>{idioma === 'en' ? '+40 Hrs Saved/Mo' : '+40 Hrs Ahorradas/Mes'}</span>
+                <span>{idioma === 'en' ? '80% Automated' : '80% Automatizado'}</span>
                 <span>•</span>
-                <span>{idioma === 'en' ? '24/7 Availability' : 'Atención 24/7'}</span>
+                <span>{idioma === 'en' ? '24/7 Uptime' : 'Operación 24/7'}</span>
               </div>
             </div>
           </div>
@@ -740,17 +740,17 @@ export default function Home() {
             <p className="mt-4 text-slate-400 text-lg">{idioma === 'en' ? 'Zero friction. Upload your data and hit play.' : 'Cero fricción corporativa. Sube tu data y dale play.'}</p>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-3 max-w-5xl mx-auto text-center">
+          <div className="grid gap-12 md:grid-cols-3 max-w-5xl mx-auto text-center mt-10">
             {[
               { title: idioma === 'en' ? "Upload Knowledge" : "Sube tu conocimiento", desc: idioma === 'en' ? "Drag your catalog in PDF, Excel pricing, or manual. The AI memorizes it instantly." : "Arrastra tu catálogo en PDF, lista de precios en Excel o manual. La IA lo memoriza al instante." },
               { title: idioma === 'en' ? "Define Personality" : "Define la personalidad", desc: idioma === 'en' ? "Choose the tone of voice and select common objections from a template." : "Elige el tono de voz y selecciona las objeciones comunes de una plantilla rápida." },
               { title: idioma === 'en' ? "Connect & Ignite" : "Conecta y enciende", desc: idioma === 'en' ? "Link your Meta number or Vapi voice trunk with one click. Autopilot engaged." : "Vincula tu número de Meta o asigna tu línea de voz con un solo clic. Piloto automático activado." }
             ].map((step, index) => (
-              <div key={step.title} className="rounded-[24px] border border-white/10 bg-white/[0.02] p-10 relative overflow-hidden group transition-all hover:bg-white/[0.04] hover:border-[#00D1FF]/30 flex flex-col items-center">
+              <div key={step.title} className="rounded-[24px] border border-white/10 bg-white/[0.02] p-8 pt-12 relative group transition-all hover:bg-white/[0.04] hover:border-[#00D1FF]/30 flex flex-col items-center">
                 <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-[#00D1FF] text-xl font-bold text-black shadow-[0_0_20px_rgba(0,209,255,0.4)] group-hover:scale-110 transition-transform">
                   {index + 1}
                 </div>
-                <h3 className="mt-8 text-xl font-bold text-white mb-3">{step.title}</h3>
+                <h3 className="text-xl font-bold text-white mb-3">{step.title}</h3>
                 <p className="text-sm text-slate-400 leading-relaxed">{step.desc}</p>
               </div>
             ))}
