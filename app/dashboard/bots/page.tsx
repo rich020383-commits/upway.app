@@ -673,20 +673,22 @@ export default function AgentesBotPage() {
               <div className="text-2xl font-bold text-[#F5F7FA] mb-2">WhatsApp API</div>
               
               {/* 🔥 BADGE DINÁMICO DE LOS 3 ESTADOS (Verde, Naranja, Rojo) */}
-              <p className={`text-[10px] font-mono font-medium flex items-center w-fit gap-1.5 px-2.5 py-1 rounded-md border mb-2 ${
-                whatsappStatus === 'active' 
-                  ? 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/20' 
-                  : whatsappStatus === 'pending'
-                  ? 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20'
-                  : 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20'
-              }`}>
-                <ShieldCheck className="h-3 w-3" /> 
-                {whatsappStatus === 'active' 
-                  ? 'WHATSAPP CONECTADO' 
-                  : whatsappStatus === 'pending' 
-                  ? 'PENDIENTE REVISIÓN META (24-48H)' 
-                  : 'DESCONECTADO'}
-              </p>
+              {whatsappStatus === 'active' ? (
+                <p className="text-[10px] font-mono font-medium flex items-center w-fit gap-1.5 px-2.5 py-1 rounded-md border mb-2 bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.15)]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  CONECTADO Y OPERATIVO
+                </p>
+              ) : whatsappStatus === 'pending' ? (
+                <p className="text-[10px] font-mono font-medium flex items-center w-fit gap-1.5 px-2.5 py-1 rounded-md border mb-2 bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20">
+                  <ShieldCheck className="h-3 w-3" />
+                  PENDIENTE REVISIÓN META (24-48H)
+                </p>
+              ) : (
+                <p className="text-[10px] font-mono font-medium flex items-center w-fit gap-1.5 px-2.5 py-1 rounded-md border mb-2 bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20">
+                  <ShieldCheck className="h-3 w-3" />
+                  DESCONECTADO
+                </p>
+              )}
 
               {/* 🔥 MUESTRA EL TELÉFONO VINCULADO SI EXISTE */}
               {telefonoConectado && (
