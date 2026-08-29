@@ -385,49 +385,49 @@ export default function Home() {
       </div>
 
       {/* 🚀 CASO DE ÉXITO: EL EQUIPO Y BARAKAH (NUEVA SECCIÓN DE PRUEBA SOCIAL) */}
-      <section className="py-24 bg-[#07090c] border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-4 py-1.5 text-xs font-bold text-purple-400 mb-6 tracking-widest uppercase">
-              {idioma === 'en' ? 'Real Founders. Real Results.' : 'Fundadores reales. Resultados crudos.'}
-            </div>
-            <h2 className="text-4xl font-display font-bold text-white mb-6 leading-tight">
-              {idioma === 'en' ? 'We built this because we were drowning in our own operations.' : 'Construimos esto porque estábamos ahogados en la operación de nuestra empresa.'}
-            </h2>
-            <p className="text-gray-400 text-lg mb-8 leading-relaxed">
-              {idioma === 'en' 
-                ? 'We are not just selling software. We are business owners who needed an intelligent filter, not a simple chatbot, to stop losing money on unanswered requests.'
-                : 'No somos una agencia vendiendo software. Somos empresarios que necesitábamos un filtro inteligente, no un simple chatbot, para dejar de perder dinero por cotizaciones sin responder.'}
-            </p>
-            
-            <div className="bg-[#0A0E14] border border-cyan-500/30 p-6 rounded-2xl relative overflow-hidden mt-6">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 blur-3xl rounded-full pointer-events-none"></div>
-              <h4 className="font-display font-bold text-white mb-2 flex items-center gap-2">
-                <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span>
-                {idioma === 'en' ? 'Internal Case Study: Inworker.co' : 'Caso de Éxito: Inworker.co'}
-              </h4>
-              <p className="text-sm text-gray-300 italic mb-5 leading-relaxed">
-                {idioma === 'en' 
-                  ? '"Sophie handles user onboarding, filters level 1 support, and qualifies leads for our service platform 24/7. We automated 80% of our manual interactions."'
-                  : '"Sophie gestiona el onboarding de usuarios, filtra el soporte técnico de nivel 1 y califica prospectos para nuestra plataforma 24/7. Automatizamos el 80% de nuestras interacciones manuales."'}
-              </p>
-              <div className="flex gap-4 text-xs font-bold uppercase tracking-wide text-cyan-400">
-                <span>{idioma === 'en' ? '80% Automated' : '80% Automatizado'}</span>
-                <span>•</span>
-                <span>{idioma === 'en' ? '24/7 Uptime' : 'Operación 24/7'}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="relative h-[400px] bg-[#0A0E14] rounded-3xl border border-white/10 flex items-center justify-center overflow-hidden shadow-2xl group">
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
-            {/* Espacio reservado para la foto de Inworker/Barakah o los fundadores */}
-            <span className="relative z-20 text-gray-500 font-mono text-sm tracking-widest uppercase">
-              [ ESPACIO PARA FOTO DEL EQUIPO O DASHBOARD ]
-            </span>
-          </div>
-        </div>
-      </section>
+      <section className="py-24 bg-[#07090C] border-b border-white/10">
+  <div className="max-w-7xl mx-auto px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+    
+    {/* Columna 1: Textos */}
+    <div>
+      <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-4 py-1.5 text-xs font-semibold text-purple-400 mb-6">
+        {idioma === 'en' ? 'Real Founders. Real Results.' : 'Fundadores reales. Resultados crudos.'}
+      </div>
+      <h2 className="text-4xl font-display font-bold text-white mb-6 leading-tight">
+        {idioma === 'en' ? 'We built this because we were drowning in our own operations.' : 'Construimos esto porque nos ahogábamos en nuestras propias operaciones.'}
+      </h2>
+      <p className="text-gray-400 text-lg mb-8 leading-relaxed">
+        {idioma === 'en' 
+          ? 'We are not just selling software. We are business owners who needed an intelligent filter, not another dashboard.'
+          : 'No somos una agencia vendiendo software. Somos empresarios que necesitábamos un filtro inteligente, no otro panel de control.'}
+      </p>
+
+      <div className="bg-[#0A0E14] border border-cyan-500/30 p-6 rounded-2xl relative overflow-hidden mt-6">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 blur-3xl rounded-full pointer-events-none"></div>
+        <h4 className="font-display font-bold text-white mb-2 flex items-center gap-2">
+          <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span>
+          {idioma === 'en' ? 'Internal Case Study: Inworker.co' : 'Caso de Éxito: Inworker.co'}
+        </h4>
+        <p className="text-sm text-gray-400">
+          {idioma === 'en' 
+            ? 'Before scaling globally, Upway automated 85% of our client onboarding and vendor routing.'
+            : 'Antes de escalar globalmente, Upway automatizó el 85% de nuestro onboarding y enrutamiento de proveedores.'}
+        </p>
+      </div>
+    </div>
+
+    {/* Columna 2: La foto del equipo que acabamos de agregar */}
+    <div className="relative h-[400px] bg-[#0A0E14] rounded-3xl border border-white/10 flex items-center justify-center overflow-hidden shadow-2xl group">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10"></div>
+      <img 
+        src="/equipo-upway.jpg" 
+        alt="Equipo Upway" 
+        className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+      />
+    </div>
+
+  </div>
+</section>
 
       {/* EL EMPLEADO DIGITAL (VENTAJAS B2B) */}
       <section id="ventajas" className="relative py-32 bg-[#0A0E14] overflow-hidden">
