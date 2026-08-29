@@ -451,7 +451,7 @@ export default function Home() {
       
       {/* Botón de LinkedIn con el nombre Sophia de Belfort */}
       <a 
-        href="https://www.linkedin.com/in/mia-de-belfort-990164431" 
+        href="https://www.linkedin.com/in/sophia-de-belfort-990164431/" 
         target="_blank" 
         rel="noopener noreferrer"
         className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors text-sm font-medium bg-cyan-950/40 px-4 py-2.5 rounded-xl border border-cyan-500/20 w-fit self-start shadow-md hover:bg-cyan-900/40"
