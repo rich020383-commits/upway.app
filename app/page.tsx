@@ -315,7 +315,7 @@ export default function Home() {
         
         <div className="absolute right-6 top-1/2 z-20 -translate-y-1/2">
           <button onClick={() => setIsHudOpen(true)} className={`group flex flex-col items-center gap-3 rounded-full border border-cyan-500/40 bg-white/[0.02] p-4 backdrop-blur-md transition-all hover:bg-cyan-500/20 hover:shadow-[0_0_30px_rgba(6,182,212,0.4)] ${isHudOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-            <Menu className="h-6 w-6 text-cyan-400" />
+            <img src="/sophie-icon.png" alt="Sophie V2" className="w-9 h-9 rounded-xl object-cover shadow-[0_0_15px_rgba(34,211,238,0.4)] border border-cyan-400/50 group-hover:scale-110 transition-transform" />
             <span className="writing-vertical text-[10px] font-mono tracking-[0.3em] text-cyan-300" style={{ writingMode: 'vertical-rl' }}>{idioma === 'en' ? 'START_SYSTEM' : 'INICIAR_SISTEMA'}</span>
           </button>
         </div>
@@ -348,7 +348,9 @@ export default function Home() {
                 </p>
                 <div className="mt-10 flex flex-col gap-4">
                   <button onClick={() => { setIsHudOpen(false); window.dispatchEvent(new Event("abrir-chat")); }} className="group relative flex w-full items-center justify-center gap-3 border border-[#00D1FF]/60 bg-[#00D1FF]/20 px-6 py-4 text-sm font-display font-bold tracking-widest text-[#00D1FF] backdrop-blur-md transition-all hover:bg-[#00D1FF] hover:text-slate-950 hover:shadow-[0_0_30px_rgba(0,209,255,0.6)]">
-                    <Cpu className="h-4 w-4" /> {idioma === 'en' ? 'TRY AGENT FREE' : 'PROBAR AGENTE GRATIS'} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    <img src="/sophie-icon.png" alt="Sophie" className="w-5 h-5 rounded-md object-cover border border-[#00D1FF]/50 group-hover:border-slate-900/20" /> 
+                    {idioma === 'en' ? 'TRY AGENT FREE' : 'PROBAR AGENTE GRATIS'} 
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </button>
                   <a href="#planes" onClick={() => setIsHudOpen(false)} className="flex w-full items-center justify-center rounded-none border border-white/20 bg-black/20 px-6 py-4 text-sm font-mono tracking-widest text-white/80 backdrop-blur-md transition hover:bg-white/10 hover:text-white">
                     {idioma === 'en' ? 'VIEW PLANS & PRICING' : 'VER PLANES Y PRECIOS'}
@@ -853,6 +855,7 @@ export default function Home() {
 
       <div className="md:hidden fixed bottom-0 left-0 w-full z-50 p-4 bg-[#0A0E14]/90 backdrop-blur-xl border-t border-white/10">
         <button onClick={() => window.dispatchEvent(new Event("abrir-chat"))} className="w-full h-[50px] rounded-[14px] bg-[#00D1FF] text-black font-display font-bold text-[14px] tracking-tight flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(0,209,255,0.3)]">
+           <img src="/sophie-icon.png" alt="Sophie" className="w-6 h-6 rounded-[8px] object-cover shadow-sm border border-black/10" />
            {idioma === 'en' ? 'Try Sophie V2 Free' : 'Probar gratis con Sophie V2'} <ArrowRight className="h-4 w-4" />
         </button>
       </div>
