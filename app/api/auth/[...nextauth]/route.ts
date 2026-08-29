@@ -68,7 +68,7 @@ export const authOptions: NextAuthOptions = {
       authorization: {
         params: { scope: 'openid profile email' },
       },
-      issuer: 'https://www.linkedin.com',
+      issuer: 'https://www.linkedin.com/oauth', // 🔥 EMISOR CORREGIDO
       jwks_endpoint: 'https://www.linkedin.com/oauth/openid/jwks',
       profile(profile, tokens) {
         const defaultImage = 'https://cdn-icons-png.flaticon.com/512/174/174857.png';
