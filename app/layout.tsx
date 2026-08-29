@@ -3,7 +3,12 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Chatbot from "@/components/Chatbot"; 
 import PwaRegister from "@/components/PwaRegister";
+import { iniciarOidoNeon } from '@/lib/listener';
 
+// Iniciamos el oído en segundo plano (solo del lado del servidor)
+if (typeof window === 'undefined') {
+  iniciarOidoNeon();
+}
 // 🔥 1. IMPORTAMOS EL CEREBRO DEL IDIOMA
 import { LanguageProvider } from "@/context/LanguageContext";
 
