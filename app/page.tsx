@@ -388,7 +388,7 @@ export default function Home() {
 <section className="py-24 bg-[#07090C] border-b border-white/10">
   <div className="max-w-7xl mx-auto px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
     
-    {/* Columna 1: Textos y Caso de Éxito Inworker */}
+    {/* Columna 1: Textos y Caso de Éxito Inworker con la foto de la CEO/Directora de Inworker */}
     <div>
       <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-4 py-1.5 text-xs font-semibold text-purple-400 mb-6">
         {idioma === 'en' ? 'Real Founders. Real Results.' : 'Fundadores reales. Resultados crudos.'}
@@ -405,27 +405,40 @@ export default function Home() {
       <div className="bg-[#0A0E14] border border-cyan-500/30 p-6 rounded-2xl relative overflow-hidden mt-6">
         <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 blur-3xl rounded-full pointer-events-none"></div>
         
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="font-display font-bold text-white flex items-center gap-2">
-            <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span>
-            {idioma === 'en' ? 'Internal Case Study' : 'Caso de Éxito'}
-          </h4>
+        {/* Cabecera del Caso de Éxito con la foto corporativa de Inworker */}
+        <div className="flex items-center gap-4 mb-4">
           <img 
-            src="/logo-inworker.png" 
-            alt="Inworker" 
-            className="h-6 w-auto object-contain opacity-80 filter grayscale hover:grayscale-0 transition-all" 
+            src="/ceo-inworker.jpeg" 
+            alt="Inworker Leadership" 
+            className="w-12 h-12 rounded-full object-cover border-2 border-cyan-500/40 shadow-md shrink-0" 
           />
+          <div>
+            <h4 className="font-display font-bold text-white flex items-center gap-2">
+              <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span>
+              {idioma === 'en' ? 'Internal Case Study' : 'Caso de Éxito'}
+            </h4>
+            <a 
+              href="https://inworker.co" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-xs text-cyan-300 font-mono hover:underline flex items-center gap-1 mt-0.5"
+            >
+              inworker.co ↗
+            </a>
+          </div>
         </div>
 
-        <p className="text-sm text-gray-400">
-          {idioma === 'en' 
-            ? 'Before scaling globally, Upway automated 85% of our client onboarding and vendor routing using Inworker.co infrastructure.'
-            : 'Antes de escalar globalmente, Upway automatizó el 85% de nuestro onboarding y enrutamiento de proveedores usando la infraestructura de Inworker.co.'}
+        <p className="text-sm text-gray-400 leading-relaxed">
+          {idioma === 'en' ? (
+            <>Before scaling globally, Upway automated 85% of our client onboarding and vendor routing using <a href="https://inworker.co" target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline hover:text-cyan-300 font-medium">inworker.co</a> infrastructure.</>
+          ) : (
+            <>Antes de escalar globalmente, Upway automatizó el 85% de nuestro onboarding y enrutamiento de proveedores usando la infraestructura de <a href="https://inworker.co" target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline hover:text-cyan-300 font-medium">inworker.co</a>.</>
+          )}
         </p>
       </div>
     </div>
 
-    {/* Columna 2: La foto del equipo con el link de LinkedIn justo debajo */}
+    {/* Columna 2: Foto del equipo de Upway y LinkedIn de Sophia de Belfort debajo */}
     <div className="flex flex-col gap-4">
       <div className="relative h-[400px] bg-[#0A0E14] rounded-3xl border border-white/10 flex items-center justify-center overflow-hidden shadow-2xl group">
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10"></div>
@@ -436,7 +449,7 @@ export default function Home() {
         />
       </div>
       
-      {/* Botón de LinkedIn de Mia ubicado perfectamente debajo de la foto */}
+      {/* Botón de LinkedIn con el nombre Sophia de Belfort */}
       <a 
         href="https://www.linkedin.com/in/mia-de-belfort-990164431" 
         target="_blank" 
@@ -446,7 +459,7 @@ export default function Home() {
         <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
           <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
         </svg>
-        <span>Mia de Belfort | LinkedIn</span>
+        <span>Sophia de Belfort | LinkedIn</span>
       </a>
     </div>
 
