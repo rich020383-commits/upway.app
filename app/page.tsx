@@ -305,7 +305,7 @@ export default function Home() {
 
       {/* HERO SECTION: SOPHIE V2 */}
       <section id="top" className="relative h-screen w-full overflow-hidden z-10">
-        <video autoPlay loop muted playsInline preload="metadata" className="absolute inset-0 z-0 h-full w-full object-cover object-left md:object-center scale-[1.02] transform-gpu brightness-[1.15]">
+        <video autoPlay loop muted playsInline preload="metadata" className="absolute inset-0 z-0 h-full w-full object-cover scale-[1.02] transform-gpu brightness-[1.15]">
           <source src="/sophie-animada.webm" type="video/webm" />
           <source src="/sophie-animada.mp4" type="video/mp4" />
         </video>
@@ -422,7 +422,7 @@ export default function Home() {
       <img 
         src="/equipo-upway.jpg" 
         alt="Equipo Upway" 
-        className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+        className="absolute inset-0 w-full h-full object-cover object-left md:object-center group-hover:scale-105 transition-transform duration-700 ease-out"
       />
     </div>
 
