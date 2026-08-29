@@ -321,11 +321,27 @@ export default function Home() {
         </div>
 
         <div className="absolute bottom-8 left-8 z-20 hidden md:block">
-          <div className="flex flex-col gap-1.5 border-l-2 border-cyan-500/50 pl-3">
-             <p className="text-[10px] font-mono text-cyan-400 tracking-widest">STATUS: ONLINE</p>
-             <p className="text-[10px] font-mono text-white/50 tracking-widest">MODEL: SOPHIE_V2</p>
-          </div>
-        </div>
+  <div className="flex items-center gap-3 border-l-2 border-cyan-500/50 pl-3 bg-black/20 p-2 pr-4 rounded-r-xl backdrop-blur-sm">
+    
+    {/* Icono de Sophie V2 */}
+    <img 
+      src="/sophie-icon.png" 
+      alt="Sophie V2" 
+      className="w-9 h-9 rounded-lg object-cover shadow-[0_0_12px_rgba(34,211,238,0.25)] border border-cyan-500/30" 
+    />
+    
+    {/* Textos de Status */}
+    <div className="flex flex-col gap-1">
+      <p className="text-[10px] font-mono text-cyan-400 tracking-widest flex items-center gap-2">
+        STATUS: ONLINE <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse"></span>
+      </p>
+      <p className="text-[10px] font-mono text-white/50 tracking-widest">
+        MODEL: SOPHIE_V2
+      </p>
+    </div>
+    
+  </div>
+</div>
 
         <AnimatePresence>
           {isHudOpen && (

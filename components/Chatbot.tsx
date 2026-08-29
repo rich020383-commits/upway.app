@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, Terminal, Cpu, Activity, Zap, ShieldCheck, Mic, Square } from "lucide-react";
+import { X, Send, Cpu, Activity, Zap, ShieldCheck, Mic, Square } from "lucide-react";
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -200,7 +200,11 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
         }`}
       >
         <div className="absolute inset-0 bg-gradient-to-tr from-[#00D1FF]/20 to-transparent pointer-events-none" />
-        <Terminal className="w-6 h-6 relative z-10" />
+        <img 
+          src="/sophie-icon.png" 
+          alt="Abrir Sophie V2" 
+          className="w-7 h-7 rounded-[8px] object-cover shadow-[0_0_10px_rgba(34,211,238,0.3)] transition-transform group-hover:scale-110 relative z-10" 
+        />
       </motion.button>
 
       {/* PANEL DE COMANDO SOPHIE V2 */}
@@ -218,18 +222,18 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
               <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,209,255,0.05)_50%)] bg-[length:100%_4px] pointer-events-none" />
               
               <div className="flex items-center gap-4 relative z-10">
-                <div className="relative w-12 h-12 flex items-center justify-center">
-                  <motion.div
-                    animate={{ rotate: isLoading ? 360 : 0, scale: isLoading ? [1, 1.1, 1] : 1 }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-0 rounded-full border border-[#00D1FF]/30 border-t-[#00D1FF] border-b-[#00D1FF]"
+                <div className="relative shrink-0">
+                  {/* Brillo de fondo dinámico */}
+                  <div className={`absolute inset-0 bg-[#00D1FF] blur-md rounded-xl transition-opacity duration-300 ${isLoading ? 'opacity-80 animate-pulse' : 'opacity-30'}`}></div>
+                  
+                  <img 
+                    src="/sophie-icon.png" 
+                    alt="Sophie V2" 
+                    className={`relative w-11 h-11 rounded-xl object-cover border transition-all duration-300 ${isLoading ? 'border-white shadow-[0_0_20px_rgba(0,209,255,0.8)]' : 'border-[#00D1FF]/50 shadow-sm'}`} 
                   />
-                  <motion.div
-                    animate={{ rotate: isLoading ? -360 : 0 }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-2 rounded-full border border-blue-500/30 border-l-blue-500 border-r-blue-500"
-                  />
-                  <div className={`w-4 h-4 rounded-full transition-all duration-300 ${isLoading ? 'bg-cyan-300 shadow-[0_0_15px_rgba(103,232,249,1)]' : 'bg-[#00D1FF] shadow-[0_0_10px_rgba(0,209,255,0.6)]'}`} />
+                  
+                  {/* Punto verde de status */}
+                  <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-[#0A0E14] rounded-full"></span>
                 </div>
 
                 <div>
