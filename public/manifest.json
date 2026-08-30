@@ -32,5 +32,12 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "scope": "/",
+  "lang": "es",
+  "dir": "auto",
+  "categories": [
+    "business",
+    "productivity"
   ]
 }
