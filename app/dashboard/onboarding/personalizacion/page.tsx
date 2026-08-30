@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Store, Mic2, ArrowRight, Terminal, User, Sparkles, Phone } from 'lucide-react';
+import { Store, Mic2, ArrowRight, Terminal, User, Sparkles, Phone, Bot } from 'lucide-react';
 import { useUpwayStore } from '../../../store/upwayStore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -32,10 +32,9 @@ export default function Paso03Personalizacion() {
   if (!isMounted) return null;
 
   return (
-    // 🔥 EL CASCARÓN: h-full y flex-col congelan la pantalla
     <div className="flex flex-col h-full w-full relative bg-transparent text-[#F5F7FA]">
       
-      {/* Botón de Saltar (Uniformidad con Paso 1) */}
+      {/* Botón de Saltar */}
       <div className="absolute top-4 right-4 md:top-6 md:right-8 z-50">
         <Link 
           href="/dashboard" 
@@ -48,7 +47,6 @@ export default function Paso03Personalizacion() {
         </Link>
       </div>
 
-      {/* 🔥 EL RESORTE CENTRAL: Absorbe el espacio y permite scroll interno sin mostrar barra */}
       <div className="flex-1 w-full max-w-6xl mx-auto px-6 py-4 mt-8 md:mt-4 overflow-y-auto no-scrollbar">
         
         {/* Barra de progreso / Narrativa */}
@@ -176,12 +174,22 @@ export default function Paso03Personalizacion() {
                 </h3>
                 <span className="text-[9px] md:text-[10px] uppercase tracking-wider font-bold text-[#9B5CFF] bg-[#9B5CFF]/10 px-2 py-1 rounded-md border border-[#9B5CFF]/20">Prompt Maestro</span>
               </div>
+
+              {/* 🔥 BANNER DE AYUDA SOPHIE */}
+              <div className="mb-5 bg-gradient-to-r from-[#9B5CFF]/10 to-transparent border border-[#9B5CFF]/30 rounded-xl p-4 flex gap-3 items-start">
+                <Bot className="text-[#9B5CFF] h-5 w-5 shrink-0 mt-0.5" />
+                <div className="text-xs md:text-sm text-[#8994A6] leading-relaxed">
+                  <strong className="text-[#F5F7FA]">¿No sabes cómo estructurar tu prompt?</strong><br/>
+                  Abre el chat con <strong>Sophie</strong> (en el botón flotante) y dile de qué trata tu negocio. Ella escribirá el código maestro optimizado por ti. También puedes preguntarle cualquier duda sobre estos pasos de activación.
+                </div>
+              </div>
+
               <label className="block font-medium text-[#8994A6] mb-2 uppercase tracking-wider text-[10px] md:text-xs">Instrucciones de comportamiento</label>
               <textarea 
                 value={promptMaestro} 
                 onChange={(e) => setPromptMaestro(e.target.value)} 
                 placeholder="Ej: Eres un vendedor experto. Tu objetivo es agendar citas, responder amablemente y nunca ofrecer descuentos no autorizados..." 
-                className="h-28 md:h-32 w-full resize-none rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3 text-sm text-[#F5F7FA] placeholder-[#8994A6]/50 outline-none transition-all focus:border-[#9B5CFF] focus:ring-1 focus:ring-[#9B5CFF]" 
+                className="h-32 md:h-40 w-full resize-none rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3 text-sm text-[#F5F7FA] placeholder-[#8994A6]/50 outline-none transition-all focus:border-[#9B5CFF] focus:ring-1 focus:ring-[#9B5CFF]" 
               />
             </div>
 
@@ -215,7 +223,7 @@ export default function Paso03Personalizacion() {
         </div>
       </div>
 
-      {/* 🔥 BARRA INFERIOR: shrink-0 anclada al final */}
+      {/* 🔥 BARRA INFERIOR */}
       <div className="shrink-0 w-full bg-[#07090C]/90 backdrop-blur-xl border-t border-[#1E293B] px-6 py-4 z-40">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div>

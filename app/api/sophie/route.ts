@@ -52,7 +52,7 @@ const buildSophieContents = (messages: SophieMessage[], audioUsuario?: string): 
   return contents;
 };
 
-// 🔥 PROMPT AFILADO, ANTIRREPETICIÓN Y OPTIMIZADO PARA CONVERSIÓN
+// 🔥 PROMPT AFILADO, ANTIRREPETICIÓN Y OPTIMIZADO PARA CONVERSIÓN + MODO ARQUITECTA
 const AGENTE_SUPREMO_PROMPT = `Rol: Eres Sophie, representante comercial prémium y Empleada Digital de Upway (BARAKAH TECH HUB SAS). Tu estilo es elegante, sumamente persuasivo, directo y corporativo.
 
 DIRECTRICES DE CONVERSIÓN (CERO REPETICIÓN):
@@ -60,21 +60,37 @@ DIRECTRICES DE CONVERSIÓN (CERO REPETICIÓN):
 2. Diagnostica rápido: pregunta qué proceso quieren automatizar en su negocio (pymes, restaurantes, ferreterías).
 3. Conecta las necesidades con los planes de inmediato:
    - Plan Emprendedor ($149.900 COP/mes): Texto y catálogo básico.
-   - Plan Negocio ($299.900 COP/mes - El estrella): Desbloquea IA multimodal, notas de voz, imágenes y RAG de inventario. (Si mencionan audios o pagos, recétalo de una vez).
+   - Plan Negocio ($299.900 COP/mes - El estrella): Desbloquea IA multimodal, notas de voz, imágenes y RAG de inventario. 
    - Plan PRO ($499.900 COP/mes): Alto volumen y reportes avanzados.
-4. Manejo de objeciones: Si mencionan Zendesk/Callbell, diles que cobran por asesor humano; Upway es un empleado digital con tarifa plana. Si mencionan ManyChat, diles que son bots rígidos del pasado; tú piensas y cierras ventas.
 
 🚨 REGLA SUPREMA DE DIRECCIONAMIENTO AL SIMULADOR:
 Si el cliente dice que quiere "probar", "ver demo", "simular" o "cómo funciona":
-- CORTA cualquier explicación.
-- No hagas más preguntas.
-- Tu respuesta DEBE incluir exactamente este texto al final: "¡Claro que sí! La mejor forma de verlo es en acción. Entra a nuestro panel gratis ahora mismo y mira cómo respondería tu agente en tiempo real. [BOTON_REGISTRO]"`;
+- CORTA cualquier explicación y no hagas más preguntas.
+- Tu respuesta DEBE incluir exactamente este texto al final: "¡Claro que sí! La mejor forma de verlo es en acción. Entra a nuestro panel gratis ahora mismo y mira cómo respondería tu agente en tiempo real. [BOTON_REGISTRO]"
+
+🛠️ MODO ARQUITECTA DE VOZ (INGENIERA DE PROMPTS):
+Si el usuario te pide ayuda para "crear", "estructurar", "mejorar" o "hacer" un prompt o agente de voz:
+1. Pídele que te cuente su idea básica de negocio.
+2. Devuélvele un prompt técnico optimizado para motores de voz.
+3. Reglas de optimización: prohíbe emojis y acciones físicas, exige oraciones de 1 a 2 líneas y establece un tono conversacional estricto.
+4. Estructura tu respuesta OBLIGATORIAMENTE con estos encabezados: [Identity], [Style], [Response Guidelines], [Task & Goals] y [Error Handling / Fallback].
+5. IMPORTANTE: Envuelve todo el prompt generado dentro de un único bloque de código markdown (usando \`\`\`) para que el usuario pueda copiarlo con un clic.`;
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, audioUsuario } = await req.json();
+    const body = await req.json();
+    
+    // 🛡️ FIX AUDITORÍA: Validación estricta del JSON de entrada
+    if (!body || !body.messages || !Array.isArray(body.messages)) {
+      return NextResponse.json(
+        { reply: "Error de formato: 'messages' debe ser un arreglo válido." },
+        { status: 400 }
+      );
+    }
 
-    const contents = buildSophieContents(Array.isArray(messages) ? messages.filter((m: SophieMessage) => m.role !== 'system') : [], audioUsuario);
+    const { messages, audioUsuario } = body;
+
+    const contents = buildSophieContents(messages.filter((m: SophieMessage) => m.role !== 'system'), audioUsuario);
 
     const generateWithGemini = async () => {
       if (!genAI) throw new Error('Falta GEMINI_PREMIUM_API_KEY en el .env');
@@ -83,7 +99,7 @@ export async function POST(req: NextRequest) {
         systemInstruction: AGENTE_SUPREMO_PROMPT,
         generationConfig: {
           temperature: 0.45,
-          maxOutputTokens: 320,
+          maxOutputTokens: 500, // Subí un poco el límite para que los prompts generados no se corten
         }
       });
       const result = await model.generateContent({ contents });
@@ -105,7 +121,7 @@ export async function POST(req: NextRequest) {
         model: kimiModelName,
         messages: fallbackMessages,
         temperature: 0.45,
-        max_tokens: 320,
+        max_tokens: 500,
       });
       return completion.choices[0]?.message?.content || '';
     };
@@ -120,13 +136,13 @@ export async function POST(req: NextRequest) {
         botReply = await generateWithKimiFallback();
         chosenProvider = 'Kimi K3 ✨ (fallback)';
       } catch (fallbackError) {
-        console.error('❌ Fallback de Kimi también falló (o no está configurado):', fallbackError);
+        console.error('❌ Fallback de Kimi también falló:', fallbackError);
         botReply = '⚠️ Estoy teniendo problemas técnicos en este momento. Por favor, inténtalo de nuevo en unos minutos.';
         chosenProvider = 'Ninguno (error)';
       }
     }
 
-    console.log(`✅ Sophie respondió con éxito bajo control de tokens con ${chosenProvider}`);
+    console.log(`✅ Sophie respondió con éxito con ${chosenProvider}`);
     return NextResponse.json({ reply: botReply, provider: chosenProvider });
 
   } catch (error: unknown) {
