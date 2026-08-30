@@ -4,6 +4,7 @@ import "./globals.css";
 import Chatbot from "@/components/Chatbot"; 
 import PwaRegister from "@/components/PwaRegister";
 import { iniciarOidoNeon } from '@/lib/listener';
+import Script from 'next/script'; // Importación correcta del componente Script de Next.js
 
 // Iniciamos el oído en segundo plano (solo del lado del servidor)
 if (typeof window === 'undefined') {
@@ -47,8 +48,35 @@ export default function RootLayout({
       lang="es" 
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        {/* GOOGLE TAG MANAGER (SCRIPT) - Inyectado de forma segura en Next.js */}
+        <Script
+          id="google-tag-manager"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+              new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+              j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+              'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+              })(window,document,'script','dataLayer','GTM-WTLF5LLC');
+            `,
+          }}
+        />
+      </head>
+      
       <body className="min-h-full flex flex-col bg-slate-950 text-white">
         
+        {/* GOOGLE TAG MANAGER (NOSCRIPT) - Respaldo inyectado justo al abrir el body */}
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-WTLF5LLC"
+            height="0"
+            width="0"
+            style={{ display: 'none', visibility: 'hidden' }}
+          />
+        </noscript>
+
         {/* 🔥 3. ENVOLVEMOS TODA LA APP CON EL PROVEEDOR DE SESIÓN PRIMERO */}
         <Providers>
           {/* 🔥 4. LUEGO EL PROVEEDOR DE IDIOMA */}
