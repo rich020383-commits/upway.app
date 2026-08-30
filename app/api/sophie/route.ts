@@ -73,13 +73,13 @@ Si el cliente dice que quiere "probar", "ver demo", "simular" o "cómo funciona"
 export async function POST(req: NextRequest) {
   try {
     const { messages, audioUsuario } = await req.json();
-    
+
     const contents = buildSophieContents(Array.isArray(messages) ? messages.filter((m: SophieMessage) => m.role !== 'system') : [], audioUsuario);
 
     const generateWithGemini = async () => {
       if (!genAI) throw new Error('Falta GEMINI_PREMIUM_API_KEY en el .env');
-      const model = genAI.getGenerativeModel({ 
-        model: 'gemini-2.5-flash', 
+      const model = genAI.getGenerativeModel({
+        model: 'gemini-2.5-flash',
         systemInstruction: AGENTE_SUPREMO_PROMPT,
         generationConfig: {
           temperature: 0.45,
@@ -116,8 +116,14 @@ export async function POST(req: NextRequest) {
       botReply = await generateWithGemini();
     } catch (primaryError) {
       console.warn('⚠️ Gemini Premium falló en Sophie. Intentando fallback con Kimi...', primaryError);
-      botReply = await generateWithKimiFallback();
-      chosenProvider = 'Kimi K3 ✨ (fallback)';
+      try {
+        botReply = await generateWithKimiFallback();
+        chosenProvider = 'Kimi K3 ✨ (fallback)';
+      } catch (fallbackError) {
+        console.error('❌ Fallback de Kimi también falló (o no está configurado):', fallbackError);
+        botReply = '⚠️ Estoy teniendo problemas técnicos en este momento. Por favor, inténtalo de nuevo en unos minutos.';
+        chosenProvider = 'Ninguno (error)';
+      }
     }
 
     console.log(`✅ Sophie respondió con éxito bajo control de tokens con ${chosenProvider}`);
