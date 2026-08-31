@@ -1,64 +1,50 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/session';
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
-const prisma = globalForPrisma.prisma || new PrismaClient();
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
-
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const data = await req.json();
-    
-    const { 
-      userId, 
-      email, // 🚀 AÑADIDO: Atrapamos el correo real que viene del Frontend
-      nombreNegocio, 
-      nombreAgente, 
-      promptMaestro, 
+
+    const {
+      nombreNegocio,
+      nombreAgente,
+      promptMaestro,
       modulosSeleccionados,
-      telefonoAdmin 
+      telefonoAdmin
     } = data;
 
-    if (!userId || !nombreNegocio || !nombreAgente) {
+    // 🛡️ El userId SIEMPRE viene de la sesión, nunca del body
+    const sessionUser = await getSessionUser(req);
+    if (!sessionUser) {
+      return NextResponse.json(
+        { error: 'No hay sesión activa' },
+        { status: 401 }
+      );
+    }
+
+    if (!nombreNegocio || !nombreAgente) {
       return NextResponse.json(
         { error: 'Faltan datos críticos para crear la infraestructura.' },
         { status: 400 }
       );
     }
 
-    // 🚀 AÑADIDO: Usamos tu correo real primero. Solo si no existe, usamos el de emergencia.
-    const targetEmail = email || (userId === 'meta-reviewer' ? 'revisor_meta@upway.business' : `${userId}@upway.local`);
+    const userId = sessionUser.id;
+    void sessionUser.email;
 
-    // 🛡️ BARRERA DEFENSIVA INTELIGENTE: Buscamos por ID o por Email para evitar colisiones P2002
-    let userExists = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { id: userId },
-          { email: targetEmail }
-        ]
-      }
+    // 🛡️ BARRERA DEFENSIVA: el usuario ya existe porque la sesión es válida
+    const userExists = await prisma.user.findUnique({
+      where: { id: userId }
     });
 
     if (!userExists) {
-      console.log(`⚠️ [Aprovisionamiento] El usuario con ID "${userId}" o email "${targetEmail}" no existía. Creándolo de emergencia...`);
-      try {
-        userExists = await prisma.user.create({
-          data: {
-            id: userId,
-            email: targetEmail,
-            name: userId === 'meta-reviewer' ? 'Meta Reviewer' : 'Usuario Upway'
-          }
-        });
-      } catch (createError: any) {
-        // Red de seguridad extrema por si ocurre una condición de carrera simultánea
-        if (createError.code === 'P2002') {
-          userExists = await prisma.user.findUnique({
-            where: { email: targetEmail }
-          });
-        } else {
-          throw createError;
-        }
-      }
+      // Caso especial: sesión sin registro en BD (ej. revisor Meta). Solo crea si el email de sesión existe.
+      console.warn(`⚠️ [Aprovisionamiento] Usuario de sesión "${userId}" sin registro en BD.`);
+      return NextResponse.json(
+        { error: 'Usuario no encontrado en la base de datos.' },
+        { status: 404 }
+      );
     }
 
     // Traducción modular de módulos del carrito a la base de datos
@@ -87,7 +73,7 @@ export async function POST(req: Request) {
       // Si no existe, la creamos desde cero con los módulos exactos elegidos
       nuevaTienda = await prisma.tienda.create({
         data: {
-          userId: userExists!.id, 
+          userId: userExists!.id,
           nombre: nombreNegocio,
           agentName: nombreAgente,
           systemPrompt: promptMaestro,
@@ -98,10 +84,10 @@ export async function POST(req: Request) {
       });
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       mensaje: '¡Infraestructura aprovisionada con éxito!',
-      tiendaId: nuevaTienda.id 
+      tiendaId: nuevaTienda.id
     });
 
   } catch (error) {

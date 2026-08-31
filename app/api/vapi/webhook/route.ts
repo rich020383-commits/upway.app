@@ -1,22 +1,38 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { verifyVapiSignature } from '@/lib/webhook-verify';
 
 // 💰 MARGEN DE GANANCIA DE UPWAY
 // Si Vapi te cobra $0.10, Upway le cobra $0.15 a la IPS (50% de ganancia)
-const UPWAY_MARKUP_MULTIPLIER = 1.5; 
+const UPWAY_MARKUP_MULTIPLIER = 1.5;
 
 // ==========================================
 // RECEPCIÓN DE EVENTOS VAPI (POST)
 // ==========================================
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    // 🛡️ Verificación de firma X-Vapi-Signature (fail-closed en producción)
+    const rawBody = await req.text();
+    const serverSecret = process.env.VAPI_SERVER_SECRET;
+
+    if (!serverSecret) {
+      if (process.env.NODE_ENV === 'production') {
+        console.error('🚨 [VAPI WEBHOOK] Falta VAPI_SERVER_SECRET: rechazando request (fail-closed).');
+        return new NextResponse('Firma no verificable', { status: 403 });
+      }
+      console.warn('⚠️ [VAPI WEBHOOK] Sin VAPI_SERVER_SECRET en desarrollo: firma NO verificada.');
+    } else if (!verifyVapiSignature(rawBody, req.headers.get('x-vapi-signature'), serverSecret)) {
+      console.warn('🚨 [VAPI WEBHOOK] Firma inválida: request rechazado.');
+      return new NextResponse('Firma inválida', { status: 401 });
+    }
+
+    const body = JSON.parse(rawBody);
 
     // 1. FILTRO DE EVENTOS
-    // Vapi envía muchos eventos (cuando timbra, cuando transcribe). 
+    // Vapi envía muchos eventos (cuando timbra, cuando transcribe).
     // Solo nos importa el reporte financiero cuando la llamada termina.
     const messageType = body?.message?.type;
-    
+
     if (messageType !== 'end-of-call-report') {
       // Si no es el fin de llamada, devolvemos un 200 OK y no hacemos nada
       return new NextResponse(null, { status: 200 });
@@ -50,7 +66,7 @@ export async function POST(req: Request) {
         // 3. MATEMÁTICA FINANCIERA
         const vapiCost = callData?.cost || 0;
         const upwayBilledCost = vapiCost * UPWAY_MARKUP_MULTIPLIER;
-        
+
         // Calcular duración exacta en minutos
         let durationMinutes = 0;
         if (callData?.startedAt && callData?.endedAt) {

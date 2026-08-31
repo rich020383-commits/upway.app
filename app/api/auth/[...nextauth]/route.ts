@@ -24,8 +24,17 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Por favor ingresa tu correo y contraseña");
         }
 
-        if (credentials.email === 'revisor_meta@upway.business' && credentials.password === 'MetaReview2026') {
-          return { id: 'meta-reviewer', name: 'Meta Reviewer', email: 'revisor_meta@upway.business' };
+        // 🛡️ ACCESO PARA REVISOR DE META — credenciales en variables de entorno
+        // Requiere: META_REVIEWER_EMAIL y META_REVIEWER_HASHED_PWD (bcrypt).
+        const reviewerEmail = process.env.META_REVIEWER_EMAIL;
+        const reviewerHash = process.env.META_REVIEWER_HASHED_PWD;
+
+        if (reviewerEmail && reviewerHash && credentials.email.toLowerCase() === reviewerEmail.toLowerCase()) {
+          const isReviewerValid = await bcrypt.compare(credentials.password, reviewerHash);
+          if (isReviewerValid) {
+            return { id: 'meta-reviewer', name: 'Meta Reviewer', email: reviewerEmail };
+          }
+          throw new Error("Contraseña incorrecta");
         }
 
         try {
@@ -111,7 +120,7 @@ export const authOptions: NextAuthOptions = {
               data: {
                 id: dbUser.id,
                 userId: dbUser.id,
-                nombre: `Workspace de ${dbUser.name || 'Empresa'}`, 
+                nombre: `Workspace de ${dbUser.name || 'Empresa'}`,
               }
             });
             console.log(`✅ [${account.provider.toUpperCase()} Auth] Tienda retroactiva creada para: ${dbUser.email}`);
@@ -129,25 +138,25 @@ export const authOptions: NextAuthOptions = {
       if (account && (account.provider === 'google' || account.provider === 'linkedin')) {
         token.accessToken = account.access_token;
       }
-      
+
       // 1. Momento exacto del login (existe 'user')
       if (user) {
         if (user.email === 'revisor_meta@upway.business') {
           token.id = 'meta-reviewer';
         } else {
-          const dbUser = await prisma.user.findUnique({ 
-            where: { email: user.email as string } 
+          const dbUser = await prisma.user.findUnique({
+            where: { email: user.email as string }
           });
           token.id = dbUser ? dbUser.id : user.id;
         }
-      } 
+      }
       // 2. 🔥 SALVAVIDAS DE PERSISTENCIA
       else if (token.email && !token.id) {
         if (token.email === 'revisor_meta@upway.business') {
           token.id = 'meta-reviewer';
         } else {
-          const dbUser = await prisma.user.findUnique({ 
-            where: { email: token.email as string } 
+          const dbUser = await prisma.user.findUnique({
+            where: { email: token.email as string }
           });
           if (dbUser) {
             token.id = dbUser.id;

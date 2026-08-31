@@ -1,38 +1,32 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { getOwnedTienda } from '@/lib/session';
 
-const prisma = new PrismaClient();
-
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     // 🚀 1. Extraemos el telefonoAdmin que nos enviará el frontend
     const { tienda_id, nombre, reglas, telefonoAdmin } = await req.json();
 
-    if (!tienda_id) {
-      return NextResponse.json({ error: 'Falta el ID de la tienda' }, { status: 400 });
+    if (!nombre || typeof nombre !== 'string' || nombre.length > 100) {
+      return NextResponse.json({ error: 'Nombre de agente inválido' }, { status: 400 });
+    }
+    if (!reglas || typeof reglas !== 'string' || reglas.length > 8000) {
+      return NextResponse.json({ error: 'Reglas inválidas' }, { status: 400 });
     }
 
-    try {
-       // Intentamos actualizar la tienda si ya existe (el camino normal)
-       const tiendaActualizada = await prisma.tienda.update({
-         where: { id: tienda_id },
-         data: {
-           agentName: nombre,
-           systemPrompt: reglas,
-           telefonoAdmin: telefonoAdmin // 🚀 2. Lo guardamos en la base de datos
-         }
-       });
-       return NextResponse.json({ success: true, tienda: tiendaActualizada });
-       
-    } catch (updateError) {
-       // 🪄 MAGIA PLG: Si la tienda no existe, no rompemos la app. 
-       // Le decimos al Frontend que todo salió bien para que el cliente siga probando el Simulador.
-       console.warn('Modo Demo: Simulando guardado exitoso.');
-       return NextResponse.json({ 
-         success: true, 
-         mensaje: "Configuración simulada activada",
-       });
-    }
+    // 🛡️ Solo el dueño puede configurar su tienda (404 si no existe o no es suya)
+    const { tienda: tiendaPropia, error } = await getOwnedTienda(req, prisma, tienda_id);
+    if (error) return error;
+
+    const tiendaActualizada = await prisma.tienda.update({
+      where: { id: tiendaPropia.id },
+      data: {
+        agentName: nombre,
+        systemPrompt: reglas,
+        telefonoAdmin: telefonoAdmin ? String(telefonoAdmin) : null // 🚀 2. Lo guardamos en la base de datos
+      }
+    });
+    return NextResponse.json({ success: true, tienda: tiendaActualizada });
 
   } catch (error) {
     console.error('Error guardando el bot en base de datos:', error);

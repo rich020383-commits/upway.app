@@ -1,11 +1,13 @@
-import { hashPassword, verifyPassword } from './auth-utils';
+import { prisma } from '@/lib/prisma';
+import type { Prisma, Producto as ProductoModel } from '@prisma/client';
 
-export type AppUser = {
-  id: string;
-  name: string | null;
-  email: string | null;
-  password?: string | null;
-};
+/**
+ * Capa de acceso a datos de INVENTARIO sobre Prisma/Neon.
+ * Reemplaza el estado en memoria (los datos ya no se pierden al reiniciar).
+ *
+ * Multi-tenant: todas las operaciones reciben `tiendaId`, y los endpoints
+ * que llaman aquí deben garantizar ownership vía `getOwnedTienda` (lib/session.ts).
+ */
 
 export type AppProduct = {
   id: string;
@@ -17,111 +19,92 @@ export type AppProduct = {
   creadoEn: string;
 };
 
-const TIENDA_ID = '1172769935927318';
-
-const initialUsers: AppUser[] = [
-  {
-    id: 'demo-upway',
-    name: 'Demo Upway',
-    email: 'demo@upway.app',
-    password: hashPassword('upway123'),
-  },
-];
-
-const initialProducts: AppProduct[] = [
-  {
-    id: 'prod-001',
-    tiendaId: TIENDA_ID,
-    nombre: 'Bot de WhatsApp Premium',
-    categoria: 'Software',
-    precio: 1490000,
+function toAppProduct(p: ProductoModel): AppProduct {
+  return {
+    id: p.id,
+    tiendaId: p.tiendaId,
+    nombre: p.nombre,
+    categoria: (p as { categoria?: string | null }).categoria ?? 'General',
+    precio: p.precio,
     disponible: true,
     creadoEn: new Date().toISOString(),
-  },
-  {
-    id: 'prod-002',
-    tiendaId: TIENDA_ID,
-    nombre: 'Gestor de Inventario IA',
-    categoria: 'Automatización',
-    precio: 980000,
-    disponible: true,
-    creadoEn: new Date().toISOString(),
-  },
-];
-
-let users: AppUser[] = [...initialUsers];
-let products: AppProduct[] = [...initialProducts];
-
-export async function authenticateUser(email: string, password: string) {
-  const user = users.find((entry) => entry.email?.toLowerCase() === email.toLowerCase());
-  if (!user?.password) return null;
-  return verifyPassword(password, user.password) ? user : null;
-}
-
-export async function createUser(input: { name: string; email: string; password: string }) {
-  const exists = users.some((entry) => entry.email?.toLowerCase() === input.email.toLowerCase());
-  if (exists) return null;
-
-  const newUser: AppUser = {
-    id: `user-${Date.now()}`,
-    name: input.name,
-    email: input.email,
-    password: hashPassword(input.password),
   };
-
-  users = [...users, newUser];
-  return newUser;
 }
 
-export async function findUserByEmail(email: string) {
-  return users.find((entry) => entry.email?.toLowerCase() === email.toLowerCase()) ?? null;
-}
-
-export async function listProducts(tiendaId = TIENDA_ID) {
-  return products.filter((product) => product.tiendaId === tiendaId);
-}
-
-export async function createProduct(input: Omit<AppProduct, 'id' | 'creadoEn'>) {
-  const newProduct: AppProduct = {
-    id: `prod-${Date.now()}`,
-    tiendaId: input.tiendaId,
-    nombre: input.nombre,
-    categoria: input.categoria,
-    precio: input.precio,
-    disponible: input.disponible,
-    creadoEn: new Date().toISOString(),
-  };
-  products = [newProduct, ...products];
-  return newProduct;
-}
-
-export async function updateProduct(id: string, input: Partial<AppProduct>) {
-  let updated: AppProduct | null = null;
-  products = products.map((product) => {
-    if (product.id === id) {
-      updated = { ...product, ...input };
-      return updated;
-    }
-    return product;
+/** Lista los productos de una tienda (ordenados por creación). */
+export async function listProducts(tiendaId: string): Promise<AppProduct[]> {
+  const productos = await prisma.producto.findMany({
+    where: { tiendaId },
   });
-  return updated;
+  return productos.map(toAppProduct);
 }
 
-export async function deleteProduct(id: string) {
-  const before = products.length;
-  products = products.filter((product) => product.id !== id);
-  return products.length < before;
+/** Crea un producto. `tiendaId` debe venir validado con getOwnedTienda. */
+export async function createProduct(input: {
+  tiendaId: string;
+  nombre: string;
+  categoria: string;
+  precio: number;
+  disponible?: boolean;
+}): Promise<AppProduct> {
+  const p = await prisma.producto.create({
+    data: {
+      tiendaId: input.tiendaId,
+      nombre: input.nombre,
+      descripcion: input.categoria || 'General',
+      precio: input.precio,
+      stock: input.disponible === false ? 0 : 1,
+    },
+  });
+  return toAppProduct(p);
 }
 
-export async function importProductsFromRows(rows: Array<{ nombre: string; categoria: string; precio: number; disponible: boolean }>, tiendaId = TIENDA_ID) {
+/** Actualiza un producto verificando que pertenece a la tienda indicada. */
+export async function updateProduct(
+  tiendaId: string,
+  id: string,
+  input: Partial<{ nombre: string; categoria: string; precio: number; disponible: boolean }>
+): Promise<AppProduct | null> {
+  const data: Prisma.ProductoUpdateInput = {};
+  if (input.nombre !== undefined) data.nombre = input.nombre;
+  if (input.categoria !== undefined) data.descripcion = input.categoria;
+  if (input.precio !== undefined) data.precio = input.precio;
+  if (input.disponible !== undefined) data.stock = input.disponible ? 1 : 0;
+
+  try {
+    const p = await prisma.producto.update({
+      where: { id },
+      data,
+    });
+    if (p.tiendaId !== tiendaId) return null; // ownership
+    return toAppProduct(p);
+  } catch {
+    return null; // P2025: no existe
+  }
+}
+
+/** Elimina un producto verificando ownership. Devuelve false si no existía o no es de la tienda. */
+export async function deleteProduct(tiendaId: string, id: string): Promise<boolean> {
+  const existing = await prisma.producto.findUnique({ where: { id } });
+  if (!existing || existing.tiendaId !== tiendaId) return false;
+  await prisma.producto.delete({ where: { id } });
+  return true;
+}
+
+/** Importación en lote desde CSV (ya con tiendaId validado por el endpoint). */
+export async function importProductsFromRows(
+  rows: Array<{ nombre: string; categoria: string; precio: number; disponible: boolean }>,
+  tiendaId: string
+): Promise<AppProduct[]> {
   const created: AppProduct[] = [];
   for (const row of rows) {
+    if (!row.nombre) continue;
     created.push(
       await createProduct({
         tiendaId,
         nombre: row.nombre,
         categoria: row.categoria || 'General',
-        precio: row.precio,
+        precio: Number(row.precio) || 0,
         disponible: row.disponible,
       })
     );

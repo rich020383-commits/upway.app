@@ -1,5 +1,6 @@
-﻿import { NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getOwnedTienda } from '@/lib/session';
 
 type MetaTokenExchangeResponse = {
   access_token?: string;
@@ -39,38 +40,33 @@ async function exchangeCodeForToken(code: string, redirectUri: string) {
   return data.access_token;
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
     const {
-      metaAccessToken,
       metaCode,
       metaPhoneNumberId = 'ID_DEL_NUMERO',
       metaWabaId = 'ID_DEL_WABA',
-      redirectUri,
       tienda_id: tiendaIdFromBody,
     } = body;
 
-    const code = metaCode || metaAccessToken;
-    const redirect = redirectUri || process.env.NEXT_PUBLIC_APP_URL || 'https://upway.business';
-    
-    if (!code) {
+    // 🛡️ La sesión decide la tienda destino; nunca confiamos en tokens del cliente
+    const { tienda, error } = await getOwnedTienda(req, prisma, tiendaIdFromBody);
+    if (error) return error;
+
+    const redirect = process.env.NEXT_PUBLIC_APP_URL || 'https://upway.business';
+
+    if (!metaCode) {
       return NextResponse.json(
-        { error: 'Falta el código o token de acceso de Meta.' },
+        { error: 'Falta el código de autorización de Meta.' },
         { status: 400 }
       );
     }
 
     console.log(`Procesando callback de Meta...`);
 
-    let accessToken = code;
-
-    if (metaAccessToken && metaAccessToken.startsWith('EA')) {
-      accessToken = metaAccessToken;
-    } else {
-      accessToken = await exchangeCodeForToken(code, redirect);
-    }
+    const accessToken = await exchangeCodeForToken(metaCode, redirect);
 
     if (metaPhoneNumberId && metaPhoneNumberId !== 'ID_DEL_NUMERO') {
       try {
@@ -99,26 +95,10 @@ export async function POST(req: Request) {
       }
     }
 
-    // 🔥 LA MAGIA: Buscamos tu tienda real de forma dinámica
-    let tienda;
-    
-    if (tiendaIdFromBody) {
-      tienda = await prisma.tienda.findUnique({ where: { id: tiendaIdFromBody } });
-    } else {
-      // Si no mandan ID, buscamos tu tienda principal en la base de datos
-      tienda = await prisma.tienda.findFirst();
-    }
-
-    if (!tienda) {
-      return NextResponse.json(
-        { error: `No se encontró ninguna tienda en la base de datos.` },
-        { status: 404 }
-      );
-    }
-
+    // 🔥 Buscamos la tienda del usuario autenticado (ya resuelta con ownership)
     const tiendaIdReal = tienda.id;
 
-    // 🧹 LIMPIO: Actualizamos TU tienda, no la del revisor
+    // 🧹 LIMPIO: Actualizamos la tienda del dueño autenticado
     await prisma.tienda.update({
       where: { id: tiendaIdReal },
       data: {

@@ -1,13 +1,15 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/session';
 
 // 1. OBTENER TODOS LOS CHATS Y MENSAJES (GET)
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const email = searchParams.get('email');
+    // 🛡️ El email SIEMPRE viene de la sesión firmada, nunca del query param
+    const sessionUser = await getSessionUser(req);
+    const email = sessionUser?.email;
 
-    if (!email) return NextResponse.json({ error: 'Falta email' }, { status: 400 });
+    if (!email) return NextResponse.json({ error: 'No hay sesión activa' }, { status: 401 });
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
@@ -26,8 +28,8 @@ export async function GET(req: Request) {
       orderBy: { updatedAt: 'desc' } // Los chats con mensajes más recientes arriba
     });
 
-    return NextResponse.json({ 
-      conversations, 
+    return NextResponse.json({
+      conversations,
       tiendaId: tienda.id,
       metaAccessToken: tienda.metaAccessToken,
       metaPhoneNumberId: tienda.metaPhoneNumberId,
@@ -40,13 +42,40 @@ export async function GET(req: Request) {
 }
 
 // 2. ENVIAR MENSAJE MANUAL COMO HUMANO (POST)
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { conversationId, clientPhone, content, metaAccessToken, metaPhoneNumberId } = body;
+    const { conversationId, content } = body;
 
-    if (!content || !clientPhone || !metaAccessToken || !metaPhoneNumberId) {
-      return NextResponse.json({ error: 'Faltan datos para enviar a Meta' }, { status: 400 });
+    // 🛡️ Autenticación: el email viene de la sesión
+    const sessionUser = await getSessionUser(req);
+    if (!sessionUser?.email) {
+      return NextResponse.json({ error: 'No hay sesión activa' }, { status: 401 });
+    }
+
+    if (!content || !conversationId) {
+      return NextResponse.json({ error: 'Faltan datos para enviar el mensaje' }, { status: 400 });
+    }
+
+    // 🛡️ Ownership: la conversación debe pertenecer a una tienda del usuario autenticado
+    const conversation = await prisma.conversation.findFirst({
+      where: {
+        id: conversationId,
+        tienda: { user: { email: sessionUser.email } }
+      },
+      include: { tienda: true }
+    });
+
+    if (!conversation) {
+      return NextResponse.json({ error: 'Conversación no encontrada' }, { status: 404 });
+    }
+
+    // 🛡️ Credenciales de Meta SIEMPRE desde la BD del dueño, nunca del body
+    const { metaAccessToken, metaPhoneNumberId } = conversation.tienda;
+    const clientPhone = conversation.clientPhone;
+
+    if (!metaAccessToken || !metaPhoneNumberId) {
+      return NextResponse.json({ error: 'La tienda no tiene WhatsApp conectado' }, { status: 400 });
     }
 
     // A. Enviar el mensaje a Meta (WhatsApp API)
@@ -66,7 +95,7 @@ export async function POST(req: Request) {
 
     const data = await response.json();
     if (!response.ok) throw new Error(JSON.stringify(data));
-    
+
     const outMessageId = data.messages?.[0]?.id;
 
     // B. Guardar en la base de datos como "HUMAN"

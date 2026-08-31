@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import * as GenerativeAI from '@google/generative-ai';
 import { listProducts } from '@/lib/app-state';
+import { prisma } from '@/lib/prisma';
+import { getSessionUser, getOwnedTienda } from '@/lib/session';
 import { google } from 'googleapis';
 
 // ==========================================
@@ -24,14 +26,14 @@ async function crearEventoCalendario(asunto: string, fechaInicio: string, fechaF
   try {
     const event = {
       summary: asunto,
-      start: { dateTime: fechaInicio, timeZone: 'America/Bogota' }, 
+      start: { dateTime: fechaInicio, timeZone: 'America/Bogota' },
       end: { dateTime: fechaFin, timeZone: 'America/Bogota' },
     };
     const response = await calendar.events.insert({
       calendarId: 'primary',
       requestBody: event,
     });
-    return response.data.htmlLink; 
+    return response.data.htmlLink;
   } catch (error) {
     console.error("Error agendando en Calendar:", error);
     throw new Error("No pude conectar con el calendario.");
@@ -39,27 +41,27 @@ async function crearEventoCalendario(asunto: string, fechaInicio: string, fechaF
 }
 
 // ==========================================
-// 🧠 INICIALIZACIÓN DE MOTORES DE CASCADA 
+// 🧠 INICIALIZACIÓN DE MOTORES DE CASCADA
 // ==========================================
 
 // 1. Groq (Plan A - 1000 RPM / Velocidad brutal)
-const groqClient = process.env.GROQ_API_KEY 
-  ? new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' }) 
+const groqClient = process.env.GROQ_API_KEY
+  ? new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' })
   : null;
 
 // 2. SambaNova (Plan B - Velocidad Extrema)
-const sambanovaClient = process.env.SAMBANOVA_API_KEY 
-  ? new OpenAI({ apiKey: process.env.SAMBANOVA_API_KEY, baseURL: 'https://api.sambanova.ai/v1' }) 
+const sambanovaClient = process.env.SAMBANOVA_API_KEY
+  ? new OpenAI({ apiKey: process.env.SAMBANOVA_API_KEY, baseURL: 'https://api.sambanova.ai/v1' })
   : null;
 
 // 3. Mistral (Plan C)
-const mistralClient = process.env.MISTRAL_API_KEY 
-  ? new OpenAI({ apiKey: process.env.MISTRAL_API_KEY, baseURL: 'https://api.mistral.ai/v1' }) 
+const mistralClient = process.env.MISTRAL_API_KEY
+  ? new OpenAI({ apiKey: process.env.MISTRAL_API_KEY, baseURL: 'https://api.mistral.ai/v1' })
   : null;
 
 // 4. OpenRouter (Plan D)
-const openRouterClient = process.env.OPENROUTER_API_KEY 
-  ? new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY, baseURL: 'https://openrouter.ai/api/v1' }) 
+const openRouterClient = process.env.OPENROUTER_API_KEY
+  ? new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY, baseURL: 'https://openrouter.ai/api/v1' })
   : null;
 
 // 5. Gemini Premium (EL ESCUDO FINAL)
@@ -72,7 +74,7 @@ const geminiGenAI = geminiPremiumApiKey ? new GenerativeAI.GoogleGenerativeAI(ge
 const ALERT_WEBHOOK_URL = process.env.ALERT_WEBHOOK_URL;
 const AUDIO_TRANSCRIPTION_TIMEOUT_MS = 5000;
 // ⏳ Para el simulador web usamos 8 segundos generales porque el navegador web espera más que WhatsApp
-const PROVIDER_TIMEOUT_MS = 8000; 
+const PROVIDER_TIMEOUT_MS = 8000;
 
 const sendMonitorAlert = async (message: string) => {
   if (!ALERT_WEBHOOK_URL) return;
@@ -121,10 +123,10 @@ async function transcribirAudioUsuario(audioUsuario: string) {
   formData.append('file', blob, 'nota_de_voz.webm');
   formData.append('model', 'whisper-large-v3');
   formData.append('language', 'es');
-  
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), AUDIO_TRANSCRIPTION_TIMEOUT_MS);
-  
+
   try {
     const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
       method: 'POST',
@@ -166,7 +168,7 @@ const isBillingOrAuthError = (error: unknown) => {
 // ==========================================
 // 📦 LÓGICA RAG (INVENTARIO)
 // ==========================================
-const limpiarTexto = (txt: string) => 
+const limpiarTexto = (txt: string) =>
   txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 type InventoryItem = {
@@ -191,15 +193,15 @@ type ChatMessage = {
 function buscarEnInventarioLocal(mensaje: string, todosLosProductos: InventoryItem[]) {
   const mensajeLimpio = limpiarTexto(mensaje);
   const palabrasClave = mensajeLimpio.split(' ').filter(p => p.length > 2);
-  
-  if (palabrasClave.length === 0) return []; 
-  
+
+  if (palabrasClave.length === 0) return [];
+
   return todosLosProductos.filter(prod => {
     const nombreLimpio = limpiarTexto(prod.nombre);
     const categoriaLimpia = prod.categoria ? limpiarTexto(prod.categoria) : "";
 
-    return palabrasClave.some(palabra => 
-      nombreLimpio.includes(palabra) || 
+    return palabrasClave.some(palabra =>
+      nombreLimpio.includes(palabra) ||
       categoriaLimpia.includes(palabra)
     );
   });
@@ -211,13 +213,21 @@ function buscarEnInventarioLocal(mensaje: string, todosLosProductos: InventoryIt
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { 
-      promptMaestro = 'Eres un asistente cordial.', 
-      mensajeUsuario, 
-      audioUsuario, 
-      historial = [] as HistoryMessage[], 
-      tienda_id = '1172769935927318' 
+    const {
+      promptMaestro = 'Eres un asistente cordial.',
+      mensajeUsuario,
+      audioUsuario,
+      historial = [] as HistoryMessage[]
     } = body;
+
+    // 🛡️ El inventario del RAG SIEMPRE se resuelve desde la sesión del dueño
+    // (el simulador onboarding usa datos de ejemplo si no hay sesión/tienda/inventario)
+    const sessionUser = await getSessionUser(req);
+    let tienda_id: string | null = null;
+    if (sessionUser) {
+      const { tienda, error } = await getOwnedTienda(req, prisma);
+      if (!error) tienda_id = tienda.id;
+    }
 
     let textoProcesado = mensajeUsuario || '';
     let botReply = '';
@@ -239,14 +249,16 @@ export async function POST(req: NextRequest) {
        return NextResponse.json({ error: 'Se requiere texto o audio para procesar' }, { status: 400 });
     }
 
-    // 2. RAG INVENTARIO
+    // 2. RAG INVENTARIO (solo si hay tienda de sesión; si no, datos de ejemplo del simulador)
     let inventarioCompleto: InventoryItem[] = [];
-    try {
-      inventarioCompleto = await listProducts(tienda_id);
-    } catch (dbError) {
-      console.error("Error al obtener inventario de la DB:", dbError);
+    if (tienda_id) {
+      try {
+        inventarioCompleto = await listProducts(tienda_id);
+      } catch (dbError) {
+        console.error("Error al obtener inventario de la DB:", dbError);
+      }
     }
-    
+
     if (!inventarioCompleto || inventarioCompleto.length === 0) {
       inventarioCompleto = [
         { nombre: "Zapatos Nike de Prueba", categoria: "Calzado", precio: 250000 },
@@ -256,7 +268,7 @@ export async function POST(req: NextRequest) {
     }
 
     const productosRelevantes = buscarEnInventarioLocal(textoProcesado, inventarioCompleto);
-    
+
     let contextoInventario = "No se encontraron coincidencias directas en el inventario con lo que pregunta el cliente.";
     if (productosRelevantes.length > 0) {
        contextoInventario = `PRODUCTOS ENCONTRADOS RELEVANTES A LA CONSULTA ACTUAL:\n${productosRelevantes.map(p => `- ${p.nombre} (Categoría: ${p.categoria || 'N/A'}) - Precio: $${p.precio}`).join('\n')}`;
@@ -264,16 +276,16 @@ export async function POST(req: NextRequest) {
 
     const fechaActual = new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' });
 
-    const systemPromptText = `Comportate ESTRICTAMENTE según estas instrucciones de tu jefe: 
+    const systemPromptText = `Comportate ESTRICTAMENTE según estas instrucciones de tu jefe:
     ${promptMaestro}
-    
+
     INFORMACIÓN VITAL PARA TI (SOPHIE):
     - Hoy es: ${fechaActual} (Hora de Colombia). Usa esta fecha actual para calcular los días.
     - REGLA DE ORO ESTRICTA: Cuando el usuario te pida agendar una reunión y te dé los detalles (Asunto, Fecha y Hora), ESTÁS OBLIGADA a utilizar la herramienta 'agendar_reunion'. NUNCA generes texto simulando que programaste la cita. DEBES ejecutar la herramienta.
-    
+
     === BASE DE DATOS (SISTEMA RAG) ===
     ${contextoInventario}
-    
+
     Regla RAG: Si el cliente pregunta por un producto y aparece en la Base de Datos arriba, ofrécelo. Si no aparece, dile elegantemente que no hay stock actual de ese artículo.`;
 
     const formattedMessages: ChatMessage[] = [
@@ -360,7 +372,7 @@ export async function POST(req: NextRequest) {
         enabled: !!mistralClient,
         execute: async () => {
           const completion = await mistralClient!.chat.completions.create({
-            model: 'mistral-small-latest', 
+            model: 'mistral-small-latest',
             messages: formattedMessages,
             temperature: 0.3,
             tools: herramientas_ia,
@@ -434,11 +446,11 @@ export async function POST(req: NextRequest) {
         }
         botReply = reply;
         usedProvider = provider.name;
-        break; 
+        break;
       } catch (providerError) {
         // 👇 El chismoso para saber exactamente qué falla en el simulador
-        console.warn(`🔴 ERROR EXACTO DE ${provider.name}:`, providerError); 
-        
+        console.warn(`🔴 ERROR EXACTO DE ${provider.name}:`, providerError);
+
         const errorMessage = formatProviderError(providerError);
         if (isBillingOrAuthError(providerError)) {
           console.warn(`⚠️ ${provider.name} no disponible por error de facturación: ${errorMessage}. Relevo siguiente...`);

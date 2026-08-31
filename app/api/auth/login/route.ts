@@ -19,10 +19,19 @@ const handler = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        // 🚀 1. ACCESO DIRECTO PARA REVISOR DE META (Prioridad máxima)
-        if (credentials.email === 'revisor_meta@upway.business' && credentials.password === 'MetaReview2026') {
+        // 🛡️ 1. ACCESO PARA REVISOR DE META — credenciales en variables de entorno
+        // Requiere: META_REVIEWER_EMAIL y META_REVIEWER_HASHED_PWD (bcrypt).
+        // Si no están configuradas, este camino se ignora y sigue la validación normal.
+        const reviewerEmail = process.env.META_REVIEWER_EMAIL;
+        const reviewerHash = process.env.META_REVIEWER_HASHED_PWD;
+
+        if (reviewerEmail && reviewerHash && credentials.email.toLowerCase() === reviewerEmail.toLowerCase()) {
+          const isReviewerValid = await bcrypt.compare(credentials.password, reviewerHash);
+          if (isReviewerValid) {
             console.log("🤖 [META REVIEW] Acceso concedido al revisor");
-            return { id: 'meta-reviewer', name: 'Meta Reviewer', email: 'revisor_meta@upway.business' };
+            return { id: 'meta-reviewer', name: 'Meta Reviewer', email: reviewerEmail };
+          }
+          return null; // Email del revisor existe pero contraseña incorrecta: no revelar si es el email del revisor
         }
 
         // 2. VALIDACIÓN NORMAL CONTRA NEON (Tu DB)

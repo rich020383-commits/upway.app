@@ -1,16 +1,17 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma'; // Asegúrate de que apunte a tu cliente de Prisma
+import { getOwnedTienda } from '@/lib/session';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
-    // 🔥 CAMBIO CLAVE: Recibimos userId, no tiendaId
-    const { code, userId } = body;
+
+    // 🔥 Recibimos solo el code; el usuario SIEMPRE viene de la sesión firmada
+    const { code } = body;
 
     // 1. Validaciones iniciales
-    if (!code || !userId) {
-      return NextResponse.json({ error: 'Falta el código de autorización o el ID de usuario' }, { status: 400 });
+    if (!code) {
+      return NextResponse.json({ error: 'Falta el código de autorización' }, { status: 400 });
     }
 
     const appId = process.env.META_CLIENT_ID;
@@ -21,16 +22,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Configuración interna del servidor incompleta.' }, { status: 500 });
     }
 
-    // 2. BUSCAMOS LA TIENDA DEL USUARIO EN NEON DB
-    const tienda = await prisma.tienda.findFirst({
-      where: { userId: userId }
-      // 🔥 Borramos la línea de orderBy para que no moleste
-    });
-
-    if (!tienda) {
-      console.error(`No se encontró tienda para el usuario: ${userId}`);
-      return NextResponse.json({ error: 'No se encontró infraestructura (tienda) para vincular.' }, { status: 404 });
-    }
+    // 2. BUSCAMOS LA TIENDA DEL USUARIO AUTENTICADO EN NEON DB (ownership garantizado)
+    const { tienda, error } = await getOwnedTienda(request, prisma);
+    if (error) return error;
 
     // 3. Intercambiamos el 'code' por el Access Token definitivo
     const tokenResponse = await fetch(`https://graph.facebook.com/v20.0/oauth/access_token?client_id=${appId}&client_secret=${appSecret}&code=${code}`);
@@ -43,7 +37,7 @@ export async function POST(request: Request) {
 
     const accessToken = tokenData.access_token;
 
-    // 4. 🚀 MAGIA EXTRA: Extraemos los IDs automáticamente consultando a Meta 
+    // 4. 🚀 MAGIA EXTRA: Extraemos los IDs automáticamente consultando a Meta
     let finalWabaId = null;
     let finalPhoneId = null;
     let finalPhoneNumber = null;
@@ -55,7 +49,7 @@ export async function POST(request: Request) {
       const debugData = await debugResponse.json();
 
       if (debugData.data && debugData.data.granular_scopes) {
-        const wabaScope = debugData.data.granular_scopes.find((scope: any) => scope.scope === 'whatsapp_business_management');
+        const wabaScope = debugData.data.granular_scopes.find((scope: { scope: string }) => scope.scope === 'whatsapp_business_management');
         if (wabaScope && wabaScope.target_ids && wabaScope.target_ids.length > 0) {
           finalWabaId = wabaScope.target_ids[0]; // Capturamos el ID corporativo de Meta (WABA)
         }
@@ -87,10 +81,10 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({ 
-      success: true, 
-      message: '¡Datos de WhatsApp guardados exitosamente en la base de datos!', 
-      tienda: tiendaActualizada 
+    return NextResponse.json({
+      success: true,
+      message: '¡Datos de WhatsApp guardados exitosamente en la base de datos!',
+      tienda: tiendaActualizada
     });
 
   } catch (error) {
