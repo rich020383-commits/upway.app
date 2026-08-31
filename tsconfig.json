@@ -1,4 +1,4 @@
-Set-Content -Path tsconfig.json -Value '{
+{
   "compilerOptions": {
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
@@ -31,4 +31,4 @@ Set-Content -Path tsconfig.json -Value '{
     "**/*.mts"
   ],
   "exclude": ["node_modules", "upway-health"]
-}'
+}
