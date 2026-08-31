@@ -1,0 +1,151 @@
+// UPWAY HEALTH — Esquema por-clínica (aislado). Un archivo .env propio por piso.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============ RBAC: Gerente / Recepcionista / Médico ============
+enum Rol {
+  GERENTE        // métricas financieras, ahorro, configuración
+  RECEPCIONISTA  // agenda completa, PDFs médicos, validación de documentos
+  MEDICO         // SOLO su agenda y sus pacientes
+}
+
+model Usuario {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  nombre     String
+  rol        Rol
+  especialidadId String?  // obligatorio si rol = MEDICO
+  activo     Boolean  @default(true)
+
+  especialidad Especialidad? @relation(fields: [especialidadId], references: [id])
+  turnos       Turno[]
+}
+
+// ============ Catálogo clínico ============
+model Especialidad {
+  id             String  @id @default(cuid())
+  nombre         String  @unique
+  requiereOrden  Boolean @default(false)  // si true: DocumentValidator intercepta el agendamiento
+  requiereCedula Boolean @default(false)
+  indicaciones   String? @db.Text         // mensajes de preparación (ej. "venir en ayunas 8h")
+  duracionMin    Int     @default(30)
+
+  medicos   Usuario[]
+  turnos    Turno[]
+  esperas   ListaEspera[]
+}
+
+// ============ Pacientes ============
+enum EstatusPaciente {
+  ACTIVO
+  ESPERANDO_DOCUMENTOS   // máquina de estados del DocumentValidator
+  DOCUMENTOS_VALIDADOS
+  BLOQUEADO
+}
+
+model Paciente {
+  id           String   @id @default(cuid())
+  telefono     String   @unique     // clave natural: el número de WhatsApp
+  nombre       String?
+  documento    String?               // cédula/NIT
+  estatus      EstatusPaciente @default(ACTIVO)
+  createdAt    DateTime @default(now())
+
+  documentos   Documento[]
+  turnos       Turno[]
+  esperas      ListaEspera[]
+  mensajes     Mensaje[]
+}
+
+// ============ Máquina de estados de documentos ============
+enum EstadoDocumento {
+  SOLICITADO          // el bot pidió la imagen
+  RECIBIDO            // el paciente envió imagen, pendiente de revisión humana
+  VALIDADO
+  RECHAZADO           // ilegible / no corresponde → re-solicitar
+}
+
+model Documento {
+  id          String          @id @default(cuid())
+  pacienteId  String
+  tipo        String          // CEDULA | ORDEN_MEDICA | EPS | OTRO
+  estado      EstadoDocumento @default(SOLICITADO)
+  path        String?         // /app/documentos/{pacienteId}/{uuid}.jpg — volumen local del piso
+  revisadoPor String?         // Usuario.id que validó
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  paciente Paciente @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+
+  @@index([pacienteId, estado])
+}
+
+// ============ Agenda ============
+enum EstadoTurno {
+  RESERVADO              // creado por el bot, sin confirmar
+  CONFIRMADO             // paciente confirmó (48h antes vía NoShowMitigation)
+  CANCELADO
+  COMPLETADO
+  NO_ASISTIO
+}
+
+model Turno {
+  id             String      @id @default(cuid())
+  pacienteId     String
+  especialidadId String
+  medicoId       String?
+  fechaHora      DateTime
+  estado         EstadoTurno @default(RESERVADO)
+  requiereDocs   Boolean     @default(false)
+  notas          String?     @db.Text
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  paciente     Paciente     @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+  especialidad Especialidad @relation(fields: [especialidadId], references: [id])
+  medico       Usuario?     @relation(fields: [medicoId], references: [id])
+
+  @@unique([medicoId, fechaHora])   // un médico, un turno por franja
+  @@index([fechaHora, estado])
+}
+
+// ============ Lista de espera (AutoFillWaitlist) ============
+model ListaEspera {
+  id             String   @id @default(cuid())
+  pacienteId     String
+  especialidadId String
+  prioridad      Int      @default(5)     // menor = más prioritario (tercería clínica)
+  fechaDesde     DateTime @default(now()) // para desempatar FIFO dentro de la prioridad
+
+  paciente     Paciente     @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+  especialidad Especialidad @relation(fields: [especialidadId], references: [id])
+
+  @@index([especialidadId, prioridad, fechaDesde])
+}
+
+// ============ Bitácora conversacional (RAG operativo y auditoría) ============
+model Mensaje {
+  id         String   @id @default(cuid())
+  pacienteId String
+  direccion  String   // IN | OUT
+  contenido  String   @db.Text
+  createdAt  DateTime @default(now())
+
+  paciente Paciente @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+
+  @@index([pacienteId, createdAt])
+}
+
+// ============ Base de conocimiento operativa (RAG) ============
+model Conocimiento {
+  id       String @id @default(cuid())
+  pregunta String
+  respuesta String @db.Text
+  embedding Bytes?          // vector del LLM local (pgvector en producción)
+}

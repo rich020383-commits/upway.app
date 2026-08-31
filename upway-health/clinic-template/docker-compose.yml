@@ -1,0 +1,72 @@
+# PLANTILLA DE PISO CLÍNICO — Instancia aislada por cliente.
+# Privacidad HIPAA: BD propia + Ollama propio + volúmenes locales. Nada sale del piso
+# salvo las llamadas a la API de WhatsApp (Meta) con el token de ESA clínica.
+version: "3.9"
+
+services:
+  backend:
+    build: .
+    ports:
+      - "3001:3001"   # <--- ¡Esto es lo que faltaba para conectar el puerto hacia afuera!
+    environment:
+      DATABASE_URL: postgresql://clinic:${DB_PASSWORD:-upway123}@db:5432/clinicdb
+      REDIS_HOST: redis
+      OLLAMA_URL: http://ollama:11434
+      LLM_MODEL: llama3.1:8b
+      CLINIC_SLUG: ${CLINIC_SLUG}
+      WHATSAPP_TOKEN: ${WHATSAPP_TOKEN}          # token de ESTA clínica (encriptado en repos de config)
+      WHATSAPP_PHONE_ID: ${WHATSAPP_PHONE_ID}
+      JWT_SECRET: ${JWT_SECRET}
+      PUBLIC_URL: https://${CLINIC_SLUG}.${ROOT_DOMAIN}
+    volumes:
+      - documentos:/app/documentos               # imágenes de cédulas/órdenes — JAMÁS en un bucket compartido
+    depends_on: [db, redis, ollama]
+    networks: [clinicnet]
+    restart: unless-stopped
+
+  worker:                                        # NoShowMitigation + AutoFillWaitlist + sala de mensajes
+    build: .
+    command: ["node", "dist/workers/noShowWorker.js"]
+    environment:
+      DATABASE_URL: postgresql://clinic:${DB_PASSWORD:-upway123}@db:5432/clinicdb
+      REDIS_HOST: redis
+      OLLAMA_URL: http://ollama:11434
+      WHATSAPP_TOKEN: ${WHATSAPP_TOKEN}
+      WHATSAPP_PHONE_ID: ${WHATSAPP_PHONE_ID}
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - documentos:/app/documentos
+    depends_on: [db, redis]
+    networks: [clinicnet]
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: clinic
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-upway123}
+      POSTGRES_DB: clinicdb
+    volumes: [pgdata:/var/lib/postgresql/data]
+    networks: [clinicnet]
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: [redisdata:/data]
+    networks: [clinicnet]
+
+  ollama:
+    image: ollama/ollama:latest
+    volumes: [ollamadata:/root/.ollama]
+    # GPU opcional: descomentar en hosts con NVIDIA runtime
+    # deploy: { resources: { reservations: { devices: [{ driver: nvidia, count: 1, capabilities: [gpu] }] } } }
+    networks: [clinicnet]
+
+networks:
+  clinicnet:
+
+volumes:
+  pgdata:
+  redisdata:
+  ollamadata:
+  documentos:

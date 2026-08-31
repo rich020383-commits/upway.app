@@ -1,0 +1,85 @@
+# GATEWAY CENTRAL — Traefik + Redis + Enrutador
+version: "3.9"
+
+services:
+  traefik:
+    image: traefik:v3.1
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.le.acme.email=${ACME_EMAIL}
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+    ports: ["80:80", "443:443"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt:/letsencrypt
+    networks: [edge]
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: [redisdata:/data]
+    networks: [edge, internal]
+
+  gateway:
+    build: .
+    environment:
+      REDIS_HOST: redis
+      META_VERIFY_TOKEN: ${META_VERIFY_TOKEN}
+      META_APP_SECRET: ${META_APP_SECRET}
+      ADMIN_TOKEN: ${ADMIN_TOKEN}
+      CLINIC_MAX_CONCURRENT: 20
+    depends_on: [redis]
+    networks: [edge, internal]
+    labels:
+      - traefik.enable=true
+      # Única URL pública de webhooks: https://api.upway.health/webhook
+      - traefik.http.routers.gateway.rule=Host(`api.${ROOT_DOMAIN}`)
+      - traefik.http.routers.gateway.entrypoints=websecure
+      - traefik.http.routers.gateway.tls.certresolver=le
+      - traefik.http.services.gateway.loadbalancer.server.port=8080
+
+  # ---- Ejemplo: UN PISO POR CLÍNICA (cada una con su compose propio en producción) ----
+  clinic-demo:
+    build: ../clinic-template
+    environment:
+      DATABASE_URL: postgresql://clinic:clinicpass@db-demo:5432/clinicdemo
+      REDIS_HOST: redis-demo
+      OLLAMA_URL: http://ollama-demo:11434
+      CLINIC_SLUG: demo
+    depends_on: [db-demo, ollama-demo]
+    networks: [internal]
+    labels:
+      - traefik.enable=true
+      # Dashboard privado de la clínica (proteger con Authelia/basicAuth en producción)
+      - traefik.http.routers.clinic-demo.rule=Host(`demo.${ROOT_DOMAIN}`)
+      - traefik.http.routers.clinic-demo.entrypoints=websecure
+      - traefik.http.routers.clinic-demo.tls.certresolver=le
+      - traefik.http.services.clinic-demo.loadbalancer.server.port=3001
+
+  db-demo:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: clinic
+      POSTGRES_PASSWORD: clinicpass
+      POSTGRES_DB: clinicdemo
+    volumes: [pgdemo:/var/lib/postgresql/data]
+    networks: [internal]
+
+  ollama-demo:
+    image: ollama/ollama:latest
+    volumes: [ollamademo:/root/.ollama]
+    networks: [internal]
+
+networks:
+  edge:
+  internal:
+
+volumes:
+  letsencrypt:
+  redisdata:
+  pgdemo:
+  ollamademo:

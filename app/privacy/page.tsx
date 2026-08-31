@@ -1,6 +1,8 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ShieldCheck, Lock, FileText, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Lock, FileText, CheckCircle2, Activity } from 'lucide-react';
 
 export default function PrivacyPolicyPage() {
   return (
@@ -9,10 +11,7 @@ export default function PrivacyPolicyPage() {
         
         {/* Botón de retorno */}
         <div className="mb-8">
-          <Link 
-            href="/" 
-            className="inline-flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-white transition-colors"
-          >
+          <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-white transition-colors">
             <ArrowLeft className="h-4 w-4" />
             Volver al inicio
           </Link>
@@ -29,93 +28,72 @@ export default function PrivacyPolicyPage() {
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                Política de Privacidad
+                Política de Privacidad Integral
               </h1>
               <p className="text-sm text-slate-400">
-                Upway Business (BARAKAH TECH HUB S.A.S.) — Última actualización: 23 de agosto de 2026
+                Upway (BARAKAH TECH HUB S.A.S.) — Última actualización: 31 de agosto de 2026
               </p>
             </div>
           </div>
 
           <hr className="border-white/10 my-8" />
 
-          {/* Cuerpo del Contenido */}
           <div className="space-y-8 text-slate-300 leading-relaxed text-sm sm:text-base">
             
             <section className="space-y-3">
               <h2 className="text-xl font-semibold text-white flex items-center gap-2">
                 <FileText className="h-5 w-5 text-cyan-400" />
-                1. Información que Recopilamos
+                1. Información que Recopilamos (B2B)
               </h2>
               <p>
-                Para poder ofrecer nuestros servicios de control empresarial y automatización de mensajería, <strong>Upway Business</strong> recopila únicamente datos de carácter estrictamente comercial y operativo, tales como:
+                Para prestar nuestros servicios SaaS, <strong>Upway</strong> recopila de sus Clientes Directos (Empresas y Clínicas) datos de carácter corporativo:
               </p>
               <ul className="list-disc pl-6 space-y-2 text-slate-400">
-                <li>Datos de identificación del negocio (nombre de la empresa, correo electrónico corporativo y datos públicos del perfil comercial).</li>
-                <li>Identificadores de la cuenta de WhatsApp Business y tokens de acceso otorgados de forma voluntaria a través del flujo oficial de autenticación de Meta (<span className="text-slate-200">Embedded Signup</span>).</li>
-                <li><strong>Nombres de Usuario de WhatsApp y BSUIDs</strong> (Identificadores de usuario de ámbito comercial), recopilados automáticamente al interactuar con la plataforma utilizando las configuraciones de privacidad avanzadas de Meta.</li>
-                <li><strong>No recopilamos ni procesamos información personal sensible</strong> (como datos financieros privados, de salud, creencias u otros catalogados como confidenciales por las normativas de protección de datos).</li>
+                <li>Datos de registro (correo, nombre de la entidad, información de facturación).</li>
+                <li>Tokens de acceso de la API oficial de Meta Platforms (WhatsApp Business).</li>
+                <li>Identificadores BSUID necesarios para el enrutamiento de la inteligencia artificial.</li>
+              </ul>
+            </section>
+
+            <section className="space-y-3 bg-emerald-950/20 p-6 rounded-2xl border border-emerald-500/20">
+              <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                <Activity className="h-5 w-5 text-emerald-400" />
+                2. Upway Health y Privacidad de Datos Médicos (HIPAA)
+              </h2>
+              <p className="text-slate-300 mt-2">
+                En nuestra vertical de salud (<strong>Upway Health</strong>), procesamos información de pacientes (chats, notas de voz, agendas) <strong>estrictamente en calidad de Encargados del Tratamiento</strong>.
+              </p>
+              <ul className="list-disc pl-6 space-y-2 text-slate-400 mt-3">
+                <li><strong>Aislamiento de Infraestructura:</strong> Los datos de pacientes se almacenan en arquitecturas de bases de datos compartimentadas (Multi-tenant lógicos mediante identificadores únicos de clínica) o contenedores dedicados.</li>
+                <li><strong>Cero Entrenamiento Externo:</strong> Upway garantiza que la información clínica y personal recolectada por nuestros clientes <strong>NO</strong> se utiliza para entrenar inteligencias artificiales públicas ni se comparte con corporaciones de terceros sin acuerdos de confidencialidad médica (BAA).</li>
+                <li><strong>Seguridad Sensible:</strong> Aplicamos cifrado en tránsito (HTTPS/WSS) y medidas de protección avanzadas exigidas por las regulaciones locales (Ley 1581) e internacionales.</li>
               </ul>
             </section>
 
             <section className="space-y-3">
               <h2 className="text-xl font-semibold text-white flex items-center gap-2">
                 <Lock className="h-5 w-5 text-cyan-400" />
-                2. Uso de la Información
+                3. Uso de las APIs de Google
               </h2>
               <p>
-                Los datos recopilados se utilizan exclusivamente para los siguientes fines operativos:
-              </p>
-              <ul className="list-disc pl-6 space-y-2 text-slate-400">
-                <li>Configurar y conectar de forma segura tu línea de WhatsApp Business con las herramientas de automatización e inteligencia artificial de Upway.</li>
-                <li>Procesar y enrutar las conversaciones utilizando identificadores BSUID, garantizando que el agente de inteligencia artificial pueda interactuar <strong>sin exponer ni requerir el número telefónico real</strong> del usuario final.</li>
-                <li>Facilitar la gestión de interacciones comerciales dentro del panel de control de la plataforma (<span className="text-slate-200">Business Control</span>).</li>
-                <li>Enviar notificaciones técnicas relevantes sobre el estado de tu suscripción o servicio.</li>
-              </ul>
-            </section>
-
-            {/* 🚀 INYECCIÓN OBLIGATORIA DE GOOGLE ACTUALIZADA */}
-            <section className="space-y-3 bg-blue-950/30 p-6 rounded-2xl border border-blue-500/20">
-              <h2 className="text-xl font-semibold text-white">3. Integración con Google Calendar y APIs de Google</h2>
-              <p>
-                El uso y la transferencia que hace Upway Business de la información recibida de las API de Google a cualquier otra aplicación se ajustará a la <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noreferrer" className="text-cyan-400 hover:text-cyan-300 underline font-medium">Política de datos del usuario de los servicios API de Google</a>, incluidos los requisitos de Uso Limitado.
+                El uso y transferencia que hace Upway de la información recibida de las API de Google a cualquier otra aplicación se ajustará a la <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noreferrer" className="text-cyan-400 hover:text-cyan-300 underline font-medium">Política de datos del usuario de los servicios API de Google</a>, incluidos los requisitos de Uso Limitado.
               </p>
               <p className="text-slate-400 mt-2">
-                Específicamente, solicitamos acceso a tu Google Calendar únicamente para permitir que el Empleado Digital (IA) agende, modifique o consulte disponibilidad de citas a petición tuya o de tus clientes. No utilizamos los datos de tu calendario para entrenar modelos de Inteligencia Artificial Generativa ni vendemos esta información a terceros.
-              </p>
-              <p className="text-slate-400 mt-2">
-                Nuestros servicios protegen los datos sensibles mediante cifrado en tránsito (HTTPS) y en reposo. Asimismo, confirmamos que no transferimos datos de Workspace a proveedores de IA de terceros para el entrenamiento de modelos generalizados.
-              </p>
-              <p className="text-xs text-slate-500 mt-4 italic border-t border-blue-500/20 pt-4">
-                (Compliance Statement: The use of raw or derived user data received from Workspace APIs will adhere to the Google User Data Policy, including the Limited Use requirements. Google Workspace APIs are not used to develop, improve, or train generalized AI and/or ML models).
+                No transferimos datos de Workspace ni calendarios a proveedores de IA de terceros para el entrenamiento de modelos generalizados. 
               </p>
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-xl font-semibold text-white">4. Integración con Meta y Terceros</h2>
+              <h2 className="text-xl font-semibold text-white">4. Integración con Meta y Voz (Vapi)</h2>
               <p>
-                Upway Business utiliza las APIs oficiales provistas por Meta Platforms, Inc. El proceso de vinculación de números se realiza mediante el registro integrado avalado por Meta. La información intercambiada se rige bajo los estándares de seguridad y cifrado de las plataformas oficiales de Meta. No compartimos, vendemos ni comercializamos datos con terceros ajenos a la operación del servicio.
+                Upway utiliza canales de comunicación avalados por Meta y procesadores de voz en la nube. Prohibimos a nuestros clientes el uso de técnicas de extracción de datos (scraping). La clínica cliente se compromete a notificar a sus pacientes que las interacciones de voz y texto serán procesadas por sistemas automatizados.
               </p>
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-xl font-semibold text-white">5. Privacidad del Consumidor y Contacto Ético</h2>
+              <h2 className="text-xl font-semibold text-white">5. Derechos de los Usuarios y Control</h2>
               <p>
-                Implementamos medidas técnicas y organizativas de la industria para salvaguardar la privacidad. <strong>Upway prohíbe estrictamente</strong> a las empresas usuarias el uso de tácticas, scripts o software de terceros para extraer (scrape) o intentar descubrir los números de teléfono ocultos detrás de un Nombre de Usuario o BSUID. La única forma válida de obtener el contacto directo de un usuario anónimo es mediante la solicitud explícita facilitada por la plataforma y aprobada por el consumidor.
-              </p>
-            </section>
-
-            <section className="space-y-3">
-              <h2 className="text-xl font-semibold text-white">6. Derechos de los Usuarios y Control de Datos</h2>
-              <p>
-                En todo momento, los usuarios y administradores tienen el control absoluto de su cuenta. Puedes revocar los permisos de acceso de Google o Meta, desconectar tus integraciones o solicitar la eliminación de los datos asociados a tu registro en nuestra plataforma enviando una solicitud a través de nuestros canales de soporte oficiales.
-              </p>
-            </section>
-
-            <section className="space-y-3">
-              <h2 className="text-xl font-semibold text-white">7. Modificaciones a esta Política</h2>
-              <p>
-                Nos reservamos el derecho de actualizar esta política de privacidad para reflejar mejoras tecnológicas o cambios normativos. Cualquier modificación será publicada directamente en nuestra plataforma.
+                Los administradores tienen control total sobre sus integraciones. Si un paciente final desea ejercer su derecho de eliminación de historia o chats (Habeas Data), debe solicitarlo directamente a la Clínica (el Responsable). Upway proveerá a la Clínica las herramientas tecnológicas para ejecutar dicha eliminación de nuestra infraestructura de inmediato.
               </p>
             </section>
 
@@ -125,7 +103,7 @@ export default function PrivacyPolicyPage() {
           <div className="mt-12 pt-6 border-t border-white/10 flex items-center justify-between text-xs text-slate-500 flex-wrap gap-4">
             <span className="flex items-center gap-1.5 text-emerald-400">
               <CheckCircle2 className="h-4 w-4" />
-              Cumple con los estándares de seguridad de Meta y la Política de Uso Limitado de Google
+              Soberanía de Datos y Cumplimiento Ley 1581 de 2012
             </span>
             <span>© 2026 BARAKAH TECH HUB S.A.S. Todos los derechos reservados.</span>
           </div>
