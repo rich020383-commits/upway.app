@@ -1,12 +1,13 @@
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { Bot, Settings, LayoutDashboard, ArrowRight, Sparkles, ShieldCheck, BriefcaseBusiness, TrendingUp, Stethoscope } from 'lucide-react';
 
 export default async function DashboardGateway() {
   // 1. Validamos la sesión
-  const session = await getServerSession(); 
+  const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
     redirect('/login');
   }
