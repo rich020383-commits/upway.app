@@ -1,45 +1,61 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Database, ArrowRight, CheckCircle2, Server, ScanLine, FileText, Cpu } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Database, ArrowRight, CheckCircle2, Server, UploadCloud, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function Paso04Conocimiento() {
   const router = useRouter();
-  const [sincronizando, setSincronizando] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [cargando, setCargando] = useState(false);
   const [completado, setCompletado] = useState(false);
-  const [progreso, setProgreso] = useState(0);
-  const [productosEscaneados, setProductosEscaneados] = useState(0);
+  const [productosImportados, setProductosImportados] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [omitido, setOmitido] = useState(false);
 
-  useEffect(() => {
-    if (!sincronizando) return;
-
-    if (progreso >= 100) {
-      const timer = setTimeout(() => {
-        setSincronizando(false);
-        setCompletado(true);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-
-    const intervalo = setInterval(() => {
-      setProgreso(prev => {
-        const nuevoAvance = prev + Math.floor(Math.random() * 15);
-        return nuevoAvance > 100 ? 100 : nuevoAvance; 
-      });
-      setProductosEscaneados(prev => prev + Math.floor(Math.random() * 5));
-    }, 300);
-
-    return () => clearInterval(intervalo);
-  }, [sincronizando, progreso]);
-
-  const handleSincronizar = () => {
-    setSincronizando(true);
-    setProgreso(0);
-    setProductosEscaneados(0);
-    setCompletado(false);
+  const handleSeleccionarArchivo = () => {
+    fileInputRef.current?.click();
   };
+
+  const handleArchivoElegido = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const archivo = event.target.files?.[0];
+    if (!archivo) return;
+
+    setError(null);
+    setCargando(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('archivo', archivo);
+
+      const res = await fetch('/api/inventario/cargar-csv', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setProductosImportados(Array.isArray(data.productos) ? data.productos.length : 0);
+        setCompletado(true);
+      } else {
+        setError(data.error || 'No se pudo procesar el archivo.');
+      }
+    } catch (err) {
+      console.error('Error importando catálogo:', err);
+      setError('Error de conexión al subir el archivo.');
+    } finally {
+      setCargando(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleOmitir = () => {
+    setOmitido(true);
+  };
+
+  const puedeContinuar = completado || omitido;
 
   return (
     // 🔥 EL CASCARÓN: h-full y flex-col congelan la pantalla general
@@ -82,11 +98,11 @@ export default function Paso04Conocimiento() {
             <h1 className="text-2xl md:text-4xl font-bold tracking-tight">Cerebro de Datos (RAG)</h1>
           </div>
           <p className="text-[#8994A6] text-xs md:text-base max-w-2xl">
-            Conectaremos tu inventario y reglas de negocio para que tu asistente ofrezca respuestas basadas en datos reales y actualizados.
+            Sube tu catálogo (CSV con nombre, categoría, precio, disponible) para que tu asistente responda con datos reales de tu inventario. Puedes omitir este paso y cargarlo después desde el panel.
           </p>
         </div>
 
-        {/* Tarjeta Principal de Sincronización */}
+        {/* Tarjeta Principal de Importación */}
         <div className="max-w-2xl mx-auto w-full pb-4">
           <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-6 md:p-10 relative overflow-hidden shadow-2xl">
             
@@ -100,12 +116,12 @@ export default function Paso04Conocimiento() {
                 <div className={`p-4 md:p-5 rounded-2xl transition-all duration-500 border ${
                   completado 
                     ? 'bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]' 
-                    : sincronizando 
+                    : cargando 
                       ? 'bg-[#19C8E8]/10 border-[#19C8E8]/30 text-[#19C8E8]' 
                       : 'bg-[#1E293B]/50 border-[#1E293B] text-[#8994A6]'
                 }`}>
-                  {sincronizando ? (
-                    <ScanLine className="h-8 w-8 md:h-10 md:w-10 animate-pulse" />
+                  {cargando ? (
+                    <Loader2 className="h-8 w-8 md:h-10 md:w-10 animate-spin" />
                   ) : completado ? (
                     <CheckCircle2 className="h-8 w-8 md:h-10 md:w-10" />
                   ) : (
@@ -116,46 +132,54 @@ export default function Paso04Conocimiento() {
 
               {/* Textos de estado */}
               <h2 className="text-xl md:text-2xl font-bold mb-2 md:mb-3 text-[#F5F7FA]">
-                {sincronizando ? 'Vectorizando catálogo...' : completado ? 'Base de Datos Enlazada' : 'Sistema de Archivos Listo'}
+                {cargando ? 'Importando catálogo...' : completado ? 'Catálogo importado' : omitido ? 'Paso omitido' : 'Listo para importar tu catálogo'}
               </h2>
               
-              <div className="h-6 mb-6 md:mb-8">
-                {sincronizando ? (
-                  <div className="flex items-center justify-center gap-2 text-[#19C8E8] font-mono text-[10px] md:text-xs uppercase tracking-widest">
-                    <Cpu size={14} className="animate-spin" />
-                    <span>Indexando {productosEscaneados} registros...</span>
-                  </div>
+              <div className="mb-6 md:mb-8">
+                {cargando ? (
+                  <p className="text-[#8994A6] text-xs md:text-sm">Procesando el archivo, esto toma unos segundos.</p>
                 ) : completado ? (
-                  <p className="text-[#8994A6] text-xs md:text-sm">Tu IA ya cuenta con memoria institucional activa.</p>
+                  <p className="text-[#8994A6] text-xs md:text-sm">{productosImportados} producto(s) cargados en tu inventario real.</p>
+                ) : omitido ? (
+                  <p className="text-[#8994A6] text-xs md:text-sm">Podrás importar tu catálogo cuando quieras desde el panel de inventario.</p>
                 ) : (
-                  <p className="text-[#8994A6] text-xs md:text-sm">Inicia la ingesta de datos para entrenar a tu asistente.</p>
+                  <p className="text-[#8994A6] text-xs md:text-sm">Formato CSV con columnas: nombre, categoría, precio, disponible.</p>
                 )}
               </div>
 
-              {/* UI de Progreso (Sleek) */}
-              {sincronizando && (
-                <div className="w-full max-w-md mx-auto mb-6 md:mb-8">
-                  <div className="flex justify-between text-[10px] md:text-xs font-mono text-[#8994A6] mb-2">
-                    <span>Sincronizando</span>
-                    <span className="text-[#19C8E8]">{progreso}%</span>
-                  </div>
-                  <div className="w-full bg-[#07090C] rounded-full h-1.5 border border-[#1E293B] overflow-hidden">
-                    <div 
-                      className="bg-[#19C8E8] h-1.5 rounded-full transition-all duration-300 ease-out shadow-[0_0_10px_rgba(25,200,232,0.5)]" 
-                      style={{ width: `${progreso}%` }}
-                    ></div>
-                  </div>
+              {error && (
+                <div className="mb-6 w-full max-w-md rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-[#FCA5A5]">
+                  {error}
                 </div>
               )}
 
-              {/* Botón de Acción Inicial */}
-              {!completado && !sincronizando && (
-                <button 
-                  onClick={handleSincronizar}
-                  className="bg-[#F5F7FA] text-[#07090C] px-6 py-3 md:px-8 md:py-3.5 rounded-xl font-bold hover:bg-[#E2E8F0] transition-all flex items-center justify-center gap-2 w-full max-w-sm mx-auto shadow-lg text-sm md:text-base"
-                >
-                  <FileText size={18} /> Iniciar Ingesta de Datos
-                </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv"
+                onChange={handleArchivoElegido}
+                className="hidden"
+              />
+
+              {/* Botones de Acción */}
+              {!completado && !omitido && (
+                <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm mx-auto">
+                  <button 
+                    onClick={handleSeleccionarArchivo}
+                    disabled={cargando}
+                    className="flex-1 bg-[#F5F7FA] text-[#07090C] px-6 py-3 md:px-8 md:py-3.5 rounded-xl font-bold hover:bg-[#E2E8F0] transition-all flex items-center justify-center gap-2 shadow-lg text-sm md:text-base disabled:opacity-60"
+                  >
+                    {cargando ? <Loader2 size={18} className="animate-spin" /> : <UploadCloud size={18} />}
+                    Subir catálogo CSV
+                  </button>
+                  <button
+                    onClick={handleOmitir}
+                    disabled={cargando}
+                    className="rounded-xl border border-[#1E293B] px-5 py-3 text-xs md:text-sm font-semibold text-[#8994A6] hover:border-[#8994A6]/50 hover:text-[#F5F7FA] transition-colors disabled:opacity-60"
+                  >
+                    Omitir por ahora
+                  </button>
+                </div>
               )}
 
             </div>
@@ -169,15 +193,15 @@ export default function Paso04Conocimiento() {
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <div>
             <p className="text-[#8994A6] text-[10px] md:text-xs font-semibold uppercase tracking-wider mb-1">
-              Paso 4 completado
+              Paso 4 {puedeContinuar ? 'completado' : 'pendiente'}
             </p>
             <p className="text-base md:text-lg font-bold text-[#F5F7FA]">
-              Memoria conectada
+              {completado ? 'Memoria conectada' : omitido ? 'Configurable después' : 'Importa tu catálogo'}
             </p>
           </div>
           <button 
             onClick={() => router.push('/dashboard/onboarding/simulador')}
-            disabled={!completado}
+            disabled={!puedeContinuar}
             className="bg-[#F5F7FA] text-[#07090C] px-6 py-2.5 md:px-8 md:py-3.5 rounded-xl font-bold hover:bg-[#E2E8F0] transition-colors disabled:opacity-20 flex items-center gap-2 text-sm md:text-base"
           >
             Continuar al Simulador <ArrowRight size={18} />

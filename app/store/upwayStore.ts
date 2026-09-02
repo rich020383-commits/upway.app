@@ -18,6 +18,7 @@ interface UpwayState {
   toggleModulo: (moduloId: string) => void;
 
   // PASOS 04 y 05: Personalización
+  nombreNegocio: string;
   nombreAgente: string;
   nicho: string;
   promptMaestro: string;
@@ -27,6 +28,7 @@ interface UpwayState {
   // 🔥 NUEVO: Teléfono para Notificaciones Human Handoff
   telefonoAdmin: string; 
   
+  setNombreNegocio: (nombre: string) => void;
   setNombreAgente: (nombre: string) => void;
   setNicho: (nicho: string) => void;
   setPromptMaestro: (prompt: string) => void;
@@ -46,6 +48,7 @@ export const useUpwayStore = create<UpwayState>((set) => ({
   modulosSeleccionados: [],
   totalMensual: 0,
   
+  nombreNegocio: '',
   nombreAgente: '',
   nicho: 'general',
   promptMaestro: '',
@@ -68,6 +71,7 @@ export const useUpwayStore = create<UpwayState>((set) => ({
     return { modulosSeleccionados: nuevosModulos, totalMensual: nuevoTotal };
   }),
 
+  setNombreNegocio: (nombre) => set({ nombreNegocio: nombre }),
   setNombreAgente: (nombre) => set({ nombreAgente: nombre }),
   setNicho: (nicho) => set({ nicho }),
   setPromptMaestro: (prompt) => set({ promptMaestro: prompt }),
@@ -84,6 +88,7 @@ export const useUpwayStore = create<UpwayState>((set) => ({
     objetivoPrincipal: null,
     modulosSeleccionados: [],
     totalMensual: 0,
+    nombreNegocio: '',
     nombreAgente: '',
     nicho: 'general',
     promptMaestro: '',

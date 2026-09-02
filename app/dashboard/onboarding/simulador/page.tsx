@@ -25,6 +25,8 @@ export default function Paso05Simulador() {
   ]);
   const [escribiendo, setEscribiendo] = useState(false);
   const [grabando, setGrabando] = useState(false);
+  const [tiendaId, setTiendaId] = useState<string | null>(null);
+  const [simulatorError, setSimulatorError] = useState<string | null>(null);
   
   // Estados de Vapi (Voz)
   const [llamadaActiva, setLlamadaActiva] = useState(false);
@@ -36,7 +38,10 @@ export default function Paso05Simulador() {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && !vapi) {
-      vapi = new Vapi('79cac89e-dc48-4951-aebf-16e0584d8030');
+      const vapiPublicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
+      if (vapiPublicKey) {
+        vapi = new Vapi(vapiPublicKey);
+      }
     }
     return () => {
       if (vapi) {
@@ -44,6 +49,19 @@ export default function Paso05Simulador() {
         vapi.stop();
       }
     };
+  }, []);
+
+  useEffect(() => {
+    const cargarTienda = async () => {
+      try {
+        const res = await fetch('/api/tienda/me');
+        const data = await res.json();
+        if (res.ok && data.tiendaId) setTiendaId(data.tiendaId);
+      } catch (error) {
+        console.error('Error obteniendo la tienda para el simulador:', error);
+      }
+    };
+    cargarTienda();
   }, []);
 
   useEffect(() => {
@@ -72,7 +90,7 @@ export default function Paso05Simulador() {
       mediaRecorderRef.current.start();
       setGrabando(true);
     } catch (error) {
-      alert("No se pudo acceder al micrófono.");
+      setSimulatorError('No se pudo acceder al micrófono. Verifica los permisos del navegador.');
     }
   };
 
@@ -95,7 +113,7 @@ export default function Paso05Simulador() {
     try {
       const promptEnriquecido = `[NOMBRE_AGENTE] ${nombreAgente || 'Asistente'}\n[TONO] Formalidad: ${tonoWhatsapp.formalidad}%, Cercanía: ${tonoWhatsapp.cercania}%, Persuasión: ${tonoWhatsapp.persuasion}%\n[NEGOCIO] Sector: ${nicho}\n[INSTRUCCIONES] ${promptMaestro}`.trim();
       const historialMapeado = mensajes.map(m => ({ rol: m.rol === 'ia' ? 'assistant' : 'user', texto: m.texto }));
-      const payload: any = { promptMaestro: promptEnriquecido, historial: historialMapeado, tienda_id: '1172769935927318' };
+      const payload: any = { promptMaestro: promptEnriquecido, historial: historialMapeado, tienda_id: tiendaId };
       if (audioBase64) payload.audioUsuario = audioBase64; else payload.mensajeUsuario = texto;
       
       const res = await fetch('/api/simulador', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -139,7 +157,12 @@ export default function Paso05Simulador() {
         const isHombre = (nombreAgente || '').toLowerCase().includes('mauricio') || (nicho || '').toLowerCase().includes('hombre');
         const voiceConfig = isHombre ? { provider: "deepgram", voiceId: "nestor" } : { provider: "deepgram", voiceId: "celeste" };
 
-        await vapi.start("e86eae54-3a05-4d31-938f-c8caf7522ee5", {
+        const vapiAssistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
+        if (!vapiAssistantId) {
+          throw new Error('Falta configurar el asistente de voz.');
+        }
+
+        await vapi.start(vapiAssistantId, {
           firstMessage: `¡Hola! Soy ${nombreAgente || 'tu asistente'}, ¿en qué puedo ayudarte hoy?`,
           model: { provider: "openai", model: "gpt-4o", messages: [{ role: "system", content: systemPromptDinamico }] },
           voice: voiceConfig
@@ -148,7 +171,7 @@ export default function Paso05Simulador() {
         console.error("Error Vapi:", error);
         setLlamadaActiva(false);
         setEstadoLlamada('inactiva');
-        alert("No se pudo establecer la llamada. Verifica el micrófono.");
+        setSimulatorError('No se pudo establecer la llamada. Verifica el micrófono y vuelve a intentarlo.');
       }
     }
   };
@@ -196,6 +219,11 @@ export default function Paso05Simulador() {
           <p className="text-[#8994A6] text-xs md:text-sm max-w-2xl">
             Prueba la lógica, respuestas y latencia de tu empleado digital antes de conectarlo a tus canales oficiales.
           </p>
+          {simulatorError && (
+            <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-xs text-[#FCA5A5]">
+              {simulatorError}
+            </div>
+          )}
         </div>
 
         {/* CONTENEDOR DEL SIMULADOR: Toma el espacio restante con flex-1 min-h-0 */}

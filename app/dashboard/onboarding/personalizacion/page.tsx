@@ -9,6 +9,7 @@ import Link from 'next/link';
 export default function Paso03Personalizacion() {
   const router = useRouter();
   const { 
+    nombreNegocio, setNombreNegocio,
     nombreAgente, setNombreAgente, 
     nicho, setNicho, 
     promptMaestro, setPromptMaestro,
@@ -84,6 +85,17 @@ export default function Paso03Personalizacion() {
               </h3>
               
               <div className="grid md:grid-cols-2 gap-5 md:gap-6">
+                <div>
+                  <label className="block font-medium text-[#8994A6] mb-2 uppercase tracking-wider text-[10px] md:text-xs">Nombre del Negocio</label>
+                  <input 
+                    type="text" 
+                    value={nombreNegocio} 
+                    onChange={(e) => setNombreNegocio(e.target.value)} 
+                    placeholder="Ej. Clínica Selecta" 
+                    className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3 text-sm text-[#F5F7FA] placeholder-[#8994A6]/50 outline-none transition-all focus:border-[#9B5CFF] focus:ring-1 focus:ring-[#9B5CFF]" 
+                  />
+                </div>
+
                 <div>
                   <label className="block font-medium text-[#8994A6] mb-2 uppercase tracking-wider text-[10px] md:text-xs">Nombre del Asistente</label>
                   <input 
@@ -236,7 +248,7 @@ export default function Paso03Personalizacion() {
           </div>
           <button 
             onClick={() => router.push('/dashboard/onboarding/conocimiento')}
-            disabled={!nombreAgente.trim()}
+            disabled={!nombreAgente.trim() || !nombreNegocio.trim()}
             className="bg-[#F5F7FA] text-[#07090C] px-6 py-2.5 md:px-8 md:py-3.5 rounded-xl font-bold hover:bg-[#E2E8F0] transition-colors disabled:opacity-20 flex items-center gap-2 text-sm md:text-base"
           >
             Continuar <ArrowRight size={18} />

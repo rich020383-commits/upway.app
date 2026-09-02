@@ -27,8 +27,13 @@ export default function Paso07Activacion() {
 
   const inicializarFacebook = () => {
     if (!window.FB) return;
+    const metaAppId = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID;
+    if (!metaAppId) {
+      setError('Falta configurar la integración con Meta.');
+      return;
+    }
     window.FB.init({
-      appId: '1768431177666982',
+      appId: metaAppId,
       cookie: true,
       xfbml: true,
       version: 'v20.0',
@@ -99,7 +104,7 @@ export default function Paso07Activacion() {
         }
       })();
     }, {
-      config_id: '2018640519013518',
+      config_id: process.env.NEXT_PUBLIC_META_CONFIG_ID,
       scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging',
       response_type: 'code',
       override_default_response_type: true,

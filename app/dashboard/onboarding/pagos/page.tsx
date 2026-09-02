@@ -13,6 +13,7 @@ export default function Paso06Checkout() {
   
   const { 
     modulosSeleccionados, 
+    nombreNegocio,
     nombreAgente,
     promptMaestro,
     telefonoAdmin 
@@ -22,6 +23,7 @@ export default function Paso06Checkout() {
   const [promoCode, setPromoCode] = useState('');
   const [appliedPromoCode, setAppliedPromoCode] = useState<string | null>(null);
   const [promoFeedback, setPromoFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [deployError, setDeployError] = useState<string | null>(null);
 
   const detallesModulos: Record<string, { nombre: string, precio: number }> = {
     'whatsapp': { nombre: 'Motor WhatsApp (Texto)', precio: 399900 },
@@ -77,8 +79,15 @@ export default function Paso06Checkout() {
     const userIdReal = (session?.user as any)?.id;
     const userEmailReal = (session?.user as any)?.email;
     
+    setDeployError(null);
+
     if (!userIdReal) {
-      alert("❌ Error: Sesión no detectada. Por favor, recarga la página o vuelve a iniciar sesión.");
+      setDeployError('Sesión no detectada. Por favor, recarga la página o vuelve a iniciar sesión.');
+      return;
+    }
+
+    if (!nombreNegocio.trim()) {
+      setDeployError('Falta el nombre del negocio. Vuelve al paso de identidad para completarlo.');
       return;
     }
 
@@ -110,7 +119,7 @@ export default function Paso06Checkout() {
         body: JSON.stringify({
           userId: userIdReal,
           email: userEmailReal,
-          nombreNegocio: "Empresa Cliente", 
+          nombreNegocio,
           nombreAgente: nombreAgente || 'Asistente IA',
           promptMaestro: promptMaestro || 'Eres un asistente útil.', 
           modulosSeleccionados: modulosSeleccionados,
@@ -118,26 +127,21 @@ export default function Paso06Checkout() {
         })
       });
 
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
       if (res.ok) {
-        console.log("✅ Infraestructura creada en BD con éxito");
         if (modulosSeleccionados.includes('whatsapp')) {
           router.push('/dashboard/onboarding/activacion');
         } else {
           router.push('/dashboard');
         }
       } else {
-        const errorData = await res.json();
-        console.error("❌ Error del servidor:", errorData);
-        alert("Hubo un error en el despliegue, pero serás redirigido a tu panel.");
-        router.push('/dashboard');
+        const errorData = await res.json().catch(() => ({}));
+        console.error('❌ Error del servidor:', errorData);
+        setDeployError(errorData.error || 'Hubo un error en el despliegue. Intenta de nuevo o contacta soporte.');
       }
 
     } catch (error) {
       console.error('❌ Error de despliegue:', error);
-      alert(error instanceof Error ? error.message : 'No se pudo completar la activación.');
-      router.push('/dashboard');
+      setDeployError(error instanceof Error ? error.message : 'No se pudo completar la activación.');
     } finally {
       setProcesando(false);
     }
@@ -276,10 +280,13 @@ export default function Paso06Checkout() {
                     {promoFeedback.text}
                   </p>
                 )}
-                <div className="mt-2 text-[10px] text-[#8994A6]">
-                  Códigos de prueba sugeridos: <span className="font-mono text-[#F5F7FA]">UPWAY-TRIAL</span> · <span className="font-mono text-[#F5F7FA]">CLINICA-SELECTA</span>
-                </div>
               </div>
+
+              {deployError && (
+                <div className="mb-5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-[#FCA5A5]">
+                  {deployError}
+                </div>
+              )}
 
               <button 
                 onClick={handleSimularPago}
