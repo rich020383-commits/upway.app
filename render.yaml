@@ -3,8 +3,7 @@ services:
     name: upway-app
     env: node
     plan: free
-    buildCommand: npm install --include=dev && NODE_OPTIONS=--max_old_space_size=4096 npm run build
-    preDeployCommand: npx prisma db push --accept-data-loss
+    buildCommand: npm install --include=dev && npx prisma db push --accept-data-loss && NODE_OPTIONS=--max_old_space_size=384 npm run build
     startCommand: npm run start
     envVars:
       - key: NODE_ENV
@@ -14,4 +13,4 @@ services:
       - key: NPM_CONFIG_PRODUCTION
         value: false
       - key: NODE_OPTIONS
-        value: --max_old_space_size=4096
+        value: --max_old_space_size=384
