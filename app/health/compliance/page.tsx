@@ -1,13 +1,33 @@
-import { buildHealthQuery } from '@/lib/health/data';
+"use client";
+
+import { useEffect, useState } from 'react';
+import { Loader2 } from 'lucide-react';
+
+type ComplianceItem = {
+  id: string;
+  title: string;
+  status: string;
+  value: string;
+};
 
 export default function CompliancePage() {
-  const query = buildHealthQuery({ organizationId: 'org-1', clinicId: 'clinic-1', role: 'compliance-reviewer' }, 'compliance');
+  const [items, setItems] = useState<ComplianceItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const checks = [
-    { title: 'Consentimiento', status: 'Sin incidencias', value: '0 alertas' },
-    { title: 'Versiones de políticas', status: 'Actualizadas', value: '0 pendientes' },
-    { title: 'Auditoría de acceso', status: 'Sin eventos críticos', value: '0 revisiones' },
-  ];
+  useEffect(() => {
+    const loadCompliance = async () => {
+      try {
+        const res = await fetch('/api/health/compliance');
+        const data = await res.json();
+        setItems(data.items ?? []);
+      } catch (error) {
+        console.error('Error cargando control de cumplimiento:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadCompliance();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -16,20 +36,21 @@ export default function CompliancePage() {
         <h1 className="mt-2 text-3xl font-black tracking-[-0.05em] text-slate-900">Control clínico</h1>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        {checks.map((item) => (
-          <div key={item.title} className="upway-surface rounded-[24px] p-5">
-            <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-slate-500">{item.title}</div>
-            <div className="mt-4 text-xl font-black tracking-[-0.04em] text-slate-900">{item.status}</div>
-            <div className="mt-2 text-sm text-slate-600">{item.value}</div>
-          </div>
-        ))}
-      </div>
-
-      <div className="upway-surface rounded-[28px] p-5">
-        <div className="mb-3 text-lg font-black tracking-[-0.04em] text-slate-900">Query base</div>
-        <pre className="overflow-x-auto rounded-2xl bg-slate-900 p-4 text-sm text-slate-100">{JSON.stringify(query, null, 2)}</pre>
-      </div>
+      {loading ? (
+        <div className="upway-surface flex items-center gap-3 rounded-[26px] p-6 text-slate-500">
+          <Loader2 className="h-4 w-4 animate-spin" /> Cargando indicadores de cumplimiento...
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {items.map((item) => (
+            <div key={item.id} className="upway-surface rounded-[24px] p-5">
+              <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-slate-500">{item.title}</div>
+              <div className="mt-4 text-xl font-black tracking-[-0.04em] text-slate-900">{item.status}</div>
+              <div className="mt-2 text-sm text-slate-600">{item.value}</div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
