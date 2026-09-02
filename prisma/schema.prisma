@@ -114,6 +114,7 @@ model Organization {
   owner       User          @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members     OrganizationMember[]
   clinics     Clinic[]
+  tiendas     Tienda[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 }
@@ -142,6 +143,7 @@ model Clinic {
   updatedAt       DateTime     @updatedAt
 
   organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tiendas            Tienda[]
   healthProfile      HealthProfile?
   onboardingSessions HealthOnboardingSession[]
   auditLogs          HealthAuditLog[]
@@ -344,6 +346,8 @@ model VerificationToken {
 model Tienda {
   id                  String   @id @default(cuid())
   userId              String
+  organizationId      String?
+  clinicId            String?
   nombre              String
   
   // 🤖 Personalidad del Bot
@@ -368,6 +372,8 @@ model Tienda {
   // 🗑️ (Se eliminaron los campos de Google Calendar por el pivot estratégico)
   
   user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization        Organization?  @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  clinic              Clinic?        @relation(fields: [clinicId], references: [id], onDelete: SetNull)
   productos           Producto[]
   llamadas            LlamadaLog[]
   leads               Lead[]
