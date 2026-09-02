@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyVapiSignature } from '@/lib/webhook-verify';
+import { recordProviderEvent } from '@/lib/event-audit';
 
 // 💰 MARGEN DE GANANCIA DE UPWAY
 // Si Vapi te cobra $0.10, Upway le cobra $0.15 a la IPS (50% de ganancia)
@@ -27,12 +28,22 @@ export async function POST(req: Request) {
     }
 
     const body = JSON.parse(rawBody);
+    const messageType = body?.message?.type ?? 'unknown';
+
+    await recordProviderEvent({
+      provider: 'vapi',
+      eventType: messageType,
+      status: 'received',
+      payload: body,
+      metadata: {
+        assistantId: body?.message?.call?.assistantId ?? null,
+        callId: body?.message?.call?.id ?? null,
+      },
+    });
 
     // 1. FILTRO DE EVENTOS
     // Vapi envía muchos eventos (cuando timbra, cuando transcribe).
     // Solo nos importa el reporte financiero cuando la llamada termina.
-    const messageType = body?.message?.type;
-
     if (messageType !== 'end-of-call-report') {
       // Si no es el fin de llamada, devolvemos un 200 OK y no hacemos nada
       return new NextResponse(null, { status: 200 });
@@ -89,6 +100,20 @@ export async function POST(req: Request) {
             upwayBilledCost: Number(upwayBilledCost),
             status: status
           }
+        });
+
+        await recordProviderEvent({
+          provider: 'vapi',
+          eventType: 'end_of_call_report',
+          status: 'processed',
+          tenantId: tienda.id,
+          payload: callData,
+          metadata: {
+            vapiCallId,
+            assistantId: vapiAssistantId,
+            status,
+            durationMinutes,
+          },
         });
 
         console.log(`✅ Vapi Webhook: Llamada cobrada a ${tienda.nombre} -> Margen: $${upwayBilledCost.toFixed(3)} USD`);

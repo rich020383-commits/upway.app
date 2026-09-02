@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifySharedSecret } from '@/lib/webhook-verify';
+import { recordProviderEvent } from '@/lib/event-audit';
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,6 +23,18 @@ export async function POST(req: NextRequest) {
 
     // 2. Extraemos la información (Ej: un nuevo Lead creado por Sophie)
     const { action, table, record } = payload;
+    const eventType = `${action ?? 'unknown'}_${table ?? 'unknown'}`;
+
+    await recordProviderEvent({
+      provider: 'neon',
+      eventType,
+      status: 'received',
+      payload,
+      metadata: {
+        table: table ?? null,
+        action: action ?? null,
+      },
+    });
 
     console.log(`⚡ [ALERTA UPWAY] Nueva acción '${action}' en la tabla '${table}'`);
     console.log("📦 Datos del cliente:", record);
@@ -33,6 +46,17 @@ export async function POST(req: NextRequest) {
       // Ejemplo: Disparar un mensaje de WhatsApp API al dueño de la PYME
       // informando que Sophie acaba de conseguir un nuevo prospecto.
     }
+
+    await recordProviderEvent({
+      provider: 'neon',
+      eventType,
+      status: 'processed',
+      payload,
+      metadata: {
+        table: table ?? null,
+        action: action ?? null,
+      },
+    });
 
     return NextResponse.json({ success: true, message: "Evento procesado como un reloj" });
   } catch (error) {

@@ -16,10 +16,10 @@ declare global {
 
 export default function Paso07Activacion() {
   const router = useRouter();
-  const sessionContext = useSession() || {}; 
+  const sessionContext = useSession() || {};
   const session = sessionContext.data;
   const { nombreAgente, modulosSeleccionados } = useUpwayStore();
-  
+
   const [sdkCargado, setSdkCargado] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [estadowhatsapp, setEstadowhatsapp] = useState<'INACTIVE' | 'PENDING' | 'ACTIVE'>('INACTIVE');
@@ -28,7 +28,7 @@ export default function Paso07Activacion() {
   const inicializarFacebook = () => {
     if (!window.FB) return;
     window.FB.init({
-      appId: '1768431177666982', 
+      appId: '1768431177666982',
       cookie: true,
       xfbml: true,
       version: 'v20.0',
@@ -71,18 +71,18 @@ export default function Paso07Activacion() {
             const res = await fetch('/api/whatsapp/guardar', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                code: response.authResponse.code, 
-                userId: (session?.user as any)?.id
-              })
+              body: JSON.stringify({
+                code: response.authResponse.code,
+                userId: (session?.user as any)?.id,
+              }),
             });
 
             if (res.ok) {
-              console.log("¡Éxito! Meta vinculado y guardado en Neon DB");
+              console.log('¡Éxito! Meta vinculado y guardado en Neon DB');
               setEstadowhatsapp('PENDING');
             } else {
               const errData = await res.json();
-              console.error("Fallo en backend:", errData);
+              console.error('Fallo en backend:', errData);
               setError(errData.error || 'Error al guardar la configuración en la base de datos.');
               setEstadowhatsapp('INACTIVE');
             }
@@ -109,172 +109,155 @@ export default function Paso07Activacion() {
 
   return (
     <>
-      <Script src='https://connect.facebook.net/es_LA/sdk.js' strategy='afterInteractive' onLoad={inicializarFacebook} />
-      
-      {/* 🔥 EL CASCARÓN: h-full y flex-col congelan la pantalla general */}
-      <div className="flex flex-col h-full w-full relative bg-transparent text-[#F5F7FA]">
-        
-        {/* Botón de Ir al Panel */}
-        <div className="absolute top-4 right-4 md:top-6 md:right-8 z-50">
-          <Link 
-            href="/dashboard" 
-            className="text-xs md:text-sm font-semibold text-[#8994A6] hover:text-[#10B981] flex items-center gap-2 bg-[#1E293B]/30 hover:bg-[#1E293B] px-4 py-2 md:px-5 md:py-2.5 rounded-xl transition-all duration-300 border border-[#1E293B]/50 hover:border-[#10B981]/30"
+      <Script src="https://connect.facebook.net/es_LA/sdk.js" strategy="afterInteractive" onLoad={inicializarFacebook} />
+
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.14),_transparent_28%),linear-gradient(180deg,_#f5f9ff_0%,_#edf5ff_100%)] text-slate-900 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(27,94,214,0.03),transparent_35%,rgba(16,185,129,0.04))]" />
+
+        <div className="absolute top-5 right-5 z-20">
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-700 shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition hover:border-slate-300 hover:text-slate-900"
           >
-            Ir al Panel
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            Ir al panel
+            <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
 
-        {/* 🔥 EL RESORTE CENTRAL: Distribuye el contenido perfectamente con scroll interno si hace falta */}
-        <div className="flex-1 w-full max-w-5xl mx-auto px-6 py-4 mt-6 md:mt-2 flex flex-col justify-center overflow-y-auto no-scrollbar">
-          
-          <header className="text-center mb-8 md:mb-10">
-            <div className="inline-flex items-center justify-center h-14 w-14 md:h-16 md:w-16 bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20 rounded-2xl mb-4 shadow-[0_0_30px_rgba(16,185,129,0.15)] relative">
-              <CheckCircle2 size={30} />
-              <div className="absolute -bottom-1 -right-1 h-3 w-3 bg-[#10B981] rounded-full border-2 border-[#07090C] animate-pulse"></div>
+        <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-16 md:px-10">
+          <header className="mx-auto mb-9 max-w-2xl text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#dfeaff] bg-white shadow-[0_20px_60px_rgba(27,94,214,0.08)] text-[#1b5ed6]">
+              <CheckCircle2 className="h-8 w-8" />
             </div>
-            <h1 className="text-2xl md:text-4xl font-bold tracking-tight mb-2 text-[#F5F7FA]">Aprovisionamiento Exitoso</h1>
-            <p className="text-[#8994A6] text-xs md:text-base max-w-2xl mx-auto">
-              La infraestructura de <strong className="text-[#F5F7FA] font-semibold">{nombreAgente || 'tu IA'}</strong> ha sido desplegada en nuestros servidores. Conecta tus líneas de comunicación para operar.
+            <h1 className="text-3xl font-black tracking-[-0.06em] text-slate-900 md:text-5xl">Aprovisionamiento exitoso</h1>
+            <p className="mt-4 text-base text-slate-600 md:text-lg">
+              La infraestructura de <span className="font-semibold text-slate-900">{nombreAgente || 'tu IA'}</span> está lista. Conecta tus canales para operar con confianza.
             </p>
           </header>
 
-          <div className="grid md:grid-cols-2 gap-5 lg:gap-8 pb-4">
-            
-            {/* TARJETA 1: CONEXIÓN WHATSAPP */}
+          <div className="grid gap-5 md:grid-cols-2">
             {modulosSeleccionados.includes('whatsapp') && (
-              <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-6 md:p-7 shadow-xl flex flex-col relative overflow-hidden transition-all">
-                <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#10B981 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-                
-                <div className="relative z-10 flex items-center justify-between mb-5 pb-4 border-b border-[#1E293B]">
+              <div className="rounded-[28px] border border-slate-200 bg-white/80 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-sm">
+                <div className="mb-5 flex items-center justify-between border-b border-slate-200 pb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-[#10B981]/10 border border-[#10B981]/20 rounded-xl text-[#10B981]">
-                      <MessageSquare size={20} />
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#ebfff4] text-[#10b981] ring-1 ring-[#d6f7e6]">
+                      <MessageSquare className="h-5 w-5" />
                     </div>
                     <div>
-                      <h2 className="text-base md:text-lg font-bold text-[#F5F7FA]">Canal WhatsApp</h2>
-                      <p className="text-[10px] font-mono text-[#8994A6] uppercase tracking-widest mt-0.5">API Cloud Meta</p>
+                      <h2 className="text-lg font-bold text-slate-900">Canal WhatsApp</h2>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">API Cloud Meta</p>
                     </div>
                   </div>
                   {estadowhatsapp !== 'INACTIVE' && (
-                    <span className="text-[9px] font-mono tracking-widest text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded-md border border-yellow-500/20 flex items-center gap-1.5">
-                      <span className="h-1.5 w-1.5 bg-yellow-500 rounded-full animate-pulse"></span> PENDIENTE
+                    <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.2em] text-amber-700">
+                      Pendiente
                     </span>
                   )}
                 </div>
 
                 {estadowhatsapp === 'INACTIVE' ? (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center py-2 relative z-10">
-                    <div className="mb-4 p-3 bg-[#07090C] border border-[#1E293B] rounded-2xl">
-                      <QrCode className="h-12 w-12 text-[#8994A6]" />
+                  <div className="flex min-h-[220px] flex-col items-center justify-center text-center">
+                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-400">
+                      <QrCode className="h-8 w-8" />
                     </div>
-                    <p className="text-xs md:text-sm text-[#8994A6] mb-6 leading-relaxed px-2">
+                    <p className="mb-6 max-w-sm text-sm leading-relaxed text-slate-600">
                       Vincula tu línea comercial autorizando los permisos en tu administrador comercial de Meta.
                     </p>
-                    
-                    <button 
+                    <button
                       onClick={iniciarConexionMeta}
                       disabled={!sdkCargado || isProcessing}
-                      className="w-full bg-[#1877F2] text-white py-3 rounded-xl font-bold hover:bg-[#166FE5] transition-all flex justify-center items-center gap-2 shadow-[0_0_20px_rgba(24,119,242,0.2)] disabled:opacity-50 text-xs md:text-sm"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#10b981] px-5 py-3.5 text-sm font-bold text-slate-950 shadow-[0_12px_30px_rgba(16,185,129,0.22)] transition hover:bg-[#34d399] disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       {!sdkCargado || isProcessing ? (
-                        <><Loader2 className="animate-spin" size={16}/> {isProcessing ? 'Sincronizando...' : 'Inicializando Meta...'}</>
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          {isProcessing ? 'Sincronizando...' : 'Inicializando Meta...'}
+                        </>
                       ) : (
                         'Vincular con Facebook'
                       )}
                     </button>
                     {error && (
-                      <div className="mt-3 w-full rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-left flex gap-2 items-start">
-                        <ShieldAlert className="text-red-400 shrink-0 mt-0.5" size={14} />
-                        <p className="text-[10px] text-red-200">{error}</p>
+                      <div className="mt-3 w-full rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-left text-xs text-red-700">
+                        <div className="flex items-start gap-2">
+                          <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
+                          <span>{error}</span>
+                        </div>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center py-2 relative z-10 animate-in fade-in zoom-in duration-500">
-                    <div className="h-14 w-14 bg-yellow-500/10 border border-yellow-500/20 rounded-full flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(234,179,8,0.2)]">
-                      <Loader2 className="h-7 w-7 text-yellow-500 animate-spin" />
+                  <div className="flex min-h-[220px] flex-col justify-center">
+                    <div className="flex items-center gap-3 rounded-2xl border border-[#ccefe0] bg-[#ebfff4] p-3 text-sm font-medium text-[#0f8f5d]">
+                      <CheckCircle2 className="h-5 w-5" />
+                      Conexión activa y lista para recibir mensajes.
                     </div>
-                    <h3 className="text-base font-bold text-[#F5F7FA] mb-1">Vinculación Registrada</h3>
-                    <p className="text-[#8994A6] text-xs mb-4">Tus datos se enviaron a Meta. La verificación puede tardar de 24 a 48 horas.</p>
-                    
-                    <div className="w-full bg-[#07090C] border border-[#1E293B] rounded-xl p-3 flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <Server size={14} className="text-[#8994A6]" />
-                        <span className="text-[#F5F7FA] font-mono tracking-wider">ESTADO WABA</span>
-                      </div>
-                      <span className="text-yellow-500 font-mono text-[10px]">EN REVISIÓN DE META</span>
+                    <div className="mt-5 space-y-3 text-sm text-slate-600">
+                      <p className="flex items-center gap-2"><PhoneCall className="h-4 w-4 text-[#10b981]" /> Línea conectada y verificada.</p>
+                      <p className="flex items-center gap-2"><Activity className="h-4 w-4 text-[#10b981]" /> Monitor de recepción funcionando.</p>
                     </div>
                   </div>
                 )}
               </div>
             )}
 
-            {/* TARJETA 2: CENTRAL TELEFÓNICA */}
             {modulosSeleccionados.includes('voz') && (
-              <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-6 md:p-7 shadow-xl flex flex-col relative overflow-hidden">
-                <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#19C8E8 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-                <div className="relative z-10 flex items-center justify-between mb-5 pb-4 border-b border-[#1E293B]">
+              <div className="rounded-[28px] border border-slate-200 bg-white/80 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-sm">
+                <div className="mb-5 flex items-center justify-between border-b border-slate-200 pb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-[#19C8E8]/10 border border-[#19C8E8]/20 rounded-xl text-[#19C8E8]">
-                      <PhoneCall size={20} />
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf4ff] text-[#1b5ed6] ring-1 ring-[#dfeaff]">
+                      <PhoneCall className="h-5 w-5" />
                     </div>
                     <div>
-                      <h2 className="text-base md:text-lg font-bold text-[#F5F7FA]">Central Telefónica</h2>
-                      <p className="text-[10px] font-mono text-[#8994A6] uppercase tracking-widest mt-0.5">Motor de Voz IA</p>
+                      <h2 className="text-lg font-bold text-slate-900">Central telefónica</h2>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">Motor de voz IA</p>
                     </div>
                   </div>
-                  <span className="text-[9px] font-mono tracking-widest text-[#19C8E8] bg-[#19C8E8]/10 px-2 py-1 rounded-md border border-[#19C8E8]/20 flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 bg-[#19C8E8] rounded-full animate-pulse"></span> ONLINE
-                  </span>
+                  <span className="rounded-full border border-[#dfeaff] bg-[#edf4ff] px-2 py-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#1b5ed6]">Online</span>
                 </div>
-                <div className="flex-1 flex flex-col justify-center relative z-10">
-                  <div className="bg-[#07090C] border border-[#1E293B] rounded-xl p-4 md:p-5">
-                    <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#1E293B] text-xs">
-                      <span className="font-semibold uppercase tracking-wider text-[#8994A6]">Latencia de red</span>
-                      <span className="font-mono text-[#10B981] flex items-center gap-1.5"><Activity size={12} /> 12ms</span>
+
+                <div className="space-y-4">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="mb-3 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                      <span>Latencia de red</span>
+                      <span className="flex items-center gap-1.5 text-[#10b981]">
+                        <Activity className="h-3 w-3" /> 12ms
+                      </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs md:text-sm font-semibold text-[#F5F7FA]">Número Asignado</span>
-                      <span className="font-mono text-[#19C8E8] text-base md:text-lg tracking-wider">+1 (800) 555-0199</span>
+                      <span className="text-sm font-semibold text-slate-700">Número asignado</span>
+                      <span className="font-mono text-lg font-bold text-slate-900">+1 (800) 555-0199</span>
                     </div>
                   </div>
-                  <button className="mt-4 w-full border border-[#1E293B] text-[#F5F7FA] bg-[#121821] py-3 rounded-xl hover:bg-[#1E293B] transition-all font-semibold text-xs md:text-sm">
-                    Realizar Llamada de Prueba
+
+                  <button className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900">
+                    Realizar llamada de prueba
                   </button>
                 </div>
               </div>
             )}
           </div>
-        </div>
 
-        {/* 🔥 BARRA INFERIOR: Anclada (shrink-0) */}
-        <div className="shrink-0 w-full bg-[#07090C]/90 backdrop-blur-xl border-t border-[#1E293B] px-6 py-4 z-40">
-          <div className="max-w-5xl mx-auto flex justify-between items-center">
-            <div>
-              <p className="text-[#8994A6] text-[10px] md:text-xs font-semibold uppercase tracking-wider mb-1">
-                Fase de despliegue
-              </p>
-              <p className="text-sm md:text-base font-bold text-[#F5F7FA]">
-                {estadowhatsapp !== 'INACTIVE' ? 'Canales autorizados' : 'Requiere vinculación'}
-              </p>
-            </div>
-            <button 
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+            >
+              Volver
+            </button>
+            <button
               onClick={() => router.push('/dashboard/bots')}
               disabled={estadowhatsapp === 'INACTIVE'}
-              className={`flex items-center gap-2 md:gap-3 transition-all font-bold px-6 py-2.5 md:px-8 md:py-3.5 rounded-xl text-xs md:text-base shadow-2xl ${
-                estadowhatsapp !== 'INACTIVE' 
-                  ? 'bg-[#F5F7FA] text-[#07090C] hover:bg-[#E2E8F0]' 
-                  : 'bg-[#121821] text-[#8994A6] border border-[#1E293B] cursor-not-allowed opacity-60'
+              className={`rounded-xl px-5 py-3 text-sm font-semibold shadow-[0_12px_30px_rgba(15,23,42,0.12)] transition ${
+                estadowhatsapp !== 'INACTIVE'
+                  ? 'bg-slate-900 text-white hover:-translate-y-0.5'
+                  : 'cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400'
               }`}
             >
-              Ir al Panel de Control Central <ArrowRight size={18} />
+              Ir al centro de mando
             </button>
           </div>
         </div>
-
       </div>
     </>
   );

@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
-import { Bot, Settings, LayoutDashboard, ArrowRight, Sparkles } from 'lucide-react';
+import { Bot, Settings, LayoutDashboard, ArrowRight, Sparkles, ShieldCheck, BriefcaseBusiness, TrendingUp, Stethoscope } from 'lucide-react';
 
 export default async function DashboardGateway() {
   // 1. Validamos la sesión
@@ -24,59 +24,96 @@ export default async function DashboardGateway() {
 
   // 4. SI ES USUARIO VIEJO: Mostramos la pantalla de decisión
   const tiendaActual = user.tiendas[0];
+  const adminEmails = (process.env.ADMIN_EMAILS ?? '')
+    .split(',')
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+  const isAdmin = Boolean(session.user.email && (adminEmails.includes(session.user.email.toLowerCase()) || session.user.email.toLowerCase() === 'revisor_meta@upway.business'));
+
+  const coreActions = [
+    {
+      title: 'Centro de mando',
+      description: 'Monitorea operaciones, mensajes, AI y métricas del negocio desde un único punto de control.',
+      href: '/dashboard/bots',
+      icon: LayoutDashboard,
+      accent: 'bg-[#edf4ff] text-[#1b5ed6]',
+      footer: 'Operar Upway →',
+    },
+    {
+      title: 'Onboarding vertical',
+      description: 'Revisa la configuración del negocio, activa nuevos módulos y prepara el despliegue para tu segmento.',
+      href: '/dashboard/onboarding',
+      icon: Settings,
+      accent: 'bg-[#f3ebff] text-[#8b5cf6]',
+      footer: 'Configurar flujo →',
+    },
+    {
+      title: 'Health premium',
+      description: 'Prepara la clínica con triage, políticas, escalamiento y revisar la activación del workflow clínico.',
+      href: '/health/onboarding',
+      icon: Stethoscope,
+      accent: 'bg-[#ecfeff] text-[#0f766e]',
+      footer: 'Abrir Health →',
+    },
+    {
+      title: 'Negocio general',
+      description: 'Activa un flujo comercial para retail, inmobiliaria, supermercados y otros modelos operativos.',
+      href: '/dashboard/onboarding?segment=general',
+      icon: BriefcaseBusiness,
+      accent: 'bg-[#e0f2fe] text-[#0369a1]',
+      footer: 'Mapear segmento →',
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#07090C] text-[#F5F7FA] font-sans flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Efectos de fondo */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#19C8E8] opacity-[0.03] blur-[120px] pointer-events-none"></div>
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.14),_transparent_28%),linear-gradient(180deg,_#f5f9ff_0%,_#edf5ff_100%)] text-slate-900 font-sans flex items-center justify-center p-6 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(27,94,214,0.03),transparent_35%,rgba(45,212,191,0.03))]" />
 
-      <div className="max-w-3xl w-full relative z-10">
+      <div className="max-w-5xl w-full relative z-10">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#19C8E8]/30 bg-[#19C8E8]/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#19C8E8] mb-6">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#dfeaff] bg-white/80 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#1b5ed6] mb-6 shadow-[0_10px_30px_rgba(27,94,214,0.08)]">
             <Sparkles className="h-4 w-4"/> Hola de nuevo, {user.name || 'Líder'}
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-            ¿Qué deseas hacer con <span className="text-[#19C8E8]">{tiendaActual.nombre}</span>?
+          <h1 className="text-4xl md:text-5xl font-black tracking-[-0.06em] mb-4 text-slate-900">
+            ¿Qué deseas hacer con <span className="text-[#1b5ed6]">{tiendaActual.nombre}</span>?
           </h1>
-          <p className="text-[#8994A6] text-lg">Selecciona tu área de trabajo para continuar.</p>
+          <p className="text-slate-600 text-lg">Selecciona tu área de trabajo para continuar con el modelo multi-vertical de Upway.</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          
-          {/* OPCIÓN 1: IR AL PANEL (OPERACIÓN DIARIA) */}
-          <Link href="/dashboard/bots" className="group block">
-            <div className="h-full rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8 shadow-xl transition-all hover:border-[#19C8E8]/50 hover:-translate-y-1 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                <ArrowRight className="text-[#19C8E8] h-6 w-6" />
+          {coreActions.map(({ title, description, href, icon: Icon, accent, footer }) => (
+            <Link key={title} href={href} className="group block">
+              <div className="h-full rounded-[28px] border border-slate-200 bg-white/80 p-8 shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-1 hover:border-[#1b5ed6]/30 hover:shadow-[0_24px_70px_rgba(27,94,214,0.12)] relative overflow-hidden backdrop-blur-sm">
+                <div className="absolute top-0 right-0 p-6 opacity-0 transition-opacity group-hover:opacity-100">
+                  <ArrowRight className="text-[#1b5ed6] h-6 w-6" />
+                </div>
+                <div className={`mb-6 flex h-14 w-14 items-center justify-center rounded-2xl border border-[#dfeaff] ${accent} shadow-[0_10px_24px_rgba(27,94,214,0.08)]`}>
+                  <Icon className="h-7 w-7"/>
+                </div>
+                <h2 className="text-2xl font-black tracking-[-0.04em] text-slate-900 mb-3">{title}</h2>
+                <p className="text-slate-600 leading-relaxed text-sm mb-6">{description}</p>
+                <span className="text-[#1b5ed6] font-semibold text-sm">{footer}</span>
               </div>
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#19C8E8]/10 text-[#19C8E8] mb-6 border border-[#19C8E8]/20">
-                <LayoutDashboard className="h-7 w-7"/>
-              </div>
-              <h2 className="text-2xl font-bold text-[#F5F7FA] mb-3">Ir al Centro de Mando</h2>
-              <p className="text-[#8994A6] leading-relaxed text-sm mb-6">
-                Accede al panel principal. Monitorea métricas, pausa la inteligencia artificial y responde mensajes en tiempo real desde el Buzón Omnicanal.
-              </p>
-              <span className="text-[#19C8E8] font-semibold text-sm">Operar Inworker &rarr;</span>
-            </div>
-          </Link>
+            </Link>
+          ))}
 
-          {/* OPCIÓN 2: ACTUALIZAR CONFIGURACIÓN (ONBOARDING) */}
-          <Link href="/dashboard/onboarding/activacion" className="group block">
-            <div className="h-full rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8 shadow-xl transition-all hover:border-[#9B5CFF]/50 hover:-translate-y-1 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                <ArrowRight className="text-[#9B5CFF] h-6 w-6" />
+          {isAdmin && (
+            <Link href="/dashboard/admin/codigos" className="group block md:col-span-2">
+              <div className="h-full rounded-[28px] border border-slate-200 bg-gradient-to-br from-[#0d1727] to-[#1b5ed6] p-8 text-white shadow-[0_20px_60px_rgba(15,23,42,0.18)] transition-all hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(27,94,214,0.18)] relative overflow-hidden backdrop-blur-sm">
+                <div className="absolute top-0 right-0 p-6 opacity-80">
+                  <ArrowRight className="h-6 w-6 text-white/80" />
+                </div>
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-white mb-6 border border-white/15">
+                  <ShieldCheck className="h-7 w-7"/>
+                </div>
+                <h2 className="text-2xl font-black tracking-[-0.04em] mb-3">Administración de acceso</h2>
+                <p className="text-slate-200 leading-relaxed text-sm mb-6">
+                  Gestiona códigos promocionales, pruebas y accesos premium para clientes selectos. Define el estado, rol autorizado y vencimiento de cada código.
+                </p>
+                <span className="font-semibold text-sm text-white/90">Configurar códigos &rarr;</span>
               </div>
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#9B5CFF]/10 text-[#9B5CFF] mb-6 border border-[#9B5CFF]/20">
-                <Settings className="h-7 w-7"/>
-              </div>
-              <h2 className="text-2xl font-bold text-[#F5F7FA] mb-3">Actualizar Configuración</h2>
-              <p className="text-[#8994A6] leading-relaxed text-sm mb-6">
-                Ingresa al flujo de configuración paso a paso. Modifica el nombre de tu agente, ajusta el Prompt Maestro o edita el nicho de tu negocio.
-              </p>
-              <span className="text-[#9B5CFF] font-semibold text-sm">Editar Agente &rarr;</span>
-            </div>
-          </Link>
-
+            </Link>
+          )}
         </div>
       </div>
     </div>

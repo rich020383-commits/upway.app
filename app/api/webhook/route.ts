@@ -1,6 +1,7 @@
 import { NextResponse, after } from 'next/server';
 import { VERIFY_TOKEN, handleStatusUpdate, handleIncomingMessage, MetaWebhookBody } from '@/lib/whatsapp';
 import { verifyMetaSignature } from '@/lib/webhook-verify';
+import { recordProviderEvent } from '@/lib/event-audit';
 
 // El route es un dispatcher delgado: toda la lógica vive en lib/whatsapp.ts
 
@@ -30,6 +31,22 @@ export async function POST(req: Request) {
     }
 
     const body = JSON.parse(rawBody) as MetaWebhookBody;
+    const metaEventType = body?.entry?.some((entry) => entry.changes?.some((change) => Boolean(change.value?.messages?.length)))
+      ? 'messages_received'
+      : body?.entry?.some((entry) => entry.changes?.some((change) => Boolean(change.value?.statuses?.length)))
+        ? 'status_updates'
+        : 'meta_webhook_received';
+
+    await recordProviderEvent({
+      provider: 'meta',
+      eventType: metaEventType,
+      status: 'accepted',
+      payload: body,
+      metadata: {
+        object: body?.object ?? null,
+        entryCount: body?.entry?.length ?? 0,
+      },
+    });
 
     if (body?.object === 'whatsapp_business_account') {
       for (const entry of body.entry || []) {

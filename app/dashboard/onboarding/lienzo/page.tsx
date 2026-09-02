@@ -1,17 +1,13 @@
 "use client";
 
-import React, { useMemo } from 'react';
+import React, { Suspense, useMemo } from 'react';
 import { MessageCircleMore, Headphones, CalendarDays, BarChart3, Sparkles, ArrowRight, Check } from 'lucide-react';
 import { useUpwayStore } from '../../../store/upwayStore'; // Ajusta la ruta si es necesario
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link'; // 🚀 IMPORTACIÓN NUEVA
+import { resolveVertical } from '../../../../lib/verticals';
 
-export default function Paso01Infraestructura() {
-  const router = useRouter();
-  const { modulosSeleccionados, toggleModulo } = useUpwayStore();
-
-  // Módulos con descripciones enfocadas en el valor corporativo
-  const modulos = [
+const modulos = [
     { 
       id: 'whatsapp', 
       titulo: 'WhatsApp IA', 
@@ -48,6 +44,13 @@ export default function Paso01Infraestructura() {
       icon: <Sparkles size={24} /> 
     },
   ];
+
+function Paso01Infraestructura() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const segment = (searchParams.get('segment') ?? 'general').toLowerCase();
+  const activeSegment = resolveVertical(segment);
+  const { modulosSeleccionados, toggleModulo } = useUpwayStore();
 
   const totalMensual = useMemo(() => {
     return modulos.reduce((acc, curr) => {
@@ -86,6 +89,9 @@ export default function Paso01Infraestructura() {
             <span>Configuración de tu agente</span>
             <span className="w-1 h-1 rounded-full bg-[#8994A6]"></span>
             <span className="text-[#F5F7FA]">01 / 05</span>
+            <span className="ml-auto rounded-full border border-[#19C8E8]/30 bg-[#19C8E8]/10 px-2 py-1 text-[10px] font-semibold text-[#9be7ff]">
+              {activeSegment.label}
+            </span>
           </div>
           
           <div className="flex gap-2 mb-10">
@@ -95,10 +101,10 @@ export default function Paso01Infraestructura() {
             <div className="h-1 flex-1 bg-[#1E293B] rounded-full"></div>
             <div className="h-1 flex-1 bg-[#1E293B] rounded-full"></div>
           </div>
-
+ 
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">Infraestructura</h1>
           <p className="text-[#8994A6] text-lg max-w-2xl">
-            Selecciona los canales donde operará tu asistente y las capacidades cognitivas que tendrá activas desde el primer día.
+            {activeSegment.description}
           </p>
         </div>
 
@@ -183,5 +189,13 @@ export default function Paso01Infraestructura() {
       </div>
 
     </main>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#07090C] text-white">Cargando...</div>}>
+      <Paso01Infraestructura />
+    </Suspense>
   );
 }

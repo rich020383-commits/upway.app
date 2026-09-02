@@ -3,27 +3,157 @@
 @theme {
   --color-brand-electric: #2563eb;
   --color-brand-dark: #0f172a;
+  --color-brand-navy: #0f1f36;
+  --color-brand-slate: #6e86a8;
+  --color-brand-ice: #f7faff;
+  --color-brand-success: #18a66e;
+}
+
+:root {
+  --upway-navy: #0d1727;
+  --upway-navy-strong: #08111d;
+  --upway-blue: #1b5ed6;
+  --upway-blue-soft: #7bb0ff;
+  --upway-sky: #a9d8ff;
+  --upway-ice: #f5f8ff;
+  --upway-slate: #5d7492;
+  --upway-surface: rgba(255, 255, 255, 0.82);
+  --upway-border: rgba(12, 22, 38, 0.08);
+  --upway-mist: rgba(123, 176, 255, 0.12);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background-color: #f8fafc; /* bg-slate-50 */
-  color: #0f172a; /* text-slate-900 */
-  font-family: sans-serif;
-  scroll-behavior: smooth;
+  background:
+    radial-gradient(circle at top left, rgba(27, 94, 214, 0.10), transparent 18%),
+    radial-gradient(circle at top right, rgba(124, 179, 255, 0.08), transparent 20%),
+    linear-gradient(180deg, #f8faff 0%, #eef4ff 100%);
+  color: var(--upway-navy);
+  font-family: "Inter", "Segoe UI", sans-serif;
   overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(27, 94, 214, 0.18);
+  color: var(--upway-navy);
 }
 
 /* Utilidades Premium personalizadas */
 .text-gradient {
-  background: linear-gradient(to right, #3b82f6, #1d4ed8);
+  background: linear-gradient(135deg, #0a1525 0%, #183b7e 28%, #4a83ff 58%, #7ec3ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .shadow-premium {
-  box-shadow: 0 2px 8px -1px rgba(15, 23, 42, 0.03), 0 12px 24px -4px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 14px 40px rgba(14, 26, 44, 0.08), 0 3px 14px rgba(14, 26, 44, 0.04);
 }
 
 .shadow-premium-hover {
-  box-shadow: 0 4px 20px -2px rgba(37, 99, 235, 0.06), 0 20px 40px -4px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 22px 52px rgba(17, 42, 74, 0.12), 0 8px 18px rgba(17, 42, 74, 0.08);
+}
+
+.upway-panel {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 28px 60px rgba(11, 23, 39, 0.20);
+}
+
+.upway-card {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(13, 23, 39, 0.08);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 16px 38px rgba(17, 31, 49, 0.06);
+}
+
+.upway-ring {
+  box-shadow: 0 0 0 1px rgba(27, 94, 214, 0.10), 0 10px 24px rgba(27, 94, 214, 0.08);
+}
+
+.brand-badge {
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.premium-divider {
+  background: linear-gradient(90deg, transparent, rgba(27, 94, 214, 0.20), transparent);
+  height: 1px;
+}
+
+:root {
+  --upway-brand-navy: #0d1727;
+  --upway-brand-navy-strong: #07111c;
+  --upway-brand-blue: #1b5ed6;
+  --upway-brand-blue-soft: #dfeaff;
+  --upway-brand-sky: #9fd4ff;
+  --upway-brand-surface: rgba(255, 255, 255, 0.78);
+  --upway-brand-border: rgba(13, 23, 39, 0.09);
+  --upway-brand-muted: #5d7492;
+  --upway-brand-shadow: rgba(14, 29, 49, 0.12);
+}
+
+.upway-shell {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(96, 165, 250, 0.18), transparent 22%),
+    radial-gradient(circle at 88% 18%, rgba(45, 212, 191, 0.10), transparent 20%),
+    linear-gradient(180deg, #f6fbff 0%, #eef6ff 40%, #f3f8fc 100%);
+}
+
+.upway-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(22, 88, 160, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22, 88, 160, 0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(circle at center, black 48%, transparent 100%);
+  pointer-events: none;
+}
+
+.upway-surface {
+  background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(242,248,255,0.9));
+  border: 1px solid rgba(112, 143, 190, 0.18);
+  box-shadow: 0 18px 42px rgba(15, 31, 54, 0.06);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.upway-panel-dark {
+  background: linear-gradient(180deg, rgba(15, 23, 39, 0.96), rgba(10, 17, 28, 0.98));
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 32px 60px rgba(2, 8, 18, 0.34);
+}
+
+.upway-button-primary {
+  background: linear-gradient(135deg, #edf4ff 0%, #dfeaff 100%);
+  color: #0d1727;
+  border: 1px solid rgba(27, 94, 214, 0.14);
+  box-shadow: 0 18px 36px rgba(27, 94, 214, 0.12);
+}
+
+.upway-chip {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.upway-grid-pattern {
+  background-image: linear-gradient(rgba(27, 94, 214, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(27, 94, 214, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
 }

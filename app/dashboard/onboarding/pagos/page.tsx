@@ -19,6 +19,9 @@ export default function Paso06Checkout() {
   } = useUpwayStore();
   
   const [procesando, setProcesando] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [appliedPromoCode, setAppliedPromoCode] = useState<string | null>(null);
+  const [promoFeedback, setPromoFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const detallesModulos: Record<string, { nombre: string, precio: number }> = {
     'whatsapp': { nombre: 'Motor WhatsApp (Texto)', precio: 399900 },
@@ -34,6 +37,40 @@ export default function Paso06Checkout() {
 
   const fmt = (n: number) => `$${n.toLocaleString("es-CO")}`;
 
+  const handleApplyPromo = async () => {
+    const normalized = promoCode.trim();
+    if (!normalized) {
+      setPromoFeedback({ type: 'error', text: 'Ingresa un código de acceso para activar la prueba o el beneficio.' });
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: 'pro', promoCode: normalized }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'El código no es válido.');
+      }
+
+      setAppliedPromoCode(normalized);
+      setPromoFeedback({
+        type: 'success',
+        text: data.message || 'Código validado correctamente.',
+      });
+    } catch (error) {
+      console.error('Error validando código:', error);
+      setAppliedPromoCode(null);
+      setPromoFeedback({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'No se pudo validar el código.',
+      });
+    }
+  };
+
   const handleSimularPago = async () => {
     if ((status as string) === 'loading') return;
     
@@ -48,6 +85,25 @@ export default function Paso06Checkout() {
     setProcesando(true);
     
     try {
+      const checkoutRes = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan: 'pro',
+          promoCode: appliedPromoCode || promoCode.trim() || undefined,
+        }),
+      });
+
+      const checkoutData = await checkoutRes.json().catch(() => ({}));
+      if (!checkoutRes.ok || !checkoutData.success) {
+        throw new Error(checkoutData.error || 'No se pudo validar la autorización de acceso.');
+      }
+
+      if (checkoutData.mode === 'payment' && checkoutData.payment_url) {
+        window.location.href = checkoutData.payment_url;
+        return;
+      }
+
       const res = await fetch('/api/tienda/aprovisionar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -80,6 +136,7 @@ export default function Paso06Checkout() {
 
     } catch (error) {
       console.error('❌ Error de despliegue:', error);
+      alert(error instanceof Error ? error.message : 'No se pudo completar la activación.');
       router.push('/dashboard');
     } finally {
       setProcesando(false);
@@ -195,6 +252,35 @@ export default function Paso06Checkout() {
                 </p>
               </div>
 
+              <div className="mb-5 rounded-2xl border border-[#1E293B] bg-[#07090C] p-4">
+                <label className="mb-2 block text-[10px] font-mono uppercase tracking-[0.2em] text-[#8994A6]">
+                  Código de acceso / cupón
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    value={promoCode}
+                    onChange={(event) => setPromoCode(event.target.value)}
+                    placeholder="UPWAY-TRIAL"
+                    className="flex-1 rounded-xl border border-[#1E293B] bg-[#0D1117] px-3 py-2.5 text-sm text-[#F5F7FA] outline-none placeholder:text-[#8994A6] focus:border-[#19C8E8]"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyPromo}
+                    className="rounded-xl border border-[#19C8E8]/30 bg-[#19C8E8]/10 px-3 py-2.5 text-xs font-semibold text-[#9be7ff] transition-colors hover:bg-[#19C8E8]/20"
+                  >
+                    Aplicar
+                  </button>
+                </div>
+                {promoFeedback && (
+                  <p className={`mt-2 text-xs ${promoFeedback.type === 'success' ? 'text-[#34D399]' : 'text-[#FCA5A5]'}`}>
+                    {promoFeedback.text}
+                  </p>
+                )}
+                <div className="mt-2 text-[10px] text-[#8994A6]">
+                  Códigos de prueba sugeridos: <span className="font-mono text-[#F5F7FA]">UPWAY-TRIAL</span> · <span className="font-mono text-[#F5F7FA]">CLINICA-SELECTA</span>
+                </div>
+              </div>
+
               <button 
                 onClick={handleSimularPago}
                 disabled={procesando || totalMensual === 0 || (status as string) === 'loading'}
@@ -207,7 +293,7 @@ export default function Paso06Checkout() {
                 {procesando ? (
                   <><Loader2 className="animate-spin" size={18} /> Autorizando despliegue...</>
                 ) : (
-                  <>Pagar y Activar Sistema <ExternalLink size={18} /></>
+                  <> {appliedPromoCode ? 'Activar con código' : 'Pagar y Activar Sistema'} <ExternalLink size={18} /></>
                 )}
               </button>
 

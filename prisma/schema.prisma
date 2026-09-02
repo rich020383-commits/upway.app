@@ -45,9 +45,291 @@ model User {
   image         String?
   password      String?   // Para que tus clientes entren con su clave
   
-  accounts      Account[]
-  sessions      Session[]
-  tiendas       Tienda[]  // Enlace directo al negocio de tu cliente
+  accounts                Account[]
+  sessions                Session[]
+  tiendas                 Tienda[]  // Enlace directo al negocio de tu cliente
+  ownedOrganizations      Organization[] @relation("OrganizationOwner")
+  organizationMemberships  OrganizationMember[]
+  billingAccessCodes      BillingAccessCode[] @relation("BillingAccessCodeCreator")
+}
+
+enum VerticalType {
+  BUSINESS
+  HEALTH
+  HYBRID
+}
+
+enum HealthOnboardingStatus {
+  DRAFT
+  IN_PROGRESS
+  PENDING_REVIEW
+  NEEDS_CHANGES
+  APPROVED
+  TESTING
+  ACTIVE
+  PAUSED
+  BLOCKED
+  ARCHIVED
+}
+
+enum HealthOnboardingStepStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETE
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  BLOCKED
+}
+
+enum HealthApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CHANGES_REQUESTED
+}
+
+enum BillingAccessState {
+  TRIAL
+  ACTIVE
+  PENDING_PAYMENT
+  PAUSED
+  SUSPENDED
+  CANCELLED
+}
+
+enum BillingAccessType {
+  TRIAL
+  INVITE
+  GIFT
+}
+
+model Organization {
+  id          String        @id @default(cuid())
+  name        String
+  slug        String        @unique
+  vertical    VerticalType  @default(BUSINESS)
+  verticals   VerticalType[] @default([BUSINESS])
+  ownerId     String
+  owner       User          @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members     OrganizationMember[]
+  clinics     Clinic[]
+  tiendas     Tienda[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model OrganizationMember {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  role           String       @default("admin")
+  permissions    String[]     @default([])
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+}
+
+model Clinic {
+  id              String       @id @default(cuid())
+  organizationId  String
+  name            String
+  specialty       String?
+  timezone        String?      @default("UTC")
+  vertical        VerticalType @default(BUSINESS)
+  status          String       @default("active")
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tiendas            Tienda[]
+  healthProfile      HealthProfile?
+  onboardingSessions HealthOnboardingSession[]
+  auditLogs          HealthAuditLog[]
+}
+
+model HealthProfile {
+  id                       String   @id @default(cuid())
+  clinicId                 String   @unique
+  specialty                String?
+  appointmentMode         String?  @default("phone")
+  patientContextRequired   Boolean  @default(true)
+  emergencyEscalation      Boolean  @default(true)
+  cancellationPolicy       String?  @db.Text
+  toneProfile              String?  @default("professional")
+  privacyMode              String   @default("strict")
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  clinic                   Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  triageRules              HealthTriageRule[]
+  faqs                     HealthFAQ[]
+  handoffRules             HealthHandoffRule[]
+  compliancePolicies       HealthCompliancePolicy[]
+}
+
+model HealthOnboardingSession {
+  id              String                 @id @default(cuid())
+  clinicId        String
+  vertical        VerticalType           @default(BUSINESS)
+  status          HealthOnboardingStatus @default(DRAFT)
+  currentStep     String                 @default("overview")
+  progressPercent Int                    @default(0)
+  notes           String?                @db.Text
+  ownerUserId     String?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  clinic          Clinic                  @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  steps           HealthOnboardingStep[]
+  approvals       HealthOnboardingApproval[]
+}
+
+model HealthOnboardingStep {
+  id            String                    @id @default(cuid())
+  sessionId     String
+  stepKey       String
+  title         String
+  status        HealthOnboardingStepStatus @default(NOT_STARTED)
+  required      Boolean                   @default(true)
+  notes         String?                   @db.Text
+  blockerReason String?                   @db.Text
+  assigneeUserId String?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  session       HealthOnboardingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, stepKey])
+}
+
+model HealthOnboardingApproval {
+  id          String             @id @default(cuid())
+  sessionId   String
+  entityType  String             @default("onboarding")
+  entityId    String?
+  requestedBy String?
+  approvedBy  String?
+  status      HealthApprovalStatus @default(PENDING)
+  comments    String?            @db.Text
+  createdAt   DateTime           @default(now())
+  reviewedAt  DateTime?
+
+  session     HealthOnboardingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, status])
+}
+
+model HealthAuditLog {
+  id           String   @id @default(cuid())
+  clinicId     String
+  entityType   String
+  entityId     String
+  action       String
+  performedBy  String?
+  beforeJson   Json?
+  afterJson    Json?
+  createdAt    DateTime @default(now())
+
+  clinic       Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@index([clinicId, entityType, createdAt])
+}
+
+model WebhookEventLog {
+  id          String   @id @default(cuid())
+  provider    String
+  eventType   String
+  status      String   @default("received")
+  clinicId    String?
+  tenantId    String?
+  entityType  String?
+  entityId    String?
+  performedBy String?
+  payloadJson Json?
+  metadataJson Json?
+  createdAt   DateTime @default(now())
+
+  @@index([provider, createdAt])
+  @@index([clinicId, createdAt])
+}
+
+model HealthTriageRule {
+  id            String   @id @default(cuid())
+  profileId     String
+  name          String
+  condition     String   @db.Text
+  severity      String   @default("medium")
+  action        String   @db.Text
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  profile       HealthProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model HealthFAQ {
+  id            String   @id @default(cuid())
+  profileId     String
+  question      String   @db.Text
+  answer        String   @db.Text
+  category      String   @default("general")
+  isPublished   Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  profile       HealthProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model HealthHandoffRule {
+  id             String   @id @default(cuid())
+  profileId      String
+  triggerType    String
+  destination    String
+  escalationMode String   @default("human")
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  profile        HealthProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model HealthCompliancePolicy {
+  id            String   @id @default(cuid())
+  profileId     String
+  title         String
+  body          String   @db.Text
+  version       String   @default("v1")
+  isRequired    Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  profile       HealthProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model BillingAccessCode {
+  id              String             @id @default(cuid())
+  code            String             @unique
+  label           String
+  description     String?
+  state           BillingAccessState @default(TRIAL)
+  type            BillingAccessType  @default(TRIAL)
+  allowedRole     String?            @default("clinic-admin")
+  isActive        Boolean            @default(true)
+  expiresAt       DateTime?
+  createdByUserId String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  createdBy       User?              @relation("BillingAccessCodeCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([isActive, expiresAt])
+  @@index([code])
 }
 
 model VerificationToken {
@@ -64,6 +346,8 @@ model VerificationToken {
 model Tienda {
   id                  String   @id @default(cuid())
   userId              String
+  organizationId      String?
+  clinicId            String?
   nombre              String
   
   // 🤖 Personalidad del Bot
@@ -88,6 +372,8 @@ model Tienda {
   // 🗑️ (Se eliminaron los campos de Google Calendar por el pivot estratégico)
   
   user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization        Organization?  @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  clinic              Clinic?        @relation(fields: [clinicId], references: [id], onDelete: SetNull)
   productos           Producto[]
   llamadas            LlamadaLog[]
   leads               Lead[]
