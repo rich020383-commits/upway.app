@@ -4,10 +4,16 @@ import { Client } from 'pg';
 let isListening = false;
 
 export function iniciarOidoNeon() {
+  if (typeof window !== 'undefined') return;
+  if (!process.env.DIRECT_URL) {
+    return;
+  }
   if (isListening) return;
 
+  isListening = true;
+
   const client = new Client({
-    connectionString: process.env.DIRECT_URL, // La conexión limpia, sin el -pooler
+    connectionString: process.env.DIRECT_URL,
   });
 
   client.connect((err: Error | null) => {
@@ -16,19 +22,33 @@ export function iniciarOidoNeon() {
       scheduleReconnect();
       return;
     }
+
+    client.query('LISTEN alerta_upway');
     console.log('👂 Servidor Upway conectado y escuchando eventos de Neon...');
   });
 
-  // 🛡️ Si la conexión se cae (cierre de idle en Neon, red, etc.), intentamos reconectar
   client.on('error', (err: Error) => {
     console.error('❌ Error en la conexión del Listener a Neon:', err.message);
     scheduleReconnect();
   });
 
-  // Reintento con backoff simple, sin bloquear el proceso
+  client.on('notification', (msg) => {
+    if (msg.payload) {
+      let nuevoLead: unknown;
+      try {
+        nuevoLead = JSON.parse(msg.payload);
+      } catch (parseError) {
+        console.error('⚠️ Payload de notificación no es JSON válido, se ignora:', parseError);
+        return;
+      }
+      console.log('🚨 [UPWAY EVENTO] ¡Nuevo registro guardado en tiempo real!');
+      console.log('📦 Datos:', nuevoLead);
+    }
+  });
+
   let reconnectAttempts = 0;
   function scheduleReconnect() {
-    if (!isListening) return; // Ya hay un reintento en marcha
+    if (!isListening) return;
     isListening = false;
     reconnectAttempts = Math.min(reconnectAttempts + 1, 6);
     const delayMs = Math.min(1000 * Math.pow(2, reconnectAttempts - 1), 60000);
@@ -41,28 +61,4 @@ export function iniciarOidoNeon() {
       }
     }, delayMs);
   }
-
-  // Le decimos a Postgres qué canal escuchar (el mismo que creaste en el SQL)
-  client.query('LISTEN alerta_upway');
-
-  // Cada vez que Postgres grite, este bloque se ejecuta instantáneamente
-  client.on('notification', (msg) => {
-    if (msg.payload) {
-      let nuevoLead: unknown;
-      try {
-        nuevoLead = JSON.parse(msg.payload);
-      } catch (parseError) {
-        console.error('⚠️ Payload de notificación no es JSON válido, se ignora:', parseError);
-        return;
-      }
-      console.log('🚨 [UPWAY EVENTO] ¡Nuevo registro guardado en tiempo real!');
-      console.log('📦 Datos:', nuevoLead);
-
-      // ==========================================
-      // 🧠 AQUÍ DISPARAS LA LÓGICA DE WHATSAPP O VAPI
-      // ==========================================
-    }
-  });
-
-  isListening = true;
 }

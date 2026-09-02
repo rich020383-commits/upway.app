@@ -1,128 +1,215 @@
 "use client";
 
-import React from 'react';
-import { TrendingUp, MessageSquare, CalendarCheck, Wallet, Sparkles, ArrowRight } from 'lucide-react';
-import { useUpwayStore } from '../../store/upwayStore';
-import { useRouter } from 'next/navigation';
+import {
+  ArrowRight,
+  BriefcaseBusiness,
+  Building2,
+  CalendarCheck2,
+  HeartPulse,
+  MessageSquareText,
+  ShieldCheck,
+  Sparkles,
+  TrendingUp,
+} from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect } from 'react';
+import { SEGMENT_ROUTE_MAP, VERTICALS } from '../../../lib/verticals';
 
-export default function Paso01Descubrimiento() {
+const capabilityCards = [
+  {
+    title: 'Ventas y captación',
+    description: 'Leads, qualification, follow-up y cierre más inteligente.',
+    icon: TrendingUp,
+    accent: 'bg-[#edf4ff] text-[#1b5ed6]',
+  },
+  {
+    title: 'Atención 24/7',
+    description: 'Agentes multicanal con respuestas rápidas y consistentes.',
+    icon: MessageSquareText,
+    accent: 'bg-[#f4ebff] text-[#7c4dff]',
+  },
+  {
+    title: 'Agendamiento',
+    description: 'Reservas, citas, confirmaciones y coordinación operativa.',
+    icon: CalendarCheck2,
+    accent: 'bg-[#ebfff5] text-[#0f9f6e]',
+  },
+  {
+    title: 'Compliance y seguridad',
+    description: 'Reglas, escalamiento humano y control de riesgo para operaciones sensibles.',
+    icon: ShieldCheck,
+    accent: 'bg-[#fef4e7] text-[#d97706]',
+  },
+];
+
+const flowOptions = [
+  {
+    id: 'health',
+    title: VERTICALS.health.label,
+    subtitle: 'Operación clínica con triage, políticas, escalamiento y control de privacidad.',
+    description: 'Ideal para clínicas, centros médicos, urgencias y workflows con riesgo clínico.',
+    route: VERTICALS.health.onboardingRoute,
+    accent: 'from-[#0d1b2a] via-[#15355d] to-[#1d5fd9]',
+    icon: HeartPulse,
+  },
+  {
+    id: 'inmobiliaria',
+    title: VERTICALS.inmobiliaria.label,
+    subtitle: 'Captación comercial, agenda de visitas y seguimiento operativo.',
+    description: 'Muy útil para inmobiliarias con leads, coordinación de agentes y cierre más organizado.',
+    route: VERTICALS.inmobiliaria.onboardingRoute,
+    accent: 'from-[#11263c] via-[#1c3e67] to-[#6b8ec9]',
+    icon: Building2,
+  },
+  {
+    id: 'retail',
+    title: VERTICALS.retail.label,
+    subtitle: 'Atención comercial más rápida, más clara y más consistente.',
+    description: 'Diseñado para tiendas, cadenas de retail y equipos comerciales con mucha rotación.',
+    route: VERTICALS.retail.onboardingRoute,
+    accent: 'from-[#142b40] via-[#234c77] to-[#2d9bd5]',
+    icon: MessageSquareText,
+  },
+  {
+    id: 'supermercado',
+    title: VERTICALS.supermercado.label,
+    subtitle: 'Consultas, promociones y soporte con mayor capacidad operativa.',
+    description: 'Ideal para supermercados con tráfico alto y mucha demanda repetitiva por canales.',
+    route: VERTICALS.supermercado.onboardingRoute,
+    accent: 'from-[#0c1f31] via-[#1a3f5e] to-[#48a9ea]',
+    icon: TrendingUp,
+  },
+  {
+    id: 'drogueria',
+    title: VERTICALS.drogueria.label,
+    subtitle: 'Pedidos, disponibilidad y consultas con coordinación más precisa.',
+    description: 'Perfecto para droguerías y establecimientos que necesitan rapidez y orden operativo.',
+    route: VERTICALS.drogueria.onboardingRoute,
+    accent: 'from-[#0f2034] via-[#1f3b5d] to-[#2a8fca]',
+    icon: ShieldCheck,
+  },
+  {
+    id: 'business',
+    title: VERTICALS.general.label,
+    subtitle: 'Configuración operativa para atención comercial, ventas y soporte.',
+    description: 'Perfecto para negocios, agencias, servicios y equipos de atención con procesos repetitivos.',
+    route: VERTICALS.general.onboardingRoute,
+    accent: 'from-[#12263f] via-[#1d3557] to-[#5d7dbb]',
+    icon: BriefcaseBusiness,
+  },
+];
+
+function CACPage() {
   const router = useRouter();
-  
-  // Conectamos con nuestro Cerebro Temporal (Zustand)
-  const objetivoSeleccionado = useUpwayStore((state) => state.objetivoPrincipal);
-  const setObjetivo = useUpwayStore((state) => state.setObjetivoPrincipal);
+  const searchParams = useSearchParams();
+  const segment = searchParams.get('segment');
 
-  const metas = [
-    {
-      id: 'ventas',
-      titulo: 'Multiplicar mis ventas y captar leads.',
-      icon: <TrendingUp className="w-6 h-6" />,
-      color: 'text-indigo-400',
-      glow: 'group-hover:shadow-[0_0_40px_rgba(99,102,241,0.2)]'
-    },
-    {
-      id: 'atencion',
-      titulo: 'Automatizar mi atención al cliente 24/7.',
-      icon: <MessageSquare className="w-6 h-6" />,
-      color: 'text-purple-400',
-      glow: 'group-hover:shadow-[0_0_40px_rgba(168,85,247,0.2)]'
-    },
-    {
-      id: 'agenda',
-      titulo: 'Agendar citas, reservas o reuniones.',
-      icon: <CalendarCheck className="w-6 h-6" />,
-      color: 'text-fuchsia-400',
-      glow: 'group-hover:shadow-[0_0_40px_rgba(217,70,239,0.2)]'
-    },
-    {
-      id: 'cobros',
-      titulo: 'Cobrar carteras o hacer recordatorios.',
-      icon: <Wallet className="w-6 h-6" />,
-      color: 'text-violet-400',
-      glow: 'group-hover:shadow-[0_0_40px_rgba(139,92,246,0.2)]'
-    }
-  ];
+  useEffect(() => {
+    if (!segment) return;
+
+    const target = SEGMENT_ROUTE_MAP[segment] ?? SEGMENT_ROUTE_MAP.general;
+    router.replace(target);
+  }, [router, segment]);
 
   return (
-    <div className="min-h-screen bg-[#050508] text-white flex flex-col relative overflow-hidden font-sans">
-      
-      {/* =========================================
-          EL SPARK: NÚCLEO ENERGÉTICO (Dark + Spark)
-          ========================================= */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-        <div className={`transition-all duration-1000 ease-out ${
-          objetivoSeleccionado 
-            ? 'w-[800px] h-[800px] bg-purple-600/20 blur-[150px]' 
-            : 'w-[400px] h-[400px] bg-indigo-600/10 blur-[100px] animate-pulse'
-        } rounded-full`} />
-      </div>
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(95,144,255,0.12),_transparent_30%),linear-gradient(180deg,_#edf4ff_0%,_#f8fbff_100%)] text-slate-900">
+      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-8 md:px-10">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white/80 shadow-sm">
+            <Building2 className="h-5 w-5 text-[#1b5ed6]" />
+          </div>
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">Upway</div>
+            <div className="text-lg font-black tracking-[-0.05em]">CAC</div>
+          </div>
+        </div>
 
-      {/* HEADER MINIMALISTA */}
-      <header className="w-full p-8 flex justify-between items-center relative z-10">
-        <div className="text-2xl font-bold tracking-widest text-white/90">UPWAY</div>
-        <div className="flex items-center gap-4 text-sm text-slate-400">
-          <span>01 Descubrimiento</span>
+        <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.18em] text-slate-600 shadow-sm">
+          <Sparkles className="h-3.5 w-3.5 text-[#1b5ed6]" />
+          Capability activation center
         </div>
       </header>
 
-      {/* CONTENIDO CENTRAL */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 relative z-10 -mt-20">
-        
-        <div className="text-center max-w-2xl mb-16">
-          <p className="text-lg text-purple-300/80 mb-4 font-light tracking-wide">
-            Sea cual sea tu negocio,
-          </p>
-          <h1 className="text-4xl md:text-5xl font-semibold leading-tight text-white mb-6">
-            ¿Qué quieres que la <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">Inteligencia Artificial</span> resuelva por ti hoy?
-          </h1>
-        </div>
+      <main className="mx-auto max-w-6xl px-6 pb-20 md:px-10">
+        <section className="rounded-[32px] border border-slate-200 bg-white/80 p-6 shadow-[0_30px_80px_rgba(15,23,42,0.08)] backdrop-blur-sm md:p-8">
+          <div className="max-w-3xl">
+            <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-[#1b5ed6]">
+              Centro de activación operativa
+            </p>
+            <h1 className="mt-5 text-4xl font-black leading-[0.96] tracking-[-0.06em] text-slate-900 md:text-5xl">
+              Primero vemos la capacidad real de Upway.
+            </h1>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
+              Aquí definimos el alcance de la operación que quieres activar antes de decidir si es una clínica, una empresa o un modelo híbrido.
+            </p>
+          </div>
 
-        {/* GRID DE UNIVERSOS VISUALES */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 w-full max-w-6xl">
-          {metas.map((meta) => (
-            <button
-              key={meta.id}
-              onClick={() => setObjetivo(meta.id)}
-              className={`group text-left relative p-8 h-64 rounded-[32px] border transition-all duration-500 overflow-hidden backdrop-blur-md flex flex-col justify-between
-                ${objetivoSeleccionado === meta.id 
-                  ? 'border-purple-500/50 bg-purple-900/20 scale-[1.02] shadow-[0_0_50px_rgba(168,85,247,0.15)]' 
-                  : 'border-white/5 bg-[#0A0A0F]/80 hover:bg-[#12121A] hover:border-white/10'
-                } ${meta.glow}`}
-            >
-              <div className={`w-12 h-12 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 ${meta.color}`}>
-                {meta.icon}
-              </div>
-              
-              <div className="space-y-4">
-                <h3 className="text-xl font-medium text-slate-200 leading-snug group-hover:text-white transition-colors">
-                  {meta.titulo}
-                </h3>
-                
-                {/* Micro-interacción: Flecha que aparece/se mueve */}
-                <div className={`w-8 h-8 rounded-full border border-white/10 flex items-center justify-center transition-all duration-300 ${
-                  objetivoSeleccionado === meta.id ? 'bg-purple-500/20 border-purple-500/50 text-purple-300' : 'text-slate-500 group-hover:text-white group-hover:border-white/30'
-                }`}>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {capabilityCards.map(({ title, description, icon: Icon, accent }) => (
+              <div
+                key={title}
+                className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4 transition-transform duration-200 hover:-translate-y-1"
+              >
+                <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-2xl ${accent}`}>
+                  <Icon className="h-5 w-5" />
                 </div>
+                <h2 className="text-base font-bold tracking-[-0.04em] text-slate-900">{title}</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
               </div>
-            </button>
-          ))}
-        </div>
+            ))}
+          </div>
+        </section>
 
-        {/* BOTÓN DE AVANCE (Mágico) */}
-        <div className={`absolute bottom-12 transition-all duration-700 ease-in-out ${
-          objetivoSeleccionado ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'
-        }`}>
-          <button 
-            onClick={() => router.push('/dashboard/onboarding/lienzo')}
-            className="inline-flex items-center gap-3 bg-white text-black px-8 py-4 rounded-full font-bold hover:bg-slate-200 hover:scale-105 transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)] cursor-pointer"
-          >
-            <Sparkles className="h-5 w-5 text-purple-600" />
-            Construir mi Sistema
-          </button>
-        </div>
+        <section className="mt-10">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-slate-500">Selecciona tu contexto</p>
+              <h2 className="mt-2 text-2xl font-black tracking-[-0.05em] text-slate-900">¿Qué tipo de operación quieres activar?</h2>
+            </div>
+          </div>
 
+          <div className="grid gap-5 lg:grid-cols-2">
+            {flowOptions.map(({ id, title, subtitle, description, route, accent, icon: Icon }) => (
+              <button
+                key={id}
+                onClick={() => router.push(route)}
+                className="group relative overflow-hidden rounded-[30px] border border-slate-200 bg-white p-1 text-left shadow-[0_24px_60px_rgba(15,23,42,0.06)] transition-transform duration-200 hover:-translate-y-1"
+              >
+                <div className={`relative flex min-h-[260px] flex-col justify-between rounded-[26px] bg-gradient-to-br ${accent} p-6 text-white`}>
+                  <div className="space-y-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/10 backdrop-blur-sm">
+                      <Icon className="h-6 w-6" />
+                    </div>
+
+                    <div>
+                      <p className="text-[11px] font-mono uppercase tracking-[0.2em] text-white/75">Upway flow</p>
+                      <h3 className="mt-3 text-2xl font-black tracking-[-0.05em]">{title}</h3>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <p className="text-base font-semibold text-white/90">{subtitle}</p>
+                    <p className="max-w-md text-sm leading-6 text-white/75">{description}</p>
+
+                    <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-sm font-semibold text-white backdrop-blur-sm">
+                      Activar flujo
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
       </main>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-50 text-slate-900">Cargando...</div>}>
+      <CACPage />
+    </Suspense>
   );
 }

@@ -4,6 +4,7 @@ import GoogleProvider from "next-auth/providers/google";
 import LinkedInProvider from "next-auth/providers/linkedin"; // 🚀 1. Importamos LinkedIn
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { resolveBillingState } from '@/lib/billing/access';
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 const prisma = globalForPrisma.prisma || new PrismaClient();
@@ -139,6 +140,17 @@ export const authOptions: NextAuthOptions = {
         token.accessToken = account.access_token;
       }
 
+      const storedAccessState =
+        (user as any)?.accessState ??
+        (token as any)?.accessState ??
+        (token as any)?.billingState ??
+        process.env.DEFAULT_BILLING_STATE ??
+        'trial';
+
+      const accessState = resolveBillingState(storedAccessState);
+      token.accessState = accessState;
+      token.billingState = accessState;
+
       // 1. Momento exacto del login (existe 'user')
       if (user) {
         if (user.email === 'revisor_meta@upway.business') {
@@ -170,6 +182,9 @@ export const authOptions: NextAuthOptions = {
       if (token && session.user) {
         session.user.id = token.id as string;
         session.accessToken = token.accessToken;
+        session.user.accessState = (token.accessState as string) ?? 'trial';
+        session.user.billingState = (token.billingState as string) ?? 'trial';
+        session.user.role = (token.role as string) ?? 'clinic-admin';
       }
       return session;
     }
