@@ -38,7 +38,10 @@ function LoginPage() {
         setError('Credenciales incorrectas. Verifica tu correo y contraseña.');
         setCargando(false);
       } else if (result?.ok) {
-        const target = segment ? `/dashboard/onboarding?segment=${segment}` : '/dashboard/onboarding';
+        // Login inteligente: si viene de una mini landing con segmento explícito,
+        // respetamos esa intención. Si no, dejamos que /dashboard decida según
+        // el estado real de la cuenta (nueva vs. ya operativa).
+        const target = segment ? `/dashboard/onboarding?segment=${segment}` : '/dashboard';
         router.push(target);
       }
     } catch (err) {
