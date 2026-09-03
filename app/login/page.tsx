@@ -12,6 +12,7 @@ function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const segment = searchParams.get('segment');
+  const targetAfterLogin = resolvePostLoginRoute(segment);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [cargando, setCargando] = useState(false);
@@ -39,11 +40,7 @@ function LoginPage() {
         setError('Credenciales incorrectas. Verifica tu correo y contraseña.');
         setCargando(false);
       } else if (result?.ok) {
-        // Login inteligente: si viene de una mini landing con segmento explícito,
-        // respetamos esa intención de forma centralizada. Si no, dejamos que
-        // /dashboard decida según el estado real de la cuenta.
-        const target = resolvePostLoginRoute(segment);
-        router.push(target);
+        router.push(targetAfterLogin);
       }
     } catch (err) {
       console.error('Error en login:', err);
@@ -174,7 +171,7 @@ function LoginPage() {
             <div className="space-y-3">
               <button
                 type="button"
-                onClick={() => signIn('google', { callbackUrl: '/dashboard/onboarding/lienzo' })}
+                onClick={() => signIn('google', { callbackUrl: targetAfterLogin })}
                 className="flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white py-3.5 text-sm font-semibold text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-50"
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
@@ -188,7 +185,7 @@ function LoginPage() {
 
               <button
                 type="button"
-                onClick={() => signIn('linkedin', { callbackUrl: '/dashboard/onboarding/lienzo' })}
+                onClick={() => signIn('linkedin', { callbackUrl: targetAfterLogin })}
                 className="flex w-full items-center justify-center gap-3 rounded-2xl bg-[#0a66c2] py-3.5 text-sm font-semibold text-white transition-all hover:bg-[#004182]"
               >
                 <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">

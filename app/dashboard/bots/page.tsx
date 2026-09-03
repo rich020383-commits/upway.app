@@ -1,15 +1,16 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Bot, MessageCircleMore, MessageSquare, Sparkles, ShieldCheck, ArrowRight, Signal, 
-  Wifi, Battery, Store, Mic, Square, Phone, ArrowLeft, Headphones, UploadCloud, 
-  Loader2, Zap, RefreshCw, Power, Clock, BookOpen, AtSign, Rocket, Activity, Send, 
-  TerminalSquare, Server, CheckCircle2, Database, Timer, CalendarCheck, Users, TrendingUp, PhoneCall, Calendar
+import { motion } from "framer-motion";
+import {
+  Activity, ArrowLeft, ArrowRight, BookOpen, Bot, Calendar, CalendarCheck,
+  Headphones, Loader2, MessageCircleMore, MessageSquare,
+  Mic, Phone, PhoneCall, Power, RefreshCw, Rocket, Send, Server, ShieldCheck,
+  Sparkles, Square, Store, TerminalSquare, Timer, Users, UploadCloud,
+  Zap
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useSession, signIn } from 'next-auth/react'; 
+import { useSession } from 'next-auth/react'; 
 import { useUpwayStore } from '../../store/upwayStore'; 
 import Link from 'next/link';
 
@@ -27,7 +28,6 @@ export default function AgentesBotPage() {
   const { nombreAgente: nombreStore } = useUpwayStore();
   const [iaActiva, setIaActiva] = useState(true); 
   const [loadingToggle, setLoadingToggle] = useState(false); // Estado para el botón de pausa
-  const [calendarConnected, setCalendarConnected] = useState(false);
 
   // 📊 ESTADOS DINÁMICOS
   const [tiendaIdActual, setTiendaIdActual] = useState<string | null>(null);
@@ -36,10 +36,6 @@ export default function AgentesBotPage() {
   const [telefonoConectado, setTelefonoConectado] = useState<string | null>(null);
   const [loadingMetricas, setLoadingMetricas] = useState(true);
   
-  useEffect(() => {
-    if ((session as any)?.accessToken) setCalendarConnected(true);
-  }, [session]);
-
   // 🔥 EFECTO DINÁMICO: Buscar usando tu EMAIL
   useEffect(() => {
     if (servicioActivo === 'dashboard' && userEmail) {
@@ -193,7 +189,7 @@ export default function AgentesBotPage() {
       if (res.ok) alert('🎉 ¡Central Telefónica conectada! Tu agente ya existe en Vapi con el ID: ' + data.assistantId);
       else alert('Error: ' + data.error);
     } catch (error) {
-      console.error(error);
+      console.error('Error creando agente de voz', error);
       alert('Error de conexión con el servidor.');
     } finally {
       setCreandoVoz(false);
@@ -223,6 +219,7 @@ export default function AgentesBotPage() {
       mediaRecorder.start();
       setIsRecording(true);
     } catch (error) {
+      console.error('No se pudo acceder al micrófono', error);
       alert("No se pudo acceder al micrófono. Verifica los permisos de tu navegador.");
     }
   };
@@ -251,6 +248,7 @@ export default function AgentesBotPage() {
       if (data.error) throw new Error(data.error);
       setHistorialChat([...nuevoHistorial, { rol: 'ia', texto: data.respuesta }]);
     } catch (error) {
+      console.error('Fallo de conexión de audio', error);
       setHistorialChat([...nuevoHistorial, { rol: 'ia', texto: `⚠️ Fallo de conexión de audio.` }]);
     } finally {
       setCargandoPrueba(false);
@@ -277,6 +275,7 @@ export default function AgentesBotPage() {
       if (data.error) throw new Error(data.error);
       setHistorialChat([...nuevoHistorial, { rol: 'ia', texto: data.respuesta }]);
     } catch (error) {
+      console.error('Fallo en mensaje de prueba', error);
       setHistorialChat([...nuevoHistorial, { rol: 'ia', texto: `⚠️ Fallo exacto: ${error instanceof Error ? error.message : 'Error desconocido'}` }]);
     } finally {
       setCargandoPrueba(false);
@@ -564,27 +563,28 @@ export default function AgentesBotPage() {
   // RENDER 4: DASHBOARD TELEMETRÍA (CON 3 ESTADOS + TELÉFONO)
   // ==========================================
   return (
-    <div className="min-h-screen bg-[#07090C] text-[#F5F7FA] font-sans pb-20 selection:bg-[#19C8E8] selection:text-[#07090C]">
-      <div className="max-w-7xl mx-auto px-6 pt-12 md:pt-16">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(255,214,170,0.18),_transparent_18%),linear-gradient(180deg,_#f5efe9_0%,_#f8f5f2_18%,_#eef4fa_100%)] text-slate-900 font-sans pb-20 selection:bg-[#1b5ed6] selection:text-white">
+      <div className="mx-auto max-w-7xl px-6 pt-10 md:pt-12">
         
-        {/* Header Enterprise */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 pb-6 border-b border-[#1E293B]">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-md border border-[#10B981]/30 bg-[#10B981]/10 px-2 py-1 text-[10px] font-mono tracking-widest text-[#10B981] mb-4">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#10B981] animate-pulse"></span> SISTEMA OPERATIVO ACTIVO
+        <div className="mb-8 rounded-[28px] border border-[#e8ddd1] bg-[#f8f2ec]/90 p-4 shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur-sm md:p-5">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-emerald-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Sistema operativo activo
+              </div>
+              <h1 className="text-3xl font-black tracking-[-0.06em] text-slate-900 md:text-4xl">
+                Centro de Mando {nombreStore ? `- ${nombreStore}` : ''}
+              </h1>
+              <p className="mt-2 text-sm text-slate-600 md:text-base">Métricas de impacto y telemetría de tu IA en tiempo real.</p>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-[#F5F7FA]">
-              Centro de Mando {nombreStore ? `- ${nombreStore}` : ''}
-            </h1>
-            <p className="text-[#8994A6] text-sm mt-2">Métricas de impacto y telemetría de tu IA en tiempo real.</p>
+
+            <button 
+              onClick={() => setServicioActivo('hub')}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.06)] transition-all hover:border-slate-300 hover:text-slate-900"
+            >
+              <RefreshCw className="h-4 w-4 text-[#1b5ed6]" /> Administrar canales
+            </button>
           </div>
-          
-          <button 
-            onClick={() => setServicioActivo('hub')}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#1E293B] border border-[#1E293B] hover:border-[#8994A6]/50 px-5 py-2.5 text-sm font-semibold text-[#F5F7FA] transition-all"
-          >
-            <RefreshCw className="h-4 w-4" /> Administrar Canales
-          </button>
         </div>
 
         {/* 📊 KPI'S DE IMPACTO EN EL NEGOCIO */}
