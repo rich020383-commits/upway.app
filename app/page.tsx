@@ -183,33 +183,33 @@ export default function Home() {
               </div>
             </div>
 
-            {/* COLUMNA DERECHA: SOPHIE LIBRE FLOTANDO ARRIBA Y EL MÓDULO ABAJO */}
+            {/* COLUMNA DERECHA: SOPHIE V2 GRANDE Y VERTICAL ARRIBA, MÓDULO ABAJO */}
             <div className="relative space-y-6">
               
-              {/* TARJETA FLOTANTE LIBRE DE SOPHIE V2 (FUERA DE LA CAJA OSCURA) */}
-              <div className="relative overflow-hidden rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_20px_50px_rgba(15,23,42,0.08)] flex items-center gap-5">
-                <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 shadow-md">
+              {/* TARJETA DE SOPHIE V2 EN FORMATO GRANDE VERTICAL */}
+              <div className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] text-center">
+                <div className="relative mx-auto h-52 w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 shadow-inner">
                   <video 
                     src="/sophie-animada.webm" 
                     autoPlay 
                     loop 
                     muted 
                     playsInline 
-                    className="h-full w-full object-cover scale-105"
+                    className="h-full w-full object-cover object-center scale-105"
                   />
                 </div>
-                <div>
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-[#edf4ff] px-3 py-1 text-xs font-bold text-[#1b5ed6] mb-1.5">
+                <div className="mt-5">
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-[#edf4ff] px-3.5 py-1 text-xs font-bold text-[#1b5ed6] mb-2">
                     <Sparkles className="h-3.5 w-3.5" /> Sophie v2 • Empleado Digital
                   </div>
-                  <h3 className="text-base font-black text-slate-900 tracking-tight">Operación y Triage en Vivo</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed mt-1">
+                  <h3 className="text-lg font-black text-slate-900 tracking-tight">Operación y Triage en Vivo</h3>
+                  <p className="text-xs text-slate-600 leading-relaxed mt-1 max-w-sm mx-auto">
                     Orquestando llamadas, chats y flujos operativos con contexto absoluto de negocio en tiempo real.
                   </p>
                 </div>
               </div>
 
-              {/* MÓDULO DE TABLET / DASHBOARD (SOLO MÉTRICAS Y TRABAJO CRÍTICO) */}
+              {/* MÓDULO DE TABLET / DASHBOARD ABAJO */}
               <div className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-slate-950 p-4 shadow-[0_32px_80px_rgba(15,23,42,0.18)]">
                 <div className="rounded-[26px] border border-white/10 bg-gradient-to-br from-[#0d1727] via-[#152c48] to-[#1d5fd9] p-5 text-white">
                   <div className="flex items-center justify-between pb-3">
