@@ -1,7 +1,7 @@
 "use client";
 
-import React, { Suspense, useMemo } from 'react';
-import { MessageCircleMore, Headphones, Sparkles, ArrowRight, Check, ShieldCheck } from 'lucide-react';
+import React, { Suspense } from 'react';
+import { MessageCircleMore, Headphones, Sparkles, ArrowRight, Check, ShieldCheck, CalendarRange } from 'lucide-react';
 import { useUpwayStore } from '../../../store/upwayStore';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -9,45 +9,54 @@ import { resolveVertical } from '../../../../lib/verticals';
 
 const paquetes = [
   {
-    id: 'workspace', // Base innegociable (siempre activo)
-    titulo: 'Workspace Operativo Unificado',
-    descripcion: 'El Command Center de tu negocio. La infraestructura base innegociable para dejar de perder oportunidades.',
-    precio: 0,
+    id: 'workspace', 
+    titulo: 'Centro de Control de Negocio',
+    descripcion: 'La base para organizar a tu equipo y asegurar que ninguna oportunidad de venta o atención se quede sin respuesta.',
     esBase: true,
     capacidades: [
-      'Inbox unificado multicanal para todo el equipo.',
-      'Pipeline visual de ventas por etapas reales.',
-      'Gestión colaborativa con responsables asignados.',
-      'Agenda comercial y estado de citas en vivo.',
-      'Trazabilidad total de actividad y auditoría.'
+      'Chat centralizado para todo el equipo de asesores.',
+      'Tablero visual para gestionar el estado de cada cliente.',
+      'Asignación clara de responsables por cada cuenta.',
+      'Historial completo de la trazabilidad operativa.'
     ],
     icon: <ShieldCheck size={28} className="text-slate-900" />
   },
   {
+    id: 'agenda', 
+    titulo: 'Agenda Operativa Inteligente',
+    descripcion: 'Coordina la disponibilidad de especialistas y espacios sin enredos ni cruces de horarios.',
+    esBase: true,
+    capacidades: [
+      'Programación de citas enlazada al flujo de chat.',
+      'Control de turnos y disponibilidad por especialista.',
+      'Seguimiento estricto de asistencias y reprogramaciones.',
+      'Registro de notas y ubicación por cita.'
+    ],
+    icon: <CalendarRange size={28} className="text-slate-900" />
+  },
+  {
     id: 'whatsapp',
     titulo: 'Empleado Digital: WhatsApp IA',
-    descripcion: 'Motor de captura, calificación y seguimiento automático 24/7. No dejes que ningún lead se enfríe.',
-    precio: 399900,
+    descripcion: 'Atiende, califica y perfila clientes en piloto automático 24/7 a través de mensajería.',
     esBase: false,
     capacidades: [
-      'Captura y perfilamiento de leads 24/7.',
-      'Seguimiento y recordatorios automáticos de cierre.',
-      'Contexto de CRM persistente en cada chat.',
-      'Detección automática de intención de agendamiento.'
+      'Captura y perfilamiento automático de leads 24/7.',
+      'Recordatorios inteligentes para asegurar la asistencia.',
+      'Contexto de negocio persistente en cada interacción.',
+      'Derivación fluida hacia el cierre o la agenda.'
     ],
     icon: <MessageCircleMore size={28} />
   },
   {
     id: 'voz',
     titulo: 'Empleado Digital: Voz IA',
-    descripcion: 'Recepcionista y agendadora telefónica autónoma. Escala tu atención sin aumentar la nómina.',
-    precio: 599900,
+    descripcion: 'Recepcionista telefónica autónoma con voz natural para gestionar llamadas de alta demanda.',
     esBase: false,
     capacidades: [
-      'Atención de llamadas entrantes con voz natural.',
-      'Agendamiento y ventas por voz en tiempo real.',
-      'Redirección inteligente a humanos (Casos críticos).',
-      'Capacidad ilimitada de llamadas simultáneas.'
+      'Atención de llamadas entrantes con naturalidad.',
+      'Agendamiento de citas en tiempo real por voz.',
+      'Transferencia inteligente a asesores humanos.',
+      'Gestión controlada de llamadas simultáneas.'
     ],
     icon: <Headphones size={28} />
   }
@@ -59,18 +68,6 @@ function Paso01Infraestructura() {
   const segment = (searchParams.get('segment') ?? 'general').toLowerCase();
   const activeSegment = resolveVertical(segment);
   const { modulosSeleccionados, toggleModulo } = useUpwayStore();
-
-  const totalMensual = useMemo(() => {
-    return paquetes.reduce((acc, curr) => {
-      // El workspace es base (0), sumamos los premium seleccionados
-      if (!curr.esBase && modulosSeleccionados.includes(curr.id)) {
-        return acc + curr.precio;
-      }
-      return acc;
-    }, 0);
-  }, [modulosSeleccionados]);
-
-  const fmt = (n: number) => `$${n.toLocaleString("es-CO")}`;
 
   return (
     <main className="relative min-h-screen bg-[#F8FAFC] text-slate-900 pb-32 font-sans selection:bg-slate-900 selection:text-white">
@@ -111,11 +108,11 @@ function Paso01Infraestructura() {
             Infraestructura premium
           </h1>
           <p className="max-w-2xl text-lg text-slate-600 leading-relaxed">
-            Diseña una operación comercial escalable. Centraliza tu atención, agenda y automatizaciones impulsadas por <span className="font-bold text-slate-900 flex items-center gap-1 inline-flex"><Sparkles size={16}/> Sophie v2</span>.
+            Diseña tu arquitectura operativa. Centraliza la atención, el agendamiento y los agentes inteligentes impulsados por <span className="font-bold text-slate-900 inline-flex items-center gap-1"><Sparkles size={16}/> Sophie v2</span>.
           </p>
         </div>
 
-        {/* Grid de Infraestructura */}
+        {/* Grid 2x2 Equilibrado */}
         <div className="grid gap-6 md:grid-cols-2">
           
           {paquetes.map((p) => {
@@ -125,7 +122,7 @@ function Paso01Infraestructura() {
               <div
                 key={p.id}
                 onClick={() => !p.esBase && toggleModulo(p.id)}
-                className={`group relative flex flex-col justify-between rounded-3xl border p-7 transition-all duration-300 ${p.esBase ? 'md:col-span-2 cursor-default' : 'cursor-pointer'} ${
+                className={`group relative flex flex-col justify-between rounded-3xl border p-7 transition-all duration-300 ${p.esBase ? 'cursor-default' : 'cursor-pointer'} ${
                   seleccionado
                     ? 'border-slate-900 bg-white shadow-[0_20px_40px_rgba(15,23,42,0.06)] ring-1 ring-slate-900'
                     : 'border-slate-200 bg-white/50 hover:border-slate-400 hover:shadow-lg hover:bg-white'
@@ -142,13 +139,15 @@ function Paso01Infraestructura() {
                   <div className="min-w-0 flex-1 pt-1">
                     <div className="mb-2 flex items-center justify-between gap-3">
                       <h3 className="text-xl font-bold tracking-tight text-slate-900">{p.titulo}</h3>
+                    </div>
+                    <div className="mb-3">
                       {p.esBase ? (
-                        <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                        <span className="inline-block rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600">
                           Base Incluida
                         </span>
                       ) : (
-                        <span className="shrink-0 rounded-full bg-slate-900 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
-                          Premium
+                        <span className="inline-block rounded-full bg-slate-900 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+                          Modelo por Consumo
                         </span>
                       )}
                     </div>
@@ -156,7 +155,6 @@ function Paso01Infraestructura() {
                   </div>
                 </div>
 
-                {/* Lista de capacidades reales */}
                 <ul className="mb-8 space-y-3 border-t border-slate-100 pt-6">
                   {p.capacidades.map((cap, i) => (
                     <li key={i} className="flex items-start gap-3 text-sm font-medium text-slate-700">
@@ -167,14 +165,11 @@ function Paso01Infraestructura() {
                 </ul>
 
                 <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-5">
-                  <div className="font-black text-slate-900 text-xl tracking-tight">
+                  <div className="font-black text-slate-900 text-sm tracking-tight text-slate-500">
                     {p.esBase ? (
-                      <span className="text-lg font-bold text-slate-400">Core OS</span>
+                      <span>Core OS Operativo</span>
                     ) : (
-                      <span>
-                        {fmt(p.precio)}
-                        <span className="ml-1 text-sm font-medium text-slate-500">/ mes</span>
-                      </span>
+                      <span>Facturación flexible por uso</span>
                     )}
                   </div>
 
@@ -198,21 +193,20 @@ function Paso01Infraestructura() {
         </div>
       </div>
 
-      {/* Barra Inferior Persistente */}
+      {/* Barra Inferior Persistente (Sin restricción de precios por ahora) */}
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/90 backdrop-blur-xl p-6 shadow-[0_-10px_40px_rgba(15,23,42,0.05)]">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <div>
             <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
-              Inversión operativa mensual
+              Estado de arquitectura
             </p>
-            <p className="text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
-              {fmt(totalMensual)}
+            <p className="text-xl font-bold tracking-tight text-slate-900 md:text-2xl">
+              Configuración modular lista
             </p>
           </div>
           <button 
             onClick={() => router.push('/dashboard/onboarding/tonalidad')}
-            disabled={totalMensual === 0} // Mantiene la lógica: debe elegir al menos 1 agente premium para avanzar
-            className="flex items-center gap-2 rounded-full bg-slate-900 px-8 py-3.5 text-sm font-bold text-white shadow-xl transition-all hover:-translate-y-0.5 hover:shadow-2xl disabled:opacity-30 disabled:hover:translate-y-0"
+            className="flex items-center gap-2 rounded-full bg-slate-900 px-8 py-3.5 text-sm font-bold text-white shadow-xl transition-all hover:-translate-y-0.5 hover:shadow-2xl"
           >
             Continuar setup <ArrowRight size={18} strokeWidth={2.5} />
           </button>
