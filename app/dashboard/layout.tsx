@@ -29,38 +29,38 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const billingMeta = billingStateMeta[accessState];
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.14),_transparent_28%),linear-gradient(180deg,_#f5f9ff_0%,_#edf5ff_100%)] text-slate-900 font-sans selection:bg-[#dfeaff] selection:text-slate-900">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.14),_transparent_28%),linear-gradient(180deg,_#f6f8fe_0%,_#edf5ff_100%)] text-slate-900 font-sans selection:bg-[#dfeaff] selection:text-slate-900">
       {!isOnboarding && (
-        <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/75 backdrop-blur-xl shadow-[0_10px_30px_rgba(11,23,39,0.04)]">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-slate-100/90 shadow-sm transition-all group-hover:border-[#1b5ed6]/20 group-hover:bg-[#edf4ff]">
+        <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/80 backdrop-blur-xl shadow-[0_10px_30px_rgba(15,23,42,0.04)]">
+          <div className="mx-auto flex max-w-[1500px] items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+            <Link href="/" className="group flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-slate-100/90 shadow-[0_10px_24px_rgba(15,23,42,0.05)] transition-all group-hover:border-[#1b5ed6]/20 group-hover:bg-[#edf4ff]">
                 <Sparkles className="h-5 w-5 text-[#1b5ed6]" />
               </div>
               <div>
                 <p className="text-[10px] font-mono font-bold tracking-[0.28em] text-slate-500">{organizationName}</p>
-                <p className="text-sm font-bold text-slate-900">Business Control</p>
+                <p className="text-sm font-black tracking-[-0.04em] text-slate-900">Business Control</p>
               </div>
             </Link>
 
-            <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex">
+            <nav className="hidden items-center gap-2 rounded-full border border-slate-200 bg-slate-50/80 p-1.5 text-sm font-medium text-slate-600 md:flex">
               {primaryNav.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}
                   href={href}
-                  className={`flex items-center gap-2 rounded-full px-3 py-2 transition-colors ${pathname === href ? 'bg-[#edf4ff] text-[#1b5ed6]' : 'hover:text-[#1b5ed6]'}`}
+                  className={`flex items-center gap-2 rounded-full px-3 py-2 transition-all ${pathname === href ? 'bg-slate-900 text-white shadow-[0_8px_18px_rgba(15,23,42,0.15)]' : 'hover:bg-white hover:text-[#1b5ed6]'}`}
                 >
                   <Icon className="h-4 w-4" />
                   {label}
                 </Link>
               ))}
-              <Link href="/dashboard/inventario" className="flex items-center gap-2 transition-colors hover:text-[#1b5ed6]">
+              <Link href="/dashboard/inventario" className="flex items-center gap-2 rounded-full px-3 py-2 transition-all hover:bg-white hover:text-[#1b5ed6]">
                 <Package className="h-4 w-4" /> Cerebro RAG
               </Link>
             </nav>
 
-            <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 shadow-sm md:flex">
                 <UserCircle className="h-4 w-4 text-slate-500" />
                 <span className="text-xs font-medium text-slate-700 capitalize">{userName}</span>
               </div>
@@ -79,7 +79,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
       )}
 
-      <main className="min-h-screen">{children}</main>
+      <main className="mx-auto min-h-screen max-w-[1500px] px-4 pb-10 pt-6 sm:px-6 lg:px-8">{children}</main>
     </div>
   );
 }
