@@ -6,6 +6,7 @@ import { signIn } from 'next-auth/react';
 import { Mail, Lock, Loader2, ArrowRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { resolvePostLoginRoute } from '@/lib/verticals';
 
 function LoginPage() {
   const router = useRouter();
@@ -39,9 +40,9 @@ function LoginPage() {
         setCargando(false);
       } else if (result?.ok) {
         // Login inteligente: si viene de una mini landing con segmento explícito,
-        // respetamos esa intención. Si no, dejamos que /dashboard decida según
-        // el estado real de la cuenta (nueva vs. ya operativa).
-        const target = segment ? `/dashboard/onboarding?segment=${segment}` : '/dashboard';
+        // respetamos esa intención de forma centralizada. Si no, dejamos que
+        // /dashboard decida según el estado real de la cuenta.
+        const target = resolvePostLoginRoute(segment);
         router.push(target);
       }
     } catch (err) {

@@ -87,7 +87,7 @@ export default function ClinicasLandingPage() {
 
         <div className="flex items-center gap-3">
           <Link
-            href="/login"
+            href="/login?segment=health"
             className="hidden rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 md:inline-flex"
           >
             Iniciar sesión

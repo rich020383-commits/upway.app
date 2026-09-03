@@ -89,6 +89,11 @@ export function resolveVertical(value?: string | null): VerticalDefinition {
   return VERTICALS[normalizeSegment(value)];
 }
 
+export function resolvePostLoginRoute(value?: string | null): string {
+  const normalized = normalizeSegment(value);
+  return VERTICALS[normalized]?.onboardingRoute ?? '/dashboard';
+}
+
 export const SEGMENT_ROUTE_MAP: Record<string, string> = {
   health: '/health/onboarding',
   salud: '/health/onboarding',
