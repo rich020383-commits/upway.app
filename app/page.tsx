@@ -145,6 +145,36 @@ export default function Home() {
 
       <main className="mx-auto max-w-7xl px-6 pb-20 md:px-10">
         <section className="rounded-[38px] border border-slate-200 bg-white/80 p-5 shadow-[0_28px_80px_rgba(15,23,42,0.08)] backdrop-blur-sm md:p-8 lg:p-10">
+          
+          {/* BANNER PANORÁMICO SUPERIOR DE SOPHIE V2 (ABARCA TODO EL ANCHO ARRIBA) */}
+          <div className="relative mb-10 overflow-hidden rounded-[32px] border border-slate-200 bg-gradient-to-r from-slate-950 via-[#0d1727] to-slate-950 p-6 md:p-8 text-white shadow-[0_20px_60px_rgba(15,23,42,0.15)]">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+              <div className="md:col-span-4 relative h-44 md:h-52 overflow-hidden rounded-2xl border border-white/15 bg-slate-950 shadow-inner">
+                <video 
+                  src="/sophie-animada.webm" 
+                  autoPlay 
+                  loop 
+                  muted 
+                  playsInline 
+                  className="h-full w-full object-cover object-center scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent"></div>
+              </div>
+              <div className="md:col-span-8 space-y-3">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1 text-xs font-bold text-[#7dd3fc] backdrop-blur-md border border-white/10">
+                  <Sparkles className="h-3.5 w-3.5" /> Sophie v2 • Empleado Digital Autónomo
+                </div>
+                <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white">
+                  Operación y Triage en Vivo 24/7
+                </h2>
+                <p className="text-sm text-blue-100/80 leading-relaxed max-w-2xl">
+                  Orquestando llamadas telefónicas, chats de WhatsApp y flujos operativos con contexto de negocio absoluto en tiempo real. Diseñado para escalar sin fricción.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* DOS COLUMNAS DEBAJO DEL BANNER */}
           <div className="grid items-center gap-10 lg:grid-cols-[1.06fr_0.94fr]">
             <div>
               <div className="flex flex-wrap items-center gap-2 text-[10px] font-mono uppercase tracking-[0.18em] text-[#1b5ed6]">
@@ -183,34 +213,9 @@ export default function Home() {
               </div>
             </div>
 
-            {/* COLUMNA DERECHA: SOPHIE V2 GRANDE Y VERTICAL ARRIBA, MÓDULO ABAJO */}
-            <div className="relative space-y-6">
-              
-              {/* TARJETA DE SOPHIE V2 EN FORMATO GRANDE VERTICAL */}
-              <div className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] text-center">
-                <div className="relative mx-auto h-52 w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 shadow-inner">
-                  <video 
-                    src="/sophie-animada.webm" 
-                    autoPlay 
-                    loop 
-                    muted 
-                    playsInline 
-                    className="h-full w-full object-cover object-center scale-105"
-                  />
-                </div>
-                <div className="mt-5">
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-[#edf4ff] px-3.5 py-1 text-xs font-bold text-[#1b5ed6] mb-2">
-                    <Sparkles className="h-3.5 w-3.5" /> Sophie v2 • Empleado Digital
-                  </div>
-                  <h3 className="text-lg font-black text-slate-900 tracking-tight">Operación y Triage en Vivo</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed mt-1 max-w-sm mx-auto">
-                    Orquestando llamadas, chats y flujos operativos con contexto absoluto de negocio en tiempo real.
-                  </p>
-                </div>
-              </div>
-
-              {/* MÓDULO DE TABLET / DASHBOARD ABAJO */}
-              <div className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-slate-950 p-4 shadow-[0_32px_80px_rgba(15,23,42,0.18)]">
+            {/* COLUMNA DERECHA: EL CUADRO NEGRO (DASHBOARD) */}
+            <div className="relative">
+              <div className="overflow-hidden rounded-[32px] border border-slate-200 bg-slate-950 p-4 shadow-[0_32px_80px_rgba(15,23,42,0.18)]">
                 <div className="rounded-[26px] border border-white/10 bg-gradient-to-br from-[#0d1727] via-[#152c48] to-[#1d5fd9] p-5 text-white">
                   <div className="flex items-center justify-between pb-3">
                     <div className="flex items-center gap-2">
@@ -251,8 +256,8 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-
             </div>
+
           </div>
         </section>
 
