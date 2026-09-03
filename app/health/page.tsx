@@ -39,29 +39,32 @@ export default async function HealthOverviewPage() {
   return (
     <div className="space-y-5">
       <div className="grid gap-4 xl:grid-cols-[1.38fr_0.92fr]">
-        <div className="upway-surface rounded-[28px] p-5">
-          <div className="mb-4 flex items-center justify-between">
+        <div className="upway-surface rounded-[30px] p-5 shadow-[0_24px_60px_rgba(15,23,42,0.06)]">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
             <div>
-              <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">Opción 1</div>
+              <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">Centro de mando</div>
               <div className="mt-2 text-[31px] font-black tracking-[-0.05em] text-slate-900">Resumen Ejecutivo</div>
             </div>
-            <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-slate-600">13 mayo 2024</div>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-700">Operación activa</span>
+              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-slate-600">13 mayo 2024</span>
+            </div>
           </div>
 
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             {statCards.map((card) => (
-              <div key={card.label} className="rounded-[20px] border border-slate-200 bg-slate-50/90 p-4 shadow-[0_8px_18px_rgba(15,23,42,0.02)]">
+              <div key={card.label} className="rounded-[22px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff,#f8fbff)] p-4 shadow-[0_12px_26px_rgba(15,23,42,0.03)] transition-transform duration-200 hover:-translate-y-0.5">
                 <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-slate-500">{card.label}</div>
                 <div className="mt-3 flex items-end justify-between gap-2">
                   <div className="text-[27px] font-black tracking-[-0.06em] text-slate-900">{card.value}</div>
-                  <div className="text-[10px] font-bold text-emerald-600">{card.delta}</div>
+                  <div className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[9px] font-bold text-emerald-700">{card.delta}</div>
                 </div>
               </div>
             ))}
           </div>
 
           <div className="mt-5 grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
-            <div className="rounded-[22px] border border-slate-200 bg-slate-50/80 p-4">
+            <div className="rounded-[24px] border border-slate-200 bg-slate-50/80 p-4">
               <div className="mb-4 flex items-center justify-between">
                 <div className="text-sm font-semibold text-slate-800">Interacciones por canal</div>
                 <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-slate-500">Volumen</div>
@@ -88,7 +91,7 @@ export default async function HealthOverviewPage() {
               </div>
             </div>
 
-            <div className="rounded-[22px] border border-slate-200 bg-slate-50/80 p-4">
+            <div className="rounded-[24px] border border-slate-200 bg-slate-50/80 p-4">
               <div className="mb-4 flex items-center justify-between">
                 <div className="text-sm font-semibold text-slate-800">Actividad 24h</div>
                 <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-slate-500">últimas 24h</div>
@@ -97,7 +100,7 @@ export default async function HealthOverviewPage() {
               <div className="flex h-36 items-end gap-2">
                 {graphBars.map((value, index) => (
                   <div key={`${value}-${index}`} className="flex flex-1 flex-col items-center justify-end">
-                    <div className="w-full rounded-t-[10px] bg-[linear-gradient(180deg,#7ba9ff,#3d6ae4)]" style={{ height: `${value}%` }} />
+                    <div className="w-full rounded-t-[12px] bg-[linear-gradient(180deg,#7ba9ff,#3d6ae4)] shadow-[0_10px_20px_rgba(61,106,228,0.2)]" style={{ height: `${value}%` }} />
                   </div>
                 ))}
               </div>
@@ -105,13 +108,13 @@ export default async function HealthOverviewPage() {
           </div>
         </div>
 
-        <div className="upway-surface rounded-[28px] p-5">
+        <div className="upway-surface rounded-[30px] p-5 shadow-[0_20px_60px_rgba(15,23,42,0.05)]">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">Opción 2</div>
-              <div className="mt-2 text-[31px] font-black tracking-[-0.05em] text-slate-900">Bandeja de Entrada</div>
+              <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">Bandeja</div>
+              <div className="mt-2 text-[31px] font-black tracking-[-0.05em] text-slate-900">Entrada activa</div>
             </div>
-            <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-slate-600">En línea</div>
+            <div className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-700">En línea</div>
           </div>
 
           <div className="space-y-3">
@@ -168,7 +171,7 @@ export default async function HealthOverviewPage() {
 
           <div className="space-y-4">
             {[
-              ['Información general', 'Clínica Santa María'],
+              ['Información general', 'Tu clínica'],
               ['Políticas y protocolos', 'Triage + cancelación + escalamiento'],
               ['Usuarios y accesos', '5 perfiles activos'],
               ['Integraciones', 'WhatsApp + Vapi + CRM'],

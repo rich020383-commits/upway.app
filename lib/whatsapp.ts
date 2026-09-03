@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { createLeadFromInbound } from '@/lib/business-ops';
 
 // ==========================================
 // 🧾 TIPOS DEL WEBHOOK DE META Y DE TIENDA
@@ -352,11 +353,16 @@ export async function handleStatusUpdate(value: MetaWebhookValue): Promise<void>
   for (const statusObj of value.statuses || []) {
     const metaMessageId = statusObj.id;
     const currentStatus = statusObj.status;
+    const normalizedStatus = currentStatus?.toUpperCase();
+
+    if (!normalizedStatus || !['SENT', 'DELIVERED', 'READ', 'FAILED'].includes(normalizedStatus)) {
+      continue;
+    }
 
     try {
       await prisma.message.update({
         where: { metaMessageId: metaMessageId },
-        data: { status: currentStatus }
+        data: { status: normalizedStatus as any }
       });
     } catch (e) {
       // Ignoramos si el mensaje no existe en la DB
@@ -403,7 +409,7 @@ async function handleHumanHandoff(params: {
         metaMessageId: "handoff_" + Date.now(),
         senderRole: 'AI',
         content: msgCliente,
-        status: 'sent'
+        status: 'SENT'
       }
     });
   }
@@ -468,31 +474,33 @@ export async function handleIncomingMessage(value: MetaWebhookValue): Promise<vo
 
     if (!textoCliente.trim()) return;
 
-    // Si es tienda de cliente real, guardamos en CRM
+    // Si es tienda de cliente real, guardamos en CRM y convertimos el mensaje en lead operativo
     if (phoneIdDestino !== UPWAY_PHONE_ID && tiendaRecord) {
-      const conversation = await prisma.conversation.upsert({
-        where: {
-          tiendaId_clientPhone: { tiendaId: tiendaRecord.id, clientPhone: userPhone }
-        },
-        update: { updatedAt: new Date(), clientName: userName },
-        create: {
-          tiendaId: tiendaRecord.id,
-          clientPhone: userPhone,
-          clientName: userName
-        }
+      const leadResult = await createLeadFromInbound({
+        tiendaId: tiendaRecord.id,
+        nombre: userName,
+        phone: userPhone,
+        motivo: textoCliente,
+        source: 'WHATSAPP',
+        priority: 'MEDIUM',
+        messageContent: textoCliente,
+        clientName: userName,
+        metaCategory: 'service',
       });
 
-      conversationId = conversation.id;
+      conversationId = leadResult.conversation?.id ?? null;
 
-      await prisma.message.create({
-        data: {
-          conversationId: conversation.id,
-          metaMessageId: msgIdEntrante,
-          senderRole: 'USER',
-          content: textoCliente,
-          status: 'delivered'
-        }
-      });
+      if (conversationId) {
+        await prisma.message.create({
+          data: {
+            conversationId,
+            metaMessageId: msgIdEntrante,
+            senderRole: 'USER',
+            content: textoCliente,
+            status: 'DELIVERED'
+          }
+        });
+      }
 
       // 🛑 BOTÓN DE PAUSA: Si IA está inactiva, silenciamos bot
       if (!tiendaRecord.isAiActive) {
@@ -519,7 +527,7 @@ export async function handleIncomingMessage(value: MetaWebhookValue): Promise<vo
           metaMessageId: outMessageId,
           senderRole: 'AI',
           content: respuesta,
-          status: 'sent'
+          status: 'SENT'
         }
       });
     }

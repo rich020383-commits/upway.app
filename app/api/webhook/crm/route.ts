@@ -115,9 +115,9 @@ export async function POST(req: Request) {
           if (leadExistente) {
             await prisma.lead.update({
               where: { id: leadExistente.id },
-              data: { 
-                motivo: motivoConsulta, 
-                estado: "Cita_Agendada"
+              data: {
+                motivo: motivoConsulta,
+                estado: 'APPOINTMENT_BOOKED'
               }
             });
             console.log(`✅ [Upway CRM] Lead actualizado: ${leadExistente.nombre}`);
@@ -132,8 +132,8 @@ export async function POST(req: Request) {
                 nombre: nombrePaciente,
                 documento: documento || 'No proporcionado',
                 motivo: motivoConsulta,
-                origen: 'Llamada Vapi',
-                estado: 'Nuevo'
+                origen: 'VOICE',
+                estado: 'NEW'
               }
             });
             console.log(`✅ [Upway CRM] ¡Lead NUEVO guardado en NeonDB!: ${nuevoLeadCreado.nombre}`);

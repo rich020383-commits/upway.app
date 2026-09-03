@@ -1,9 +1,12 @@
 "use client";
 
-import { createContext, useContext, useMemo } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { canAccessHealthModule } from '@/lib/health/permissions';
 import type { TenantScope } from '@/lib/health/types';
+
+const HEALTH_CLINIC_NAME_KEY = 'upway-health-clinic-name';
+const HEALTH_ORGANIZATION_NAME_KEY = 'upway-health-organization-name';
 
 export type BusinessContextValue = {
   organizationId: string;
@@ -20,7 +23,7 @@ const defaultContext: BusinessContextValue = {
   organizationId: 'default-org',
   clinicId: 'default-clinic',
   organizationName: 'Upway Health',
-  clinicName: 'Clínica Santa María',
+  clinicName: 'Mi clínica',
   role: 'clinic-admin',
   displayRole: 'Clinic Admin',
   normalizedScope: {
@@ -35,14 +38,33 @@ const BusinessContext = createContext<BusinessContextValue>(defaultContext);
 
 export function BusinessContextProvider({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
+  const [storedClinicName, setStoredClinicName] = useState('');
+  const [storedOrganizationName, setStoredOrganizationName] = useState('');
+
+  useEffect(() => {
+    try {
+      const clinicName = localStorage.getItem(HEALTH_CLINIC_NAME_KEY);
+      const organizationName = localStorage.getItem(HEALTH_ORGANIZATION_NAME_KEY);
+
+      if (clinicName) {
+        setStoredClinicName(clinicName);
+      }
+
+      if (organizationName) {
+        setStoredOrganizationName(organizationName);
+      }
+    } catch {
+      // localStorage may be unavailable on some environments.
+    }
+  }, []);
 
   const value = useMemo<BusinessContextValue>(() => {
     const user = (session?.user as Record<string, unknown> | undefined) ?? {};
     const role = String(user.role ?? 'clinic-admin');
     const organizationId = String(user.organizationId ?? 'default-org');
     const clinicId = String(user.clinicId ?? 'default-clinic');
-    const organizationName = String(user.organizationName ?? 'Upway Health');
-    const clinicName = String(user.clinicName ?? 'Clínica Santa María');
+    const organizationName = String(user.organizationName ?? (storedOrganizationName || 'Upway Health'));
+    const clinicName = String(user.clinicName ?? (storedClinicName || 'Mi clínica'));
     const normalizedScope: TenantScope = {
       organizationId,
       clinicId,
@@ -62,7 +84,7 @@ export function BusinessContextProvider({ children }: { children: React.ReactNod
       normalizedScope,
       canAccessModule: (module: string) => canAccessHealthModule(role, module as keyof typeof import('@/lib/health/permissions').healthPermissions),
     };
-  }, [session]);
+  }, [session, storedClinicName, storedOrganizationName]);
 
   return <BusinessContext.Provider value={value}>{children}</BusinessContext.Provider>;
 }

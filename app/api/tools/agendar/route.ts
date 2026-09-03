@@ -46,7 +46,7 @@ export async function POST(request: Request) {
         clienteNombre: nombreCliente || 'Cliente (Voz)',
         clienteTelefono: telefono || 'No proporcionado',
         fechaHora: fechaHoraCita,
-        estado: 'CONFIRMADA'
+        estado: 'CONFIRMED'
       }
     });
 

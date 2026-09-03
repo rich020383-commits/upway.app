@@ -40,8 +40,8 @@ export default function HealthLayout({ children }: { children: React.ReactNode }
   const visibleNavItems = navItems.filter(({ module }) => canAccessHealthModule(role, module));
 
   return (
-    <div className="upway-shell relative flex min-h-screen text-slate-900">
-      <aside className="relative z-10 w-[240px] border-r border-sky-100/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(234,244,255,0.84))] p-4 backdrop-blur-xl shadow-[inset_-1px_0_0_rgba(15,23,42,0.05)]">
+    <div className="upway-shell relative flex min-h-screen flex-col text-slate-900 lg:flex-row">
+      <aside className="relative z-10 w-full border-b border-sky-100/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(234,244,255,0.84))] p-4 backdrop-blur-xl shadow-[inset_0_-1px_0_rgba(15,23,42,0.05)] lg:w-[240px] lg:border-b-0 lg:border-r lg:shadow-[inset_-1px_0_0_rgba(15,23,42,0.05)]">
         <div className="mb-6 rounded-[20px] border border-sky-100 bg-white/80 p-3 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#eaf3ff,#dfeaff)] text-[11px] font-black text-[#1b5ed6] shadow-sm">U</div>
@@ -55,12 +55,12 @@ export default function HealthLayout({ children }: { children: React.ReactNode }
         <div className="mb-5 rounded-[18px] border border-[#d8e8ff] bg-[linear-gradient(135deg,#edf5ff,#e9f7f4)] p-3 shadow-sm">
           <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-slate-500">Clínica</div>
           <div className="mt-2 flex items-center justify-between gap-3">
-            <div className="font-bold text-slate-800">{clinicName}</div>
+            <div className="truncate font-bold text-slate-800">{clinicName}</div>
             <span className="rounded-full border border-white/80 bg-white/70 px-2 py-0.5 text-[9px] font-semibold text-slate-600">Live</span>
           </div>
         </div>
 
-        <nav className="grid gap-1.5">
+        <nav className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-1">
           {visibleNavItems.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(`${href}/`);
             return (
@@ -83,19 +83,19 @@ export default function HealthLayout({ children }: { children: React.ReactNode }
       </aside>
 
       <div className="relative z-10 flex flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-sky-100/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.78),rgba(239,245,255,0.9))] px-6 py-4 backdrop-blur-xl">
+        <header className="flex flex-col gap-3 border-b border-sky-100/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.78),rgba(239,245,255,0.9))] px-4 py-4 backdrop-blur-xl sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-6">
           <div>
             <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">Clinical workspace</div>
             <div className="mt-1 text-[20px] font-black tracking-[-0.04em] text-slate-900">Resumen ejecutivo</div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">Sistema saludable</span>
             <span className="rounded-full border border-[#dfeaff] bg-[#edf4ff] px-3 py-1.5 text-xs font-semibold text-[#1b5ed6]">{displayRole}</span>
           </div>
         </header>
 
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-4 sm:p-5 lg:p-6">{children}</main>
       </div>
     </div>
   );

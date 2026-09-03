@@ -103,9 +103,9 @@ export async function POST(req: NextRequest) {
       data: {
         conversationId,
         metaMessageId: outMessageId || null,
-        senderRole: 'HUMAN', // 🔥 Lo marcamos para que sepas que fuiste tú
+        senderRole: 'HUMAN',
         content: content,
-        status: 'sent'
+        status: 'SENT'
       }
     });
 

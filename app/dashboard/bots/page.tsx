@@ -566,7 +566,50 @@ export default function AgentesBotPage() {
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(255,214,170,0.18),_transparent_18%),linear-gradient(180deg,_#f5efe9_0%,_#f8f5f2_18%,_#eef4fa_100%)] text-slate-900 font-sans pb-20 selection:bg-[#1b5ed6] selection:text-white">
       <div className="mx-auto max-w-7xl px-6 pt-10 md:pt-12">
         
-        <div className="mb-8 rounded-[28px] border border-[#e8ddd1] bg-[#f8f2ec]/90 p-4 shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur-sm md:p-5">
+        <div className="mb-6 rounded-[28px] border border-[#eadfd4] bg-[#f5efe8]/90 p-3 shadow-[0_22px_60px_rgba(15,23,42,0.06)] backdrop-blur-sm md:p-4">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white/80 text-sm font-black text-slate-800 shadow-sm">U</div>
+              <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">Upway</div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {[
+                'Resumen',
+                'Onboarding',
+                'Accesos',
+                'Cerebro RAG',
+                'Clínica Santa María',
+                'Prueba activa',
+              ].map((tab, index) => (
+                <button
+                  key={tab}
+                  type="button"
+                  className={[
+                    'rounded-full border px-3 py-1.5 text-xs font-semibold transition-all',
+                    index === 0
+                      ? 'border-slate-900 bg-slate-900 text-white shadow-[0_10px_25px_rgba(15,23,42,0.18)]'
+                      : 'border-slate-200 bg-white/70 text-slate-600 hover:border-slate-300 hover:text-slate-900',
+                  ].join(' ')}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button 
+                type="button"
+                onClick={() => setServicioActivo('hub')}
+                className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.06)] transition-all hover:border-slate-300 hover:text-slate-900"
+              >
+                <RefreshCw className="h-4 w-4 text-[#1b5ed6]" /> Administrar canales
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-8 rounded-[28px] border border-[#e8ddd1] bg-[#f6f0ea]/80 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)] md:p-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-emerald-700">
@@ -578,55 +621,53 @@ export default function AgentesBotPage() {
               <p className="mt-2 text-sm text-slate-600 md:text-base">Métricas de impacto y telemetría de tu IA en tiempo real.</p>
             </div>
 
-            <button 
-              onClick={() => setServicioActivo('hub')}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.06)] transition-all hover:border-slate-300 hover:text-slate-900"
-            >
-              <RefreshCw className="h-4 w-4 text-[#1b5ed6]" /> Administrar canales
-            </button>
+            <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm">
+              <span className="h-2 w-2 rounded-full bg-[#1b5ed6]" /> 
+              Query activa
+            </div>
           </div>
         </div>
 
         {/* 📊 KPI'S DE IMPACTO EN EL NEGOCIO */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-          <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-6 transition-all hover:border-[#19C8E8]/30">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-2 bg-[#19C8E8]/10 rounded-xl border border-[#19C8E8]/20"><Timer className="h-5 w-5 text-[#19C8E8]" /></div>
+        <div className="mb-10 grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="rounded-[28px] border border-slate-200 bg-white/80 p-5 shadow-[0_16px_35px_rgba(15,23,42,0.04)] transition-all hover:-translate-y-0.5 hover:border-[#cfe2ff]">
+            <div className="mb-4 flex items-start justify-between">
+              <div className="rounded-2xl border border-[#dfeaff] bg-[#edf4ff] p-2.5 text-[#1b5ed6]"><Timer className="h-5 w-5" /></div>
             </div>
-            <p className="text-[#8994A6] text-sm font-medium">Tiempo Humano Ahorrado</p>
-            <h3 className="text-3xl font-bold text-[#F5F7FA] mt-1">
-              {loadingMetricas ? "..." : metricas.horasAhorradas} <span className="text-lg text-[#8994A6] font-normal">Hrs</span>
+            <p className="text-sm font-medium text-slate-600">Tiempo Humano Ahorrado</p>
+            <h3 className="mt-2 text-3xl font-black tracking-[-0.06em] text-slate-900">
+              {loadingMetricas ? "..." : metricas.horasAhorradas} <span className="text-lg font-normal text-slate-500">Hrs</span>
             </h3>
-            <p className="text-xs text-[#8994A6] mt-2">Calculado por volumen</p>
+            <p className="mt-2 text-xs text-slate-500">Calculado por volumen</p>
           </div>
 
-          <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-6 transition-all hover:border-[#10B981]/30">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-2 bg-[#10B981]/10 rounded-xl border border-[#10B981]/20"><CalendarCheck className="h-5 w-5 text-[#10B981]" /></div>
+          <div className="rounded-[28px] border border-slate-200 bg-white/80 p-5 shadow-[0_16px_35px_rgba(15,23,42,0.04)] transition-all hover:-translate-y-0.5 hover:border-[#cfe2ff]">
+            <div className="mb-4 flex items-start justify-between">
+              <div className="rounded-2xl border border-[#d9f7eb] bg-[#ebfff4] p-2.5 text-[#10b981]"><CalendarCheck className="h-5 w-5" /></div>
             </div>
-            <p className="text-[#8994A6] text-sm font-medium">Citas Agendadas (Auto)</p>
-            <h3 className="text-3xl font-bold text-[#F5F7FA] mt-1">{loadingMetricas ? "..." : metricas.citas}</h3>
-            <p className="text-xs text-[#8994A6] mt-2">Registradas en el calendario</p>
+            <p className="text-sm font-medium text-slate-600">Citas Agendadas (Auto)</p>
+            <h3 className="mt-2 text-3xl font-black tracking-[-0.06em] text-slate-900">{loadingMetricas ? "..." : metricas.citas}</h3>
+            <p className="mt-2 text-xs text-slate-500">Registradas en el calendario</p>
           </div>
 
-          <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-6 transition-all hover:border-[#9B5CFF]/30">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-2 bg-[#9B5CFF]/10 rounded-xl border border-[#9B5CFF]/20"><Users className="h-5 w-5 text-[#9B5CFF]" /></div>
+          <div className="rounded-[28px] border border-slate-200 bg-white/80 p-5 shadow-[0_16px_35px_rgba(15,23,42,0.04)] transition-all hover:-translate-y-0.5 hover:border-[#cfe2ff]">
+            <div className="mb-4 flex items-start justify-between">
+              <div className="rounded-2xl border border-[#f0e7ff] bg-[#f5f0ff] p-2.5 text-[#8b5cf6]"><Users className="h-5 w-5" /></div>
             </div>
-            <p className="text-[#8994A6] text-sm font-medium">Pacientes Perfilados</p>
-            <h3 className="text-3xl font-bold text-[#F5F7FA] mt-1">{loadingMetricas ? "..." : metricas.leads}</h3>
-            <p className="text-xs text-[#8994A6] mt-2">Guardados en tu base de datos</p>
+            <p className="text-sm font-medium text-slate-600">Pacientes Perfilados</p>
+            <h3 className="mt-2 text-3xl font-black tracking-[-0.06em] text-slate-900">{loadingMetricas ? "..." : metricas.leads}</h3>
+            <p className="mt-2 text-xs text-slate-500">Guardados en tu base de datos</p>
           </div>
 
-          <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-6 transition-all hover:border-[#F43F5E]/30">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-2 bg-[#F43F5E]/10 rounded-xl border border-[#F43F5E]/20"><PhoneCall className="h-5 w-5 text-[#F43F5E]" /></div>
+          <div className="rounded-[28px] border border-slate-200 bg-white/80 p-5 shadow-[0_16px_35px_rgba(15,23,42,0.04)] transition-all hover:-translate-y-0.5 hover:border-[#cfe2ff]">
+            <div className="mb-4 flex items-start justify-between">
+              <div className="rounded-2xl border border-[#ffe4e6] bg-[#fff1f2] p-2.5 text-[#f43f5e]"><PhoneCall className="h-5 w-5" /></div>
             </div>
-            <p className="text-[#8994A6] text-sm font-medium">Resolución Autónoma</p>
-            <h3 className="text-3xl font-bold text-[#F5F7FA] mt-1">
-              {loadingMetricas ? "..." : metricas.resolucion}<span className="text-lg text-[#8994A6] font-normal">%</span>
+            <p className="text-sm font-medium text-slate-600">Resolución Autónoma</p>
+            <h3 className="mt-2 text-3xl font-black tracking-[-0.06em] text-slate-900">
+              {loadingMetricas ? "..." : metricas.resolucion}<span className="text-lg font-normal text-slate-500">%</span>
             </h3>
-            <p className="text-xs text-[#8994A6] mt-2">Sin intervención humana</p>
+            <p className="mt-2 text-xs text-slate-500">Sin intervención humana</p>
           </div>
         </div>
 

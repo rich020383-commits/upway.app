@@ -44,13 +44,20 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?   // Para que tus clientes entren con su clave
-  
+   
   accounts                Account[]
   sessions                Session[]
   tiendas                 Tienda[]  // Enlace directo al negocio de tu cliente
   ownedOrganizations      Organization[] @relation("OrganizationOwner")
   organizationMemberships  OrganizationMember[]
   billingAccessCodes      BillingAccessCode[] @relation("BillingAccessCodeCreator")
+  leadAssignments         LeadAssignment[] @relation("LeadAssignmentAssignee")
+  leadAssignmentHistory   LeadAssignment[] @relation("LeadAssignmentOwner")
+  leadActivities          LeadActivity[] @relation("LeadActivityActor")
+  leadReminders           LeadReminder[] @relation("LeadReminderCreator")
+  appointmentAssignments Cita[] @relation("AppointmentAssignee")
+  createdLeads            Lead[] @relation("LeadCreator")
+  assignedLeads           Lead[] @relation("LeadAssignee")
 }
 
 enum VerticalType {
@@ -102,6 +109,92 @@ enum BillingAccessType {
   TRIAL
   INVITE
   GIFT
+}
+
+enum LeadSource {
+  WHATSAPP
+  VOICE
+  WEB_FORM
+  LANDING_PAGE
+  REFERRAL
+  MANUAL
+  OTHER
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  APPOINTMENT_BOOKED
+  FOLLOW_UP
+  CLOSED_WON
+  CLOSED_LOST
+  ARCHIVED
+}
+
+enum LeadPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ConversationStatus {
+  ACTIVE
+  WAITING
+  RESOLVED
+  ARCHIVED
+}
+
+enum MessageSenderRole {
+  USER
+  AI
+  HUMAN
+  SYSTEM
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CHECKED_IN
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+  REBOOKED
+}
+
+enum ReminderStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+  CANCELLED
+}
+
+enum ActivityType {
+  LEAD_CREATED
+  LEAD_QUALIFIED
+  LEAD_ASSIGNED
+  MESSAGE_RECEIVED
+  MESSAGE_SENT
+  APPOINTMENT_CREATED
+  APPOINTMENT_CONFIRMED
+  REMINDER_SENT
+  FOLLOW_UP_SCHEDULED
+  NOTE_ADDED
+  STATUS_CHANGED
 }
 
 model Organization {
@@ -415,17 +508,95 @@ model LlamadaLog {
 // ==========================================
 
 model Lead {
-  id          String   @id @default(cuid())
-  tiendaId    String
-  nombre      String
-  documento   String?  // Cédula, NIT o Pasaporte
-  motivo      String?  @db.Text // El resumen de la consulta o intención
-  origen      String   @default("Voz (Vapi)") // Voz, WhatsApp, Web, etc.
-  estado      String   @default("Nuevo") // Nuevo, Contactado, Cita_Agendada
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String        @id @default(cuid())
+  tiendaId         String
+  nombre           String
+  documento        String?       // Cédula, NIT o Pasaporte
+  motivo           String?       @db.Text // El resumen de la consulta o intención
+  origen           LeadSource    @default(WHATSAPP)
+  estado           LeadStatus    @default(NEW)
+  prioridad        LeadPriority  @default(MEDIUM)
+  phone            String?
+  email            String?
+  city             String?
+  qualityScore     Int           @default(0)
+  note             String?       @db.Text
+  createdByUserId  String?
+  assignedToUserId String?
+  lastContactAt    DateTime?
+  closedAt         DateTime?
+  metadataJson     Json?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
-  tienda      Tienda   @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  tienda        Tienda            @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  createdBy     User?             @relation("LeadCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  assignedTo    User?             @relation("LeadAssignee", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  conversations Conversation[]
+  assignments   LeadAssignment[]
+  activities    LeadActivity[]
+  reminders     LeadReminder[]
+  appointments  Cita[]
+
+  @@index([tiendaId, estado])
+  @@index([tiendaId, prioridad])
+  @@index([assignedToUserId])
+}
+
+model LeadAssignment {
+  id               String   @id @default(cuid())
+  leadId           String
+  userId           String
+  assignedByUserId String?
+  status           String   @default("active")
+  reason           String?  @db.Text
+  assignedAt       DateTime @default(now())
+  unassignedAt     DateTime?
+
+  lead       Lead  @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user       User  @relation("LeadAssignmentAssignee", fields: [userId], references: [id], onDelete: Cascade)
+  assignedBy User? @relation("LeadAssignmentOwner", fields: [assignedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([leadId, status])
+  @@index([userId, status])
+}
+
+model LeadActivity {
+  id           String       @id @default(cuid())
+  leadId       String
+  actorUserId  String?
+  type         ActivityType
+  summary      String?      @db.Text
+  metadataJson Json?
+  createdAt    DateTime     @default(now())
+
+  lead  Lead  @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  actor User? @relation("LeadActivityActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([leadId, createdAt])
+  @@index([actorUserId, createdAt])
+}
+
+model LeadReminder {
+  id              String        @id @default(cuid())
+  leadId          String
+  appointmentId   String?
+  conversationId  String?
+  createdByUserId String?
+  channel         String        @default("whatsapp")
+  status          ReminderStatus @default(PENDING)
+  message         String?       @db.Text
+  scheduledFor    DateTime
+  sentAt          DateTime?
+  createdAt       DateTime      @default(now())
+
+  lead         Lead          @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  appointment  Cita?         @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  conversation Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  createdBy    User?         @relation("LeadReminderCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([leadId, status, scheduledFor])
+  @@index([scheduledFor])
 }
 
 // ==========================================
@@ -433,32 +604,42 @@ model Lead {
 // ==========================================
 
 model Conversation {
-  id            String    @id @default(cuid())
-  tiendaId      String
-  clientPhone   String    // El número de WhatsApp del cliente
-  clientName    String?   // Nombre del cliente
-  status        String    @default("active") // "active", "resolved" (SLA)
-  metaCategory  String?   // "service", "utility", "marketing" (Métricas de cobro Meta)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           String             @id @default(cuid())
+  tiendaId     String
+  leadId       String?
+  clientPhone  String             // El número de WhatsApp del cliente
+  clientName   String?            // Nombre del cliente
+  status       ConversationStatus @default(ACTIVE)
+  metaCategory String?            // "service", "utility", "marketing" (Métricas de cobro Meta)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
 
-  tienda        Tienda    @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
-  messages      Message[]
+  tienda       Tienda             @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  lead         Lead?              @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  messages     Message[]
+  appointments Cita[]
+  reminders    LeadReminder[]
 
   // Un cliente solo debería tener una conversación activa por tienda a la vez
   @@unique([tiendaId, clientPhone])
+  @@index([leadId])
 }
 
 model Message {
-  id              String    @id @default(cuid())
-  conversationId  String
-  metaMessageId   String?   @unique // ID real de Meta para cruzar los estados (entregado/leído)
-  senderRole      String    // Quién envió: "USER" (cliente), "AI" (Sofía), o "HUMAN" (Tú)
-  content         String    @db.Text
-  status          String    @default("sent") // "sent", "delivered", "read", "failed" (Check azul)
-  createdAt       DateTime  @default(now())
+  id             String            @id @default(cuid())
+  conversationId String
+  metaMessageId  String?           @unique // ID real de Meta para cruzar los estados (entregado/leído)
+  senderRole     MessageSenderRole // Quién envió: "USER" (cliente), "AI" (Sofía), o "HUMAN" (Tú)
+  direction      MessageDirection  @default(INBOUND)
+  messageType    String            @default("text")
+  content        String            @db.Text
+  status         MessageStatus     @default(SENT) // "sent", "delivered", "read", "failed" (Check azul)
+  metadataJson   Json?
+  createdAt      DateTime          @default(now())
 
-  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
 }
 
 // ==========================================
@@ -466,16 +647,31 @@ model Message {
 // ==========================================
 
 model Cita {
-  id              String   @id @default(cuid())
-  tiendaId        String
-  clienteNombre   String
-  clienteTelefono String
-  fechaHora       DateTime
-  estado          String   @default("CONFIRMADA") // CONFIRMADA, CANCELADA, REPROGRAMADA
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id               String            @id @default(cuid())
+  tiendaId         String
+  leadId           String?
+  conversationId   String?
+  assignedToUserId String?
+  clienteNombre    String
+  clienteTelefono  String
+  fechaHora        DateTime
+  estado           AppointmentStatus @default(CONFIRMED)
+  durationMinutes  Int               @default(30)
+  location         String?
+  notes            String?           @db.Text
+  cancelReason     String?           @db.Text
+  source           String            @default("manual")
+  createdByUserId  String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
-  tienda          Tienda   @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  tienda       Tienda       @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  lead         Lead?        @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  conversation Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  assignedTo   User?        @relation("AppointmentAssignee", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  reminders    LeadReminder[]
 
-  @@index([tiendaId])
+  @@index([tiendaId, fechaHora])
+  @@index([leadId])
+  @@index([conversationId])
 }

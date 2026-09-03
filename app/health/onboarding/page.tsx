@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   onboardingStages,
   getHealthStatusForStage,
@@ -31,7 +32,7 @@ type OnboardingForm = {
 };
 
 const initialForm: OnboardingForm = {
-  clinicName: 'Clínica Santa María',
+  clinicName: 'Mi clínica',
   specialty: 'Medicina general y urgencias',
   location: 'Providencia, Santiago',
   careModel: 'Triage asistido + atención prioritaria',
@@ -227,12 +228,22 @@ const inputStyle: React.CSSProperties = {
 export default function HealthOnboardingPage() {
   const [currentStageIndex, setCurrentStageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState<OnboardingForm>(initialForm);
   const { clinicId, organizationId } = useBusinessContext();
+  const router = useRouter();
 
   const updateField = <K extends keyof OnboardingForm>(key: K, value: OnboardingForm[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
   };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const clinicName = form.clinicName.trim() || 'Mi clínica';
+      localStorage.setItem('upway-health-clinic-name', clinicName);
+      localStorage.setItem('upway-health-organization-name', 'Upway Health');
+    }
+  }, [form.clinicName]);
 
   useEffect(() => {
     async function loadExistingSession() {
@@ -310,6 +321,35 @@ export default function HealthOnboardingPage() {
     await persistCurrentStage(nextIndex);
   };
 
+  const finalizeOnboarding = async () => {
+    setIsSubmitting(true);
+    const normalizedClinicName = form.clinicName.trim() || 'Mi clínica';
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('upway-health-clinic-name', normalizedClinicName);
+      localStorage.setItem('upway-health-organization-name', 'Upway Health');
+    }
+
+    try {
+      await persistCurrentStage(onboardingStages.length - 1, {
+        ...form,
+        clinicName: normalizedClinicName,
+      });
+      router.push('/health');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePrimaryAction = async () => {
+    if (currentStageIndex === onboardingStages.length - 1) {
+      await finalizeOnboarding();
+      return;
+    }
+
+    await goNext();
+  };
+
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.14),_transparent_28%),linear-gradient(180deg,_#f5f9ff_0%,_#edf5ff_100%)] p-4 md:p-6">
       <div className="mx-auto max-w-7xl">
@@ -373,10 +413,15 @@ export default function HealthOnboardingPage() {
                 </button>
 
                 <button
-                  onClick={goNext}
-                  className="rounded-full bg-[linear-gradient(135deg,_#1b5ed6_0%,_#4d8bff_100%)] px-5 py-2.5 text-sm font-bold text-white shadow-[0_18px_40px_rgba(27,94,214,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(27,94,214,0.32)]"
+                  onClick={handlePrimaryAction}
+                  disabled={isSubmitting}
+                  className="rounded-full bg-[linear-gradient(135deg,_#1b5ed6_0%,_#4d8bff_100%)] px-5 py-2.5 text-sm font-bold text-white shadow-[0_18px_40px_rgba(27,94,214,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(27,94,214,0.32)] disabled:cursor-not-allowed disabled:opacity-75"
                 >
-                  {currentStageIndex === onboardingStages.length - 1 ? 'Finalizar activación' : 'Siguiente'}
+                  {isSubmitting
+                    ? 'Finalizando…'
+                    : currentStageIndex === onboardingStages.length - 1
+                      ? 'Finalizar activación'
+                      : 'Siguiente'}
                 </button>
               </div>
             </section>
