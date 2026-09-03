@@ -1,49 +1,57 @@
 "use client";
 
 import React, { Suspense, useMemo } from 'react';
-import { MessageCircleMore, Headphones, CalendarDays, BarChart3, Sparkles, ArrowRight, Check } from 'lucide-react';
-import { useUpwayStore } from '../../../store/upwayStore'; // Ajusta la ruta si es necesario
+import { MessageCircleMore, Headphones, Sparkles, ArrowRight, Check, ShieldCheck } from 'lucide-react';
+import { useUpwayStore } from '../../../store/upwayStore';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link'; // 🚀 IMPORTACIÓN NUEVA
+import Link from 'next/link';
 import { resolveVertical } from '../../../../lib/verticals';
 
-const modulos = [
-    {
-      id: 'whatsapp',
-      titulo: 'WhatsApp IA + CRM',
-      descripcion: 'Captura, califica y responde leads con contexto de negocio.',
-      precio: 399900,
-      icon: <MessageCircleMore size={24} />
-    },
-    {
-      id: 'voz',
-      titulo: 'Agenda inteligente',
-      descripcion: 'Coordina disponibilidad, citas y atención sin fricción.',
-      precio: 599900,
-      icon: <Headphones size={24} />
-    },
-    {
-      id: 'calendario',
-      titulo: 'Pipeline de leads',
-      descripcion: 'Visualiza etapas, responsables y oportunidades por negocio.',
-      precio: 39000,
-      icon: <CalendarDays size={24} />
-    },
-    {
-      id: 'analitica',
-      titulo: 'Recordatorios automáticos',
-      descripcion: 'Follow-up oportuno para cerrar más oportunidades sin perder tiempo.',
-      precio: 19000,
-      icon: <BarChart3 size={24} />
-    },
-    {
-      id: 'rag',
-      titulo: 'Inbox + citas + asignaciones',
-      descripcion: 'Gestiona conversaciones, agenda y equipo en un flujo único.',
-      precio: 0,
-      icon: <Sparkles size={24} />
-    },
-  ];
+const paquetes = [
+  {
+    id: 'workspace', // Base innegociable (siempre activo)
+    titulo: 'Workspace Operativo Unificado',
+    descripcion: 'El Command Center de tu negocio. La infraestructura base innegociable para dejar de perder oportunidades.',
+    precio: 0,
+    esBase: true,
+    capacidades: [
+      'Inbox unificado multicanal para todo el equipo.',
+      'Pipeline visual de ventas por etapas reales.',
+      'Gestión colaborativa con responsables asignados.',
+      'Agenda comercial y estado de citas en vivo.',
+      'Trazabilidad total de actividad y auditoría.'
+    ],
+    icon: <ShieldCheck size={28} className="text-slate-900" />
+  },
+  {
+    id: 'whatsapp',
+    titulo: 'Empleado Digital: WhatsApp IA',
+    descripcion: 'Motor de captura, calificación y seguimiento automático 24/7. No dejes que ningún lead se enfríe.',
+    precio: 399900,
+    esBase: false,
+    capacidades: [
+      'Captura y perfilamiento de leads 24/7.',
+      'Seguimiento y recordatorios automáticos de cierre.',
+      'Contexto de CRM persistente en cada chat.',
+      'Detección automática de intención de agendamiento.'
+    ],
+    icon: <MessageCircleMore size={28} />
+  },
+  {
+    id: 'voz',
+    titulo: 'Empleado Digital: Voz IA',
+    descripcion: 'Recepcionista y agendadora telefónica autónoma. Escala tu atención sin aumentar la nómina.',
+    precio: 599900,
+    esBase: false,
+    capacidades: [
+      'Atención de llamadas entrantes con voz natural.',
+      'Agendamiento y ventas por voz en tiempo real.',
+      'Redirección inteligente a humanos (Casos críticos).',
+      'Capacidad ilimitada de llamadas simultáneas.'
+    ],
+    icon: <Headphones size={28} />
+  }
+];
 
 function Paso01Infraestructura() {
   const router = useRouter();
@@ -53,8 +61,9 @@ function Paso01Infraestructura() {
   const { modulosSeleccionados, toggleModulo } = useUpwayStore();
 
   const totalMensual = useMemo(() => {
-    return modulos.reduce((acc, curr) => {
-      if (modulosSeleccionados.includes(curr.id)) {
+    return paquetes.reduce((acc, curr) => {
+      // El workspace es base (0), sumamos los premium seleccionados
+      if (!curr.esBase && modulosSeleccionados.includes(curr.id)) {
         return acc + curr.precio;
       }
       return acc;
@@ -64,108 +73,122 @@ function Paso01Infraestructura() {
   const fmt = (n: number) => `$${n.toLocaleString("es-CO")}`;
 
   return (
-    // 🚀 OJO AQUÍ: Le agregué "relative" al inicio de las clases
-    <main className="relative min-h-screen bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.12),_transparent_30%),linear-gradient(180deg,_#f8fbff_0%,_#edf4ff_100%)] text-slate-900 pb-32 font-sans selection:bg-[#1b5ed6] selection:text-white">
+    <main className="relative min-h-screen bg-[#F8FAFC] text-slate-900 pb-32 font-sans selection:bg-slate-900 selection:text-white">
       
+      {/* Botón Superior */}
       <div className="absolute top-6 right-6 sm:top-8 sm:right-10 z-10">
         <Link 
           href="/dashboard" 
-          className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-[#93c5fd] hover:text-[#1b5ed6]"
+          className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:text-slate-900"
         >
           Ir al Panel
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
+          <ArrowRight size={16} />
         </Link>
       </div>
 
       <div className="mx-auto max-w-5xl px-6 pt-12 md:pt-20">
         
-        {/* Barra de progreso / Narrativa */}
+        {/* Cabecera / Narrativa Corporativa */}
         <div className="mb-12">
-          <div className="mb-6 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-            <span>Configuración de tu agente</span>
-            <span className="h-1 w-1 rounded-full bg-slate-400"></span>
+          <div className="mb-6 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+            <span>Configuración de Infraestructura</span>
+            <span className="h-1 w-1 rounded-full bg-slate-300"></span>
             <span className="text-slate-900">01 / 05</span>
-            <span className="ml-auto rounded-full border border-[#dfeaff] bg-[#edf4ff] px-2 py-1 text-[10px] font-semibold text-[#1b5ed6]">
+            <span className="ml-auto rounded-full border border-slate-200 bg-white px-3 py-1 text-[10px] font-bold text-slate-700 shadow-sm">
               {activeSegment.label}
             </span>
           </div>
           
           <div className="mb-10 flex gap-2">
-            <div className="h-1 flex-1 rounded-full bg-[#1b5ed6]"></div>
+            <div className="h-1 flex-1 rounded-full bg-slate-900"></div>
             <div className="h-1 flex-1 rounded-full bg-slate-200"></div>
             <div className="h-1 flex-1 rounded-full bg-slate-200"></div>
             <div className="h-1 flex-1 rounded-full bg-slate-200"></div>
             <div className="h-1 flex-1 rounded-full bg-slate-200"></div>
           </div>
- 
-          <h1 className="mb-3 text-3xl font-black tracking-[-0.06em] text-slate-900 md:text-4xl">Infraestructura premium</h1>
-          <p className="max-w-2xl text-lg text-slate-600">
-            Diseña una operación comercial con WhatsApp, agenda, pipeline y automatización conectados desde el inicio.
+
+          <h1 className="mb-4 text-4xl font-black tracking-tight text-slate-900 md:text-5xl">
+            Infraestructura premium
+          </h1>
+          <p className="max-w-2xl text-lg text-slate-600 leading-relaxed">
+            Diseña una operación comercial escalable. Centraliza tu atención, agenda y automatizaciones impulsadas por <span className="font-bold text-slate-900 flex items-center gap-1 inline-flex"><Sparkles size={16}/> Sophie v2</span>.
           </p>
         </div>
 
-        {/* Grid de módulos premium */}
-        <div className="grid gap-5 md:grid-cols-2">
-          {modulos.map((m) => {
-            const seleccionado = modulosSeleccionados.includes(m.id);
-            const esGratis = m.precio === 0;
-
+        {/* Grid de Infraestructura */}
+        <div className="grid gap-6 md:grid-cols-2">
+          
+          {paquetes.map((p) => {
+            const seleccionado = p.esBase || modulosSeleccionados.includes(p.id);
+            
             return (
               <div
-                key={m.id}
-                onClick={() => toggleModulo(m.id)}
-                className={`group flex cursor-pointer flex-col justify-between rounded-[26px] border p-5 transition-all duration-200 ${
+                key={p.id}
+                onClick={() => !p.esBase && toggleModulo(p.id)}
+                className={`group relative flex flex-col justify-between rounded-3xl border p-7 transition-all duration-300 ${p.esBase ? 'md:col-span-2 cursor-default' : 'cursor-pointer'} ${
                   seleccionado
-                    ? 'border-[#bfd6ff] bg-[linear-gradient(180deg,#edf4ff_0%,#f8fbff_100%)] shadow-[0_18px_42px_rgba(27,94,214,0.08)]'
-                    : 'border-slate-200 bg-white/80 hover:border-slate-300 hover:shadow-[0_18px_42px_rgba(15,23,42,0.04)]'
+                    ? 'border-slate-900 bg-white shadow-[0_20px_40px_rgba(15,23,42,0.06)] ring-1 ring-slate-900'
+                    : 'border-slate-200 bg-white/50 hover:border-slate-400 hover:shadow-lg hover:bg-white'
                 }`}
               >
-                <div className="mb-5 flex items-start gap-4">
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl transition-colors ${
+                <div className="mb-6 flex items-start gap-5">
+                  <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border transition-colors ${
                     seleccionado
-                      ? 'bg-[#dfeaff] text-[#1b5ed6]'
-                      : 'bg-slate-100 text-slate-500 group-hover:text-slate-700'
+                      ? 'border-slate-100 bg-slate-50 text-slate-900'
+                      : 'border-slate-100 bg-slate-50 text-slate-400 group-hover:text-slate-600'
                   }`}>
-                    {m.icon}
+                    {p.icon}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-1 flex items-center justify-between gap-3">
-                      <h3 className="text-[1.05rem] font-black tracking-[-0.04em] text-slate-900">{m.titulo}</h3>
-                      {!esGratis && (
-                        <span className="rounded-full border border-slate-200 bg-white/80 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                  <div className="min-w-0 flex-1 pt-1">
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <h3 className="text-xl font-bold tracking-tight text-slate-900">{p.titulo}</h3>
+                      {p.esBase ? (
+                        <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                          Base Incluida
+                        </span>
+                      ) : (
+                        <span className="shrink-0 rounded-full bg-slate-900 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
                           Premium
                         </span>
                       )}
                     </div>
-                    <p className="text-sm leading-relaxed text-slate-600">{m.descripcion}</p>
+                    <p className="text-sm leading-relaxed text-slate-600">{p.descripcion}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between border-t border-slate-200 pt-4">
-                  <div className="font-bold text-slate-900">
-                    {esGratis ? (
-                      <span className="text-sm font-semibold text-slate-500">Incluido</span>
+                {/* Lista de capacidades reales */}
+                <ul className="mb-8 space-y-3 border-t border-slate-100 pt-6">
+                  {p.capacidades.map((cap, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm font-medium text-slate-700">
+                      <Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-slate-900" />
+                      <span>{cap}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-5">
+                  <div className="font-black text-slate-900 text-xl tracking-tight">
+                    {p.esBase ? (
+                      <span className="text-lg font-bold text-slate-400">Core OS</span>
                     ) : (
                       <span>
-                        {fmt(m.precio)}
-                        <span className="ml-1 text-xs font-medium text-slate-500">/ mes</span>
+                        {fmt(p.precio)}
+                        <span className="ml-1 text-sm font-medium text-slate-500">/ mes</span>
                       </span>
                     )}
                   </div>
 
-                  <div className={`flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-bold uppercase tracking-[0.12em] transition-all ${
+                  <div className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-wider transition-all ${
                     seleccionado
-                      ? 'bg-[#dfeaff] text-[#1b5ed6]'
-                      : 'bg-slate-100 text-slate-600 group-hover:bg-slate-200'
+                      ? 'bg-slate-900 text-white shadow-md'
+                      : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700'
                   }`}>
                     {seleccionado ? (
                       <>
-                        <Check size={14} strokeWidth={3} /> Activado
+                        <Check size={16} strokeWidth={3} /> {p.esBase ? 'Instalado' : 'Activado'}
                       </>
                     ) : (
-                      'Activar'
+                      'Activar IA'
                     )}
                   </div>
                 </div>
@@ -175,23 +198,23 @@ function Paso01Infraestructura() {
         </div>
       </div>
 
-      {/* Barra Inferior Persistente (Clear CTA) */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/85 backdrop-blur-xl p-6 shadow-[0_-12px_35px_rgba(15,23,42,0.04)]">
+      {/* Barra Inferior Persistente */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/90 backdrop-blur-xl p-6 shadow-[0_-10px_40px_rgba(15,23,42,0.05)]">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <div>
-            <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-              Inversión mensual
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+              Inversión operativa mensual
             </p>
-            <p className="text-3xl font-black tracking-[-0.06em] text-slate-900 md:text-4xl">
+            <p className="text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
               {fmt(totalMensual)}
             </p>
           </div>
           <button 
             onClick={() => router.push('/dashboard/onboarding/tonalidad')}
-            disabled={totalMensual === 0}
-            className="flex items-center gap-2 rounded-full bg-slate-900 px-8 py-3.5 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5 disabled:opacity-20"
+            disabled={totalMensual === 0} // Mantiene la lógica: debe elegir al menos 1 agente premium para avanzar
+            className="flex items-center gap-2 rounded-full bg-slate-900 px-8 py-3.5 text-sm font-bold text-white shadow-xl transition-all hover:-translate-y-0.5 hover:shadow-2xl disabled:opacity-30 disabled:hover:translate-y-0"
           >
-            Continuar <ArrowRight size={18} />
+            Continuar setup <ArrowRight size={18} strokeWidth={2.5} />
           </button>
         </div>
       </div>
@@ -202,7 +225,7 @@ function Paso01Infraestructura() {
 
 export default function Page() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#07090C] text-white">Cargando...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-slate-900 font-bold">Cargando...</div>}>
       <Paso01Infraestructura />
     </Suspense>
   );
