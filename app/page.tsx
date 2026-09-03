@@ -195,7 +195,29 @@ export default function Home() {
                     <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1 text-[10px] font-medium text-blue-100/80">24/7</span>
                   </div>
 
-                  <div className="mt-6 grid gap-4 md:grid-cols-2">
+                  {/* Integración oficial de Sophie v2 Animada */}
+                  <div className="mt-5 flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-3.5 backdrop-blur-sm">
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-white/20 bg-slate-900 shadow-md">
+                      <video 
+                        src="/sophie-animada.webm" 
+                        autoPlay 
+                        loop 
+                        muted 
+                        playsInline 
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#7dd3fc] mb-1">
+                        <Sparkles className="h-3.5 w-3.5" /> Sophie v2 • Empleado Digital
+                      </div>
+                      <p className="text-xs text-blue-100/80 leading-relaxed">
+                        Orquestando llamadas, chats y flujos operativos con contexto de negocio absoluto.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid gap-4 md:grid-cols-2">
                     <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
                       <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-blue-100/70">Atenciones</div>
                       <div className="mt-3 text-3xl font-black tracking-[-0.06em]">+38%</div>
