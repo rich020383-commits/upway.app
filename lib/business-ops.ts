@@ -8,7 +8,6 @@ import {
   LeadSource,
   LeadStatus,
   MessageDirection,
-  MessageSenderRole,
   MessageStatus,
   ReminderStatus,
 } from '@prisma/client';
@@ -278,7 +277,7 @@ export async function createLeadFromInbound(params: {
     await prisma.message.create({
       data: {
         conversationId: conversation?.id ?? '',
-        senderRole: MessageSenderRole.USER,
+        senderRole: 'USER',
         direction: MessageDirection.INBOUND,
         messageType: 'text',
         content: params.messageContent,

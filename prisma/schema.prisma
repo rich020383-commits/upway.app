@@ -146,13 +146,6 @@ enum ConversationStatus {
   ARCHIVED
 }
 
-enum MessageSenderRole {
-  USER
-  AI
-  HUMAN
-  SYSTEM
-}
-
 enum MessageDirection {
   INBOUND
   OUTBOUND
@@ -626,16 +619,16 @@ model Conversation {
 }
 
 model Message {
-  id             String            @id @default(cuid())
+  id             String           @id @default(cuid())
   conversationId String
-  metaMessageId  String?           @unique // ID real de Meta para cruzar los estados (entregado/leído)
-  senderRole     MessageSenderRole // Quién envió: "USER" (cliente), "AI" (Sofía), o "HUMAN" (Tú)
-  direction      MessageDirection  @default(INBOUND)
-  messageType    String            @default("text")
-  content        String            @db.Text
-  status         MessageStatus     @default(SENT) // "sent", "delivered", "read", "failed" (Check azul)
+  metaMessageId  String?          @unique // ID real de Meta para cruzar los estados (entregado/leído)
+  senderRole     String           @default("USER") // Quién envió: "USER", "AI", "HUMAN", "SYSTEM"
+  direction      MessageDirection @default(INBOUND)
+  messageType    String           @default("text")
+  content        String           @db.Text
+  status         MessageStatus    @default(SENT) // "sent", "delivered", "read", "failed" (Check azul)
   metadataJson   Json?
-  createdAt      DateTime          @default(now())
+  createdAt      DateTime         @default(now())
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
