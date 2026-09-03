@@ -146,35 +146,47 @@ export default function Home() {
       <main className="mx-auto max-w-7xl px-6 pb-20 md:px-10">
         <section className="rounded-[38px] border border-slate-200 bg-white/80 p-5 shadow-[0_28px_80px_rgba(15,23,42,0.08)] backdrop-blur-sm md:p-8 lg:p-10">
           
-          {/* BANNER PANORÁMICO SUPERIOR DE SOPHIE V2 (ABARCA TODO EL ANCHO ARRIBA) */}
-          <div className="relative mb-10 overflow-hidden rounded-[32px] border border-slate-200 bg-gradient-to-r from-slate-950 via-[#0d1727] to-slate-950 p-6 md:p-8 text-white shadow-[0_20px_60px_rgba(15,23,42,0.15)]">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-              <div className="md:col-span-4 relative h-44 md:h-52 overflow-hidden rounded-2xl border border-white/15 bg-slate-950 shadow-inner">
-                <video 
-                  src="/sophie-animada.webm" 
-                  autoPlay 
-                  loop 
-                  muted 
-                  playsInline 
-                  className="h-full w-full object-cover object-center scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent"></div>
-              </div>
-              <div className="md:col-span-8 space-y-3">
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1 text-xs font-bold text-[#7dd3fc] backdrop-blur-md border border-white/10">
-                  <Sparkles className="h-3.5 w-3.5" /> Sophie v2 • Empleado Digital Autónomo
+          {/* VIDEO CINEMATOGRÁFICO DE SOPHIE V2 A ANCHO COMPLETO Y GRAN ALTURA (ESTILO LAPTOP) */}
+          <div className="relative mb-12 overflow-hidden rounded-[32px] border border-slate-900 bg-slate-950 shadow-[0_30px_90px_rgba(15,23,42,0.3)]">
+            <div className="relative w-full h-[380px] md:h-[480px] lg:h-[540px] overflow-hidden">
+              <video 
+                src="/sophie-animada.webm" 
+                autoPlay 
+                loop 
+                muted 
+                playsInline 
+                className="h-full w-full object-cover object-center"
+              />
+              {/* Degradados cinematográficos para fusionar con el diseño */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-950/50 via-transparent to-slate-950/50"></div>
+              
+              {/* Contenido flotante sobre el video a gran escala */}
+              <div className="absolute bottom-6 left-6 right-6 md:bottom-12 md:left-12 md:right-12 flex flex-col md:flex-row md:items-end justify-between gap-6 z-10">
+                <div className="space-y-3 max-w-2xl">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-slate-900/80 px-4 py-1.5 text-xs font-bold text-[#7dd3fc] backdrop-blur-md border border-white/15 shadow-lg">
+                    <Sparkles className="h-4 w-4" /> Sophie v2 • Empleado Digital Autónomo
+                  </div>
+                  <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white drop-shadow-lg leading-tight">
+                    Operación y Triage en Vivo 24/7
+                  </h2>
+                  <p className="text-sm md:text-base text-blue-100/90 leading-relaxed drop-shadow">
+                    Orquestando llamadas telefónicas, chats de WhatsApp y flujos operativos con contexto de negocio absoluto en tiempo real. Diseñado para escalar sin fricción.
+                  </p>
                 </div>
-                <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white">
-                  Operación y Triage en Vivo 24/7
-                </h2>
-                <p className="text-sm text-blue-100/80 leading-relaxed max-w-2xl">
-                  Orquestando llamadas telefónicas, chats de WhatsApp y flujos operativos con contexto de negocio absoluto en tiempo real. Diseñado para escalar sin fricción.
-                </p>
+                <div className="shrink-0">
+                  <Link 
+                    href="#contacto" 
+                    className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-bold text-slate-900 shadow-2xl hover:bg-slate-100 transition"
+                  >
+                    Probar en vivo <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* DOS COLUMNAS DEBAJO DEL BANNER */}
+          {/* DOS COLUMNAS INFERIORES */}
           <div className="grid items-center gap-10 lg:grid-cols-[1.06fr_0.94fr]">
             <div>
               <div className="flex flex-wrap items-center gap-2 text-[10px] font-mono uppercase tracking-[0.18em] text-[#1b5ed6]">
