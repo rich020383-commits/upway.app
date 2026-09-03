@@ -187,7 +187,7 @@ export default function Home() {
               <div className="absolute inset-0 -z-10 rounded-[32px] bg-[radial-gradient(circle_at_center,_rgba(104,166,255,0.22),_transparent_54%)] blur-3xl" />
               <div className="overflow-hidden rounded-[32px] border border-slate-200 bg-slate-950 p-4 shadow-[0_32px_80px_rgba(15,23,42,0.18)]">
                 <div className="rounded-[26px] border border-white/10 bg-gradient-to-br from-[#0d1727] via-[#152c48] to-[#1d5fd9] p-5 text-white">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between pb-3">
                     <div className="flex items-center gap-2">
                       <span className="h-2.5 w-2.5 rounded-full bg-[#7dd3fc]" />
                       <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-blue-100/80">Operación activa</span>
@@ -195,29 +195,27 @@ export default function Home() {
                     <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1 text-[10px] font-medium text-blue-100/80">24/7</span>
                   </div>
 
-                  {/* Integración oficial de Sophie v2 Animada */}
-                  <div className="mt-5 flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-3.5 backdrop-blur-sm">
-                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-white/20 bg-slate-900 shadow-md">
+                  {/* SOPHIE V2 GRANDE Y DESTACADA EN FORMATO PROMINENTE */}
+                  <div className="my-4 rounded-2xl border border-white/15 bg-gradient-to-b from-white/10 to-white/5 p-5 text-center backdrop-blur-md shadow-lg">
+                    <div className="relative mx-auto h-28 w-28 overflow-hidden rounded-2xl border border-white/25 bg-slate-950 shadow-2xl mb-3">
                       <video 
                         src="/sophie-animada.webm" 
                         autoPlay 
                         loop 
                         muted 
                         playsInline 
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-cover scale-105"
                       />
                     </div>
-                    <div>
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#7dd3fc] mb-1">
-                        <Sparkles className="h-3.5 w-3.5" /> Sophie v2 • Empleado Digital
-                      </div>
-                      <p className="text-xs text-blue-100/80 leading-relaxed">
-                        Orquestando llamadas, chats y flujos operativos con contexto de negocio absoluto.
-                      </p>
+                    <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-[#7dd3fc] mb-1">
+                      <Sparkles className="h-4 w-4" /> Sophie v2 • Empleado Digital Activo
                     </div>
+                    <p className="text-xs text-blue-100/80 max-w-sm mx-auto leading-relaxed">
+                      Orquestando llamadas, chats y flujos operativos con contexto de negocio absoluto en tiempo real.
+                    </p>
                   </div>
 
-                  <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-4 md:grid-cols-2">
                     <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
                       <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-blue-100/70">Atenciones</div>
                       <div className="mt-3 text-3xl font-black tracking-[-0.06em]">+38%</div>
