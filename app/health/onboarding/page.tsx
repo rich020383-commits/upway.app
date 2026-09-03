@@ -31,24 +31,25 @@ type OnboardingForm = {
   approval: boolean;
 };
 
+// 🔥 Todo vacío. Los textos de ejemplo pasaron a ser placeholders en los inputs.
 const initialForm: OnboardingForm = {
-  clinicName: 'Mi clínica',
-  specialty: 'Medicina general y urgencias',
-  location: 'Providencia, Santiago',
-  careModel: 'Triage asistido + atención prioritaria',
-  schedule: 'Lun - Vie 08:00 - 20:00',
-  priority: 'Urgencias / atención prioritaria / seguimiento',
-  agentName: 'Alicia Health Assistant',
-  mission: 'Atender pacientes con empatía, aclarar dudas frecuentes, agendar citas y canalizar casos con riesgo a personal humano.',
-  triageRules: 'Si el paciente reporta dolor intenso o síntomas agudos, priorizar urgencia.\nSi se detecta posible embarazo, alergia grave o pérdida de consciencia, escalar.\nSi la consulta requiere confirmación clínica, formular preguntas de contexto antes de agendar.',
-  tone: 'Empático, claro y profesional',
-  responseStyle: 'Breve, humano, claro y sin tecnicismos',
-  policy: 'Escalar a humano cuando exista riesgo clínico o no se pueda confirmar la intención del paciente.',
-  cancellationWindow: '24 horas antes del turno',
-  faq: '¿Cuánto tarda la respuesta? En promedio, 30-90 segundos para consultas urgentes y 2-4 minutos para casos de seguimiento.',
-  channel: 'WhatsApp + Vapi',
-  webhook: 'WhatsApp Business + Vapi API + CRM',
-  approval: true,
+  clinicName: '',
+  specialty: '',
+  location: '',
+  careModel: '',
+  schedule: '',
+  priority: '',
+  agentName: '',
+  mission: '',
+  triageRules: '',
+  tone: '',
+  responseStyle: '',
+  policy: '',
+  cancellationWindow: '',
+  faq: '',
+  channel: '',
+  webhook: '',
+  approval: false, // Debe empezar desmarcado
 };
 
 const parseStoredForm = (input: unknown): Partial<OnboardingForm> => {
@@ -84,15 +85,15 @@ const stageContent: Record<
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Nombre de la clínica</label>
-        <input value={form.clinicName} onChange={(event) => onChange('clinicName', event.target.value)} style={inputStyle} />
+        <input placeholder="Ej. Mi clínica" value={form.clinicName} onChange={(event) => onChange('clinicName', event.target.value)} style={inputStyle} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Especialidad principal</label>
-        <input value={form.specialty} onChange={(event) => onChange('specialty', event.target.value)} style={inputStyle} />
+        <input placeholder="Ej. Medicina general y urgencias" value={form.specialty} onChange={(event) => onChange('specialty', event.target.value)} style={inputStyle} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Ubicación / sucursal</label>
-        <input value={form.location} onChange={(event) => onChange('location', event.target.value)} style={inputStyle} />
+        <input placeholder="Ej. Providencia, Santiago" value={form.location} onChange={(event) => onChange('location', event.target.value)} style={inputStyle} />
       </div>
     </div>
   ),
@@ -100,15 +101,15 @@ const stageContent: Record<
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Modelo de atención</label>
-        <input value={form.careModel} onChange={(event) => onChange('careModel', event.target.value)} style={inputStyle} />
+        <input placeholder="Ej. Triage asistido + atención prioritaria" value={form.careModel} onChange={(event) => onChange('careModel', event.target.value)} style={inputStyle} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Horario operativo</label>
-        <input value={form.schedule} onChange={(event) => onChange('schedule', event.target.value)} style={inputStyle} />
+        <input placeholder="Ej. Lun - Vie 08:00 - 20:00" value={form.schedule} onChange={(event) => onChange('schedule', event.target.value)} style={inputStyle} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Nivel de prioridad</label>
-        <input value={form.priority} onChange={(event) => onChange('priority', event.target.value)} style={inputStyle} />
+        <input placeholder="Ej. Urgencias / atención prioritaria / seguimiento" value={form.priority} onChange={(event) => onChange('priority', event.target.value)} style={inputStyle} />
       </div>
     </div>
   ),
@@ -116,29 +117,29 @@ const stageContent: Record<
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Nombre del agente</label>
-        <input value={form.agentName} onChange={(event) => onChange('agentName', event.target.value)} style={inputStyle} />
+        <input placeholder="Ej. Alicia Health Assistant" value={form.agentName} onChange={(event) => onChange('agentName', event.target.value)} style={inputStyle} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Misión del agente</label>
-        <textarea value={form.mission} onChange={(event) => onChange('mission', event.target.value)} style={{ ...inputStyle, minHeight: 120, resize: 'vertical' }} />
+        <textarea placeholder="Ej. Atender pacientes con empatía, aclarar dudas frecuentes..." value={form.mission} onChange={(event) => onChange('mission', event.target.value)} style={{ ...inputStyle, minHeight: 120, resize: 'vertical' }} />
       </div>
     </div>
   ),
   'triage-rules': (form, onChange) => (
     <div style={{ display: 'grid', gap: 12 }}>
       <label style={labelStyle}>Reglas de triaje</label>
-      <textarea value={form.triageRules} onChange={(event) => onChange('triageRules', event.target.value)} style={{ ...inputStyle, minHeight: 140, resize: 'vertical' }} />
+      <textarea placeholder="Ej. Si el paciente reporta dolor intenso, priorizar urgencia..." value={form.triageRules} onChange={(event) => onChange('triageRules', event.target.value)} style={{ ...inputStyle, minHeight: 140, resize: 'vertical' }} />
     </div>
   ),
   'tone-and-voice': (form, onChange) => (
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Tono</label>
-        <input value={form.tone} onChange={(event) => onChange('tone', event.target.value)} style={inputStyle} />
+        <input placeholder="Ej. Empático, claro y profesional" value={form.tone} onChange={(event) => onChange('tone', event.target.value)} style={inputStyle} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Estilo de respuesta</label>
-        <input value={form.responseStyle} onChange={(event) => onChange('responseStyle', event.target.value)} style={inputStyle} />
+        <input placeholder="Ej. Breve, humano, claro y sin tecnicismos" value={form.responseStyle} onChange={(event) => onChange('responseStyle', event.target.value)} style={inputStyle} />
       </div>
     </div>
   ),
@@ -146,11 +147,11 @@ const stageContent: Record<
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Política de cancelación</label>
-        <input value={form.cancellationWindow} onChange={(event) => onChange('cancellationWindow', event.target.value)} style={inputStyle} />
+        <input placeholder="Ej. 24 horas antes del turno" value={form.cancellationWindow} onChange={(event) => onChange('cancellationWindow', event.target.value)} style={inputStyle} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Escalación de seguridad</label>
-        <textarea value={form.policy} onChange={(event) => onChange('policy', event.target.value)} style={{ ...inputStyle, minHeight: 120, resize: 'vertical' }} />
+        <textarea placeholder="Ej. Escalar a humano cuando exista riesgo clínico..." value={form.policy} onChange={(event) => onChange('policy', event.target.value)} style={{ ...inputStyle, minHeight: 120, resize: 'vertical' }} />
       </div>
     </div>
   ),
@@ -158,7 +159,7 @@ const stageContent: Record<
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>FAQ estratégica</label>
-        <textarea value={form.faq} onChange={(event) => onChange('faq', event.target.value)} style={{ ...inputStyle, minHeight: 120, resize: 'vertical' }} />
+        <textarea placeholder="Ej. ¿Cuánto tarda la respuesta? En promedio, 30-90 segundos..." value={form.faq} onChange={(event) => onChange('faq', event.target.value)} style={{ ...inputStyle, minHeight: 120, resize: 'vertical' }} />
       </div>
     </div>
   ),
@@ -166,11 +167,11 @@ const stageContent: Record<
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Canales activos</label>
-        <input value={form.channel} onChange={(event) => onChange('channel', event.target.value)} style={inputStyle} />
+        <input placeholder="Ej. WhatsApp + Vapi" value={form.channel} onChange={(event) => onChange('channel', event.target.value)} style={inputStyle} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Webhook / integración</label>
-        <input value={form.webhook} onChange={(event) => onChange('webhook', event.target.value)} style={inputStyle} />
+        <input placeholder="Ej. WhatsApp Business + Vapi API + CRM" value={form.webhook} onChange={(event) => onChange('webhook', event.target.value)} style={inputStyle} />
       </div>
     </div>
   ),
@@ -179,11 +180,11 @@ const stageContent: Record<
       <div style={{ display: 'grid', gap: 12, background: '#f4f8ff', border: '1px solid #dfe9ff', borderRadius: 14, padding: 16 }}>
         <div style={{ fontWeight: 800, color: '#163557' }}>Resumen de configuración</div>
         <ul style={{ margin: 0, paddingLeft: 18, color: '#36557c', display: 'grid', gap: 8 }}>
-          <li>{form.clinicName}</li>
-          <li>{form.specialty}</li>
-          <li>{form.agentName}</li>
-          <li>{form.channel}</li>
-          <li>{form.tone}</li>
+          <li>{form.clinicName || 'Sin nombre definido'}</li>
+          <li>{form.specialty || 'Sin especialidad definida'}</li>
+          <li>{form.agentName || 'Sin nombre de agente'}</li>
+          <li>{form.channel || 'Sin canales configurados'}</li>
+          <li>{form.tone || 'Tono no especificado'}</li>
         </ul>
       </div>
       <label style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#1b3558', fontWeight: 700 }}>
@@ -239,11 +240,12 @@ export default function HealthOnboardingPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const clinicName = form.clinicName.trim() || 'Mi clínica';
+      const clinicName = form.clinicName.trim() || 'Nueva Clínica';
       localStorage.setItem('upway-health-clinic-name', clinicName);
-      localStorage.setItem('upway-health-organization-name', 'Upway Health');
+      // 🔥 Ahora guarda el ID real de la organización, no un nombre hardcodeado
+      localStorage.setItem('upway-health-organization-name', organizationId || 'Upway Health');
     }
-  }, [form.clinicName]);
+  }, [form.clinicName, organizationId]);
 
   useEffect(() => {
     async function loadExistingSession() {
@@ -323,11 +325,11 @@ export default function HealthOnboardingPage() {
 
   const finalizeOnboarding = async () => {
     setIsSubmitting(true);
-    const normalizedClinicName = form.clinicName.trim() || 'Mi clínica';
+    const normalizedClinicName = form.clinicName.trim() || 'Nueva Clínica';
 
     if (typeof window !== 'undefined') {
       localStorage.setItem('upway-health-clinic-name', normalizedClinicName);
-      localStorage.setItem('upway-health-organization-name', 'Upway Health');
+      localStorage.setItem('upway-health-organization-name', organizationId || 'Upway Health');
     }
 
     try {

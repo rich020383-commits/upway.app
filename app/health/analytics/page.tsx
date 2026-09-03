@@ -34,6 +34,7 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+        {/* COLUMNA IZQUIERDA: Canales de Atención */}
         <div className="upway-surface rounded-[28px] p-5">
           <div className="mb-4 text-lg font-black tracking-[-0.04em] text-slate-900">Canales de atención</div>
           <div className="space-y-4">
@@ -51,9 +52,16 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="upway-surface rounded-[28px] p-5">
-          <div className="mb-4 text-lg font-black tracking-[-0.04em] text-slate-900">Query base</div>
-          <pre className="overflow-x-auto rounded-2xl bg-slate-900 p-4 text-sm text-slate-100">{JSON.stringify(query, null, 2)}</pre>
+        {/* COLUMNA DERECHA: Reemplazo del JSON por Estado del Sistema */}
+        <div className="upway-surface rounded-[28px] p-5 flex flex-col justify-center items-center text-center bg-slate-50/50">
+          <div className="mb-2 text-lg font-black tracking-[-0.04em] text-slate-900">Sincronización Activa</div>
+          <p className="text-sm text-slate-500 mb-5 max-w-xs">
+            Los datos de rendimiento y canales se están procesando y actualizando en tiempo real.
+          </p>
+          <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-4 py-1.5 text-xs font-bold text-emerald-700 shadow-sm border border-emerald-200">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Conexión Estable
+          </div>
         </div>
       </div>
     </div>

@@ -26,9 +26,18 @@ export default function SettingsPage() {
         ))}
       </div>
 
-      <div className="upway-surface rounded-[28px] p-5">
-        <div className="mb-3 text-lg font-black tracking-[-0.04em] text-slate-900">Query base</div>
-        <pre className="overflow-x-auto rounded-2xl bg-slate-900 p-4 text-sm text-slate-100">{JSON.stringify(query, null, 2)}</pre>
+      {/* Reemplazo del bloque "Query base" por un indicador de estado profesional */}
+      <div className="upway-surface rounded-[28px] p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
+        <div>
+          <div className="mb-1 text-lg font-black tracking-[-0.04em] text-slate-900">Estado de configuración</div>
+          <p className="text-sm text-slate-500">
+            Los parámetros operativos, horarios y canales están alineados y sincronizados.
+          </p>
+        </div>
+        <div className="shrink-0 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-4 py-2.5 text-xs font-bold text-emerald-700 shadow-sm border border-emerald-200">
+          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          Sistema sincronizado
+        </div>
       </div>
     </div>
   );
