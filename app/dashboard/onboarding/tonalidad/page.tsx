@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { BrainCircuit, ArrowRight, Sparkles, MessageSquare } from 'lucide-react';
 import { useUpwayStore } from '../../../store/upwayStore'; 
 import { useRouter } from 'next/navigation';
@@ -9,9 +9,6 @@ import Link from 'next/link';
 export default function Paso02Tonalidad() {
   const router = useRouter();
   const { tonoWhatsapp, setTonoWhatsapp } = useUpwayStore();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => setIsMounted(true), []);
 
   const sliders = [
     { key: 'formalidad', label: 'Formalidad', min: 'Casual', max: 'Profesional' },
@@ -34,65 +31,57 @@ export default function Paso02Tonalidad() {
     return "Hola. Claro que sí, puedo ayudarte con eso. Tenemos disponibilidad para mañana a las 3:00 p. m. ¿Quieres que reservemos el espacio?";
   };
 
-  if (!isMounted) return null;
-
   return (
-    // 🔥 EL CASCARÓN: h-full y flex-col congelan la pantalla general
-    <div className="flex flex-col h-full w-full relative bg-transparent text-[#F5F7FA]">
+    <div className="relative flex h-full w-full flex-col bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.12),_transparent_28%),linear-gradient(180deg,_#f8fbff_0%,_#edf4ff_100%)] text-slate-900">
       
-      {/* Botón de Saltar */}
-      <div className="absolute top-4 right-4 md:top-6 md:right-8 z-50">
+      <div className="absolute top-4 right-4 z-50 md:top-6 md:right-8">
         <Link 
           href="/dashboard" 
-          className="text-xs md:text-sm font-semibold text-[#8994A6] hover:text-[#19C8E8] flex items-center gap-2 bg-[#1E293B]/30 hover:bg-[#1E293B] px-4 py-2 md:px-5 md:py-2.5 rounded-xl transition-all duration-300 border border-[#1E293B]/50 hover:border-[#19C8E8]/30"
+          className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-[#93c5fd] hover:text-[#1b5ed6] md:px-5 md:py-2.5 md:text-sm"
         >
           Ir al Panel
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </Link>
       </div>
-
-      {/* 🔥 EL RESORTE CENTRAL: Distribuye el espacio verticalmente */}
-      <div className="flex-1 w-full max-w-4xl mx-auto px-6 py-4 mt-8 md:mt-2 flex flex-col justify-center overflow-y-auto no-scrollbar">
+ 
+      <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center overflow-y-auto px-6 py-4 pt-12 md:mt-2 md:pt-10 no-scrollbar">
         
-        {/* Barra de progreso / Narrativa */}
         <div className="mb-6 md:mb-8">
-          <div className="flex items-center gap-3 text-[#8994A6] text-[10px] md:text-xs font-semibold tracking-widest uppercase mb-4 md:mb-6">
+          <div className="mb-4 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500 md:mb-6 md:text-xs">
             <span>Configuración de tu agente</span>
-            <span className="w-1 h-1 rounded-full bg-[#8994A6]"></span>
-            <span className="text-[#F5F7FA]">02 / 05</span>
+            <span className="h-1 w-1 rounded-full bg-slate-400"></span>
+            <span className="text-slate-900">02 / 05</span>
           </div>
           
-          <div className="flex gap-2 mb-6 md:mb-8">
-            <div className="h-1 flex-1 bg-[#9B5CFF] rounded-full"></div>
-            <div className="h-1 flex-1 bg-[#9B5CFF] rounded-full shadow-[0_0_15px_rgba(155,92,255,0.5)]"></div>
-            <div className="h-1 flex-1 bg-[#1E293B] rounded-full"></div>
-            <div className="h-1 flex-1 bg-[#1E293B] rounded-full"></div>
-            <div className="h-1 flex-1 bg-[#1E293B] rounded-full"></div>
+          <div className="mb-6 flex gap-2 md:mb-8">
+            <div className="h-1 flex-1 rounded-full bg-[#1b5ed6]"></div>
+            <div className="h-1 flex-1 rounded-full bg-[#1b5ed6]"></div>
+            <div className="h-1 flex-1 rounded-full bg-slate-200"></div>
+            <div className="h-1 flex-1 rounded-full bg-slate-200"></div>
+            <div className="h-1 flex-1 rounded-full bg-slate-200"></div>
           </div>
-
-          <div className="flex items-center gap-3 mb-2">
-            <BrainCircuit className="text-[#9B5CFF] h-6 w-6 md:h-8 md:w-8" />
-            <h1 className="text-2xl md:text-4xl font-bold tracking-tight">Personalidad y Tono</h1>
+ 
+          <div className="mb-2 flex items-center gap-3">
+            <BrainCircuit className="h-6 w-6 text-[#1b5ed6] md:h-8 md:w-8" />
+            <h1 className="text-2xl font-black tracking-[-0.05em] text-slate-900 md:text-4xl">Personalidad y Tono</h1>
           </div>
-          <p className="text-[#8994A6] text-xs md:text-base max-w-2xl">
+          <p className="max-w-2xl text-xs text-slate-600 md:text-base">
             Define la actitud exacta con la que tu asistente interactuará con tus clientes en cada conversación.
           </p>
         </div>
 
-        {/* Layout Principal: Sliders + Live Preview */}
-        <div className="grid lg:grid-cols-3 gap-5 md:gap-6 pb-4">
+        <div className="grid gap-5 pb-4 lg:grid-cols-3 md:gap-6">
           
-          {/* Contenedor de Sliders */}
-          <div className="lg:col-span-2 bg-[#0D1117] border border-[#1E293B] rounded-2xl p-5 md:p-6 space-y-5 md:space-y-6">
+          <div className="space-y-5 rounded-[28px] border border-slate-200 bg-white/80 p-5 shadow-[0_20px_40px_rgba(15,23,42,0.04)] md:p-6 md:space-y-6 lg:col-span-2">
             {sliders.map((slider) => {
               const valorActual = tonoWhatsapp[slider.key as keyof typeof tonoWhatsapp] ?? 50;
               return (
                 <div key={slider.key} className="space-y-2 md:space-y-3">
                   <div className="flex justify-between items-center">
-                    <label className="text-xs md:text-sm font-semibold text-[#F5F7FA]">{slider.label}</label>
-                    <span className="text-[#9B5CFF] font-mono bg-[#9B5CFF]/10 px-2.5 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-bold border border-[#9B5CFF]/20">
+                    <label className="text-xs font-semibold text-slate-800 md:text-sm">{slider.label}</label>
+                    <span className="rounded-full border border-[#dfeaff] bg-[#edf4ff] px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#1b5ed6] md:px-3 md:py-1 md:text-xs">
                       {valorActual}%
                     </span>
                   </div>
@@ -103,10 +92,10 @@ export default function Paso02Tonalidad() {
                     max="100"
                     value={valorActual}
                     onChange={(e) => setTonoWhatsapp({ [slider.key]: parseInt(e.target.value) })}
-                    className="w-full h-2 bg-[#07090C] rounded-lg appearance-none cursor-pointer accent-[#9B5CFF] border border-[#1E293B]"
+                    className="h-2 w-full cursor-pointer appearance-none rounded-lg border border-slate-200 bg-slate-100 accent-[#1b5ed6]"
                   />
                   
-                  <div className="flex justify-between text-[10px] md:text-[11px] text-[#8994A6] uppercase tracking-widest font-medium">
+                  <div className="flex justify-between text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500 md:text-[11px]">
                     <span>{slider.min}</span>
                     <span>{slider.max}</span>
                   </div>
@@ -115,23 +104,22 @@ export default function Paso02Tonalidad() {
             })}
           </div>
 
-          {/* Tarjeta de Previsualización en Vivo */}
           <div className="lg:col-span-1">
-            <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-5 md:p-6 shadow-xl flex flex-col justify-between h-full">
+            <div className="flex h-full flex-col justify-between rounded-[28px] border border-slate-200 bg-white/80 p-5 shadow-[0_20px_40px_rgba(15,23,42,0.04)] md:p-6">
               <div>
-                <div className="flex items-center gap-2 mb-3 pb-2 md:mb-4 md:pb-3 border-b border-[#1E293B]">
-                  <Sparkles className="h-4 w-4 text-[#9B5CFF]" />
-                  <h3 className="text-[10px] md:text-xs font-semibold uppercase tracking-widest text-[#8994A6]">Preview de Tono</h3>
+                <div className="mb-3 flex items-center gap-2 border-b border-slate-200 pb-2 md:mb-4 md:pb-3">
+                  <Sparkles className="h-4 w-4 text-[#1b5ed6]" />
+                  <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500 md:text-xs">Preview de Tono</h3>
                 </div>
-                <p className="text-[11px] md:text-xs text-[#8994A6] mb-3">Así responderá tu agente:</p>
+                <p className="mb-3 text-[11px] text-slate-500 md:text-xs">Así responderá tu agente:</p>
                 
-                <div className="bg-[#07090C] border border-[#1E293B] rounded-xl p-3.5 md:p-4 text-xs md:text-sm text-[#F5F7FA] leading-relaxed italic">
-                  "{getPreviewText()}"
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3.5 text-xs leading-relaxed italic text-slate-800 md:p-4 md:text-sm">
+                  &ldquo;{getPreviewText()}&rdquo;
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 md:mt-6 md:pt-4 border-t border-[#1E293B] flex items-center gap-2 text-[10px] md:text-xs text-[#8994A6]">
-                <MessageSquare size={14} className="text-[#9B5CFF]" /> Actualización en tiempo real
+              <div className="mt-4 flex items-center gap-2 border-t border-slate-200 pt-3 text-[10px] text-slate-500 md:mt-6 md:pt-4 md:text-xs">
+                <MessageSquare size={14} className="text-[#1b5ed6]" /> Actualización en tiempo real
               </div>
             </div>
           </div>
@@ -139,20 +127,19 @@ export default function Paso02Tonalidad() {
         </div>
       </div>
 
-      {/* 🔥 BARRA INFERIOR: Anclada (shrink-0) */}
-      <div className="shrink-0 w-full bg-[#07090C]/90 backdrop-blur-xl border-t border-[#1E293B] px-6 py-4 z-40">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
+      <div className="z-40 w-full shrink-0 border-t border-slate-200 bg-white/85 px-6 py-4 backdrop-blur-xl shadow-[0_-12px_35px_rgba(15,23,42,0.04)]">
+        <div className="mx-auto flex max-w-5xl items-center justify-between">
           <div>
-            <p className="text-[#8994A6] text-[10px] md:text-xs font-semibold uppercase tracking-wider mb-1">
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500 md:text-xs">
               Paso 2 completado
             </p>
-            <p className="text-base md:text-lg font-bold text-[#F5F7FA]">
+            <p className="text-base font-black tracking-[-0.04em] text-slate-900 md:text-lg">
               Personalidad calibrada
             </p>
           </div>
           <button 
             onClick={() => router.push('/dashboard/onboarding/personalizacion')}
-            className="bg-[#F5F7FA] text-[#07090C] px-6 py-2.5 md:px-8 md:py-3.5 rounded-xl font-bold hover:bg-[#E2E8F0] transition-colors flex items-center gap-2 text-sm md:text-base"
+            className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5 md:px-8 md:py-3.5"
           >
             Continuar <ArrowRight size={18} />
           </button>

@@ -91,10 +91,10 @@ export default function DrogueriasLandingPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Link href="/login" className="hidden rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 md:inline-flex">
+          <Link href="/login?segment=drogueria" className="hidden rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 md:inline-flex">
             Iniciar sesión
           </Link>
-          <Link href="/register?segment=drogueria" className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_20px_50px_rgba(15,23,42,0.18)] transition hover:-translate-y-0.5">
+          <Link href="/login?segment=drogueria" className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_20px_50px_rgba(15,23,42,0.18)] transition hover:-translate-y-0.5">
             Activar flujo droguería
             <ArrowRight className="h-4 w-4" />
           </Link>
@@ -119,7 +119,7 @@ export default function DrogueriasLandingPage() {
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link href="/register?segment=drogueria" className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-6 py-3.5 text-sm font-semibold text-white shadow-[0_20px_50px_rgba(15,23,42,0.18)] transition hover:-translate-y-0.5">
+                <Link href="/login?segment=drogueria" className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-6 py-3.5 text-sm font-semibold text-white shadow-[0_20px_50px_rgba(15,23,42,0.18)] transition hover:-translate-y-0.5">
                   Activar flujo droguería
                   <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -266,11 +266,11 @@ export default function DrogueriasLandingPage() {
               </div>
 
               <div className="flex flex-col gap-3 sm:flex-row">
-                <Link href="/register?segment=drogueria" className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5">
+                <Link href="/login?segment=drogueria" className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5">
                   Hablar con un especialista
                   <ArrowRight className="h-4 w-4" />
                 </Link>
-                <Link href="/login" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10">
+                <Link href="/login?segment=drogueria" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10">
                   Iniciar sesión
                 </Link>
               </div>
@@ -289,7 +289,7 @@ export default function DrogueriasLandingPage() {
 
         <div className="flex flex-wrap items-center gap-4">
           <Link href="/" className="transition hover:text-slate-900">Inicio</Link>
-          <Link href="/dashboard/onboarding?segment=drogueria" className="transition hover:text-slate-900">Onboarding</Link>
+          <Link href="/login?segment=drogueria" className="transition hover:text-slate-900">Onboarding</Link>
           <Link href="/login" className="transition hover:text-slate-900">Acceso</Link>
         </div>
       </footer>

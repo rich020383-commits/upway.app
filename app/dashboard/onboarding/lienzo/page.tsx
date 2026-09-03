@@ -65,45 +65,43 @@ function Paso01Infraestructura() {
 
   return (
     // 🚀 OJO AQUÍ: Le agregué "relative" al inicio de las clases
-    <main className="relative min-h-screen bg-[#07090C] text-[#F5F7FA] pb-32 font-sans selection:bg-[#19C8E8] selection:text-[#07090C]">
+    <main className="relative min-h-screen bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.12),_transparent_30%),linear-gradient(180deg,_#f8fbff_0%,_#edf4ff_100%)] text-slate-900 pb-32 font-sans selection:bg-[#1b5ed6] selection:text-white">
       
-      {/* 🚀 NUEVO BOTÓN DE SALTAR (Esquina superior derecha) */}
       <div className="absolute top-6 right-6 sm:top-8 sm:right-10 z-10">
         <Link 
           href="/dashboard" 
-          className="text-sm font-semibold text-[#8994A6] hover:text-[#19C8E8] flex items-center gap-2 bg-[#1E293B]/30 hover:bg-[#1E293B] px-5 py-2.5 rounded-xl transition-all duration-300 border border-[#1E293B]/50 hover:border-[#19C8E8]/30"
+          className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-[#93c5fd] hover:text-[#1b5ed6]"
         >
           Ir al Panel
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </Link>
       </div>
 
-      {/* Contenedor centralizado */}
-      <div className="max-w-4xl mx-auto px-6 pt-12 md:pt-20">
+      <div className="mx-auto max-w-5xl px-6 pt-12 md:pt-20">
         
         {/* Barra de progreso / Narrativa */}
         <div className="mb-12">
-          <div className="flex items-center gap-3 text-[#8994A6] text-xs font-semibold tracking-widest uppercase mb-6">
+          <div className="mb-6 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
             <span>Configuración de tu agente</span>
-            <span className="w-1 h-1 rounded-full bg-[#8994A6]"></span>
-            <span className="text-[#F5F7FA]">01 / 05</span>
-            <span className="ml-auto rounded-full border border-[#19C8E8]/30 bg-[#19C8E8]/10 px-2 py-1 text-[10px] font-semibold text-[#9be7ff]">
+            <span className="h-1 w-1 rounded-full bg-slate-400"></span>
+            <span className="text-slate-900">01 / 05</span>
+            <span className="ml-auto rounded-full border border-[#dfeaff] bg-[#edf4ff] px-2 py-1 text-[10px] font-semibold text-[#1b5ed6]">
               {activeSegment.label}
             </span>
           </div>
           
-          <div className="flex gap-2 mb-10">
-            <div className="h-1 flex-1 bg-[#19C8E8] rounded-full"></div>
-            <div className="h-1 flex-1 bg-[#1E293B] rounded-full"></div>
-            <div className="h-1 flex-1 bg-[#1E293B] rounded-full"></div>
-            <div className="h-1 flex-1 bg-[#1E293B] rounded-full"></div>
-            <div className="h-1 flex-1 bg-[#1E293B] rounded-full"></div>
+          <div className="mb-10 flex gap-2">
+            <div className="h-1 flex-1 rounded-full bg-[#1b5ed6]"></div>
+            <div className="h-1 flex-1 rounded-full bg-slate-200"></div>
+            <div className="h-1 flex-1 rounded-full bg-slate-200"></div>
+            <div className="h-1 flex-1 rounded-full bg-slate-200"></div>
+            <div className="h-1 flex-1 rounded-full bg-slate-200"></div>
           </div>
  
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">Infraestructura</h1>
-          <p className="text-[#8994A6] text-lg max-w-2xl">
+          <h1 className="mb-3 text-3xl font-black tracking-[-0.06em] text-slate-900 md:text-4xl">Infraestructura</h1>
+          <p className="max-w-2xl text-lg text-slate-600">
             {activeSegment.description}
           </p>
         </div>
@@ -118,41 +116,39 @@ function Paso01Infraestructura() {
               <div
                 key={m.id}
                 onClick={() => toggleModulo(m.id)}
-                className={`group cursor-pointer rounded-2xl p-6 border transition-all duration-200 flex flex-col justify-between ${
-                  seleccionado 
-                    ? 'bg-[#121821] border-[#19C8E8]' 
-                    : 'bg-[#0D1117] border-[#1E293B] hover:border-[#8994A6]/50'
+                className={`group flex cursor-pointer flex-col justify-between rounded-[28px] border p-6 transition-all duration-200 ${
+                  seleccionado
+                    ? 'border-[#93c5fd] bg-[#edf4ff] shadow-[0_18px_40px_rgba(30,64,175,0.08)]'
+                    : 'border-slate-200 bg-white/80 hover:border-slate-300 hover:shadow-[0_18px_40px_rgba(15,23,42,0.04)]'
                 }`}
               >
-                {/* Cabecera de la tarjeta */}
-                <div className="flex items-start gap-4 mb-6">
-                  <div className={`p-3 rounded-xl transition-colors ${
-                    seleccionado 
-                      ? 'bg-[#19C8E8]/10 text-[#19C8E8]' 
-                      : 'bg-[#1E293B]/50 text-[#8994A6] group-hover:text-[#F5F7FA]'
+                <div className="mb-6 flex items-start gap-4">
+                  <div className={`rounded-2xl p-3 transition-colors ${
+                    seleccionado
+                      ? 'bg-[#dfeaff] text-[#1b5ed6]'
+                      : 'bg-slate-100 text-slate-500 group-hover:text-slate-700'
                   }`}>
                     {m.icon}
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-[#F5F7FA] mb-1">{m.titulo}</h3>
-                    <p className="text-[#8994A6] text-sm leading-relaxed">{m.descripcion}</p>
+                    <h3 className="mb-1 text-lg font-bold tracking-[-0.04em] text-slate-900">{m.titulo}</h3>
+                    <p className="text-sm leading-relaxed text-slate-600">{m.descripcion}</p>
                   </div>
                 </div>
 
-                {/* Footer de la tarjeta (Precio y Acción) */}
-                <div className="flex items-center justify-between pt-4 border-t border-[#1E293B]/50">
-                  <div className="text-[#F5F7FA] font-medium">
+                <div className="flex items-center justify-between border-t border-slate-200 pt-4">
+                  <div className="font-semibold text-slate-900">
                     {esGratis ? (
-                      <span className="text-[#8994A6] text-sm">Incluido</span>
+                      <span className="text-sm text-slate-500">Incluido</span>
                     ) : (
-                      <span>{fmt(m.precio)} <span className="text-[#8994A6] text-sm font-normal">/ mes</span></span>
+                      <span>{fmt(m.precio)} <span className="text-sm font-normal text-slate-500">/ mes</span></span>
                     )}
                   </div>
-                  
-                  <div className={`text-sm font-semibold px-4 py-2 rounded-lg transition-all flex items-center gap-2 ${
-                    seleccionado 
-                      ? 'text-[#19C8E8]' 
-                      : 'text-[#8994A6] bg-[#1E293B]/30 group-hover:bg-[#1E293B]'
+                   
+                  <div className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all ${
+                    seleccionado
+                      ? 'bg-[#dfeaff] text-[#1b5ed6]'
+                      : 'bg-slate-100 text-slate-600 group-hover:bg-slate-200'
                   }`}>
                     {seleccionado ? (
                       <><Check size={16} strokeWidth={3} /> Activado</>
@@ -168,20 +164,20 @@ function Paso01Infraestructura() {
       </div>
 
       {/* Barra Inferior Persistente (Clear CTA) */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#07090C]/80 backdrop-blur-xl border-t border-[#1E293B] p-6 z-50">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
+      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/85 backdrop-blur-xl p-6 shadow-[0_-12px_35px_rgba(15,23,42,0.04)]">
+        <div className="mx-auto flex max-w-5xl items-center justify-between">
           <div>
-            <p className="text-[#8994A6] text-xs font-semibold uppercase tracking-wider mb-1">
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
               Inversión mensual
             </p>
-            <p className="text-3xl md:text-4xl font-bold text-[#F5F7FA]">
+            <p className="text-3xl font-black tracking-[-0.06em] text-slate-900 md:text-4xl">
               {fmt(totalMensual)}
             </p>
           </div>
           <button 
-            onClick={() => router.push('/dashboard/onboarding/tonalidad')} // Ajusta la ruta al Paso 02 si es diferente
+            onClick={() => router.push('/dashboard/onboarding/tonalidad')}
             disabled={totalMensual === 0}
-            className="bg-[#F5F7FA] text-[#07090C] px-8 py-3.5 rounded-xl font-bold hover:bg-[#E2E8F0] transition-colors disabled:opacity-20 flex items-center gap-2"
+            className="flex items-center gap-2 rounded-full bg-slate-900 px-8 py-3.5 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5 disabled:opacity-20"
           >
             Continuar <ArrowRight size={18} />
           </button>

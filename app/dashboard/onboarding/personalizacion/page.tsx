@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Store, Mic2, ArrowRight, Terminal, User, Sparkles, Phone, Bot } from 'lucide-react';
+import React from 'react';
+import { Mic2, ArrowRight, Terminal, User, Sparkles, Phone, Bot, Store } from 'lucide-react';
 import { useUpwayStore } from '../../../store/upwayStore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -18,9 +18,6 @@ export default function Paso03Personalizacion() {
     telefonoAdmin, setTelefonoAdmin 
   } = useUpwayStore();
 
-  const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => setIsMounted(true), []);
-
   const getMensajePrueba = () => {
     const nombre = nombreAgente.trim() || 'tu asistente virtual';
     let empresa = 'nuestra empresa';
@@ -30,91 +27,86 @@ export default function Paso03Personalizacion() {
     return `Hola, soy ${nombre} de ${empresa}. Estoy aquí para ayudarte a gestionar tus pedidos, agendar citas o resolver cualquier duda que tengas. ¿En qué te puedo colaborar hoy?`;
   };
 
-  if (!isMounted) return null;
-
   return (
-    <div className="flex flex-col h-full w-full relative bg-transparent text-[#F5F7FA]">
+    <div className="relative flex h-full w-full flex-col bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.12),_transparent_28%),linear-gradient(180deg,_#f8fbff_0%,_#edf4ff_100%)] text-slate-900">
       
-      {/* Botón de Saltar */}
-      <div className="absolute top-4 right-4 md:top-6 md:right-8 z-50">
+      <div className="absolute top-4 right-4 z-50 md:top-6 md:right-8">
         <Link 
           href="/dashboard" 
-          className="text-xs md:text-sm font-semibold text-[#8994A6] hover:text-[#19C8E8] flex items-center gap-2 bg-[#1E293B]/30 hover:bg-[#1E293B] px-4 py-2 md:px-5 md:py-2.5 rounded-xl transition-all duration-300 border border-[#1E293B]/50 hover:border-[#19C8E8]/30"
+          className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-[#93c5fd] hover:text-[#1b5ed6] md:px-5 md:py-2.5 md:text-sm"
         >
           Ir al Panel
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </Link>
       </div>
-
-      <div className="flex-1 w-full max-w-6xl mx-auto px-6 py-4 mt-8 md:mt-4 overflow-y-auto no-scrollbar">
+ 
+      <div className="mx-auto flex w-full max-w-6xl flex-1 overflow-y-auto px-6 py-4 pt-12 md:mt-4 md:pt-10 no-scrollbar">
         
-        {/* Barra de progreso / Narrativa */}
-        <div className="mb-8 md:mb-10">
-          <div className="flex items-center gap-3 text-[#8994A6] text-[10px] md:text-xs font-semibold tracking-widest uppercase mb-4 md:mb-6">
+        <div className="mb-8 w-full md:mb-10">
+          <div className="mb-4 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500 md:mb-6 md:text-xs">
             <span>Configuración de tu agente</span>
-            <span className="w-1 h-1 rounded-full bg-[#8994A6]"></span>
-            <span className="text-[#F5F7FA]">03 / 05</span>
+            <span className="h-1 w-1 rounded-full bg-slate-400"></span>
+            <span className="text-slate-900">03 / 05</span>
           </div>
           
-          <div className="flex gap-2 mb-6 md:mb-8 max-w-4xl">
-            <div className="h-1 flex-1 bg-[#9B5CFF] rounded-full"></div>
-            <div className="h-1 flex-1 bg-[#9B5CFF] rounded-full"></div>
-            <div className="h-1 flex-1 bg-[#9B5CFF] rounded-full"></div>
-            <div className="h-1 flex-1 bg-[#1E293B] rounded-full"></div>
-            <div className="h-1 flex-1 bg-[#1E293B] rounded-full"></div>
+          <div className="mb-6 flex max-w-4xl gap-2 md:mb-8">
+            <div className="h-1 flex-1 rounded-full bg-[#1b5ed6]"></div>
+            <div className="h-1 flex-1 rounded-full bg-[#1b5ed6]"></div>
+            <div className="h-1 flex-1 rounded-full bg-[#1b5ed6]"></div>
+            <div className="h-1 flex-1 rounded-full bg-slate-200"></div>
+            <div className="h-1 flex-1 rounded-full bg-slate-200"></div>
           </div>
-
-          <h1 className="text-2xl md:text-4xl font-bold tracking-tight mb-2 md:mb-3">Identidad del Agente</h1>
-          <p className="text-[#8994A6] text-sm md:text-base max-w-2xl">
+ 
+          <h1 className="mb-2 text-2xl font-black tracking-[-0.05em] text-slate-900 md:mb-3 md:text-4xl">Identidad del Agente</h1>
+          <p className="max-w-2xl text-sm text-slate-600 md:text-base">
             Bautiza a tu empleado digital y define su marco operativo. Esta será la cara visible frente a tus clientes.
           </p>
         </div>
 
-        {/* Layout de dos columnas */}
-        <div className="grid lg:grid-cols-5 gap-6 lg:gap-10 pb-6">
+        <div className="grid gap-6 pb-6 lg:grid-cols-5 lg:gap-10">
           
           {/* COLUMNA IZQUIERDA: Formulario */}
           <div className="lg:col-span-3 space-y-5 md:space-y-6">
             
             {/* Card: Perfil Básico */}
-            <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-5 md:p-6">
-              <h3 className="text-base md:text-lg font-semibold mb-4 md:mb-6 flex items-center gap-2">
-                <User className="text-[#9B5CFF] h-5 w-5" /> Perfil Público
+            <div className="rounded-[28px] border border-slate-200 bg-white/80 p-5 shadow-[0_20px_40px_rgba(15,23,42,0.04)] md:p-6">
+              <h3 className="mb-4 flex items-center gap-2 text-base font-bold tracking-[-0.04em] text-slate-900 md:mb-6 md:text-lg">
+                <User className="h-5 w-5 text-[#1b5ed6]" /> Perfil Público
               </h3>
               
-              <div className="grid md:grid-cols-2 gap-5 md:gap-6">
+              <div className="grid gap-5 md:grid-cols-2 md:gap-6">
                 <div>
-                  <label className="block font-medium text-[#8994A6] mb-2 uppercase tracking-wider text-[10px] md:text-xs">Nombre del Negocio</label>
+                  <label className="mb-2 block text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500 md:text-xs">Nombre del Negocio</label>
                   <input 
                     type="text" 
                     value={nombreNegocio} 
                     onChange={(e) => setNombreNegocio(e.target.value)} 
                     placeholder="Ej. Clínica Selecta" 
-                    className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3 text-sm text-[#F5F7FA] placeholder-[#8994A6]/50 outline-none transition-all focus:border-[#9B5CFF] focus:ring-1 focus:ring-[#9B5CFF]" 
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-[#93c5fd] focus:ring-4 focus:ring-[#dfeaff]" 
                   />
                 </div>
 
                 <div>
-                  <label className="block font-medium text-[#8994A6] mb-2 uppercase tracking-wider text-[10px] md:text-xs">Nombre del Asistente</label>
+                  <label className="mb-2 block text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500 md:text-xs">Nombre del Asistente</label>
                   <input 
                     type="text" 
                     value={nombreAgente} 
                     onChange={(e) => setNombreAgente(e.target.value)} 
                     placeholder="Ej. Sofía" 
-                    className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3 text-sm text-[#F5F7FA] placeholder-[#8994A6]/50 outline-none transition-all focus:border-[#9B5CFF] focus:ring-1 focus:ring-[#9B5CFF]" 
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-[#93c5fd] focus:ring-4 focus:ring-[#dfeaff]" 
                   />
                 </div>
                 
                 <div>
-                  <label className="block font-medium text-[#8994A6] mb-2 uppercase tracking-wider text-[10px] md:text-xs">Industria</label>
+                  <label className="mb-2 block text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500 md:text-xs">Industria</label>
                   <div className="relative">
-                    <Store className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8994A6]" />
+                    <Store className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <select 
                       value={nicho} 
                       onChange={(e) => setNicho(e.target.value)}
-                      className="w-full appearance-none rounded-xl border border-[#1E293B] bg-[#07090C] pl-10 pr-4 py-3 text-sm text-[#F5F7FA] outline-none transition-all focus:border-[#9B5CFF] focus:ring-1 focus:ring-[#9B5CFF] cursor-pointer"
+                      className="w-full cursor-pointer appearance-none rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-3 text-sm text-slate-900 outline-none transition-all focus:border-[#93c5fd] focus:ring-4 focus:ring-[#dfeaff]"
                     >
                       <option value="general">Empresa General (Servicios)</option>
                       <option value="restaurante">Restaurante / Comidas</option>
@@ -126,50 +118,50 @@ export default function Paso03Personalizacion() {
             </div>
 
             {/* Card: Notificación Handoff */}
-            <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-5 md:p-6">
-              <h3 className="text-base md:text-lg font-semibold mb-2 flex items-center gap-2">
-                <Phone className="text-[#9B5CFF] h-5 w-5" /> Notificaciones de Humano (Handoff)
+            <div className="rounded-[28px] border border-slate-200 bg-white/80 p-5 shadow-[0_20px_40px_rgba(15,23,42,0.04)] md:p-6">
+              <h3 className="mb-2 flex items-center gap-2 text-base font-bold tracking-[-0.04em] text-slate-900 md:text-lg">
+                <Phone className="h-5 w-5 text-[#1b5ed6]" /> Notificaciones de Humano (Handoff)
               </h3>
-              <p className="text-[#8994A6] text-xs md:text-sm mb-4 md:mb-5">
+              <p className="mb-4 text-xs text-slate-600 md:mb-5 md:text-sm">
                 Ingresa tu número de WhatsApp para recibir alertas cuando un cliente requiera intervención humana.
               </p>
               
               <div>
-                <label className="block font-medium text-[#8994A6] mb-2 uppercase tracking-wider text-[10px] md:text-xs">Celular del Admin (con código de país)</label>
+                <label className="mb-2 block text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500 md:text-xs">Celular del Admin (con código de país)</label>
                 <input 
                   type="text" 
                   value={telefonoAdmin || ''} 
                   onChange={(e) => setTelefonoAdmin(e.target.value)} 
                   placeholder="Ej. +573001234567" 
-                  className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3 text-sm text-[#F5F7FA] placeholder-[#8994A6]/50 outline-none transition-all focus:border-[#9B5CFF] focus:ring-1 focus:ring-[#9B5CFF]" 
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-[#93c5fd] focus:ring-4 focus:ring-[#dfeaff]" 
                 />
               </div>
             </div>
 
             {/* Card: Voz (Condicional) */}
             {modulosSeleccionados.includes('voz') && (
-              <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-5 md:p-6">
-                <h3 className="text-base md:text-lg font-semibold mb-4 md:mb-5 flex items-center gap-2">
-                  <Mic2 className="text-[#9B5CFF] h-5 w-5" /> Síntesis de Voz
+              <div className="rounded-[28px] border border-slate-200 bg-white/80 p-5 shadow-[0_20px_40px_rgba(15,23,42,0.04)] md:p-6">
+                <h3 className="mb-4 flex items-center gap-2 text-base font-bold tracking-[-0.04em] text-slate-900 md:mb-5 md:text-lg">
+                  <Mic2 className="h-5 w-5 text-[#1b5ed6]" /> Síntesis de Voz
                 </h3>
-                <label className="block font-medium text-[#8994A6] mb-3 uppercase tracking-wider text-[10px] md:text-xs">Género de la IA Telefónica</label>
+                <label className="mb-3 block text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500 md:text-xs">Género de la IA Telefónica</label>
                 <div className="flex gap-3 md:gap-4">
                   <button 
                     onClick={() => setVozSeleccionada('femenina')}
-                    className={`flex-1 py-3 rounded-xl border transition-all font-medium text-xs md:text-sm ${
+                    className={`flex-1 rounded-2xl border py-3 text-xs font-semibold transition-all md:text-sm ${
                       vozSeleccionada === 'femenina' 
-                        ? 'bg-[#9B5CFF]/10 border-[#9B5CFF] text-[#9B5CFF]' 
-                        : 'bg-[#07090C] border-[#1E293B] text-[#8994A6] hover:border-[#8994A6]/50'
+                        ? 'border-[#93c5fd] bg-[#edf4ff] text-[#1b5ed6]' 
+                        : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300'
                     }`}
                   >
                     Femenina
                   </button>
                   <button 
                     onClick={() => setVozSeleccionada('masculina')}
-                    className={`flex-1 py-3 rounded-xl border transition-all font-medium text-xs md:text-sm ${
+                    className={`flex-1 rounded-2xl border py-3 text-xs font-semibold transition-all md:text-sm ${
                       vozSeleccionada === 'masculina' 
-                        ? 'bg-[#9B5CFF]/10 border-[#9B5CFF] text-[#9B5CFF]' 
-                        : 'bg-[#07090C] border-[#1E293B] text-[#8994A6] hover:border-[#8994A6]/50'
+                        ? 'border-[#93c5fd] bg-[#edf4ff] text-[#1b5ed6]' 
+                        : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300'
                     }`}
                   >
                     Masculina
@@ -178,30 +170,28 @@ export default function Paso03Personalizacion() {
               </div>
             )}
 
-            {/* Card: Instrucciones Maestro */}
-            <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-5 md:p-6">
-              <div className="flex justify-between items-center mb-4 md:mb-5">
-                <h3 className="text-base md:text-lg font-semibold flex items-center gap-2">
-                  <Terminal className="text-[#9B5CFF] h-5 w-5" /> Core Operativo
+            <div className="rounded-[28px] border border-slate-200 bg-white/80 p-5 shadow-[0_20px_40px_rgba(15,23,42,0.04)] md:p-6">
+              <div className="mb-4 flex items-center justify-between md:mb-5">
+                <h3 className="flex items-center gap-2 text-base font-bold tracking-[-0.04em] text-slate-900 md:text-lg">
+                  <Terminal className="h-5 w-5 text-[#1b5ed6]" /> Core Operativo
                 </h3>
-                <span className="text-[9px] md:text-[10px] uppercase tracking-wider font-bold text-[#9B5CFF] bg-[#9B5CFF]/10 px-2 py-1 rounded-md border border-[#9B5CFF]/20">Prompt Maestro</span>
+                <span className="rounded-md border border-[#dfeaff] bg-[#edf4ff] px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-[#1b5ed6] md:text-[10px]">Prompt Maestro</span>
               </div>
 
-              {/* 🔥 BANNER DE AYUDA SOPHIE */}
-              <div className="mb-5 bg-gradient-to-r from-[#9B5CFF]/10 to-transparent border border-[#9B5CFF]/30 rounded-xl p-4 flex gap-3 items-start">
-                <Bot className="text-[#9B5CFF] h-5 w-5 shrink-0 mt-0.5" />
-                <div className="text-xs md:text-sm text-[#8994A6] leading-relaxed">
-                  <strong className="text-[#F5F7FA]">¿No sabes cómo estructurar tu prompt?</strong><br/>
+              <div className="mb-5 flex items-start gap-3 rounded-2xl border border-[#dfeaff] bg-gradient-to-r from-[#edf4ff] to-transparent p-4">
+                <Bot className="mt-0.5 h-5 w-5 shrink-0 text-[#1b5ed6]" />
+                <div className="text-xs leading-relaxed text-slate-600 md:text-sm">
+                  <strong className="text-slate-900">¿No sabes cómo estructurar tu prompt?</strong><br/>
                   Abre el chat con <strong>Sophie</strong> (en el botón flotante) y dile de qué trata tu negocio. Ella escribirá el código maestro optimizado por ti. También puedes preguntarle cualquier duda sobre estos pasos de activación.
                 </div>
               </div>
 
-              <label className="block font-medium text-[#8994A6] mb-2 uppercase tracking-wider text-[10px] md:text-xs">Instrucciones de comportamiento</label>
+              <label className="mb-2 block text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500 md:text-xs">Instrucciones de comportamiento</label>
               <textarea 
                 value={promptMaestro} 
                 onChange={(e) => setPromptMaestro(e.target.value)} 
                 placeholder="Ej: Eres un vendedor experto. Tu objetivo es agendar citas, responder amablemente y nunca ofrecer descuentos no autorizados..." 
-                className="h-32 md:h-40 w-full resize-none rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3 text-sm text-[#F5F7FA] placeholder-[#8994A6]/50 outline-none transition-all focus:border-[#9B5CFF] focus:ring-1 focus:ring-[#9B5CFF]" 
+                className="h-32 w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-[#93c5fd] focus:ring-4 focus:ring-[#dfeaff] md:h-40" 
               />
             </div>
 
@@ -209,25 +199,25 @@ export default function Paso03Personalizacion() {
 
           {/* COLUMNA DERECHA: Live Preview Sticky */}
           <div className="lg:col-span-2">
-            <div className="sticky top-4 bg-[#0D1117] border border-[#1E293B] rounded-2xl p-5 md:p-6 shadow-2xl">
-              <div className="flex items-center gap-2 mb-5 border-b border-[#1E293B] pb-3 md:pb-4">
-                <Sparkles className="h-4 w-4 text-[#9B5CFF]" />
-                <h3 className="text-xs md:text-sm font-semibold uppercase tracking-widest text-[#8994A6]">Vista Previa</h3>
+            <div className="sticky top-4 rounded-[28px] border border-slate-200 bg-white/80 p-5 shadow-[0_24px_60px_rgba(15,23,42,0.08)] md:p-6">
+              <div className="mb-5 flex items-center gap-2 border-b border-slate-200 pb-3 md:pb-4">
+                <Sparkles className="h-4 w-4 text-[#1b5ed6]" />
+                <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 md:text-sm">Vista Previa</h3>
               </div>
-              
-              <div className="bg-[#07090C] border border-[#1E293B]/50 rounded-xl p-4 min-h-[160px] md:min-h-[200px] flex flex-col justify-end">
-                <div className="flex gap-3 items-end">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#9B5CFF] to-[#19C8E8] flex items-center justify-center flex-shrink-0 shadow-lg">
+               
+              <div className="flex min-h-[160px] flex-col justify-end rounded-[20px] border border-slate-200 bg-slate-50 p-4 md:min-h-[200px]">
+                <div className="flex items-end gap-3">
+                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#1b5ed6] to-[#60a5fa] shadow-lg">
                     <User className="h-4 w-4 text-white" />
                   </div>
-                  <div className="bg-[#1E293B]/50 border border-[#1E293B] rounded-2xl rounded-bl-none p-3 md:p-4 text-xs md:text-sm text-[#F5F7FA] leading-relaxed shadow-sm">
+                  <div className="rounded-2xl rounded-bl-none border border-slate-200 bg-white p-3 text-xs leading-relaxed text-slate-800 shadow-sm md:p-4 md:text-sm">
                     {getMensajePrueba()}
                   </div>
                 </div>
               </div>
 
-              <div className="mt-4 md:mt-5 text-center">
-                <p className="text-[10px] md:text-xs text-[#8994A6]">Así interactuará {nombreAgente || 'tu IA'} con tus clientes.</p>
+              <div className="mt-4 text-center md:mt-5">
+                <p className="text-[10px] text-slate-500 md:text-xs">Así interactuará {nombreAgente || 'tu IA'} con tus clientes.</p>
               </div>
             </div>
           </div>

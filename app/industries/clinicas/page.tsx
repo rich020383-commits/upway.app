@@ -93,7 +93,7 @@ export default function ClinicasLandingPage() {
             Iniciar sesión
           </Link>
           <Link
-            href="/health/onboarding"
+            href="/login?segment=health"
             className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_20px_50px_rgba(15,23,42,0.18)] transition hover:-translate-y-0.5"
           >
             Diseñemos tu flujo de salud
@@ -122,7 +122,7 @@ export default function ClinicasLandingPage() {
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href="/health/onboarding"
+                  href="/login?segment=health"
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-6 py-3.5 text-sm font-semibold text-white shadow-[0_20px_50px_rgba(15,23,42,0.18)] transition hover:-translate-y-0.5"
                 >
                   Diseñemos tu flujo de salud
@@ -285,14 +285,14 @@ export default function ClinicasLandingPage() {
 
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href="/health/onboarding"
+                  href="/login?segment=health"
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5"
                 >
                   Hablar con un especialista
                   <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
-                  href="/login"
+                  href="/login?segment=health"
                   className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10"
                 >
                   Iniciar sesión
@@ -313,7 +313,7 @@ export default function ClinicasLandingPage() {
 
         <div className="flex flex-wrap items-center gap-4">
           <Link href="/" className="transition hover:text-slate-900">Inicio</Link>
-          <Link href="/health/onboarding" className="transition hover:text-slate-900">Onboarding</Link>
+          <Link href="/login?segment=health" className="transition hover:text-slate-900">Onboarding</Link>
           <Link href="/login" className="transition hover:text-slate-900">Acceso</Link>
         </div>
       </footer>
