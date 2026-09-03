@@ -68,9 +68,17 @@ export default function LandingPage() {
                 Ver soluciones
               </a>
             </div>
+
+            <div className="flex flex-wrap items-center gap-3 pt-4">
+              {['Atención', 'Ventas', 'Agenda', 'Triage', 'Operación'].map((tag, i) => (
+                <span key={i} className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-bold text-slate-600 shadow-sm">
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
 
-          {/* Columna Derecha: El Command Center con Sophie v2 (Video Animado) */}
+          {/* Columna Derecha: El Command Center con Sophie v2 (Video Animado Prominente) */}
           <div className="lg:col-span-6">
             <div className="relative rounded-[32px] border border-slate-800 bg-[#0A0D14] p-6 shadow-[0_30px_70px_rgba(15,23,42,0.2)] text-white">
               
@@ -83,23 +91,9 @@ export default function LandingPage() {
                 <span className="text-xs font-mono text-slate-400">24/7 AI Engine</span>
               </div>
 
-              {/* Estadísticas en vivo */}
-              <div className="grid grid-cols-2 gap-4 my-6">
-                <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5">
-                  <p className="text-xs font-semibold text-slate-400 mb-1">ATENCIONES</p>
-                  <p className="text-3xl font-black tracking-tight text-white">+38%</p>
-                  <p className="text-[11px] text-slate-400 mt-1">respuestas más rápidas</p>
-                </div>
-                <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5">
-                  <p className="text-xs font-semibold text-slate-400 mb-1">CARGA</p>
-                  <p className="text-3xl font-black tracking-tight text-white">-42%</p>
-                  <p className="text-[11px] text-slate-400 mt-1">manual de atención</p>
-                </div>
-              </div>
-
-              {/* Integración del Video de Sophie v2 */}
-              <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 mb-6 p-3.5 flex items-center gap-4 shadow-inner">
-                <div className="relative h-16 w-16 shrink-0 rounded-xl overflow-hidden border border-slate-800 bg-slate-900">
+              {/* INTEGRACIÓN PRINCIPAL DE SOPHIE V2 (VIDEO ANIMADO DESTACADO) */}
+              <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 my-6 p-4 flex items-center gap-5 shadow-inner">
+                <div className="relative h-20 w-20 shrink-0 rounded-2xl overflow-hidden border border-slate-700 bg-slate-900 shadow-md">
                   <video 
                     src="/sophie-animada.webm" 
                     autoPlay 
@@ -110,12 +104,26 @@ export default function LandingPage() {
                   />
                 </div>
                 <div>
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-cyan-400 mb-0.5">
-                    <Sparkles size={12} /> Sophie v2 Activa
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-cyan-400 mb-1">
+                    <Sparkles size={14} /> Sophie v2 • Empleado Digital
                   </div>
-                  <p className="text-xs text-slate-300 leading-snug">
-                    Orquestando llamadas, chats y triage clínico en tiempo real con contexto de negocio.
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Orquestando llamadas, chats y flujos clínicos en tiempo real con contexto de negocio absoluto.
                   </p>
+                </div>
+              </div>
+
+              {/* Estadísticas en vivo */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5">
+                  <p className="text-xs font-semibold text-slate-400 mb-1">ATENCIONES</p>
+                  <p className="text-3xl font-black tracking-tight text-white">+38%</p>
+                  <p className="text-[11px] text-slate-400 mt-1">respuestas más rápidas</p>
+                </div>
+                <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5">
+                  <p className="text-xs font-semibold text-slate-400 mb-1">CARGA</p>
+                  <p className="text-3xl font-black tracking-tight text-white">-42%</p>
+                  <p className="text-[11px] text-slate-400 mt-1">manual de atención</p>
                 </div>
               </div>
 
