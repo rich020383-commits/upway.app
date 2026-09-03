@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { BrainCircuit, ArrowRight, Sparkles, MessageSquare } from 'lucide-react';
 import { useUpwayStore } from '../../../store/upwayStore'; 
 import { useRouter } from 'next/navigation';
@@ -9,9 +9,6 @@ import Link from 'next/link';
 export default function Paso02Tonalidad() {
   const router = useRouter();
   const { tonoWhatsapp, setTonoWhatsapp } = useUpwayStore();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => setIsMounted(true), []);
 
   const sliders = [
     { key: 'formalidad', label: 'Formalidad', min: 'Casual', max: 'Profesional' },
@@ -34,79 +31,78 @@ export default function Paso02Tonalidad() {
     return "Hola. Claro que sí, puedo ayudarte con eso. Tenemos disponibilidad para mañana a las 3:00 p. m. ¿Quieres que reservemos el espacio?";
   };
 
-  if (!isMounted) return null;
-
   return (
-    // 🔥 EL CASCARÓN: h-full y flex-col congelan la pantalla general
-    <div className="flex flex-col h-full w-full relative bg-transparent text-[#F5F7FA]">
-      
-      {/* Botón de Saltar */}
-      <div className="absolute top-4 right-4 md:top-6 md:right-8 z-50">
-        <Link 
-          href="/dashboard" 
-          className="text-xs md:text-sm font-semibold text-[#8994A6] hover:text-[#19C8E8] flex items-center gap-2 bg-[#1E293B]/30 hover:bg-[#1E293B] px-4 py-2 md:px-5 md:py-2.5 rounded-xl transition-all duration-300 border border-[#1E293B]/50 hover:border-[#19C8E8]/30"
-        >
-          Ir al Panel
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </Link>
-      </div>
+    <main className="relative min-h-screen bg-[radial-gradient(circle_at_top,_rgba(27,94,214,0.12),_transparent_28%),linear-gradient(180deg,_#f7faff_0%,_#eef5ff_100%)] pb-28 text-slate-900 selection:bg-[#1b5ed6]/25">
+      <div className="absolute inset-0 opacity-40" style={{ backgroundImage: 'linear-gradient(rgba(148,163,184,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.08) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
 
-      {/* 🔥 EL RESORTE CENTRAL: Distribuye el espacio verticalmente */}
-      <div className="flex-1 w-full max-w-4xl mx-auto px-6 py-4 mt-8 md:mt-2 flex flex-col justify-center overflow-y-auto no-scrollbar">
-        
-        {/* Barra de progreso / Narrativa */}
-        <div className="mb-6 md:mb-8">
-          <div className="flex items-center gap-3 text-[#8994A6] text-[10px] md:text-xs font-semibold tracking-widest uppercase mb-4 md:mb-6">
+      <div className="relative z-10 mx-auto max-w-6xl px-6 pt-10 md:px-10">
+        <header className="mb-8 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <BrainCircuit className="h-5 w-5 text-[#1b5ed6]" />
+            </div>
+            <div>
+              <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">Upway</div>
+              <div className="text-lg font-black tracking-[-0.05em] text-slate-900">Business</div>
+            </div>
+          </div>
+
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+          >
+            Ir al panel
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </header>
+
+        <section className="rounded-[32px] border border-slate-200 bg-white/80 p-6 shadow-[0_30px_80px_rgba(15,23,42,0.08)] backdrop-blur-sm md:p-8">
+          <div className="mb-8 flex items-center gap-3 text-[11px] font-mono uppercase tracking-[0.22em] text-slate-500">
             <span>Configuración de tu agente</span>
-            <span className="w-1 h-1 rounded-full bg-[#8994A6]"></span>
-            <span className="text-[#F5F7FA]">02 / 05</span>
-          </div>
-          
-          <div className="flex gap-2 mb-6 md:mb-8">
-            <div className="h-1 flex-1 bg-[#9B5CFF] rounded-full"></div>
-            <div className="h-1 flex-1 bg-[#9B5CFF] rounded-full shadow-[0_0_15px_rgba(155,92,255,0.5)]"></div>
-            <div className="h-1 flex-1 bg-[#1E293B] rounded-full"></div>
-            <div className="h-1 flex-1 bg-[#1E293B] rounded-full"></div>
-            <div className="h-1 flex-1 bg-[#1E293B] rounded-full"></div>
+            <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+            <span className="font-semibold text-slate-900">02 / 05</span>
           </div>
 
-          <div className="flex items-center gap-3 mb-2">
-            <BrainCircuit className="text-[#9B5CFF] h-6 w-6 md:h-8 md:w-8" />
-            <h1 className="text-2xl md:text-4xl font-bold tracking-tight">Personalidad y Tono</h1>
+          <div className="mb-8 flex gap-2">
+            <div className="h-1.5 flex-1 rounded-full bg-[#1b5ed6]" />
+            <div className="h-1.5 flex-1 rounded-full bg-[#1b5ed6]" />
+            <div className="h-1.5 flex-1 rounded-full bg-slate-200" />
+            <div className="h-1.5 flex-1 rounded-full bg-slate-200" />
+            <div className="h-1.5 flex-1 rounded-full bg-slate-200" />
           </div>
-          <p className="text-[#8994A6] text-xs md:text-base max-w-2xl">
-            Define la actitud exacta con la que tu asistente interactuará con tus clientes en cada conversación.
-          </p>
-        </div>
 
-        {/* Layout Principal: Sliders + Live Preview */}
-        <div className="grid lg:grid-cols-3 gap-5 md:gap-6 pb-4">
-          
-          {/* Contenedor de Sliders */}
-          <div className="lg:col-span-2 bg-[#0D1117] border border-[#1E293B] rounded-2xl p-5 md:p-6 space-y-5 md:space-y-6">
+          <div className="max-w-3xl">
+            <h1 className="text-4xl font-black leading-[0.96] tracking-[-0.06em] text-slate-900 md:text-5xl">Personalidad y tono</h1>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 md:text-lg">
+              Define la actitud exacta con la que tu asistente interactuará con tus clientes en cada conversación.
+            </p>
+          </div>
+        </section>
+
+        <section className="mt-8 grid gap-5 lg:grid-cols-[1.6fr_0.9fr]">
+          <div className="space-y-5 rounded-[28px] border border-slate-200 bg-white/80 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.04)] md:p-6">
             {sliders.map((slider) => {
               const valorActual = tonoWhatsapp[slider.key as keyof typeof tonoWhatsapp] ?? 50;
+
               return (
-                <div key={slider.key} className="space-y-2 md:space-y-3">
-                  <div className="flex justify-between items-center">
-                    <label className="text-xs md:text-sm font-semibold text-[#F5F7FA]">{slider.label}</label>
-                    <span className="text-[#9B5CFF] font-mono bg-[#9B5CFF]/10 px-2.5 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-bold border border-[#9B5CFF]/20">
+                <div key={slider.key} className="space-y-3 rounded-[22px] border border-slate-200 bg-slate-50/80 p-4 md:p-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <label className="text-sm font-semibold text-slate-800">{slider.label}</label>
+                    <span className="inline-flex items-center rounded-full border border-[#dfeaff] bg-[#edf4ff] px-2.5 py-1 text-[10px] font-mono uppercase tracking-[0.18em] text-[#1b5ed6]">
                       {valorActual}%
                     </span>
                   </div>
-                  
+
                   <input
                     type="range"
                     min="0"
                     max="100"
                     value={valorActual}
                     onChange={(e) => setTonoWhatsapp({ [slider.key]: parseInt(e.target.value) })}
-                    className="w-full h-2 bg-[#07090C] rounded-lg appearance-none cursor-pointer accent-[#9B5CFF] border border-[#1E293B]"
+                    className="h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-200 accent-[#1b5ed6]"
                   />
-                  
-                  <div className="flex justify-between text-[10px] md:text-[11px] text-[#8994A6] uppercase tracking-widest font-medium">
+
+                  <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
                     <span>{slider.min}</span>
                     <span>{slider.max}</span>
                   </div>
@@ -115,50 +111,41 @@ export default function Paso02Tonalidad() {
             })}
           </div>
 
-          {/* Tarjeta de Previsualización en Vivo */}
-          <div className="lg:col-span-1">
-            <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-5 md:p-6 shadow-xl flex flex-col justify-between h-full">
-              <div>
-                <div className="flex items-center gap-2 mb-3 pb-2 md:mb-4 md:pb-3 border-b border-[#1E293B]">
-                  <Sparkles className="h-4 w-4 text-[#9B5CFF]" />
-                  <h3 className="text-[10px] md:text-xs font-semibold uppercase tracking-widest text-[#8994A6]">Preview de Tono</h3>
-                </div>
-                <p className="text-[11px] md:text-xs text-[#8994A6] mb-3">Así responderá tu agente:</p>
-                
-                <div className="bg-[#07090C] border border-[#1E293B] rounded-xl p-3.5 md:p-4 text-xs md:text-sm text-[#F5F7FA] leading-relaxed italic">
-                  "{getPreviewText()}"
-                </div>
-              </div>
-
-              <div className="mt-4 pt-3 md:mt-6 md:pt-4 border-t border-[#1E293B] flex items-center gap-2 text-[10px] md:text-xs text-[#8994A6]">
-                <MessageSquare size={14} className="text-[#9B5CFF]" /> Actualización en tiempo real
-              </div>
+          <aside className="rounded-[28px] border border-slate-200 bg-white/80 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.04)] md:p-6">
+            <div className="mb-4 flex items-center gap-2 border-b border-slate-200 pb-3">
+              <Sparkles className="h-4 w-4 text-[#1b5ed6]" />
+              <h3 className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">Vista previa</h3>
             </div>
-          </div>
 
-        </div>
+            <p className="mb-3 text-sm text-slate-600">Así responderá tu agente:</p>
+            <div className="rounded-[22px] border border-slate-200 bg-slate-50 p-4 text-sm leading-7 text-slate-700 italic shadow-inner">
+              “{getPreviewText()}”
+            </div>
+
+            <div className="mt-5 flex items-center gap-2 rounded-2xl border border-[#dfeaff] bg-[#edf4ff] px-3 py-2 text-[11px] font-medium text-[#1b5ed6]">
+              <MessageSquare className="h-4 w-4" />
+              Actualización en tiempo real
+            </div>
+          </aside>
+        </section>
       </div>
 
-      {/* 🔥 BARRA INFERIOR: Anclada (shrink-0) */}
-      <div className="shrink-0 w-full bg-[#07090C]/90 backdrop-blur-xl border-t border-[#1E293B] px-6 py-4 z-40">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4 md:px-10">
           <div>
-            <p className="text-[#8994A6] text-[10px] md:text-xs font-semibold uppercase tracking-wider mb-1">
-              Paso 2 completado
-            </p>
-            <p className="text-base md:text-lg font-bold text-[#F5F7FA]">
-              Personalidad calibrada
-            </p>
+            <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">Paso 2 completado</div>
+            <div className="mt-1 text-lg font-black tracking-[-0.05em] text-slate-900 md:text-xl">Personalidad calibrada</div>
           </div>
-          <button 
+
+          <button
             onClick={() => router.push('/dashboard/onboarding/personalizacion')}
-            className="bg-[#F5F7FA] text-[#07090C] px-6 py-2.5 md:px-8 md:py-3.5 rounded-xl font-bold hover:bg-[#E2E8F0] transition-colors flex items-center gap-2 text-sm md:text-base"
+            className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-[0_16px_35px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5"
           >
-            Continuar <ArrowRight size={18} />
+            Continuar
+            <ArrowRight className="h-4 w-4" />
           </button>
         </div>
       </div>
-
-    </div>
+    </main>
   );
 }

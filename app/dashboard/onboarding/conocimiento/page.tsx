@@ -42,149 +42,133 @@ export default function Paso04Conocimiento() {
   };
 
   return (
-    // 🔥 EL CASCARÓN: h-full y flex-col congelan la pantalla general
-    <div className="flex flex-col h-full w-full relative bg-transparent text-[#F5F7FA]">
-      
-      {/* Botón de Saltar */}
-      <div className="absolute top-4 right-4 md:top-6 md:right-8 z-50">
-        <Link 
-          href="/dashboard" 
-          className="text-xs md:text-sm font-semibold text-[#8994A6] hover:text-[#19C8E8] flex items-center gap-2 bg-[#1E293B]/30 hover:bg-[#1E293B] px-4 py-2 md:px-5 md:py-2.5 rounded-xl transition-all duration-300 border border-[#1E293B]/50 hover:border-[#19C8E8]/30"
-        >
-          Ir al Panel
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </Link>
-      </div>
+    <main className="relative min-h-screen bg-[radial-gradient(circle_at_top,_rgba(27,94,214,0.12),_transparent_28%),linear-gradient(180deg,_#f7faff_0%,_#eef5ff_100%)] pb-28 text-slate-900 selection:bg-[#1b5ed6]/25">
+      <div className="absolute inset-0 opacity-40" style={{ backgroundImage: 'linear-gradient(rgba(148,163,184,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.08) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
 
-      {/* 🔥 EL RESORTE CENTRAL: Distribuye el contenido perfectamente al centro */}
-      <div className="flex-1 w-full max-w-4xl mx-auto px-6 py-4 mt-8 md:mt-2 flex flex-col justify-center overflow-y-auto no-scrollbar">
-        
-        {/* Barra de progreso / Narrativa */}
-        <div className="mb-6 md:mb-8">
-          <div className="flex items-center gap-3 text-[#8994A6] text-[10px] md:text-xs font-semibold tracking-widest uppercase mb-4 md:mb-6">
-            <span>Configuración de tu agente</span>
-            <span className="w-1 h-1 rounded-full bg-[#8994A6]"></span>
-            <span className="text-[#F5F7FA]">04 / 05</span>
-          </div>
-          
-          <div className="flex gap-2 mb-6 md:mb-8">
-            <div className="h-1 flex-1 bg-[#19C8E8] rounded-full"></div>
-            <div className="h-1 flex-1 bg-[#19C8E8] rounded-full"></div>
-            <div className="h-1 flex-1 bg-[#19C8E8] rounded-full"></div>
-            <div className="h-1 flex-1 bg-[#19C8E8] rounded-full shadow-[0_0_15px_rgba(25,200,232,0.5)]"></div>
-            <div className="h-1 flex-1 bg-[#1E293B] rounded-full"></div>
-          </div>
-
-          <div className="flex items-center gap-3 mb-2">
-            <Database className="text-[#19C8E8] h-6 w-6 md:h-8 md:w-8" />
-            <h1 className="text-2xl md:text-4xl font-bold tracking-tight">Cerebro de Datos (RAG)</h1>
-          </div>
-          <p className="text-[#8994A6] text-xs md:text-base max-w-2xl">
-            Conectaremos tu inventario y reglas de negocio para que tu asistente ofrezca respuestas basadas en datos reales y actualizados.
-          </p>
-        </div>
-
-        {/* Tarjeta Principal de Sincronización */}
-        <div className="max-w-2xl mx-auto w-full pb-4">
-          <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-6 md:p-10 relative overflow-hidden shadow-2xl">
-            
-            {/* Background pattern sutil */}
-            <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#F5F7FA 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
-
-            <div className="relative z-10 flex flex-col items-center text-center">
-              
-              {/* Icono de estado */}
-              <div className="mb-6 md:mb-8">
-                <div className={`p-4 md:p-5 rounded-2xl transition-all duration-500 border ${
-                  completado 
-                    ? 'bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]' 
-                    : sincronizando 
-                      ? 'bg-[#19C8E8]/10 border-[#19C8E8]/30 text-[#19C8E8]' 
-                      : 'bg-[#1E293B]/50 border-[#1E293B] text-[#8994A6]'
-                }`}>
-                  {sincronizando ? (
-                    <ScanLine className="h-8 w-8 md:h-10 md:w-10 animate-pulse" />
-                  ) : completado ? (
-                    <CheckCircle2 className="h-8 w-8 md:h-10 md:w-10" />
-                  ) : (
-                    <Server className="h-8 w-8 md:h-10 md:w-10" />
-                  )}
-                </div>
-              </div>
-
-              {/* Textos de estado */}
-              <h2 className="text-xl md:text-2xl font-bold mb-2 md:mb-3 text-[#F5F7FA]">
-                {sincronizando ? 'Vectorizando catálogo...' : completado ? 'Base de Datos Enlazada' : 'Sistema de Archivos Listo'}
-              </h2>
-              
-              <div className="h-6 mb-6 md:mb-8">
-                {sincronizando ? (
-                  <div className="flex items-center justify-center gap-2 text-[#19C8E8] font-mono text-[10px] md:text-xs uppercase tracking-widest">
-                    <Cpu size={14} className="animate-spin" />
-                    <span>Indexando {productosEscaneados} registros...</span>
-                  </div>
-                ) : completado ? (
-                  <p className="text-[#8994A6] text-xs md:text-sm">Tu IA ya cuenta con memoria institucional activa.</p>
-                ) : (
-                  <p className="text-[#8994A6] text-xs md:text-sm">Inicia la ingesta de datos para entrenar a tu asistente.</p>
-                )}
-              </div>
-
-              {/* UI de Progreso (Sleek) */}
-              {sincronizando && (
-                <div className="w-full max-w-md mx-auto mb-6 md:mb-8">
-                  <div className="flex justify-between text-[10px] md:text-xs font-mono text-[#8994A6] mb-2">
-                    <span>Sincronizando</span>
-                    <span className="text-[#19C8E8]">{progreso}%</span>
-                  </div>
-                  <div className="w-full bg-[#07090C] rounded-full h-1.5 border border-[#1E293B] overflow-hidden">
-                    <div 
-                      className="bg-[#19C8E8] h-1.5 rounded-full transition-all duration-300 ease-out shadow-[0_0_10px_rgba(25,200,232,0.5)]" 
-                      style={{ width: `${progreso}%` }}
-                    ></div>
-                  </div>
-                </div>
-              )}
-
-              {/* Botón de Acción Inicial */}
-              {!completado && !sincronizando && (
-                <button 
-                  onClick={handleSincronizar}
-                  className="bg-[#F5F7FA] text-[#07090C] px-6 py-3 md:px-8 md:py-3.5 rounded-xl font-bold hover:bg-[#E2E8F0] transition-all flex items-center justify-center gap-2 w-full max-w-sm mx-auto shadow-lg text-sm md:text-base"
-                >
-                  <FileText size={18} /> Iniciar Ingesta de Datos
-                </button>
-              )}
-
+      <div className="relative z-10 mx-auto max-w-6xl px-6 pt-10 md:px-10">
+        <header className="mb-8 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <Database className="h-5 w-5 text-[#1b5ed6]" />
+            </div>
+            <div>
+              <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">Upway</div>
+              <div className="text-lg font-black tracking-[-0.05em] text-slate-900">Business</div>
             </div>
           </div>
-        </div>
 
-      </div>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+          >
+            Ir al panel
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </header>
 
-      {/* 🔥 BARRA INFERIOR: Anclada (shrink-0) */}
-      <div className="shrink-0 w-full bg-[#07090C]/90 backdrop-blur-xl border-t border-[#1E293B] px-6 py-4 z-40">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <div>
-            <p className="text-[#8994A6] text-[10px] md:text-xs font-semibold uppercase tracking-wider mb-1">
-              Paso 4 completado
-            </p>
-            <p className="text-base md:text-lg font-bold text-[#F5F7FA]">
-              Memoria conectada
+        <section className="rounded-[32px] border border-slate-200 bg-white/80 p-6 shadow-[0_30px_80px_rgba(15,23,42,0.08)] backdrop-blur-sm md:p-8">
+          <div className="mb-8 flex items-center gap-3 text-[11px] font-mono uppercase tracking-[0.22em] text-slate-500">
+            <span>Configuración de tu agente</span>
+            <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+            <span className="font-semibold text-slate-900">04 / 05</span>
+          </div>
+
+          <div className="mb-8 flex gap-2">
+            <div className="h-1.5 flex-1 rounded-full bg-[#1b5ed6]" />
+            <div className="h-1.5 flex-1 rounded-full bg-[#1b5ed6]" />
+            <div className="h-1.5 flex-1 rounded-full bg-[#1b5ed6]" />
+            <div className="h-1.5 flex-1 rounded-full bg-[#1b5ed6]" />
+            <div className="h-1.5 flex-1 rounded-full bg-slate-200" />
+          </div>
+
+          <div className="max-w-3xl">
+            <h1 className="text-4xl font-black leading-[0.96] tracking-[-0.06em] text-slate-900 md:text-5xl">Cerebro de datos</h1>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 md:text-lg">
+              Conectaremos tu inventario y reglas de negocio para que tu asistente ofrezca respuestas basadas en datos reales y actualizados.
             </p>
           </div>
-          <button 
+        </section>
+
+        <section className="mt-8 mx-auto max-w-2xl rounded-[32px] border border-slate-200 bg-white/80 p-6 shadow-[0_30px_80px_rgba(15,23,42,0.08)] md:p-10">
+          <div className="flex flex-col items-center text-center">
+            <div className={`mb-6 flex h-16 w-16 items-center justify-center rounded-[22px] border ${
+              completado
+                ? 'border-[#c7f0d6] bg-[#ebfff3] text-[#1ea76d]'
+                : sincronizando
+                  ? 'border-[#cfe2ff] bg-[#edf4ff] text-[#1b5ed6]'
+                  : 'border-slate-200 bg-slate-100 text-slate-500'
+            }`}>
+              {sincronizando ? (
+                <ScanLine className="h-8 w-8 animate-pulse" />
+              ) : completado ? (
+                <CheckCircle2 className="h-8 w-8" />
+              ) : (
+                <Server className="h-8 w-8" />
+              )}
+            </div>
+
+            <h2 className="text-2xl font-black tracking-[-0.05em] text-slate-900 md:text-3xl">
+              {sincronizando ? 'Vectorizando catálogo...' : completado ? 'Base de datos enlazada' : 'Sistema de archivos listo'}
+            </h2>
+
+            <div className="mt-4 min-h-[32px]">
+              {sincronizando ? (
+                <div className="flex items-center justify-center gap-2 text-[11px] font-mono uppercase tracking-[0.2em] text-[#1b5ed6]">
+                  <Cpu size={14} className="animate-spin" />
+                  <span>Indexando {productosEscaneados} registros...</span>
+                </div>
+              ) : completado ? (
+                <p className="text-sm text-slate-600">Tu IA ya cuenta con memoria institucional activa.</p>
+              ) : (
+                <p className="text-sm text-slate-600">Inicia la ingesta de datos para entrenar a tu asistente.</p>
+              )}
+            </div>
+
+            {sincronizando && (
+              <div className="mt-6 w-full max-w-md">
+                <div className="mb-2 flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
+                  <span>Sincronizando</span>
+                  <span className="text-[#1b5ed6]">{progreso}%</span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className="h-full rounded-full bg-[#1b5ed6] transition-all duration-300 ease-out"
+                    style={{ width: `${progreso}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {!completado && !sincronizando && (
+              <button
+                onClick={handleSincronizar}
+                className="mt-8 inline-flex w-full max-w-sm items-center justify-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-[0_16px_35px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5"
+              >
+                <FileText size={18} />
+                Iniciar ingesta de datos
+              </button>
+            )}
+          </div>
+        </section>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4 md:px-10">
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">Paso 4 completado</div>
+            <div className="mt-1 text-lg font-black tracking-[-0.05em] text-slate-900 md:text-xl">Memoria conectada</div>
+          </div>
+
+          <button
             onClick={() => router.push('/dashboard/onboarding/simulador')}
             disabled={!completado}
-            className="bg-[#F5F7FA] text-[#07090C] px-6 py-2.5 md:px-8 md:py-3.5 rounded-xl font-bold hover:bg-[#E2E8F0] transition-colors disabled:opacity-20 flex items-center gap-2 text-sm md:text-base"
+            className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-[0_16px_35px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Continuar al Simulador <ArrowRight size={18} />
+            Continuar al simulador
+            <ArrowRight className="h-4 w-4" />
           </button>
         </div>
       </div>
-      
-    </div>
+    </main>
   );
 }
