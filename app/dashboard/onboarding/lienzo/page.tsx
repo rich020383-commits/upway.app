@@ -8,40 +8,40 @@ import Link from 'next/link'; // 🚀 IMPORTACIÓN NUEVA
 import { resolveVertical } from '../../../../lib/verticals';
 
 const modulos = [
-    { 
-      id: 'whatsapp', 
-      titulo: 'WhatsApp IA', 
-      descripcion: 'Atiende conversaciones, califica leads y vende automáticamente 24/7.',
-      precio: 399900, 
-      icon: <MessageCircleMore size={24} /> 
+    {
+      id: 'whatsapp',
+      titulo: 'WhatsApp IA + CRM',
+      descripcion: 'Captura, califica y responde leads con contexto de negocio.',
+      precio: 399900,
+      icon: <MessageCircleMore size={24} />
     },
-    { 
-      id: 'voz', 
-      titulo: 'Central Telefónica', 
-      descripcion: 'Recibe y gestiona llamadas entrantes con voz hiperrealista.',
-      precio: 599900, 
-      icon: <Headphones size={24} /> 
+    {
+      id: 'voz',
+      titulo: 'Agenda inteligente',
+      descripcion: 'Coordina disponibilidad, citas y atención sin fricción.',
+      precio: 599900,
+      icon: <Headphones size={24} />
     },
-    { 
-      id: 'calendario', 
-      titulo: 'Agenda Inteligente', 
-      descripcion: 'Sincroniza tu disponibilidad y agenda citas en tiempo real.',
-      precio: 39000, 
-      icon: <CalendarDays size={24} /> 
+    {
+      id: 'calendario',
+      titulo: 'Pipeline de leads',
+      descripcion: 'Visualiza etapas, responsables y oportunidades por negocio.',
+      precio: 39000,
+      icon: <CalendarDays size={24} />
     },
-    { 
-      id: 'analitica', 
-      titulo: 'Analítica Avanzada', 
-      descripcion: 'Métricas de rendimiento, transcripciones e insights de clientes.',
-      precio: 19000, 
-      icon: <BarChart3 size={24} /> 
+    {
+      id: 'analitica',
+      titulo: 'Recordatorios automáticos',
+      descripcion: 'Follow-up oportuno para cerrar más oportunidades sin perder tiempo.',
+      precio: 19000,
+      icon: <BarChart3 size={24} />
     },
-    { 
-      id: 'rag', 
-      titulo: 'Cerebro Omnicanal', 
-      descripcion: 'Memoria compartida para respuestas precisas basadas en tus documentos.',
-      precio: 0, 
-      icon: <Sparkles size={24} /> 
+    {
+      id: 'rag',
+      titulo: 'Inbox + citas + asignaciones',
+      descripcion: 'Gestiona conversaciones, agenda y equipo en un flujo único.',
+      precio: 0,
+      icon: <Sparkles size={24} />
     },
   ];
 
@@ -100,14 +100,14 @@ function Paso01Infraestructura() {
             <div className="h-1 flex-1 rounded-full bg-slate-200"></div>
           </div>
  
-          <h1 className="mb-3 text-3xl font-black tracking-[-0.06em] text-slate-900 md:text-4xl">Infraestructura</h1>
+          <h1 className="mb-3 text-3xl font-black tracking-[-0.06em] text-slate-900 md:text-4xl">Infraestructura premium</h1>
           <p className="max-w-2xl text-lg text-slate-600">
-            {activeSegment.description}
+            Diseña una operación comercial con WhatsApp, agenda, pipeline y automatización conectados desde el inicio.
           </p>
         </div>
 
-        {/* Grid de Módulos (Diseño Compacto y Elegante) */}
-        <div className="grid md:grid-cols-2 gap-5">
+        {/* Grid de módulos premium */}
+        <div className="grid gap-5 md:grid-cols-2">
           {modulos.map((m) => {
             const seleccionado = modulosSeleccionados.includes(m.id);
             const esGratis = m.precio === 0;
@@ -116,42 +116,54 @@ function Paso01Infraestructura() {
               <div
                 key={m.id}
                 onClick={() => toggleModulo(m.id)}
-                className={`group flex cursor-pointer flex-col justify-between rounded-[28px] border p-6 transition-all duration-200 ${
+                className={`group flex cursor-pointer flex-col justify-between rounded-[26px] border p-5 transition-all duration-200 ${
                   seleccionado
-                    ? 'border-[#93c5fd] bg-[#edf4ff] shadow-[0_18px_40px_rgba(30,64,175,0.08)]'
-                    : 'border-slate-200 bg-white/80 hover:border-slate-300 hover:shadow-[0_18px_40px_rgba(15,23,42,0.04)]'
+                    ? 'border-[#bfd6ff] bg-[linear-gradient(180deg,#edf4ff_0%,#f8fbff_100%)] shadow-[0_18px_42px_rgba(27,94,214,0.08)]'
+                    : 'border-slate-200 bg-white/80 hover:border-slate-300 hover:shadow-[0_18px_42px_rgba(15,23,42,0.04)]'
                 }`}
               >
-                <div className="mb-6 flex items-start gap-4">
-                  <div className={`rounded-2xl p-3 transition-colors ${
+                <div className="mb-5 flex items-start gap-4">
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl transition-colors ${
                     seleccionado
                       ? 'bg-[#dfeaff] text-[#1b5ed6]'
                       : 'bg-slate-100 text-slate-500 group-hover:text-slate-700'
                   }`}>
                     {m.icon}
                   </div>
-                  <div>
-                    <h3 className="mb-1 text-lg font-bold tracking-[-0.04em] text-slate-900">{m.titulo}</h3>
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1 flex items-center justify-between gap-3">
+                      <h3 className="text-[1.05rem] font-black tracking-[-0.04em] text-slate-900">{m.titulo}</h3>
+                      {!esGratis && (
+                        <span className="rounded-full border border-slate-200 bg-white/80 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                          Premium
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm leading-relaxed text-slate-600">{m.descripcion}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between border-t border-slate-200 pt-4">
-                  <div className="font-semibold text-slate-900">
+                  <div className="font-bold text-slate-900">
                     {esGratis ? (
-                      <span className="text-sm text-slate-500">Incluido</span>
+                      <span className="text-sm font-semibold text-slate-500">Incluido</span>
                     ) : (
-                      <span>{fmt(m.precio)} <span className="text-sm font-normal text-slate-500">/ mes</span></span>
+                      <span>
+                        {fmt(m.precio)}
+                        <span className="ml-1 text-xs font-medium text-slate-500">/ mes</span>
+                      </span>
                     )}
                   </div>
-                   
-                  <div className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all ${
+
+                  <div className={`flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-bold uppercase tracking-[0.12em] transition-all ${
                     seleccionado
                       ? 'bg-[#dfeaff] text-[#1b5ed6]'
                       : 'bg-slate-100 text-slate-600 group-hover:bg-slate-200'
                   }`}>
                     {seleccionado ? (
-                      <><Check size={16} strokeWidth={3} /> Activado</>
+                      <>
+                        <Check size={14} strokeWidth={3} /> Activado
+                      </>
                     ) : (
                       'Activar'
                     )}
