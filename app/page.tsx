@@ -195,24 +195,27 @@ export default function Home() {
                     <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1 text-[10px] font-medium text-blue-100/80">24/7</span>
                   </div>
 
-                  {/* SOPHIE V2 GRANDE Y DESTACADA EN FORMATO PROMINENTE */}
-                  <div className="my-4 rounded-2xl border border-white/15 bg-gradient-to-b from-white/10 to-white/5 p-5 text-center backdrop-blur-md shadow-lg">
-                    <div className="relative mx-auto h-28 w-28 overflow-hidden rounded-2xl border border-white/25 bg-slate-950 shadow-2xl mb-3">
+                  {/* BANNER GRANDE DE SOPHIE V2 A ANCHO COMPLETO */}
+                  <div className="relative my-4 overflow-hidden rounded-2xl border border-white/20 bg-slate-950 shadow-2xl">
+                    <div className="relative h-44 w-full">
                       <video 
                         src="/sophie-animada.webm" 
                         autoPlay 
                         loop 
                         muted 
                         playsInline 
-                        className="h-full w-full object-cover scale-105"
+                        className="h-full w-full object-cover object-center"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
                     </div>
-                    <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-[#7dd3fc] mb-1">
-                      <Sparkles className="h-4 w-4" /> Sophie v2 • Empleado Digital Activo
+                    <div className="absolute bottom-0 left-0 right-0 p-4 text-left">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#7dd3fc] mb-1">
+                        <Sparkles className="h-4 w-4" /> Sophie v2 • Empleado Digital Activo
+                      </div>
+                      <p className="text-xs text-blue-100/90 leading-snug">
+                        Orquestando llamadas, chats y flujos operativos con contexto de negocio absoluto en tiempo real.
+                      </p>
                     </div>
-                    <p className="text-xs text-blue-100/80 max-w-sm mx-auto leading-relaxed">
-                      Orquestando llamadas, chats y flujos operativos con contexto de negocio absoluto en tiempo real.
-                    </p>
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-2">
