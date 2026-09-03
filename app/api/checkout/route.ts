@@ -9,6 +9,63 @@ const PLANES: Record<string, { precio: number; descripcion: string }> = {
   pro: { precio: 499900, descripcion: 'Plan PRO Upway - Alto volumen y reportes avanzados' },
 };
 
+const BILLING_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+
+/** Construye la respuesta de facturación con la cookie upway_billing_state ya configurada. */
+function buildBillingResponse(
+  accessState: string,
+  body: { mode: string; message: string; payment_url?: string | null }
+): NextResponse {
+  const response = NextResponse.json({
+    success: true,
+    accessState,
+    payment_url: body.payment_url ?? null,
+    mode: body.mode,
+    message: body.message,
+  });
+
+  response.cookies.set('upway_billing_state', accessState, {
+    path: '/',
+    sameSite: 'lax',
+    maxAge: BILLING_COOKIE_MAX_AGE,
+  });
+
+  return response;
+}
+
+/** Crea el link de pago en Bold para el plan indicado. Lanza si la API falla. */
+async function createBoldPaymentLink(planInfo: { precio: number; descripcion: string }): Promise<string | null> {
+  const apiKey = process.env.BOLD_API_KEY;
+  if (!apiKey) throw new Error('Falta BOLD_API_KEY');
+
+  const payload = {
+    amount_type: 'CLOSE',
+    amount: {
+      currency: 'COP',
+      total_amount: planInfo.precio,
+    },
+    description: planInfo.descripcion,
+  };
+
+  const response = await fetch('https://integrations.api.bold.co/online/link/v1', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `x-api-key ${apiKey}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    console.error('Error de Bold:', errorData);
+    throw new Error('Fallo al crear el link de pago con Bold');
+  }
+
+  const data = await response.json();
+  return data.payload?.url ?? null;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const sessionUser = await getSessionUser(req);
@@ -25,82 +82,26 @@ export async function POST(req: NextRequest) {
 
     const accessCode = await resolveAccessFromPromoCode(promoCode);
     if (accessCode.valid) {
-      const response = NextResponse.json({
-        success: true,
+      return buildBillingResponse(accessCode.state, {
         mode: 'promo',
-        accessState: accessCode.state,
-        payment_url: null,
         message: `${accessCode.label}: ${accessCode.description}`,
       });
-
-      response.cookies.set('upway_billing_state', accessCode.state, {
-        path: '/',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 30,
-      });
-
-      return response;
     }
 
-    const apiKey = process.env.BOLD_API_KEY;
-    if (!apiKey) {
-      const response = NextResponse.json({
-        success: true,
+    if (!process.env.BOLD_API_KEY) {
+      return buildBillingResponse('trial', {
         mode: 'demo',
-        accessState: 'trial',
-        payment_url: null,
         message: 'Bold está suspendido durante pruebas. El acceso queda habilitado en modo demo para validación operativa.',
       });
-
-      response.cookies.set('upway_billing_state', 'trial', {
-        path: '/',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 30,
-      });
-
-      return response;
     }
 
-    const payload = {
-      amount_type: 'CLOSE',
-      amount: {
-        currency: 'COP',
-        total_amount: planInfo.precio,
-      },
-      description: planInfo.descripcion,
-    };
+    const paymentUrl = await createBoldPaymentLink(planInfo);
 
-    const response = await fetch('https://integrations.api.bold.co/online/link/v1', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `x-api-key ${apiKey}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('Error de Bold:', errorData);
-      throw new Error('Fallo al crear el link de pago con Bold');
-    }
-
-    const data = await response.json();
-    const paymentResponse = NextResponse.json({
-      success: true,
+    return buildBillingResponse('pending_payment', {
       mode: 'payment',
-      accessState: 'pending_payment',
-      payment_url: data.payload?.url ?? null,
+      payment_url: paymentUrl,
       message: 'Pendiente de autorización de pago.',
     });
-
-    paymentResponse.cookies.set('upway_billing_state', 'pending_payment', {
-      path: '/',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30,
-    });
-
-    return paymentResponse;
   } catch (error: unknown) {
     console.error('Error en el endpoint /api/checkout:', error);
     return NextResponse.json({ error: 'Sistemas de pago temporalmente no disponibles.' }, { status: 500 });

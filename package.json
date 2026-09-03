@@ -35,6 +35,7 @@
     "react-hook-form": "^7.80.0",
     "tailwindcss": "^4",
     "tailwindcss-animate": "^1.0.7",
+    "zod": "^4.5.4",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
@@ -46,6 +47,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "prisma": "^5.22.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.11"
   }
 }

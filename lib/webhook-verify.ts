@@ -18,7 +18,7 @@ function timingSafeEqualHex(a: string, b: string): boolean {
  *   "sha256=<hmac-sha256(rawBody, appSecret) en hex>"
  */
 export function verifyMetaSignature(rawBody: string, signatureHeader: string | null, appSecret: string): boolean {
-  if (!signatureHeader || !signatureHeader.startsWith('sha256=')) return false;
+  if (!appSecret || !signatureHeader || !signatureHeader.startsWith('sha256=')) return false;
   const expected = crypto.createHmac('sha256', appSecret).update(rawBody, 'utf8').digest('hex');
   return timingSafeEqualHex(signatureHeader.slice('sha256='.length), expected);
 }
@@ -28,7 +28,7 @@ export function verifyMetaSignature(rawBody: string, signatureHeader: string | n
  *   HMAC-SHA256(rawBody, serverSecret) en hex.
  */
 export function verifyVapiSignature(rawBody: string, signatureHeader: string | null, serverSecret: string): boolean {
-  if (!signatureHeader) return false;
+  if (!serverSecret || !signatureHeader) return false;
   const expected = crypto.createHmac('sha256', serverSecret).update(rawBody, 'utf8').digest('hex');
   return timingSafeEqualHex(signatureHeader, expected);
 }
@@ -39,6 +39,6 @@ export function verifyVapiSignature(rawBody: string, signatureHeader: string | n
  * Comparación en tiempo constante para evitar oráculos de timing.
  */
 export function verifySharedSecret(receivedSecret: string | null, expectedSecret: string): boolean {
-  if (!receivedSecret) return false;
+  if (!receivedSecret || !expectedSecret) return false;
   return timingSafeEqualHex(receivedSecret, expectedSecret);
 }

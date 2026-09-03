@@ -44,9 +44,12 @@ export interface MetaWebhookBody {
   }>;
 }
 
-export const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || 'upway_inworker_seguro_2026';
-export const UPWAY_PHONE_ID = '1172769935927318'; // 👑 EL NÚMERO VIP DE UPWAY
-export const INWORKER_PHONE_ID = '1334640129724588'; // 🚀 EL NUEVO NÚMERO DE INWORKER (SOPHIE)
+if (!process.env.META_VERIFY_TOKEN) {
+  console.warn('⚠️ [WHATSAPP] Falta META_VERIFY_TOKEN: la verificación GET del webhook de Meta rechazará todas las solicitudes hasta configurarlo.');
+}
+export const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || '';
+export const UPWAY_PHONE_ID = process.env.META_UPWAY_PHONE_ID || '1172769935927318'; // 👑 EL NÚMERO VIP DE UPWAY
+export const INWORKER_PHONE_ID = process.env.META_INWORKER_PHONE_ID || '1334640129724588'; // 🚀 EL NUEVO NÚMERO DE INWORKER (SOPHIE)
 
 const groqClient = process.env.GROQ_API_KEY
   ? new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' })
@@ -170,9 +173,27 @@ const sendProviderAlert = async (provider: string, error: unknown) => {
 const limpiarTexto = (txt: string) => txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const normalizeFaqText = (text: string) => limpiarTexto(text).replace(/\s+/g, ' ').trim();
 
+const FAQ_CACHE_MAX_SIZE = 200;
+
+const faqCacheSet = (key: string, value: string) => {
+  // LRU simple: si la clave ya existe, se reinserta al final (más reciente)
+  if (FAQ_CACHE.has(key)) FAQ_CACHE.delete(key);
+  FAQ_CACHE.set(key, value);
+  if (FAQ_CACHE.size > FAQ_CACHE_MAX_SIZE) {
+    // Evict la entrada más antigua (primera insertada) en lugar de vaciar todo el caché
+    const oldestKey = FAQ_CACHE.keys().next().value;
+    if (oldestKey !== undefined) FAQ_CACHE.delete(oldestKey);
+  }
+};
+
 const resolveStaticFaqResponse = (texto: string, tienda?: { direccion?: string }) => {
   const key = normalizeFaqText(texto);
-  if (FAQ_CACHE.has(key)) return FAQ_CACHE.get(key) || null;
+  if (FAQ_CACHE.has(key)) {
+    const cached = FAQ_CACHE.get(key) || null;
+    // Reinsertar para marcar como recientemente usado
+    if (cached !== null) faqCacheSet(key, cached);
+    return cached;
+  }
 
   const found = BASIC_FAQ_LOOKUPS.find(entry => entry.pattern.test(texto));
   if (found) {
@@ -184,14 +205,22 @@ const resolveStaticFaqResponse = (texto: string, tienda?: { direccion?: string }
         response = 'Puedo ayudarte con la dirección si me dices el nombre de la tienda o el tipo de negocio.';
       }
     }
-    FAQ_CACHE.set(key, response);
-    if (FAQ_CACHE.size > 200) FAQ_CACHE.clear();
+    faqCacheSet(key, response);
     return response;
   }
   return null;
 };
 
 interface Producto { nombre: string; categoria?: string; precio: number; }
+
+/** Contexto de tienda usado por la cascada de IA (compatible con TiendaWithProductos). */
+export interface TiendaContext {
+  systemPrompt?: string | null;
+  direccion?: string | null;
+  productos?: Array<{ nombre?: string | null; categoria?: string | null; precio?: number | string | null }>;
+  telefonoAdmin?: string | null;
+  isAiActive?: boolean | null;
+}
 
 function buscarEnInventarioLocal(mensaje: string, todosLosProductos: Producto[]): Producto[] {
   const mensajeLimpio = limpiarTexto(mensaje);
@@ -208,7 +237,7 @@ function buscarEnInventarioLocal(mensaje: string, todosLosProductos: Producto[])
 // ==========================================
 // 🛡️ NÚCLEO DE LA CASCADA INQUEBRANTABLE
 // ==========================================
-export async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRecord: any) {
+export async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRecord: TiendaContext | null) {
   let systemPromptText = "";
   const isVip = (phoneId === UPWAY_PHONE_ID || phoneId === INWORKER_PHONE_ID);
 
@@ -222,16 +251,16 @@ export async function generarRespuesta(textoCliente: string, phoneId: string, ti
   } else {
     console.log(`🏢 Usando base de datos del cliente para el número: ${phoneId}`);
 
-    const faqStaticResponse = resolveStaticFaqResponse(textoCliente, tiendaRecord ? { direccion: tiendaRecord.direccion } : undefined);
+    const faqStaticResponse = resolveStaticFaqResponse(textoCliente, tiendaRecord?.direccion ? { direccion: tiendaRecord.direccion } : undefined);
     if (faqStaticResponse) {
       console.log('🔍 Respuesta rápida desde caché FAQ o reglas estáticas.');
       return faqStaticResponse;
     }
 
-    const inventarioCompleto: Producto[] = (tiendaRecord?.productos || []).map((p: any) => ({
-      nombre: String(p.nombre),
+    const inventarioCompleto: Producto[] = (tiendaRecord?.productos || []).map((p) => ({
+      nombre: String(p.nombre ?? ''),
       categoria: p.categoria ? String(p.categoria) : "General",
-      precio: Number(p.precio)
+      precio: Number(p.precio ?? 0)
     }));
 
     const productosRelevantes = buscarEnInventarioLocal(textoCliente, inventarioCompleto);
@@ -250,14 +279,16 @@ export async function generarRespuesta(textoCliente: string, phoneId: string, ti
     { role: 'user' as const, content: textoCliente }
   ];
 
-  type ProviderConfig = {
+  type ProviderConfig<T> = {
     name: string;
     timeout: number;
-    run: (client: any) => Promise<string>;
-    client?: any;
+    run: (client: T) => Promise<string>;
+    client?: T | null;
   };
 
-  const openAiCompatible = (model: string) => async (client: any) => {
+  type OpenAiCompatibleClient = Pick<OpenAI, 'chat'>;
+
+  const openAiCompatible = (model: string) => async (client: OpenAiCompatibleClient) => {
     const completion = await client.chat.completions.create({
       model,
       messages: formattedMessages,
@@ -266,16 +297,20 @@ export async function generarRespuesta(textoCliente: string, phoneId: string, ti
     return completion.choices[0]?.message?.content || '';
   };
 
-  const providerConfigs: ProviderConfig[] = [
+  const openAiProviders: ProviderConfig<OpenAiCompatibleClient>[] = [
     { name: 'Groq 🚀 (Plan A)', client: groqClient, timeout: 3500, run: openAiCompatible('openai/gpt-oss-20b') },
     { name: 'SambaNova ⚡ (Plan B)', client: sambanovaClient, timeout: 3500, run: openAiCompatible('Meta-Llama-3.1-8B-Instruct') },
     { name: 'Mistral 🔥 (Plan C)', client: mistralClient, timeout: 3500, run: openAiCompatible('mistral-small-latest') },
-    { name: 'OpenRouter 🃏 (Plan D)', client: openRouterClient, timeout: 3500, run: openAiCompatible('openrouter/free') },
+    { name: 'OpenRouter 🃏 (Plan D)', client: openRouterClient, timeout: 3500, run: openAiCompatible('openrouter/free') }
+  ];
+
+  const providerConfigs: Array<ProviderConfig<OpenAiCompatibleClient> | ProviderConfig<GoogleGenerativeAI>> = [
+    ...openAiProviders,
     {
       name: 'Gemini Premium 🛡️ (Escudo Final)',
       client: geminiGenAI,
       timeout: 4500,
-      run: async (client: any) => {
+      run: async (client: GoogleGenerativeAI) => {
         const model = client.getGenerativeModel({
           model: 'gemini-2.5-flash',
           systemInstruction: systemPromptText,
@@ -288,8 +323,8 @@ export async function generarRespuesta(textoCliente: string, phoneId: string, ti
   ];
 
   const providers = providerConfigs
-    .filter(p => p.client)
-    .map(p => ({ name: p.name, timeout: p.timeout, execute: () => p.run(p.client) }));
+    .filter((p): p is typeof p & { client: OpenAiCompatibleClient | GoogleGenerativeAI } => Boolean(p.client))
+    .map((p) => ({ name: p.name, timeout: p.timeout, execute: () => p.run(p.client as never) }));
 
   let lastError: unknown;
   for (const provider of providers) {
@@ -403,136 +438,214 @@ async function handleHumanHandoff(params: {
   await enviarMensajePorWhatsApp(numeroAdmin, msgAdmin, phoneIdDestino, dynamicToken);
 
   if (conversationId) {
-    await prisma.message.create({
-      data: {
-        conversationId,
-        metaMessageId: "handoff_" + Date.now(),
-        senderRole: 'AI',
-        content: msgCliente,
-        status: 'SENT'
-      }
-    });
+    await recordConversationMessage(conversationId, "handoff_" + Date.now(), 'AI', msgCliente, 'SENT');
   }
 }
 
 // ==========================================
-// 💬 PROCESAMIENTO DE MENSAJES ENTRANTES (TEXTO Y AUDIO)
+// 💬 PERSISTENCIA DE MENSAJES EN CONVERSACIÓN
+// ==========================================
+async function recordConversationMessage(
+  conversationId: string,
+  metaMessageId: string,
+  senderRole: 'AI' | 'USER',
+  content: string,
+  status: 'SENT' | 'DELIVERED'
+): Promise<void> {
+  await prisma.message.create({
+    data: { conversationId, metaMessageId, senderRole, content, status }
+  });
+}
+
+// ==========================================
+// 🏪 BÚSQUEDA DE TIENDA POR NÚMERO DE TELÉFONO
+// ==========================================
+async function loadTiendaPorPhoneId(phoneIdDestino: string): Promise<{
+  tiendaRecord: TiendaWithProductos | null;
+  dynamicToken: string;
+}> {
+  let tiendaRecord: TiendaWithProductos | null = null;
+  let dynamicToken = process.env.WHATSAPP_TOKEN || "";
+
+  if (phoneIdDestino !== UPWAY_PHONE_ID) {
+    tiendaRecord = await prisma.tienda.findFirst({
+      where: { metaPhoneNumberId: phoneIdDestino },
+      include: { productos: true }
+    });
+
+    if (tiendaRecord) {
+      dynamicToken = tiendaRecord.metaAccessToken || "";
+    } else {
+      console.warn(`⚠️ Mensaje ignorado: No hay tienda vinculada al número ${phoneIdDestino}`);
+    }
+  }
+
+  return { tiendaRecord, dynamicToken };
+}
+
+// ==========================================
+// 🎙️ EXTRACCIÓN DE TEXTO (INCLUYE TRANSCRIPCIÓN DE AUDIO)
+// ==========================================
+async function extractTextoCliente(
+  mensajeEntrante: MetaIncomingMessage,
+  dynamicToken: string
+): Promise<string> {
+  const messageType = mensajeEntrante.type; // 'text' o 'audio'
+
+  if (messageType === 'text') {
+    return mensajeEntrante.text?.body ?? '';
+  }
+
+  if (messageType === 'audio') {
+    const mediaId = mensajeEntrante.audio?.id;
+    if (mediaId && dynamicToken) {
+      try {
+        console.log(`🎤 Nota de voz detectada en WhatsApp. Transcribiendo con Groq Whisper...`);
+        const texto = await transcribirAudioWhatsApp(mediaId, dynamicToken);
+        console.log(`✅ Audio transcrito con éxito: "${texto}"`);
+        return texto;
+      } catch (audioErr) {
+        console.error('❌ Error transcribiendo audio de WhatsApp:', audioErr);
+        return "Hola, intenté enviarte una nota de voz pero no logré procesarla bien. ¿Podrías escribirme tu consulta?";
+      }
+    }
+    return "Recibí tu nota de voz, pero faltan credenciales de audio.";
+  }
+
+  // Si envían imágenes, documentos o stickers
+  return `[El cliente envió un archivo multimedia de tipo: ${messageType}]`;
+}
+
+// ==========================================
+// 💬 CRM: CONVERTIR MENSAJE EN LEAD Y GUARDAR MENSAJE
+// ==========================================
+async function persistConversation(params: {
+  tiendaRecord: TiendaWithProductos;
+  userName: string;
+  userPhone: string;
+  textoCliente: string;
+  msgIdEntrante: string;
+}): Promise<string | null> {
+  const { tiendaRecord, userName, userPhone, textoCliente, msgIdEntrante } = params;
+
+  const leadResult = await createLeadFromInbound({
+    tiendaId: tiendaRecord.id,
+    nombre: userName,
+    phone: userPhone,
+    motivo: textoCliente,
+    source: 'WHATSAPP',
+    priority: 'MEDIUM',
+    messageContent: textoCliente,
+    clientName: userName,
+    metaCategory: 'service',
+  });
+
+  const conversationId = leadResult.conversation?.id ?? null;
+
+  if (conversationId) {
+    await recordConversationMessage(conversationId, msgIdEntrante, 'USER', textoCliente, 'DELIVERED');
+  }
+
+  return conversationId;
+}
+
+// ==========================================
+// 🧩 PIPELINE HELPERS (Extractores de Dominio)
+// ==========================================
+function extractMessagePayload(value: MetaWebhookValue) {
+  const mensajeEntrante = value.messages?.[0];
+  if (!mensajeEntrante) return null;
+
+  return {
+    rawMessage: mensajeEntrante,
+    userPhone: mensajeEntrante.from,
+    phoneIdDestino: value.metadata?.phone_number_id || "",
+    msgIdEntrante: mensajeEntrante.id,
+    userName: value.contacts?.[0]?.profile?.name || 'Cliente',
+  };
+}
+
+async function resolveBusinessContext(payload: ReturnType<typeof extractMessagePayload>) {
+  if (!payload) return null;
+
+  const { tiendaRecord, dynamicToken } = await loadTiendaPorPhoneId(payload.phoneIdDestino);
+  if (payload.phoneIdDestino !== UPWAY_PHONE_ID && !tiendaRecord) return null;
+
+  const textoCliente = await extractTextoCliente(payload.rawMessage, dynamicToken);
+  if (!textoCliente.trim()) return null;
+
+  let conversationId: string | null = null;
+  let isAiActive = true;
+
+  if (payload.phoneIdDestino !== UPWAY_PHONE_ID && tiendaRecord) {
+    conversationId = await persistConversation({
+      tiendaRecord,
+      userName: payload.userName,
+      userPhone: payload.userPhone,
+      textoCliente,
+      msgIdEntrante: payload.msgIdEntrante
+    });
+    isAiActive = Boolean(tiendaRecord.isAiActive);
+  }
+
+  return { ...payload, tiendaRecord, dynamicToken, textoCliente, conversationId, isAiActive };
+}
+
+async function deliverAndRecordReply(
+  context: NonNullable<Awaited<ReturnType<typeof resolveBusinessContext>>>,
+  respuesta: string
+) {
+  const outMessageId = await enviarMensajePorWhatsApp(
+    context.userPhone,
+    respuesta,
+    context.phoneIdDestino,
+    context.dynamicToken
+  );
+
+  if (context.conversationId && outMessageId) {
+    await recordConversationMessage(context.conversationId, outMessageId, 'AI', respuesta, 'SENT');
+  }
+}
+
+// ==========================================
+// 🚀 EL ORQUESTADOR FINAL (Pipeline Limpio)
 // ==========================================
 export async function handleIncomingMessage(value: MetaWebhookValue): Promise<void> {
   try {
-    const mensajeEntrante = value.messages?.[0];
-    if (!mensajeEntrante) return;
-    const userPhone = mensajeEntrante.from;
-    const phoneIdDestino = value.metadata?.phone_number_id || "";
-    const msgIdEntrante = mensajeEntrante.id;
-    const userName = value.contacts?.[0]?.profile?.name || 'Cliente';
-    const messageType = mensajeEntrante.type; // 'text' o 'audio'
+    // 1. Extracción de Payload
+    const payload = extractMessagePayload(value);
+    if (!payload) return;
 
-    let tiendaRecord: TiendaWithProductos | null = null;
-    let dynamicToken = process.env.WHATSAPP_TOKEN || "";
-    let conversationId: string | null = null;
+    // 2. Resolución de Contexto y Persistencia Inbound
+    const context = await resolveBusinessContext(payload);
+    if (!context) return;
 
-    // 🚀 Búsqueda de Tienda y Token
-    if (phoneIdDestino !== UPWAY_PHONE_ID) {
-      tiendaRecord = await prisma.tienda.findFirst({
-        where: { metaPhoneNumberId: phoneIdDestino },
-        include: { productos: true }
-      });
-
-      if (!tiendaRecord) {
-        console.warn(`⚠️ Mensaje ignorado: No hay tienda vinculada al número ${phoneIdDestino}`);
-        return;
-      }
-      dynamicToken = tiendaRecord.metaAccessToken || "";
-    }
-
-    // ====================================================
-    // 🎙️ PASO CLAVE: EXTRACCIÓN DE TEXTO O TRANSCRIBIR AUDIO
-    // ====================================================
-    let textoCliente = '';
-
-    if (messageType === 'text') {
-      textoCliente = mensajeEntrante.text?.body ?? '';
-    } else if (messageType === 'audio') {
-      const mediaId = mensajeEntrante.audio?.id;
-      if (mediaId && dynamicToken) {
-        try {
-          console.log(`🎤 Nota de voz detectada en WhatsApp. Transcribiendo con Groq Whisper...`);
-          textoCliente = await transcribirAudioWhatsApp(mediaId, dynamicToken);
-          console.log(`✅ Audio transcrito con éxito: "${textoCliente}"`);
-        } catch (audioErr) {
-          console.error('❌ Error transcribiendo audio de WhatsApp:', audioErr);
-          textoCliente = "Hola, intenté enviarte una nota de voz pero no logré procesarla bien. ¿Podrías escribirme tu consulta?";
-        }
-      } else {
-        textoCliente = "Recibí tu nota de voz, pero faltan credenciales de audio.";
-      }
-    } else {
-      // Si envían imágenes, documentos o stickers
-      textoCliente = `[El cliente envió un archivo multimedia de tipo: ${messageType}]`;
-    }
-
-    if (!textoCliente.trim()) return;
-
-    // Si es tienda de cliente real, guardamos en CRM y convertimos el mensaje en lead operativo
-    if (phoneIdDestino !== UPWAY_PHONE_ID && tiendaRecord) {
-      const leadResult = await createLeadFromInbound({
-        tiendaId: tiendaRecord.id,
-        nombre: userName,
-        phone: userPhone,
-        motivo: textoCliente,
-        source: 'WHATSAPP',
-        priority: 'MEDIUM',
-        messageContent: textoCliente,
-        clientName: userName,
-        metaCategory: 'service',
-      });
-
-      conversationId = leadResult.conversation?.id ?? null;
-
-      if (conversationId) {
-        await prisma.message.create({
-          data: {
-            conversationId,
-            metaMessageId: msgIdEntrante,
-            senderRole: 'USER',
-            content: textoCliente,
-            status: 'DELIVERED'
-          }
-        });
-      }
-
-      // 🛑 BOTÓN DE PAUSA: Si IA está inactiva, silenciamos bot
-      if (!tiendaRecord.isAiActive) {
-        console.log(`🛑 [MODO HUMANO ACTIVO] Mensaje de ${userPhone} guardado en Inbox. IA silenciada.`);
-        return;
-      }
-    }
-
-    // 🤖 GENERACIÓN DE IA
-    const respuesta = await generarRespuesta(textoCliente, phoneIdDestino, tiendaRecord);
-
-    if (respuesta.includes('[TRANSFERIR_HUMANO]')) {
-      await handleHumanHandoff({ userPhone, userName, phoneIdDestino, dynamicToken, tiendaRecord, conversationId });
+    // 🛑 Botón de Pausa (Si un humano ya tomó el control)
+    if (!context.isAiActive) {
+      console.log(`🛑 [MODO HUMANO ACTIVO] Mensaje de ${context.userPhone} en Inbox. IA silenciada.`);
       return;
     }
 
-    // 📤 ENVÍO A META
-    const outMessageId = await enviarMensajePorWhatsApp(userPhone, respuesta, phoneIdDestino, dynamicToken);
+    // 3. Generación de Respuesta (IA Cascade)
+    const respuesta = await generarRespuesta(context.textoCliente, context.phoneIdDestino, context.tiendaRecord);
 
-    if (conversationId && outMessageId) {
-      await prisma.message.create({
-        data: {
-          conversationId: conversationId,
-          metaMessageId: outMessageId,
-          senderRole: 'AI',
-          content: respuesta,
-          status: 'SENT'
-        }
+    // 🚨 Handoff Inteligente
+    if (respuesta.includes('[TRANSFERIR_HUMANO]')) {
+      await handleHumanHandoff({
+        userPhone: context.userPhone,
+        userName: context.userName,
+        phoneIdDestino: context.phoneIdDestino,
+        dynamicToken: context.dynamicToken,
+        tiendaRecord: context.tiendaRecord,
+        conversationId: context.conversationId
       });
+      return;
     }
 
+    // 4. Despacho y Persistencia Outbound
+    await deliverAndRecordReply(context, respuesta);
+
   } catch (error) {
-    console.error('Fallo general en la respuesta del bot.', error);
+    console.error('❌ Fallo crítico en el pipeline de handleIncomingMessage:', error);
   }
 }
