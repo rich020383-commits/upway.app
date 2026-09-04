@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -141,12 +141,53 @@ const healthLevels = [
 export default function Home() {
   const [showSplash, setShowSplash] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [heroVideoReady, setHeroVideoReady] = useState(false);
+  const heroVideoRef = useRef<HTMLVideoElement | null>(null);
 
   // Efecto para cancelar el video en computadora (apaga el splash en pantallas >= 768px)
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+    if (typeof window === 'undefined') return;
+
+    if (window.innerWidth >= 768) {
       setShowSplash(false);
     }
+
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const updateBreakpoint = () => setIsMobile(mediaQuery.matches);
+
+    updateBreakpoint();
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', updateBreakpoint);
+      return () => mediaQuery.removeEventListener('change', updateBreakpoint);
+    }
+
+    mediaQuery.addListener(updateBreakpoint);
+    return () => mediaQuery.removeListener(updateBreakpoint);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !heroVideoRef.current) return;
+
+    if (!('IntersectionObserver' in window)) {
+      setHeroVideoReady(true);
+      return;
+    }
+
+    const video = heroVideoRef.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setHeroVideoReady(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '250px 0px' }
+    );
+
+    observer.observe(video);
+    return () => observer.disconnect();
   }, []);
 
   const handleVideoEnd = () => {
@@ -167,9 +208,11 @@ export default function Home() {
         >
           <video
             src="/logo-animado.mp4"
+            poster="/logo-inworker.png"
             autoPlay
             muted
             playsInline
+            preload="metadata"
             onEnded={handleVideoEnd}
             className="absolute inset-0 h-full w-full object-cover"
           />
@@ -224,12 +267,14 @@ export default function Home() {
 
               <div className="relative aspect-video w-full overflow-hidden rounded-t-[24px] md:aspect-auto md:h-[500px] lg:h-[560px] md:rounded-[32px]">
                 <video
-                  src="/sophie-optimizada.webm"
-                  autoPlay
+                  ref={heroVideoRef}
+                  src={heroVideoReady ? '/sophie-optimizada.webm' : undefined}
+                  poster="/sophie-icon.png"
+                  autoPlay={heroVideoReady && !isMobile ? true : heroVideoReady}
                   loop
                   muted
                   playsInline
-                  preload="auto"
+                  preload={heroVideoReady ? 'metadata' : 'none'}
                   disablePictureInPicture
                   controlsList="nodownload nofullscreen"
                   className="h-full w-full object-cover object-center"
