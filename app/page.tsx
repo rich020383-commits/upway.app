@@ -286,14 +286,20 @@ export default function Home() {
                 </p>
 
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                  <Link href="#contacto" className="btn-glow-primary inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold text-white transition hover:-translate-y-0.5">
-                    Agendar consultoría
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                  <Link href="#sectores" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-3.5 text-sm font-semibold text-slate-200 backdrop-blur-md transition hover:border-white/30 hover:bg-white/10">
-                    Ver sectores
-                  </Link>
-                </div>
+  <a 
+    href="mailto:contacto@upway.business?subject=Solicitud%20de%20consultoría%20-%20Upway%20Business" 
+    className="btn-glow-primary inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold text-white transition hover:-translate-y-0.5"
+  >
+    Agendar consultoría
+    <ArrowRight className="h-4 w-4" />
+  </a>
+  <Link 
+    href="#sectores" 
+    className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-3.5 text-sm font-semibold text-slate-200 backdrop-blur-md transition hover:border-white/30 hover:bg-white/10"
+  >
+    Ver sectores
+  </Link>
+</div>
 
                 <div className="mt-6 flex flex-wrap gap-2 text-[10px] font-medium uppercase tracking-[0.14em] text-slate-400">
                   {trustTags.map((tag) => (
