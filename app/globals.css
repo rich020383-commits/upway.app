@@ -1,15 +1,12 @@
 @import "tailwindcss";
 
-@theme {
+:root {
   --color-brand-electric: #2563eb;
   --color-brand-dark: #0f172a;
   --color-brand-navy: #0f1f36;
   --color-brand-slate: #6e86a8;
   --color-brand-ice: #f7faff;
   --color-brand-success: #18a66e;
-}
-
-:root {
   --upway-navy: #0d1727;
   --upway-navy-strong: #08111d;
   --upway-blue: #1b5ed6;
@@ -20,10 +17,22 @@
   --upway-surface: rgba(255, 255, 255, 0.82);
   --upway-border: rgba(12, 22, 38, 0.08);
   --upway-mist: rgba(123, 176, 255, 0.12);
+  --upway-brand-navy: #0d1727;
+  --upway-brand-navy-strong: #07111c;
+  --upway-brand-blue: #1b5ed6;
+  --upway-brand-blue-soft: #dfeaff;
+  --upway-brand-sky: #9fd4ff;
+  --upway-brand-surface: rgba(255, 255, 255, 0.78);
+  --upway-brand-border: rgba(13, 23, 39, 0.09);
+  --upway-brand-muted: #5d7492;
+  --upway-brand-shadow: rgba(14, 29, 49, 0.12);
 }
 
 html {
   scroll-behavior: smooth;
+  /* Candado estricto de ancho para la raíz del documento */
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 body {
@@ -33,7 +42,11 @@ body {
     linear-gradient(180deg, #f8faff 0%, #eef4ff 100%);
   color: var(--upway-navy);
   font-family: "Inter", "Segoe UI", sans-serif;
+  
+  /* Candado estricto para el cuerpo de la página */
+  max-width: 100vw;
   overflow-x: hidden;
+  overscroll-behavior-y: none; /* Evita el rebote elástico al scrollear en móviles */
 }
 
 * {
@@ -49,6 +62,7 @@ body {
 .text-gradient {
   background: linear-gradient(135deg, #0a1525 0%, #183b7e 28%, #4a83ff 58%, #7ec3ff 100%);
   -webkit-background-clip: text;
+  background-clip: text; /* Añade esta línea para que desaparezca la advertencia */
   -webkit-text-fill-color: transparent;
 }
 

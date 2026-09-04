@@ -36,9 +36,13 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
 };
 
-// 🎨 Configuración visual para dispositivos móviles
+// 🎨 Configuración visual para dispositivos móviles (Bloqueo de zoom)
 export const viewport: Viewport = {
   themeColor: "#0d1727",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
