@@ -174,44 +174,49 @@ export default function Home() {
           {/* VIDEO CINEMATOGRÁFICO DE SOPHIE V2 — RESPLANDOR PREMIUM */}
           <div className="relative mb-14 overflow-hidden rounded-[32px] border border-white/15 bg-slate-950 shadow-[0_40px_120px_rgba(2,8,18,0.7)] ring-1 ring-[#2d78ff]/25">
             <div className="absolute -inset-px rounded-[32px] bg-gradient-to-r from-[#2d78ff]/40 via-transparent to-[#7dd3fc]/30 opacity-60 blur-sm" />
-            <div className="relative w-full h-[380px] md:h-[500px] lg:h-[560px] overflow-hidden rounded-[32px]">
+
+            {/* VIDEO — en móvil ocupa todo el ancho sin texto encima */}
+            <div className="relative h-[320px] w-full overflow-hidden rounded-t-[32px] md:h-[500px] lg:h-[560px] md:rounded-[32px]">
               <video
                 src="/sophie-animada.webm"
                 autoPlay
                 loop
                 muted
                 playsInline
-                className="h-full w-full object-cover object-center"
+                preload="auto"
+                disablePictureInPicture
+                controlsList="nodownload nofullscreen"
+                className="h-full w-full object-cover object-center [transform:translateZ(0)] [will-change:transform]"
               />
-              {/* Degradados cinematográficos para fusionar con el diseño */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#050b16] via-[#050b16]/20 to-transparent"></div>
-              <div className="absolute inset-0 bg-gradient-to-r from-[#050b16]/60 via-transparent to-[#050b16]/50"></div>
+              {/* Degradados cinematográficos — solo en desktop para fusionar el texto */}
+              <div className="absolute inset-0 hidden bg-gradient-to-t from-[#050b16] via-[#050b16]/20 to-transparent md:block"></div>
+              <div className="absolute inset-0 hidden bg-gradient-to-r from-[#050b16]/60 via-transparent to-[#050b16]/50 md:block"></div>
+            </div>
 
-              {/* Contenido flotante sobre el video a gran escala */}
-              <div className="absolute bottom-6 left-6 right-6 z-10 flex flex-col justify-between gap-6 md:bottom-12 md:left-12 md:right-12 md:flex-row md:items-end">
-                <div className="max-w-2xl space-y-3">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-[#7dd3fc]/30 bg-[#7dd3fc]/10 px-4 py-1.5 text-xs font-bold text-[#7dd3fc] shadow-lg backdrop-blur-md">
-                    <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#7dd3fc] opacity-75" />
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-[#7dd3fc]" />
-                    </span>
-                    Sophie v2 • Empleado Digital Autónomo
-                  </div>
-                  <h2 className="text-3xl font-black leading-tight tracking-tight text-white drop-shadow-lg md:text-5xl">
-                    Operación y Triage en Vivo <span className="text-shimmer">24/7</span>
-                  </h2>
-                  <p className="text-sm leading-relaxed text-blue-100/90 drop-shadow md:text-base">
-                    Orquestando llamadas telefónicas, chats de WhatsApp y flujos operativos con contexto de negocio absoluto en tiempo real. Diseñado para escalar sin fricción.
-                  </p>
+            {/* Contenido flotante: panel propio en móvil, overlay en desktop */}
+            <div className="relative z-10 flex flex-col justify-between gap-6 border-t border-white/10 bg-[#0a1424]/95 px-6 py-8 backdrop-blur-md md:absolute md:bottom-12 md:left-12 md:right-12 md:flex-row md:items-end md:border-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none">
+              <div className="max-w-2xl space-y-3">
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#7dd3fc]/30 bg-[#7dd3fc]/10 px-4 py-1.5 text-xs font-bold text-[#7dd3fc] shadow-lg">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#7dd3fc] opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-[#7dd3fc]" />
+                  </span>
+                  Sophie v2 • Empleado Digital Autónomo
                 </div>
-                <div className="shrink-0">
-                  <Link
-                    href="#contacto"
-                    className="glass-dark inline-flex items-center gap-2 rounded-full px-8 py-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-white/10"
-                  >
-                    Probar en vivo <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </div>
+                <h2 className="text-2xl font-black leading-tight tracking-tight text-white md:text-5xl">
+                  Operación y Triage en Vivo <span className="text-shimmer">24/7</span>
+                </h2>
+                <p className="text-sm leading-relaxed text-blue-100/90 md:text-base">
+                  Orquestando llamadas telefónicas, chats de WhatsApp y flujos operativos con contexto de negocio absoluto en tiempo real. Diseñado para escalar sin fricción.
+                </p>
+              </div>
+              <div className="shrink-0">
+                <Link
+                  href="#contacto"
+                  className="btn-glow-primary inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5"
+                >
+                  Probar en vivo <ArrowRight className="h-4 w-4" />
+                </Link>
               </div>
             </div>
           </div>
