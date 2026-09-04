@@ -272,3 +272,41 @@ body {
   animation: upway-scanline 4.5s ease-in-out infinite;
   pointer-events: none;
 }
+
+@media (max-width: 767px) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .upway-dark-shell::before,
+  .upway-shell::before,
+  .upway-grid-pattern {
+    opacity: 0.4;
+    background-size: 28px 28px;
+  }
+
+  .upway-panel,
+  .upway-card,
+  .upway-chip,
+  .brand-badge,
+  .glass-dark,
+  .glass-light,
+  .upway-surface,
+  .upway-panel-dark {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .text-shimmer {
+    animation-duration: 8s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
