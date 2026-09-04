@@ -143,6 +143,8 @@ export default function Home() {
   const [fadeOut, setFadeOut] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [heroVideoReady, setHeroVideoReady] = useState(false);
+  const [heroVideoLoaded, setHeroVideoLoaded] = useState(false);
+  const [splashVideoLoaded, setSplashVideoLoaded] = useState(false);
   const heroVideoRef = useRef<HTMLVideoElement | null>(null);
 
   // Efecto para cancelar el video en computadora (apaga el splash en pantallas >= 768px)
@@ -208,13 +210,13 @@ export default function Home() {
         >
           <video
             src="/logo-animado.mp4"
-            poster="/logo-inworker.png"
             autoPlay
             muted
             playsInline
             preload="metadata"
+            onLoadedData={() => setSplashVideoLoaded(true)}
             onEnded={handleVideoEnd}
-            className="absolute inset-0 h-full w-full object-cover"
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${splashVideoLoaded ? 'opacity-100' : 'opacity-0'}`}
           />
         </div>
       )}
@@ -269,15 +271,15 @@ export default function Home() {
                 <video
                   ref={heroVideoRef}
                   src={heroVideoReady ? '/sophie-optimizada.webm' : undefined}
-                  poster="/sophie-icon.png"
                   autoPlay={heroVideoReady && !isMobile ? true : heroVideoReady}
                   loop
                   muted
                   playsInline
                   preload={heroVideoReady ? 'metadata' : 'none'}
+                  onLoadedData={() => setHeroVideoLoaded(true)}
                   disablePictureInPicture
                   controlsList="nodownload nofullscreen"
-                  className="h-full w-full object-cover object-center"
+                  className={`h-full w-full object-cover object-center transition-opacity duration-300 ${heroVideoLoaded ? 'opacity-100' : 'opacity-0'}`}
                 />
                 <div className="absolute inset-0 hidden bg-gradient-to-t from-[#050b16] via-[#050b16]/20 to-transparent md:block"></div>
                 <div className="absolute inset-0 hidden bg-gradient-to-r from-[#050b16]/60 via-transparent to-[#050b16]/50 md:block"></div>
