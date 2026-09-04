@@ -7,9 +7,12 @@ import {
   BriefcaseBusiness,
   Building2,
   CalendarClock,
+  CheckCircle2,
   HeartPulse,
   Landmark,
+  MessageCircle,
   MessageSquareText,
+  PhoneCall,
   ShieldCheck,
   ShoppingCart,
   Sparkles,
@@ -169,16 +172,16 @@ export default function Home() {
       </header>
 
       <div className="relative z-10 mx-auto max-w-7xl px-6 pb-20 md:px-10">
-      <section>
+        <section>
 
           {/* VIDEO CINEMATOGRÁFICO DE SOPHIE V2 — RESPLANDOR PREMIUM */}
           <div className="relative mb-14 overflow-hidden rounded-[32px] border border-white/15 bg-slate-950 shadow-[0_40px_120px_rgba(2,8,18,0.7)] ring-1 ring-[#2d78ff]/25">
             <div className="absolute -inset-px rounded-[32px] bg-gradient-to-r from-[#2d78ff]/40 via-transparent to-[#7dd3fc]/30 opacity-60 blur-sm" />
 
-            {/* VIDEO — en móvil ocupa todo el ancho sin texto encima */}
-            <div className="relative h-[320px] w-full overflow-hidden rounded-t-[32px] md:h-[500px] lg:h-[560px] md:rounded-[32px]">
+            {/* VIDEO — Proporción dinámica para evitar deformaciones en móviles */}
+            <div className="relative aspect-video w-full overflow-hidden rounded-t-[32px] md:aspect-auto md:h-[500px] lg:h-[560px] md:rounded-[32px]">
               <video
-                src="/sophie-animada.webm"
+                src="/sophie-optimizada.webm"
                 autoPlay
                 loop
                 muted
@@ -186,7 +189,7 @@ export default function Home() {
                 preload="auto"
                 disablePictureInPicture
                 controlsList="nodownload nofullscreen"
-                className="h-full w-full object-cover object-center [transform:translateZ(0)] [will-change:transform]"
+                className="h-full w-full object-cover object-center"
               />
               {/* Degradados cinematográficos — solo en desktop para fusionar el texto */}
               <div className="absolute inset-0 hidden bg-gradient-to-t from-[#050b16] via-[#050b16]/20 to-transparent md:block"></div>
@@ -221,7 +224,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* HERO COPY + DASHBOARD EN VIVO */}
+          {/* HERO COPY + DEMO INTERACTIVA EN VIVO */}
           <div className="grid items-center gap-10 lg:grid-cols-[1.06fr_0.94fr]">
             <div>
               <div className="flex flex-wrap items-center gap-2 text-[10px] font-mono uppercase tracking-[0.18em] text-[#7dd3fc]">
@@ -260,49 +263,74 @@ export default function Home() {
               </div>
             </div>
 
-            {/* COLUMNA DERECHA: EL CUADRO NEGRO (DASHBOARD) */}
+            {/* DEMO EN VIVO: PRUEBA A SOPHIE V2 (REEMPLAZA AL CUADRO TIPO CELULAR) */}
             <div className="relative">
-              <div className="absolute -inset-6 rounded-[40px] bg-[#2d78ff]/15 blur-3xl animate-pulse-glow" />
-              <div className="glass-dark relative overflow-hidden rounded-[32px] p-4">
-                <div className="rounded-[26px] border border-white/10 bg-gradient-to-br from-[#0d1727] via-[#152c48] to-[#1d5fd9] p-5 text-white">
-                  <div className="flex items-center justify-between pb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[#7dd3fc]" />
-                      <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-blue-100/80">Operación activa</span>
-                    </div>
-                    <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1 text-[10px] font-medium text-blue-100/80">24/7</span>
+              <div className="absolute -inset-6 rounded-[40px] bg-[#2d78ff]/20 blur-3xl" />
+              <div className="relative overflow-hidden rounded-[32px] border border-white/15 bg-gradient-to-br from-[#0c1626]/95 via-[#0e1d33]/90 to-[#142d54]/85 p-6 shadow-2xl backdrop-blur-xl md:p-8">
+                
+                {/* Header de la tarjeta */}
+                <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+                    </span>
+                    LÍNEA DEMO ACTIVA 24/7
                   </div>
+                  <span className="text-[11px] font-mono tracking-wider text-blue-200/70">IA SIN ESPERAS</span>
+                </div>
 
-                  <div className="mt-2 grid gap-4 md:grid-cols-2">
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-                      <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-blue-100/70">Atenciones</div>
-                      <div className="mt-3 text-3xl font-black tracking-[-0.06em]">+38%</div>
-                      <div className="mt-2 text-sm text-blue-100/75">respuestas más rápidas</div>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-                      <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-blue-100/70">Carga</div>
-                      <div className="mt-3 text-3xl font-black tracking-[-0.06em]">-42%</div>
-                      <div className="mt-2 text-sm text-blue-100/75">manual de atención</div>
-                    </div>
+                {/* Llamado a la acción */}
+                <div className="mt-5">
+                  <h3 className="text-2xl font-black tracking-tight text-white md:text-3xl">
+                    Comprueba en vivo cómo atenderá a tus clientes
+                  </h3>
+                  <p className="mt-3 text-sm leading-relaxed text-slate-300">
+                    Escribe por WhatsApp o llama directamente para interactuar con <strong className="text-white">Sophie v2</strong>. Evalúa su naturalidad de voz, velocidad y capacidad de agendamiento en tiempo real.
+                  </p>
+                </div>
+
+                {/* Botones de acción directa */}
+<div className="mt-6 flex flex-col gap-3 sm:flex-row">
+  <a
+    href="https://wa.me/573126427856?text=Hola%20Sophie,%20quiero%20hacer%20una%20prueba%20en%20vivo"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="flex flex-1 items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-5 py-4 text-sm font-bold text-white shadow-lg shadow-emerald-500/20 transition hover:from-emerald-500 hover:to-emerald-400 hover:-translate-y-0.5"
+  >
+    <MessageCircle className="h-5 w-5" />
+    Chatear por WhatsApp
+  </a>
+
+  <a
+    href="tel:+573126427856"
+    className="flex flex-1 items-center justify-center gap-2.5 rounded-2xl border border-white/15 bg-white/10 px-5 py-4 text-sm font-bold text-white backdrop-blur-md transition hover:bg-white/15 hover:border-white/30 hover:-translate-y-0.5"
+  >
+    <PhoneCall className="h-5 w-5 text-[#7dd3fc]" />
+    Llamar al agente de voz
+  </a>
+</div>
+
+                {/* Puntos destacados de la experiencia */}
+                <div className="mt-6 space-y-2.5 rounded-2xl border border-white/10 bg-black/20 p-4 text-xs text-slate-300">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-[#7dd3fc]" />
+                    <span>Sin menús numéricos ni contestadores rígidos: conversación fluida.</span>
                   </div>
-
-                  <div className="mt-5 rounded-2xl border border-white/10 bg-[#0b1422]/80 p-4">
-                    <div className="flex items-center justify-between text-sm text-blue-100/75">
-                      <span>Trabajo crítico</span>
-                      <span className="rounded-full bg-[#18a66e]/15 px-2 py-1 text-[10px] font-medium text-green-300">en vivo</span>
-                    </div>
-                    <div className="mt-4 space-y-3">
-                      {['Triaje asistido', 'Agenda inteligente', 'Escalamiento humano', 'Reglas de seguridad'].map((item, index) => (
-                        <div key={item} className="flex items-center gap-3 text-sm text-white/90">
-                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-[10px] font-bold text-[#9fd4ff]">
-                            {index + 1}
-                          </div>
-                          <span>{item}</span>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-[#7dd3fc]" />
+                    <span>Capaz de agendar, validar disponibilidad y clasificar consultas.</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-[#7dd3fc]" />
+                    <span>Escalamiento asistido a un asesor humano cuando se requiere.</span>
                   </div>
                 </div>
+
+                <p className="mt-4 text-center text-[11px] text-slate-400">
+                  * Pon a prueba a Sophie simulando ser un cliente con preguntas difíciles.
+                </p>
+
               </div>
             </div>
 

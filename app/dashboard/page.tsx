@@ -95,7 +95,7 @@ export default function LandingPage() {
               <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 my-6 p-4 flex items-center gap-5 shadow-inner">
                 <div className="relative h-20 w-20 shrink-0 rounded-2xl overflow-hidden border border-slate-700 bg-slate-900 shadow-md">
                   <video 
-                    src="/sophie-animada.webm" 
+                    src="/sophie-optimizada.webm" 
                     autoPlay 
                     loop 
                     muted 

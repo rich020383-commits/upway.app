@@ -1,0 +1,42 @@
+
+> upway.business@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://172.22.208.1:3000
+- Environments: .env
+✓ Ready in 1551ms
+⚠ Slow filesystem detected. The benchmark took 248ms. If C:\Users\ANDRES\Upway\upway-app\.next/dev is a network drive, consider moving it to a local folder.
+See more: https://nextjs.org/docs/app/guides/local-development
+- Experiments (use with caution):
+  · cpus: 1
+
+○ Compiling / ...
+(node:10168) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
+
+To prepare for this change:
+- If you want the current behavior, explicitly use 'sslmode=verify-full'
+- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
+
+See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ GET / 200 in 28.5s (next.js: 24.5s, application-code: 4.0s)
+ GET / 200 in 17.0s (next.js: 15.9s, application-code: 1061ms)
+👂 Servidor Upway conectado y escuchando eventos de Neon...
+○ Compiling /api/auth/[...nextauth] ...
+ GET / 200 in 7.6s (next.js: 536ms, application-code: 7.0s)
+ GET /api/auth/session 200 in 10.7s (next.js: 9.7s, application-code: 1044ms)
+✓ Compiled in 1482ms
+ GET / 200 in 499ms (next.js: 283ms, application-code: 216ms)
+👂 Servidor Upway conectado y escuchando eventos de Neon...
+ GET / 200 in 3.7s (next.js: 134ms, application-code: 3.6s)
+ GET / 200 in 940ms (next.js: 123ms, application-code: 817ms)
+ GET /api/auth/session 200 in 345ms (next.js: 211ms, application-code: 134ms)
+ GET / 200 in 3.5s (next.js: 230ms, application-code: 3.3s)
+ GET / 200 in 2.3s (next.js: 28ms, application-code: 2.3s)
+ GET /api/auth/session 200 in 120ms (next.js: 81ms, application-code: 38ms)
+✓ Compiled in 1416ms
+ GET / 200 in 4.0s (next.js: 2.2s, application-code: 1804ms)
+👂 Servidor Upway conectado y escuchando eventos de Neon...
