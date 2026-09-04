@@ -30,23 +30,21 @@
 
 html {
   scroll-behavior: smooth;
-  /* Candado estricto de ancho para la raíz del documento */
-  max-width: 100vw;
+  width: 100%;
+  max-width: 100%;
   overflow-x: hidden;
 }
 
 body {
-  background:
-    radial-gradient(circle at top left, rgba(27, 94, 214, 0.10), transparent 18%),
-    radial-gradient(circle at top right, rgba(124, 179, 255, 0.08), transparent 20%),
-    linear-gradient(180deg, #f8faff 0%, #eef4ff 100%);
-  color: var(--upway-navy);
+  /* Fondo oscuro nativo para empalmar con la estética de Upway */
+  background-color: #050b16;
+  color: #e8f0fb;
   font-family: "Inter", "Segoe UI", sans-serif;
   
-  /* Candado estricto para el cuerpo de la página */
-  max-width: 100vw;
+  width: 100%;
+  max-width: 100%;
   overflow-x: hidden;
-  overscroll-behavior-y: none; /* Evita el rebote elástico al scrollear en móviles */
+  /* Se eliminó overscroll-behavior-y: none que bloqueaba el scroll en pantalla táctil */
 }
 
 * {

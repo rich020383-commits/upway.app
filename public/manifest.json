@@ -5,8 +5,8 @@
   "description": "Centro de operaciones y agentes virtuales para tu negocio.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#03050a",
-  "theme_color": "#00D1FF",
+  "background_color": "#000000", 
+  "theme_color": "#000000",
   "orientation": "portrait",
   "icons": [
     {
