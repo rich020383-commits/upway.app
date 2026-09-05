@@ -31,7 +31,7 @@ export async function GET(request: Request) {
     // ==========================================
     // 🔥 MAGIA: MÉTRICAS REALES DE LA BASE DE DATOS
     // ==========================================
-    
+
     // 1. Citas reales guardadas en la Agenda Nativa Upway
     const totalCitas = await prisma.cita.count({
       where: { tiendaId: tienda.id }
@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     // 3. Cálculos de Inteligencia de Negocio
     // Asumimos que automatizar 1 cita ahorra 30 min (0.5 hrs) y 1 lead ahorra 15 min (0.25 hrs)
     const horasCalculadas = (totalCitas * 0.5) + (totalLeads * 0.25);
-    
+
     // Si la IA ya empezó a trabajar, mostramos una tasa de resolución realista (ej. 94%), si no, 0.
     const tasaResolucion = (totalCitas > 0 || totalLeads > 0) ? 94 : 0;
 
@@ -53,14 +53,15 @@ export async function GET(request: Request) {
     // 🔥 Retornamos los datos inyectando la nueva memoria del panel
     return NextResponse.json({
       tiendaId: tienda.id,
+      segment: tienda.segment || 'general',
       isWhatsAppActive: tienda.isWhatsAppActive,
       metaPhoneNumberId: tienda.metaPhoneNumberId,
-      telefono: tienda.telefono || tienda.metaPhoneNumberId, 
+      telefono: tienda.telefono || tienda.metaPhoneNumberId,
       isAiActive: tienda.isAiActive,         // 🤖 Controla el botón de pausa
       whatsappStatus: tienda.whatsappStatus, // 🟢 Controla el letrero de "WhatsApp Conectado"
-      
+
       // 📊 Inyección de datos reales al Dashboard
-      leads: totalLeads, 
+      leads: totalLeads,
       citas: totalCitas,
       horasAhorradas: horasCalculadas,
       resolucion: tasaResolucion

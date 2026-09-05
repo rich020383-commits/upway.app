@@ -6,6 +6,12 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const tiendaId = searchParams.get('tiendaId');
 
+    // 🏭 Segmento del negocio: de la tienda, o de la tienda principal si no se filtra
+    const segmentTienda = tiendaId
+      ? await prisma.tienda.findUnique({ where: { id: tiendaId }, select: { segment: true } })
+      : await prisma.tienda.findFirst({ select: { segment: true } });
+    const segment = segmentTienda?.segment || 'general';
+
     const where = tiendaId ? { tiendaId } : undefined;
     const totalLeads = await prisma.lead.count({ where });
     const newLeads = await prisma.lead.count({ where: { estado: 'NEW', ...(tiendaId ? { tiendaId } : {}) } });
@@ -103,6 +109,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       ok: true,
+      segment,
       summary: {
         totalLeads,
         newLeads,

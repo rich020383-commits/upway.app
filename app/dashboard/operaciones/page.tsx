@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useEffect, useState } from 'react';
+import { resolveIndustryConfig, type BusinessSegment } from '@/lib/industry-config';
 
 type LeadStatusKey = 'NEW' | 'CONTACTED' | 'APPOINTMENT_BOOKED' | 'FOLLOW_UP' | 'CLOSED_WON' | 'CLOSED_LOST';
 
@@ -55,6 +56,7 @@ type LeadActivityEntry = {
 };
 
 type DashboardPayload = {
+  segment?: string;
   summary: {
     totalLeads: number;
     newLeads: number;
@@ -69,14 +71,6 @@ type DashboardPayload = {
   inbox: InboxConversation[];
   agentPerformance: AgentPerformance[];
 };
-
-const PIPELINE_STAGES: Array<{ key: LeadStatusKey; label: string; accent: string; next?: LeadStatusKey; action: string }> = [
-  { key: 'NEW', label: 'Nuevo', accent: 'slate', next: 'CONTACTED', action: 'Contactar' },
-  { key: 'CONTACTED', label: 'Contactado', accent: 'sky', next: 'APPOINTMENT_BOOKED', action: 'Agendar' },
-  { key: 'APPOINTMENT_BOOKED', label: 'Cita', accent: 'violet', next: 'FOLLOW_UP', action: 'Seguimiento' },
-  { key: 'FOLLOW_UP', label: 'Seguimiento', accent: 'amber', next: 'CLOSED_WON', action: 'Cerrar' },
-  { key: 'CLOSED_WON', label: 'Cerrado', accent: 'emerald', action: 'Finalizado' },
-];
 
 const statusLabels: Record<string, string> = {
   NEW: 'Nuevo',
@@ -332,10 +326,23 @@ export default function OperacionesPage() {
   }
 
   const metrics = data?.summary ?? { totalLeads: 0, newLeads: 0, appointments: 0, todayAppointments: 0, pendingReminders: 0, dueReminders: 0 };
-  const pipelineColumns = PIPELINE_STAGES.map((stage) => ({
+  const industry = resolveIndustryConfig((data?.segment ?? 'general') as BusinessSegment | undefined);
+  const pipelineStages = industry.pipeline;
+  const pipelineColumns = pipelineStages.map((stage) => ({
     ...stage,
     leads: (data?.leads ?? []).filter((lead) => normalizeStage(lead.estado) === stage.key),
   }));
+
+  const metricValue = (key: string) => {
+    switch (key) {
+      case 'totalLeads': return metrics.totalLeads;
+      case 'newLeads': return metrics.newLeads;
+      case 'appointments': return metrics.appointments;
+      case 'pendingReminders': return metrics.pendingReminders;
+      case 'todayAppointments': return metrics.todayAppointments;
+      default: return 0;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 px-6 py-10 text-slate-100">
@@ -343,8 +350,8 @@ export default function OperacionesPage() {
         <div className="flex flex-col gap-3 rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 p-6 shadow-[0_25px_80px_rgba(2,6,23,0.6)] md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-sky-300">Upway Business OS · Command Center</p>
-            <h1 className="mt-2 text-3xl font-semibold text-white">Centro de operaciones</h1>
-            <p className="mt-1 text-sm text-slate-400">Visión ejecutiva del pipeline, agenda y automatización en tiempo real.</p>
+            <h1 className="mt-2 text-3xl font-semibold text-white">Centro de operaciones · {industry.label}</h1>
+            <p className="mt-1 text-sm text-slate-400">Visión ejecutiva del pipeline, agenda y automatización adaptada a tu negocio.</p>
           </div>
           <div className="flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-200">
             <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
@@ -353,27 +360,17 @@ export default function OperacionesPage() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-5">
-          {[
-            { label: 'Leads totales', value: metrics.totalLeads, accent: 'text-sky-300' },
-            { label: 'Nuevos', value: metrics.newLeads, accent: 'text-emerald-300' },
-            { label: 'Citas próximas', value: metrics.appointments, accent: 'text-violet-300' },
-            { label: 'Recordatorios', value: metrics.pendingReminders, accent: 'text-amber-300' },
-            { label: 'Hoy', value: metrics.todayAppointments, accent: 'text-rose-300' },
-          ].map((metric) => (
-            <div key={metric.label} className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-[0_18px_60px_rgba(15,23,42,0.45)]">
+          {industry.metrics.map((metric) => (
+            <div key={metric.key} className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-[0_18px_60px_rgba(15,23,42,0.45)]">
               <p className="text-sm text-slate-400">{metric.label}</p>
-              <p className={`mt-4 text-3xl font-semibold ${metric.accent}`}>{metric.value}</p>
+              <p className={`mt-4 text-3xl font-semibold ${metric.accent}`}>{metricValue(metric.key)}</p>
+              <p className="mt-2 text-xs text-slate-500">{metric.hint}</p>
             </div>
           ))}
         </div>
 
         <div className="grid gap-4 lg:grid-cols-4">
-          {[
-            { title: 'Agente WhatsApp', text: 'Mensajes y lead capture operativos', tone: 'border-sky-500/40 bg-sky-500/10 text-sky-100', badge: 'Live' },
-            { title: 'Agenda inteligente', text: 'Citas y disponibilidad automatizadas', tone: 'border-violet-500/40 bg-violet-500/10 text-violet-100', badge: 'Booking' },
-            { title: 'Follow-up', text: 'Recordatorios y escalamiento por estado', tone: 'border-amber-500/40 bg-amber-500/10 text-amber-100', badge: automation.dueReminders > 0 ? `${automation.dueReminders} vencidos` : 'En tiempo' },
-            { title: 'Operación', text: 'Asignación, pipeline y cierre del ciclo', tone: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-100', badge: 'Core' },
-          ].map((card) => (
+          {industry.serviceCards.map((card) => (
             <div key={card.title} className={`rounded-2xl border p-4 shadow-[0_10px_40px_rgba(15,23,42,0.25)] ${card.tone}`}>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-[10px] uppercase tracking-[0.22em] opacity-80">{card.badge}</span>
@@ -446,7 +443,7 @@ export default function OperacionesPage() {
                     ) : (
                       stage.leads.map((lead) => {
                         const currentStage = normalizeStage(lead.estado);
-                        const nextStage = PIPELINE_STAGES.find((item) => item.key === currentStage)?.next;
+                        const nextStage = pipelineStages.find((item) => item.key === currentStage)?.next;
                         const selectedUser = selectedUserByLead[lead.id] ?? lead.assignedTo?.id ?? '';
 
                         return (
@@ -517,7 +514,7 @@ export default function OperacionesPage() {
                                 disabled={statusUpdatingId === lead.id}
                                 className="mt-3 w-full rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2 py-2 text-[11px] font-medium text-emerald-200 disabled:cursor-not-allowed disabled:opacity-50"
                               >
-                                {statusUpdatingId === lead.id ? 'Actualizando...' : `Mover a ${statusLabels[nextStage]}`}
+                                {statusUpdatingId === lead.id ? 'Actualizando...' : `Mover a ${pipelineStages.find((s) => s.key === nextStage)?.label ?? statusLabels[nextStage]}`}
                               </button>
                             )}
                           </div>
@@ -558,7 +555,7 @@ export default function OperacionesPage() {
             </section>
 
             <section className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5">
-              <h2 className="mb-4 text-xl font-semibold text-white">Agenda próxima</h2>
+              <h2 className="mb-4 text-xl font-semibold text-white">Agenda de {industry.appointmentNoun.toLowerCase()}s</h2>
               <div className="space-y-3">
                 {(data?.nextAppointments ?? []).map((appointment) => (
                   <div key={appointment.id} className="rounded-xl border border-slate-800 bg-slate-950/60 p-3">

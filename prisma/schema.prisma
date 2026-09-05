@@ -44,7 +44,7 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?   // Para que tus clientes entren con su clave
-   
+
   accounts                Account[]
   sessions                Session[]
   tiendas                 Tienda[]  // Enlace directo al negocio de tu cliente
@@ -435,28 +435,31 @@ model Tienda {
   organizationId      String?
   clinicId            String?
   nombre              String
-  
+
+  // 🏭 Segmento de negocio (inmobiliaria, drogueria, retail, supermercado, general)
+  segment             String   @default("general")
+
   // 🤖 Personalidad del Bot
   agentName           String?
   systemPrompt        String?  @db.Text
-  
+
   // 🔥 CAMPOS META WHATSAPP Y HANDOFF
   telefono            String?  // El número oficial de la empresa en Meta
   telefonoAdmin       String?  // Celular personal del dueño para Human Handoff
-  metaPhoneNumberId   String?  
-  metaWabaId          String?  
+  metaPhoneNumberId   String?
+  metaWabaId          String?
   metaAccessToken     String?  @db.Text
   isWhatsAppActive    Boolean  @default(false)
   whatsappStatus      String   @default("PENDING") // 🟢 Para el letrero verde inteligente del frontend
   isAiActive          Boolean  @default(true)      // 🛑 Botón del panel: true = IA responde, false = Humano responde
 
   // 🎙️ CAMPOS VAPI (Agentes de Voz)
-  vapiAssistantId     String?  
-  vapiPhoneNumber     String?  
+  vapiAssistantId     String?
+  vapiPhoneNumber     String?
   isVapiActive        Boolean  @default(false)
 
   // 🗑️ (Se eliminaron los campos de Google Calendar por el pivot estratégico)
-  
+
   user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   organization        Organization?  @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   clinic              Clinic?        @relation(fields: [clinicId], references: [id], onDelete: SetNull)
@@ -474,7 +477,7 @@ model Producto {
   descripcion String?
   precio      Float
   stock       Int      @default(0)
-  
+
   tienda      Tienda   @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
 }
 

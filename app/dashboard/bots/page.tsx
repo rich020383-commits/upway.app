@@ -10,32 +10,34 @@ import {
   Zap
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react'; 
-import { useUpwayStore } from '../../store/upwayStore'; 
+import { useSession } from 'next-auth/react';
+import { useUpwayStore } from '../../store/upwayStore';
 import Link from 'next/link';
+import { resolveIndustryConfig, type BusinessSegment } from '@/lib/industry-config';
 
 export default function AgentesBotPage() {
   const router = useRouter();
-  
+
   // 🔥 BLINDAJE Y EXTRACCIÓN SEGURA (USAMOS EMAIL)
   const sessionContext = useSession() || {};
   const session = sessionContext.data;
   const userEmail = session?.user?.email; // <-- El email NUNCA falla
-  
+
   // 🚀 ESTADO MAESTRO
   const [servicioActivo, setServicioActivo] = useState<'dashboard' | 'hub' | 'whatsapp' | 'voz'>('dashboard');
 
   const { nombreAgente: nombreStore } = useUpwayStore();
-  const [iaActiva, setIaActiva] = useState(true); 
+  const [iaActiva, setIaActiva] = useState(true);
   const [loadingToggle, setLoadingToggle] = useState(false); // Estado para el botón de pausa
 
   // 📊 ESTADOS DINÁMICOS
   const [tiendaIdActual, setTiendaIdActual] = useState<string | null>(null);
   const [metricas, setMetricas] = useState({ leads: 0, citas: 0, horasAhorradas: 0, resolucion: 0 });
+  const [segmento, setSegmento] = useState<BusinessSegment>('general');
   const [whatsappStatus, setWhatsappStatus] = useState<'active' | 'pending' | 'disconnected'>('disconnected');
   const [telefonoConectado, setTelefonoConectado] = useState<string | null>(null);
   const [loadingMetricas, setLoadingMetricas] = useState(true);
-  
+
   // 🔥 EFECTO DINÁMICO: Buscar usando tu EMAIL
   useEffect(() => {
     if (servicioActivo === 'dashboard' && userEmail) {
@@ -44,7 +46,8 @@ export default function AgentesBotPage() {
           const res = await fetch(`/dashboard/metricas?email=${userEmail}`);
           const data = await res.json();
           if (res.ok) {
-            setTiendaIdActual(data.tiendaId); 
+            setTiendaIdActual(data.tiendaId);
+            setSegmento((data.segment ?? 'general') as BusinessSegment);
             setMetricas({
               leads: data.leads || 0,
               citas: data.citas || 0,
@@ -52,7 +55,7 @@ export default function AgentesBotPage() {
               resolucion: data.resolucion || 0
             });
             setTelefonoConectado(data.telefono || null);
-            
+
             // Sincronizamos el estado de la IA con la BD
             if (data.isAiActive !== undefined) {
               setIaActiva(data.isAiActive);
@@ -61,9 +64,9 @@ export default function AgentesBotPage() {
             if (data.isWhatsAppActive) {
               setWhatsappStatus('active');
             } else if (data.metaPhoneNumberId) {
-              setWhatsappStatus('pending'); 
+              setWhatsappStatus('pending');
             } else {
-              setWhatsappStatus('disconnected'); 
+              setWhatsappStatus('disconnected');
             }
           }
         } catch (error) {
@@ -81,14 +84,14 @@ export default function AgentesBotPage() {
     if (!tiendaIdActual) return;
     setLoadingToggle(true);
     const nuevoEstado = !iaActiva;
-    
+
     try {
       const res = await fetch('/api/tienda/toggle-ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          tiendaId: tiendaIdActual, 
-          isAiActive: nuevoEstado 
+        body: JSON.stringify({
+          tiendaId: tiendaIdActual,
+          isAiActive: nuevoEstado
         })
       });
 
@@ -104,15 +107,15 @@ export default function AgentesBotPage() {
 
   // ESTADOS DE FORMULARIOS Y LÓGICA
   const [nombreAgente, setNombreAgente] = useState('');
-  const [nicho, setNicho] = useState('general'); 
+  const [nicho, setNicho] = useState('general');
   const [promptMaestro, setPromptMaestro] = useState('');
   const [guardando, setGuardando] = useState(false);
-  
+
   // Estados Simulador WhatsApp
   const [mensajePrueba, setMensajePrueba] = useState('');
   const [historialChat, setHistorialChat] = useState<{rol: string, texto: string}[]>([]);
   const [cargandoPrueba, setCargandoPrueba] = useState(false);
-  
+
   // Estados Audio
   const [isRecording, setIsRecording] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -120,14 +123,15 @@ export default function AgentesBotPage() {
   const audioChunksRef = useRef<Blob[]>([]);
 
   // Estados Simulador Voz (VAPI)
-  const [vozSeleccionada, setVozSeleccionada] = useState('femenina_estrella'); 
+  const [vozSeleccionada, setVozSeleccionada] = useState('femenina_estrella');
   const [creandoVoz, setCreandoVoz] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const industry = resolveIndustryConfig(segmento);
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-  
+
   useEffect(() => {
     if(servicioActivo === 'whatsapp') scrollToBottom();
   }, [historialChat, cargandoPrueba, isRecording, servicioActivo]);
@@ -184,7 +188,7 @@ export default function AgentesBotPage() {
           vozSeleccionada: vozSeleccionada
         }),
       });
-      
+
       const data = await res.json();
       if (res.ok) alert('🎉 ¡Central Telefónica conectada! Tu agente ya existe en Vapi con el ID: ' + data.assistantId);
       else alert('Error: ' + data.error);
@@ -196,7 +200,7 @@ export default function AgentesBotPage() {
     }
   };
 
-  const handleActivarWhatsApp = () => router.push('/dashboard/onboarding/activacion'); 
+  const handleActivarWhatsApp = () => router.push('/dashboard/onboarding/activacion');
 
   const startRecording = async () => {
     try {
@@ -300,7 +304,7 @@ export default function AgentesBotPage() {
           <p className="text-lg text-[#8994A6]">Selecciona el módulo operativo que deseas configurar o auditar.</p>
         </motion.div>
         <div className="grid md:grid-cols-2 gap-6 w-full max-w-5xl mx-auto relative z-10">
-          <motion.div 
+          <motion.div
             whileHover={{ scale: 1.01, y: -2 }}
             onClick={() => setServicioActivo('whatsapp')}
             className="group cursor-pointer rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8 shadow-xl transition-all hover:border-[#19C8E8]/50 flex flex-col justify-between"
@@ -316,7 +320,7 @@ export default function AgentesBotPage() {
               Ingresar al Sandbox <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </motion.div>
-          <motion.div 
+          <motion.div
             whileHover={{ scale: 1.01, y: -2 }}
             onClick={() => setServicioActivo('voz')}
             className="group cursor-pointer rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8 shadow-xl transition-all hover:border-[#9B5CFF]/50 flex flex-col justify-between relative"
@@ -362,14 +366,14 @@ export default function AgentesBotPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#8994A6]">Identidad en Llamada</label>
-                      <input 
-                        type="text" value={nombreAgente} onChange={(e) => setNombreAgente(e.target.value)} placeholder="Ej. Celeste" 
-                        className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3.5 text-sm text-[#F5F7FA] placeholder-[#8994A6]/50 outline-none transition focus:border-[#9B5CFF]" 
+                      <input
+                        type="text" value={nombreAgente} onChange={(e) => setNombreAgente(e.target.value)} placeholder="Ej. Celeste"
+                        className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3.5 text-sm text-[#F5F7FA] placeholder-[#8994A6]/50 outline-none transition focus:border-[#9B5CFF]"
                       />
                     </div>
                     <div>
                       <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#8994A6]">Motor de Síntesis (TTS)</label>
-                      <select 
+                      <select
                         value={vozSeleccionada} onChange={(e) => setVozSeleccionada(e.target.value)}
                         className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3.5 text-sm text-[#F5F7FA] outline-none transition focus:border-[#9B5CFF] cursor-pointer"
                       >
@@ -389,13 +393,13 @@ export default function AgentesBotPage() {
                     <label className="mb-2 flex justify-between items-center text-xs font-semibold uppercase tracking-wider text-[#8994A6]">
                       <span>Prompt Operativo Telefónico</span>
                     </label>
-                    <textarea 
-                      value={promptMaestro} onChange={(e) => setPromptMaestro(e.target.value)} placeholder="Ej: Llama para confirmar la cita médica..." 
-                      className="h-40 w-full resize-none rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3.5 text-sm text-[#F5F7FA] placeholder-[#8994A6]/50 outline-none transition focus:border-[#9B5CFF]" 
+                    <textarea
+                      value={promptMaestro} onChange={(e) => setPromptMaestro(e.target.value)} placeholder="Ej: Llama para confirmar la cita médica..."
+                      className="h-40 w-full resize-none rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3.5 text-sm text-[#F5F7FA] placeholder-[#8994A6]/50 outline-none transition focus:border-[#9B5CFF]"
                     />
                   </div>
-                  <button 
-                    onClick={crearAgenteVoz} disabled={creandoVoz} 
+                  <button
+                    onClick={crearAgenteVoz} disabled={creandoVoz}
                     className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#9B5CFF] px-6 py-3.5 font-bold text-white shadow-lg transition-all hover:bg-[#8B4CFF] disabled:opacity-50"
                   >
                     {creandoVoz ? <Loader2 className="h-5 w-5 animate-spin" /> : <Server className="h-5 w-5" />}
@@ -404,23 +408,18 @@ export default function AgentesBotPage() {
                 </div>
               </div>
             </div>
-            <div className="flex flex-col gap-6">
-              <div className="rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8 shadow-xl">
+            <div className="flex flex-col gap-4">
+              <div className="rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8">
                 <div className="mb-6 flex flex-col items-center text-center border-b border-[#1E293B] pb-6">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#10B981]/10 text-[#10B981] mb-4 border border-[#10B981]/20">
                     <UploadCloud className="h-6 w-6"/>
                   </div>
-                  <h3 className="text-lg font-bold text-[#F5F7FA]">Campañas Outbound</h3>
-                  <p className="text-xs text-[#8994A6] mt-2">Carga tu lista en CSV para llamadas salientes masivas.</p>
+                  <h3 className="text-lg font-bold text-[#F5F7FA]">Base de Conocimiento</h3>
+                  <p className="text-xs text-[#8994A6] mt-2">Gestiona la información que el agente de voz usa en cada llamada.</p>
                 </div>
-                <div className="flex flex-col gap-4">
-                  <button className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-[#8994A6]/50 bg-[#07090C] px-6 py-8 font-semibold text-[#8994A6] transition-all hover:border-[#F5F7FA] hover:text-[#F5F7FA]">
-                    <UploadCloud className="h-5 w-5" /> Seleccionar archivo .csv
-                  </button>
-                  <button disabled className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#F5F7FA] px-6 py-3.5 font-bold text-[#07090C] transition-all disabled:opacity-20">
-                    <Phone className="h-4 w-4" /> Lanzar Campaña
-                  </button>
-                </div>
+                <Link href="/dashboard/inventario" className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#1E293B] bg-[#1E293B] px-6 py-3 font-semibold text-[#F5F7FA] hover:bg-[#2A3B4C] transition-all text-sm">
+                  <BookOpen className="h-4 w-4" /> Gestionar Documentos
+                </Link>
               </div>
             </div>
           </div>
@@ -458,32 +457,36 @@ export default function AgentesBotPage() {
                 <div className="space-y-5">
                   <div>
                     <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#8994A6]">Nombre Interno</label>
-                    <input 
-                      type="text" value={nombreAgente} onChange={(e) => setNombreAgente(e.target.value)} placeholder="Ej. Sofía" 
-                      className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3.5 text-sm text-[#F5F7FA] outline-none transition focus:border-[#19C8E8]" 
+                    <input
+                      type="text" value={nombreAgente} onChange={(e) => setNombreAgente(e.target.value)} placeholder="Ej. Sofía"
+                      className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3.5 text-sm text-[#F5F7FA] outline-none transition focus:border-[#19C8E8]"
                     />
                   </div>
                   <div>
                     <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#8994A6]">Industria Comercial</label>
                     <div className="relative">
                       <Store className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8994A6]" />
-                      <select 
+                      <select
                         value={nicho} onChange={(e) => setNicho(e.target.value)}
                         className="w-full appearance-none rounded-xl border border-[#1E293B] bg-[#07090C] pl-10 pr-4 py-3.5 text-sm text-[#F5F7FA] outline-none transition focus:border-[#19C8E8] cursor-pointer"
                       >
                         <option value="general">Empresa General</option>
+                        <option value="inmobiliaria">Inmobiliaria</option>
+                        <option value="drogueria">Droguería</option>
+                        <option value="retail">Retail / Tienda</option>
+                        <option value="supermercado">Supermercado</option>
                         <option value="clinica">Clínica / Salud</option>
                       </select>
                     </div>
                   </div>
                   <div>
                     <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#8994A6]">Prompt Base (Instrucciones)</label>
-                    <textarea 
-                      value={promptMaestro} onChange={(e) => setPromptMaestro(e.target.value)} placeholder="Instrucciones operativas..." 
-                      className="h-40 w-full resize-none rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3.5 text-sm text-[#F5F7FA] outline-none transition focus:border-[#19C8E8]" 
+                    <textarea
+                      value={promptMaestro} onChange={(e) => setPromptMaestro(e.target.value)} placeholder="Instrucciones operativas..."
+                      className="h-40 w-full resize-none rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3.5 text-sm text-[#F5F7FA] outline-none transition focus:border-[#19C8E8]"
                     />
                   </div>
-                  <button 
+                  <button
                     onClick={guardarConfiguracion} disabled={guardando}
                     className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#1E293B] px-6 py-3.5 font-bold text-[#F5F7FA] transition-all hover:bg-[#2A3B4C]"
                   >
@@ -565,40 +568,16 @@ export default function AgentesBotPage() {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(255,214,170,0.18),_transparent_18%),linear-gradient(180deg,_#f5efe9_0%,_#f8f5f2_18%,_#eef4fa_100%)] text-slate-900 font-sans pb-20 selection:bg-[#1b5ed6] selection:text-white">
       <div className="mx-auto max-w-7xl px-6 pt-10 md:pt-12">
-        
+
         <div className="mb-6 rounded-[28px] border border-[#eadfd4] bg-[#f5efe8]/90 p-3 shadow-[0_22px_60px_rgba(15,23,42,0.06)] backdrop-blur-sm md:p-4">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white/80 text-sm font-black text-slate-800 shadow-sm">U</div>
-              <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">Upway</div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              {[
-                'Resumen',
-                'Onboarding',
-                'Accesos',
-                'Cerebro RAG',
-                'Clínica Santa María',
-                'Prueba activa',
-              ].map((tab, index) => (
-                <button
-                  key={tab}
-                  type="button"
-                  className={[
-                    'rounded-full border px-3 py-1.5 text-xs font-semibold transition-all',
-                    index === 0
-                      ? 'border-slate-900 bg-slate-900 text-white shadow-[0_10px_25px_rgba(15,23,42,0.18)]'
-                      : 'border-slate-200 bg-white/70 text-slate-600 hover:border-slate-300 hover:text-slate-900',
-                  ].join(' ')}
-                >
-                  {tab}
-                </button>
-              ))}
+              <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">Upway · {industry.label}</div>
             </div>
 
             <div className="flex items-center gap-3">
-              <button 
+              <button
                 type="button"
                 onClick={() => setServicioActivo('hub')}
                 className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.06)] transition-all hover:border-slate-300 hover:text-slate-900"
@@ -618,12 +597,7 @@ export default function AgentesBotPage() {
               <h1 className="text-3xl font-black tracking-[-0.06em] text-slate-900 md:text-4xl">
                 Centro de Mando {nombreStore ? `- ${nombreStore}` : ''}
               </h1>
-              <p className="mt-2 text-sm text-slate-600 md:text-base">Métricas de impacto y telemetría de tu IA en tiempo real.</p>
-            </div>
-
-            <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm">
-              <span className="h-2 w-2 rounded-full bg-[#1b5ed6]" /> 
-              Query activa
+              <p className="mt-2 text-sm text-slate-600 md:text-base">Métricas de impacto y telemetría de tu IA en tiempo real · {industry.label}.</p>
             </div>
           </div>
         </div>
@@ -645,7 +619,7 @@ export default function AgentesBotPage() {
             <div className="mb-4 flex items-start justify-between">
               <div className="rounded-2xl border border-[#d9f7eb] bg-[#ebfff4] p-2.5 text-[#10b981]"><CalendarCheck className="h-5 w-5" /></div>
             </div>
-            <p className="text-sm font-medium text-slate-600">Citas Agendadas (Auto)</p>
+            <p className="text-sm font-medium text-slate-600">{industry.appointmentNoun}s Agendadas (Auto)</p>
             <h3 className="mt-2 text-3xl font-black tracking-[-0.06em] text-slate-900">{loadingMetricas ? "..." : metricas.citas}</h3>
             <p className="mt-2 text-xs text-slate-500">Registradas en el calendario</p>
           </div>
@@ -654,7 +628,7 @@ export default function AgentesBotPage() {
             <div className="mb-4 flex items-start justify-between">
               <div className="rounded-2xl border border-[#f0e7ff] bg-[#f5f0ff] p-2.5 text-[#8b5cf6]"><Users className="h-5 w-5" /></div>
             </div>
-            <p className="text-sm font-medium text-slate-600">Pacientes Perfilados</p>
+            <p className="text-sm font-medium text-slate-600">{industry.audienceNoun.charAt(0).toUpperCase() + industry.audienceNoun.slice(1)}s Perfilados</p>
             <h3 className="mt-2 text-3xl font-black tracking-[-0.06em] text-slate-900">{loadingMetricas ? "..." : metricas.leads}</h3>
             <p className="mt-2 text-xs text-slate-500">Guardados en tu base de datos</p>
           </div>
@@ -675,7 +649,7 @@ export default function AgentesBotPage() {
         <h2 className="text-xl font-bold text-[#F5F7FA] mb-4 flex items-center gap-2">
           <Activity className="h-5 w-5 text-[#19C8E8]" /> Control de Operaciones
         </h2>
-        
+
         <div className="grid md:grid-cols-2 gap-6 mb-10">
           <div className={`rounded-2xl border transition-all duration-500 bg-[#0D1117] p-8 flex flex-col justify-between relative overflow-hidden ${iaActiva ? 'border-[#10B981]/30' : 'border-[#F59E0B]/30'}`}>
             <div className={`absolute top-0 left-0 right-0 h-1 ${iaActiva ? 'bg-[#10B981]' : 'bg-[#F59E0B]'}`}></div>
@@ -689,14 +663,14 @@ export default function AgentesBotPage() {
                 {iaActiva ? 'La IA está respondiendo y agendando en tiempo real.' : 'IA en pausa. Estás respondiendo manualmente.'}
               </p>
             </div>
-            
+
             {/* 🔥 BOTÓN CONECTADO AL BACKEND CON ESTADO DE CARGA */}
-            <button 
-              onClick={handleToggleAI} 
+            <button
+              onClick={handleToggleAI}
               disabled={loadingToggle}
               className={`mt-6 flex w-full justify-center items-center gap-2 rounded-xl border px-4 py-3 font-bold transition-all ${
-                iaActiva 
-                  ? 'border-[#F59E0B]/30 bg-[#F59E0B]/10 text-[#F59E0B] hover:bg-[#F59E0B]/20' 
+                iaActiva
+                  ? 'border-[#F59E0B]/30 bg-[#F59E0B]/10 text-[#F59E0B] hover:bg-[#F59E0B]/20'
                   : 'border-[#10B981]/30 bg-[#10B981]/10 text-[#10B981] hover:bg-[#10B981]/20'
               } disabled:opacity-50`}
             >
@@ -712,7 +686,7 @@ export default function AgentesBotPage() {
                 <MessageSquare className="h-6 w-6 text-[#19C8E8]" />
               </div>
               <div className="text-2xl font-bold text-[#F5F7FA] mb-2">WhatsApp API</div>
-              
+
               {/* 🔥 BADGE DINÁMICO DE LOS 3 ESTADOS (Verde, Naranja, Rojo) */}
               {whatsappStatus === 'active' ? (
                 <p className="text-[10px] font-mono font-medium flex items-center w-fit gap-1.5 px-2.5 py-1 rounded-md border mb-2 bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.15)]">
@@ -741,16 +715,16 @@ export default function AgentesBotPage() {
 
             {/* 🔥 BOTONES DIVIDIDOS: CONFIGURAR Y BUZÓN OMNICANAL */}
             <div className="flex gap-4 mt-6">
-              <button 
-                onClick={handleActivarWhatsApp} 
+              <button
+                onClick={handleActivarWhatsApp}
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#1E293B] border border-[#1E293B] px-4 py-3 text-sm font-semibold text-[#F5F7FA] hover:bg-[#2A3B4C] hover:border-[#8994A6]/30 transition-all"
               >
                 <Rocket className="h-4 w-4 shrink-0" /> <span className="hidden sm:inline">Configurar</span>
               </button>
-              
+
               {/* ESTE ES EL BOTÓN AL NUEVO CHAT EN VIVO */}
-              <button 
-                onClick={() => router.push('/dashboard/inbox')} 
+              <button
+                onClick={() => router.push('/dashboard/inbox')}
                 className="flex flex-[1.5] items-center justify-center gap-2 rounded-xl bg-[#19C8E8] px-4 py-3 text-sm font-bold text-[#07090C] hover:bg-[#33DDFF] transition-all shadow-[0_0_15px_rgba(25,200,232,0.3)] hover:shadow-[0_0_25px_rgba(25,200,232,0.5)]"
               >
                 <MessageCircleMore className="h-5 w-5 shrink-0" /> Chat en Vivo
@@ -763,7 +737,7 @@ export default function AgentesBotPage() {
         <h2 className="text-xl font-bold text-[#F5F7FA] mb-4 flex items-center gap-2">
           <Zap className="h-5 w-5 text-[#9B5CFF]" /> Integraciones Plug & Play
         </h2>
-        
+
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8 hover:border-[#8994A6]/30 transition-all flex flex-col justify-between">
             <div>
@@ -789,7 +763,7 @@ export default function AgentesBotPage() {
                 Sistema de agendamiento inteligente integrado directamente con el CRM, llamadas de voz y base de datos interna.
               </p>
             </div>
-            
+
             <div className="w-full flex items-center justify-between pt-4 border-t border-[#1E293B]/60">
               <span className="text-xs text-[#8994A6] font-medium flex items-center gap-1">
                 Motor interno conectado
@@ -810,8 +784,8 @@ export default function AgentesBotPage() {
               <h2 className="text-xl font-bold text-[#F5F7FA] mb-2">Activar Línea de Voz</h2>
               <p className="text-[#8994A6] text-sm mb-6">Despliega tu IA en una línea SIP conectada a tu CRM (Vapi).</p>
             </div>
-            <button 
-              onClick={() => setServicioActivo('voz')} 
+            <button
+              onClick={() => setServicioActivo('voz')}
               className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#19C8E8] text-[#07090C] py-3 font-bold hover:bg-[#33DDFF] transition-all text-sm"
             >
               Configurar Agente de Voz <ArrowRight className="h-4 w-4"/>

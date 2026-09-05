@@ -111,6 +111,7 @@ export async function POST(req: Request) {
           id: newUser.id,
           userId: newUser.id,
           nombre: `Workspace de ${newUser.name}`,
+          segment: segment ? segment.toLowerCase() : 'general',
         },
       });
 
