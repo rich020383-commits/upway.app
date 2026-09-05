@@ -6,6 +6,7 @@ import { useUpwayStore } from '../../../store/upwayStore';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { MODULO_DETALLES } from '../../../../lib/modulos';
 
 export default function Paso06Checkout() {
   const router = useRouter();
@@ -25,13 +26,7 @@ export default function Paso06Checkout() {
   const [promoFeedback, setPromoFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [deployError, setDeployError] = useState<string | null>(null);
 
-  const detallesModulos: Record<string, { nombre: string, precio: number }> = {
-    'whatsapp': { nombre: 'Motor WhatsApp (Texto)', precio: 399900 },
-    'voz': { nombre: 'Motor Central Telefónica', precio: 599900 },
-    'calendario': { nombre: 'Sincronización Agenda', precio: 39000 },
-    'analitica': { nombre: 'Analítica Empresarial', precio: 19000 },
-    'rag': { nombre: 'Cerebro RAG (Omnicanal)', precio: 0 },
-  };
+  const detallesModulos = MODULO_DETALLES;
 
   const totalMensual = modulosSeleccionados.reduce((acc: number, id: string) => {
     return acc + (detallesModulos[id]?.precio || 0);
