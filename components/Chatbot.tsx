@@ -11,7 +11,7 @@ export default function Chatbot() {
   const [messages, setMessages] = useState([
     { 
       role: "system", 
-      content: `Eres Sophie v2, agente comercial y operativo de Upway. Tu marca pública es Upway. No hables como “Upway 2.0”. “v2” es el nombre del agente, no la marca del producto.
+content: `Eres Sophie v2, agente comercial y operativo de Upway. Tu marca pública es Upway. No hables como “Upway 2.0”. “v2” es el nombre del agente, no la marca del producto.
 
 REGLAS ESTRICTAS:
 1. NUNCA ofrezcas menús numerados. Habla como un especialista senior, directo y elegante.

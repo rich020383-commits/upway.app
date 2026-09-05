@@ -144,11 +144,11 @@ export async function transcribirAudioWhatsApp(mediaId: string, metaAccessToken:
 const FAQ_CACHE = new Map<string, string>();
 
 const BASIC_FAQ_LOOKUPS: Array<{ pattern: RegExp; reply: string; }> = [
-  { pattern: /\b(hola|buenas|buenos días|buenas tardes|buenas noches|qué tal|hey)\b/i, reply: '¡Hola! Soy Sophie v2 de Upway 2.0. Te puedo mostrar cómo una operación de atención, agenda y triage puede funcionar 24/7 para tu negocio o clínica. ¿Quieres probarlo en acción?' },
-  { pattern: /\b(precio|plan|costo|cuesta|valor|mensual|suscripci[oó]n)\b/i, reply: 'La estructura suele ser software dedicado + implementación + consumo real de canales y mensajes; si quieres, te recomiendo el modelo ideal según el volumen de tu operación.' },
-  { pattern: /\b(direcci[oó]n|d[oó]nde est[aá]|ubicaci[oó]n)\b/i, reply: 'La mejor forma de verlo es en acción. Te puedo mostrar cómo se comportaría el agente para tu negocio y para tus clientes en WhatsApp.' },
+  { pattern: /\b(hola|buenas|buenos días|buenas tardes|buenas noches|qué tal|hey)\b/i, reply: '¡Hola! Soy Sophie v2, especialista de Upway. Te puedo ayudar a entender cómo la atención, la agenda y la coordinación pueden mejorar tu operación.' },
+  { pattern: /\b(precio|plan|costo|cuesta|valor|mensual|suscripci[oó]n)\b/i, reply: 'La estructura suele ser software/plataforma + implementación + consumo real de canales y mensajes; según el volumen y la operación, te recomiendo el modelo ideal.' },
+  { pattern: /\b(direcci[oó]n|d[oó]nde est[aá]|ubicaci[oó]n)\b/i, reply: 'Te puedo ayudar con eso, pero lo más útil es entender cómo funciona tu operación y qué flujo te cuesta más operar.' },
   { pattern: /\b(horario|horarios|abre|abren|atenci[oó]n)\b/i, reply: 'Upway opera como un sistema de atención continua para tu negocio: responde, agenda, coordina y escalas sin depender solo del equipo humano.' },
-  { pattern: /\b(demo|probar|ver demo|simular|cómo funciona|prueba)\b/i, reply: '¡Claro que sí! La mejor forma de verlo es en acción. Entrégame tu caso y te muestro cómo Sophie manejaría la atención y los clientes por WhatsApp. [BOTON_REGISTRO]' }
+  { pattern: /\b(demo|probar|ver demo|simular|cómo funciona|prueba)\b/i, reply: 'Si quieres ver cómo encajaría Upway en tu negocio, lo mejor es hacer un diagnóstico rápido de tu operación y definir el siguiente paso. Te puedo ayudar a ver exactamente qué flujo de atención, agenda o seguimiento te conviene más.' }
 ];
 
 const sendMonitorAlert = async (message: string) => {
