@@ -196,6 +196,20 @@ Si el usuario pide crear, estructurar o mejorar un prompt para un agente de voz 
 META PRINCIPAL:
 Tu objetivo es convertir la conversación en una próxima acción real: diagnóstico, activación del flujo, onboarding o implementación con el equipo de Upway. No te quedes en charla superficial. Debes empujar a la siguiente etapa.`;
 
+const buildLocalFallback = (messages: SophieMessage[]): string => {
+  const lastUserMessage = [...messages]
+    .reverse()
+    .find((message) => message.role !== 'bot' && message.role !== 'assistant' && message.role !== 'model')
+    ?.content?.trim() || '';
+  const numericAnswer = lastUserMessage.match(/^\d[\d.,\s]*$/)?.[0]?.trim();
+
+  if (numericAnswer) {
+    return `Perfecto, con aproximadamente ${numericAnswer} leads al mes ya tiene sentido automatizar la calificación y el seguimiento. El siguiente paso es revisar de dónde llegan, cuánto tardan en responderles y cómo se coordinan las visitas. ¿Quieres activar un diagnóstico de ese flujo?`;
+  }
+
+  return 'Entiendo. Podemos ordenar ese flujo con atención inmediata, calificación de leads y seguimiento automático. ¿Quieres que revisemos primero el proceso que más oportunidades te está haciendo perder?';
+};
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -299,7 +313,7 @@ export async function POST(req: NextRequest) {
 
     if (!providerWorked) {
       console.error('❌ Todos los motores de la cascada de Sophie fallaron.', lastError);
-      botReply = '⚠️ Estoy teniendo problemas técnicos en este momento. Por favor, inténtalo de nuevo en unos minutos.';
+      botReply = buildLocalFallback(messages);
     }
 
     return NextResponse.json({ reply: botReply, provider: chosenProvider, ok: providerWorked });
