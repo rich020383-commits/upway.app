@@ -575,8 +575,8 @@ export default function OperacionesPage() {
           </div>
         </section>
 
-        <div className="grid gap-6 xl:grid-cols-[1.8fr_1fr]">
-          <section className="rounded-[28px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_16px_55px_rgba(15,23,42,0.05)]">
+        <div className="space-y-6">
+          <section className="rounded-[32px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_16px_55px_rgba(15,23,42,0.05)]">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-slate-900">Pipeline de leads</h2>
               <span className="text-xs uppercase tracking-[0.22em] text-slate-500">{data?.leads.length ?? 0} registros</span>
@@ -684,7 +684,7 @@ export default function OperacionesPage() {
             </div>
           </section>
 
-          <aside className="space-y-6">
+          <div className="grid gap-6 xl:grid-cols-3">
             <section className="rounded-[24px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_14px_45px_rgba(15,23,42,0.05)]">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <h2 className="text-xl font-semibold text-slate-900">Automatización</h2>
@@ -764,7 +764,7 @@ export default function OperacionesPage() {
                 )}
               </div>
             </section>
-          </aside>
+          </div>
         </div>
       </div>
 
