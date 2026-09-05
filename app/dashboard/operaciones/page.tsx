@@ -604,18 +604,18 @@ export default function OperacionesPage() {
                         const selectedUser = selectedUserByLead[lead.id] ?? lead.assignedTo?.id ?? '';
 
                         return (
-                          <div key={lead.id} className="rounded-xl border border-slate-200 bg-white/80 p-3 shadow-[0_8px_22px_rgba(15,23,42,0.03)]">
+                          <div key={lead.id} className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-white p-3.5 shadow-[0_12px_28px_rgba(15,23,42,0.05)] ring-1 ring-slate-100/80">
                             <div className="flex items-start justify-between gap-2">
-                              <div>
-                                <p className="font-medium text-slate-900">{lead.nombre}</p>
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate font-semibold text-slate-900">{lead.nombre}</p>
                                 <p className="mt-1 text-xs text-slate-500">{lead.phone || 'Sin teléfono'}</p>
                               </div>
-                              <span className="rounded-full border border-sky-500/40 bg-sky-500/10 px-2 py-0.5 text-[10px] text-sky-700">
+                              <span className="rounded-full border border-sky-200 bg-sky-50 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-sky-700">
                                 {statusLabels[lead.estado] ?? lead.estado}
                               </span>
                             </div>
 
-                            <div className="mt-3 text-xs text-slate-500">
+                            <div className="mt-3 space-y-1 text-xs text-slate-500">
                               <div>Origen: {lead.origen}</div>
                               <div>Asignado: {lead.assignedTo ? (lead.assignedTo.name || lead.assignedTo.email || 'Sin nombre') : 'Sin asignar'}</div>
                             </div>
@@ -624,7 +624,7 @@ export default function OperacionesPage() {
                               <select
                                 value={selectedUser}
                                 onChange={(event) => setSelectedUserByLead((current) => ({ ...current, [lead.id]: event.target.value }))}
-                                className="w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-900 shadow-sm"
+                                className="w-full rounded-xl border border-slate-200 bg-slate-50/80 px-2.5 py-2 text-xs text-slate-900 shadow-inner outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
                               >
                                 <option value="">Asignar agente</option>
                                 {users.map((user) => (
@@ -637,13 +637,13 @@ export default function OperacionesPage() {
                               <button
                                 onClick={() => handleAssignLead(lead.id)}
                                 disabled={!selectedUserByLead[lead.id] && !lead.assignedTo?.id || assigningId === lead.id}
-                                className="flex-1 rounded-lg border border-sky-500/40 bg-sky-500/10 px-2 py-2 text-[11px] font-medium text-sky-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="flex-1 rounded-xl border border-sky-200 bg-gradient-to-r from-sky-500/10 to-sky-600/10 px-2.5 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-sky-700 shadow-[0_8px_18px_rgba(14,165,233,0.08)] transition-all hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-[0_10px_22px_rgba(14,165,233,0.12)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
                               >
                                 {assigningId === lead.id ? 'Asignando...' : 'Asignar'}
                               </button>
                               <button
                                 onClick={() => handleCreateReminder(lead.id)}
-                                className="rounded-lg border border-violet-500/40 bg-violet-500/10 px-2 py-2 text-[11px] font-medium text-violet-700"
+                                className="rounded-xl border border-violet-200 bg-gradient-to-r from-violet-500/10 to-violet-600/10 px-2.5 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-violet-700 shadow-[0_8px_18px_rgba(168,85,247,0.08)] transition-all hover:-translate-y-0.5 hover:border-violet-300"
                               >
                                 Reminder
                               </button>
@@ -653,13 +653,13 @@ export default function OperacionesPage() {
                               <button
                                 onClick={() => handleQuickBooking(lead)}
                                 disabled={bookingSubmitting && bookingLeadId === lead.id}
-                                className="flex-1 rounded-lg border border-fuchsia-500/40 bg-fuchsia-500/10 px-2 py-2 text-[11px] font-medium text-fuchsia-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="flex-1 rounded-xl border border-fuchsia-200 bg-gradient-to-r from-fuchsia-500/10 to-fuchsia-600/10 px-2.5 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-fuchsia-700 shadow-[0_8px_18px_rgba(217,70,239,0.08)] transition-all hover:-translate-y-0.5 hover:border-fuchsia-300 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
                               >
                                 {bookingSubmitting && bookingLeadId === lead.id ? 'Agendando...' : 'Cita rápida'}
                               </button>
                               <button
                                 onClick={() => openTimeline(lead.id)}
-                                className="rounded-lg border border-slate-600 bg-slate-100 px-2 py-2 text-[11px] font-medium text-slate-700"
+                                className="rounded-xl border border-slate-200 bg-slate-100 px-2.5 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-700 transition-all hover:-translate-y-0.5 hover:border-slate-300"
                               >
                                 Timeline
                               </button>
@@ -669,7 +669,7 @@ export default function OperacionesPage() {
                               <button
                                 onClick={() => handleStatusChange(lead.id, nextStage)}
                                 disabled={statusUpdatingId === lead.id}
-                                className="mt-3 w-full rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2 py-2 text-[11px] font-medium text-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="mt-3 w-full rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-500 to-emerald-600 px-2.5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white shadow-[0_12px_24px_rgba(16,185,129,0.2)] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_28px_rgba(16,185,129,0.25)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
                               >
                                 {statusUpdatingId === lead.id ? 'Actualizando...' : `Mover a ${pipelineStages.find((s) => s.key === nextStage)?.label ?? statusLabels[nextStage]}`}
                               </button>
