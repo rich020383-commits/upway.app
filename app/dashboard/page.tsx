@@ -18,19 +18,17 @@ export default function LandingPage() {
           </div>
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
             <a href="#soluciones" className="hover:text-slate-900 transition">Soluciones</a>
-            <a href="#sectores" className="hover:text-slate-900 transition">Sectores</a>
             <a href="#proceso" className="hover:text-slate-900 transition">Proceso</a>
-            <a href="#contacto" className="hover:text-slate-900 transition">Contacto</a>
           </nav>
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="text-sm font-semibold text-slate-700 hover:text-slate-900 transition">
-              Acceso
+              Panel
             </Link>
             <Link 
               href="/dashboard/onboarding/lienzo?segment=general" 
               className="flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-slate-800 transition"
             >
-              Ver demo <ArrowRight size={16} />
+              Reservar demo <ArrowRight size={16} />
             </Link>
           </div>
         </div>
@@ -43,17 +41,17 @@ export default function LandingPage() {
           {/* Columna Izquierda: Mensaje Directo al Empresario */}
           <div className="lg:col-span-6 space-y-8">
             <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-slate-700 shadow-sm">
-              <Sparkles size={14} className="text-slate-900" /> Premium Enterprise Ops
+              <Sparkles size={14} className="text-slate-900" /> Operación premium
             </div>
-            
+              
             <h1 className="text-5xl lg:text-6xl font-black tracking-tight text-slate-900 leading-[1.08]">
-              Operación inteligente para crecer con control.
+              Control total para hacer crecer tu operación.
             </h1>
-            
+              
             <p className="text-lg text-slate-600 leading-relaxed max-w-xl">
-              Centralizamos atención, ventas, agenda y escalamiento para empresas y clínicas que quieren crecer con velocidad, consistencia y disciplina operativa.
+              Centralizamos atención, ventas, agenda y seguimiento para empresas, inmobiliarias, retail y equipos operativos que quieren crecer con orden, velocidad y claridad.
             </p>
-            
+              
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
               <Link 
                 href="/dashboard/onboarding/lienzo?segment=general" 
@@ -61,12 +59,6 @@ export default function LandingPage() {
               >
                 Agendar consultoría <ArrowRight size={18} />
               </Link>
-              <a 
-                href="#soluciones" 
-                className="flex items-center justify-center rounded-full border border-slate-200 bg-white px-8 py-4 text-sm font-bold text-slate-700 shadow-sm hover:border-slate-400 transition"
-              >
-                Ver soluciones
-              </a>
             </div>
 
             <div className="flex flex-wrap items-center gap-3 pt-4">
@@ -86,29 +78,21 @@ export default function LandingPage() {
               <div className="flex items-center justify-between pb-6 border-b border-slate-800">
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-cyan-400">
                   <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                  Operación Activa
+                  Operación activa
                 </div>
-                <span className="text-xs font-mono text-slate-400">24/7 AI Engine</span>
+                <span className="text-xs font-mono text-slate-400">live</span>
               </div>
-
-              {/* INTEGRACIÓN PRINCIPAL DE SOPHIE V2 (VIDEO ANIMADO DESTACADO) */}
+ 
               <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 my-6 p-4 flex items-center gap-5 shadow-inner">
-                <div className="relative h-20 w-20 shrink-0 rounded-2xl overflow-hidden border border-slate-700 bg-slate-900 shadow-md">
-                  <video 
-                    src="/sophie-optimizada.webm" 
-                    autoPlay 
-                    loop 
-                    muted 
-                    playsInline 
-                    className="h-full w-full object-cover"
-                  />
+                <div className="relative h-20 w-20 shrink-0 rounded-2xl overflow-hidden border border-slate-700 bg-slate-900 shadow-md bg-gradient-to-br from-slate-800 via-slate-900 to-cyan-950 flex items-center justify-center">
+                  <Sparkles size={28} className="text-cyan-300" />
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5 text-xs font-bold text-cyan-400 mb-1">
-                    <Sparkles size={14} /> Sophie v2 • Empleado Digital
+                    <Sparkles size={14} /> Upway Business
                   </div>
                   <p className="text-xs text-slate-300 leading-relaxed">
-                    Orquestando llamadas, chats y flujos clínicos en tiempo real con contexto de negocio absoluto.
+                    Sincronizando atención, agenda y seguimiento comercial con contexto operativo completo.
                   </p>
                 </div>
               </div>
@@ -137,15 +121,15 @@ export default function LandingPage() {
                 </div>
                 <div className="flex items-center gap-3 text-xs font-medium text-slate-300 bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
                   <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-slate-800 text-[10px] font-bold text-slate-300">1</span>
-                  Triage asistido y calificación
+                  Calificación y priorización inteligente
                 </div>
                 <div className="flex items-center gap-3 text-xs font-medium text-slate-300 bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
                   <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-slate-800 text-[10px] font-bold text-slate-300">2</span>
-                  Agenda inteligente sincronizada
+                  Agenda y disponibilidad sincronizadas
                 </div>
                 <div className="flex items-center gap-3 text-xs font-medium text-slate-300 bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
                   <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-slate-800 text-[10px] font-bold text-slate-300">3</span>
-                  Escalamiento humano automático
+                  Seguimiento y escalamiento automáticos
                 </div>
               </div>
 
@@ -163,10 +147,9 @@ export default function LandingPage() {
               Infraestructura unificada para escalar
             </h2>
             <p className="text-slate-600 text-lg">
-              Todo lo que tu empresa o clínica necesita para operar con precisión quirúrgica.
+              Todo lo que tu operación necesita para coordinar equipos, oportunidades y atención con precisión.
             </p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="rounded-3xl border border-slate-200 p-8 bg-[#F8FAFC] flex flex-col justify-between transition hover:shadow-md">
               <div>
