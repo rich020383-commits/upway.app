@@ -128,12 +128,13 @@ export default function ClinicasLandingPage() {
                   Diseñemos tu flujo de salud
                   <ArrowRight className="h-4 w-4" />
                 </Link>
-                <Link
-                  href="#contacto"
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new Event('abrir-chat'))}
                   className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-6 py-3.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300"
                 >
-                  Agendar demo clínica
-                </Link>
+                  Hablar con un especialista
+                </button>
               </div>
             </div>
 

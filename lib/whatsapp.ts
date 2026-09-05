@@ -131,11 +131,11 @@ export async function transcribirAudioWhatsApp(mediaId: string, metaAccessToken:
 const FAQ_CACHE = new Map<string, string>();
 
 const BASIC_FAQ_LOOKUPS: Array<{ pattern: RegExp; reply: string; }> = [
-  { pattern: /\b(hola|buenas|buenos días|buenas tardes|buenas noches|qué tal|hey)\b/i, reply: '¡Hola! 👋 Soy el asistente digital. ¿Quieres conocer los planes o ver cómo funciona el panel en vivo?' },
-  { pattern: /\b(precio|plan|costo|cuesta|valor)\b/i, reply: 'Nuestros planes se adaptan a lo que tu negocio necesita. ¿Quieres que te recomiende el mejor?' },
-  { pattern: /\b(direcci[oó]n|d[oó]nde est[aá]|ubicaci[oó]n)\b/i, reply: 'Para conocer la dirección exacta, responde con el nombre del local o el tipo de servicio.' },
-  { pattern: /\b(horario|horarios|abre|abren|atenci[oó]n)\b/i, reply: 'Nuestro asistente virtual está disponible 24/7 para responder tus consultas comerciales.' },
-  { pattern: /\b(demo|probar|ver demo|simular|cómo funciona)\b/i, reply: '¡Claro que sí! La mejor forma de verlo es en acción. Entra a nuestro panel gratis ahora mismo. [BOTON_REGISTRO]' }
+  { pattern: /\b(hola|buenas|buenos días|buenas tardes|buenas noches|qué tal|hey)\b/i, reply: '¡Hola! Soy Sophie v2 de Upway 2.0. Te puedo mostrar cómo una operación de atención, agenda y triage puede funcionar 24/7 para tu negocio o clínica. ¿Quieres probarlo en acción?' },
+  { pattern: /\b(precio|plan|costo|cuesta|valor|mensual|suscripci[oó]n)\b/i, reply: 'La estructura suele ser software dedicado + implementación + consumo real de canales y mensajes; si quieres, te recomiendo el modelo ideal según el volumen de tu operación.' },
+  { pattern: /\b(direcci[oó]n|d[oó]nde est[aá]|ubicaci[oó]n)\b/i, reply: 'La mejor forma de verlo es en acción. Te puedo mostrar cómo se comportaría el agente para tu negocio y para tus clientes en WhatsApp.' },
+  { pattern: /\b(horario|horarios|abre|abren|atenci[oó]n)\b/i, reply: 'Upway opera como un sistema de atención continua para tu negocio: responde, agenda, coordina y escalas sin depender solo del equipo humano.' },
+  { pattern: /\b(demo|probar|ver demo|simular|cómo funciona|prueba)\b/i, reply: '¡Claro que sí! La mejor forma de verlo es en acción. Entrégame tu caso y te muestro cómo Sophie manejaría la atención y los clientes por WhatsApp. [BOTON_REGISTRO]' }
 ];
 
 const sendMonitorAlert = async (message: string) => {
@@ -243,9 +243,19 @@ export async function generarRespuesta(textoCliente: string, phoneId: string, ti
 
   if (isVip) {
     console.log(`👑 Canal VIP (${phoneId}). Preparando IA...`);
-    const promptPorDefecto = `Rol: Eres Sophie, la asistente virtual y cerradora de ventas estrella. Tu tono es persuasivo, tecnológico, amigable y muy directo. Tus respuestas deben ser cortas (ideales para WhatsApp) y usar emojis.
-        Objetivo Principal: Tu misión es diagnosticar el negocio del cliente y guiarlo en su automatización.
-        CALL TO ACTION: Tu cierre de ventas siempre debe ser invitarlos a crear su cuenta en https://upway.business.`;
+    const promptPorDefecto = `Rol: Eres Sophie v2, estratega comercial premium de Upway 2.0. Tu labor es vender una operación de alto valor, no un bot genérico. Hablas con clínicas, negocios de servicio y empresas con volumen real de atención.
+
+Estilo: directo, elegante, muy claro, orientado a negocio. Eres experta en triage, agenda, atención 24/7, lead qualification y coordinación operativa.
+
+Principios clave:
+- No hables como bot barato ni como soporte básico.
+- Explica que Upway es un sistema operativo de atención y operación, no solo un chat.
+- Si el cliente habla de costos, hazlo con propiedad: software dedicado + implementación + consumo real de mensajes/canales + posibilidad de créditos iniciales.
+- Si el cliente quiere ver la experiencia, empújalo a probarla de inmediato en el panel.
+
+Objetivo principal: diagnosticar el problema operativo del cliente, mostrar valor real y mover la conversación hacia una prueba, demo o diagnóstico de implementación.
+
+CALL TO ACTION: invítalo a probar la experiencia en vivo y a ver cómo Sophie maneja WhatsApp, triage, agenda y atención al cliente.`;
 
     systemPromptText = tiendaRecord?.systemPrompt || promptPorDefecto;
   } else {
@@ -270,7 +280,7 @@ export async function generarRespuesta(textoCliente: string, phoneId: string, ti
       contextoInventario = `PRODUCTOS ENCONTRADOS:\n${productosRelevantes.map(p => `- ${p.nombre} - Precio: $${p.precio}`).join('\n')}`;
     }
 
-    const promptCliente = tiendaRecord?.systemPrompt || "Eres un asistente de ventas. Responde corto y con emojis.";
+    const promptCliente = tiendaRecord?.systemPrompt || `Eres Sophie v2, agente comercial y operativo de Upway 2.0. Responde con claridad, otro nivel de atención y enfoque comercial. Tu misión es ayudar al cliente a entender cómo Upway maneja WhatsApp, agenda, triage, coordinación y atención comercial sin fricción. Habla de precio con propiedad: software + consumo real + créditos iniciales si aplica.`;
     systemPromptText = `${promptCliente}\n\n=== BASE DE DATOS (SISTEMA RAG) ===\n${contextoInventario}\nRegla RAG: Basa tus respuestas de inventario SOLO en la información de la base de datos entregada arriba.`;
   }
 
