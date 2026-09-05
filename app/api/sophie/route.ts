@@ -41,7 +41,7 @@ type SophieContent = {
   parts: SophieContentPart[];
 };
 
-const buildSophieContents = (messages: SophieMessage[], audioUsuario?: string): SophieContent[] => {
+const buildSophieContents = (messages: SophieMessage[], audioUsuario?: string, audioTranscrito?: string): SophieContent[] => {
   const contents: SophieContent[] = messages.map((m) => ({
     role: m.role === 'bot' || m.role === 'assistant' || m.role === 'model' ? 'model' : 'user',
     parts: [{ text: m.content || '' }]
@@ -52,8 +52,10 @@ const buildSophieContents = (messages: SophieMessage[], audioUsuario?: string): 
     contents.push({
       role: 'user',
       parts: [
-        { text: 'El cliente envió esta nota de voz. Escúchala y responde con tu estilo comercial afilado y directo:' },
-        { inlineData: { data: base64Data, mimeType: 'audio/webm' } }
+        { text: audioTranscrito
+          ? `El cliente envió una nota de voz. Esta es la transcripción: "${audioTranscrito}"`
+          : 'El cliente envió esta nota de voz. Escúchala y responde con tu estilo comercial afilado y directo:' },
+        ...(audioTranscrito ? [] : [{ inlineData: { data: base64Data, mimeType: 'audio/webm' } }])
       ]
     });
   }
@@ -66,6 +68,29 @@ const buildSophieContents = (messages: SophieMessage[], audioUsuario?: string): 
   }
 
   return contents;
+};
+
+const transcribirAudioWeb = async (audioUsuario: string): Promise<string> => {
+  const groqApiKey = process.env.GROQ_API_KEY;
+  if (!groqApiKey) throw new Error('Falta GROQ_API_KEY para transcribir el audio web');
+
+  const base64Data = audioUsuario.split(',')[1] || audioUsuario;
+  const buffer = Buffer.from(base64Data, 'base64');
+  const formData = new FormData();
+  formData.append('file', new Blob([buffer], { type: 'audio/webm' }), 'sophie.webm');
+  formData.append('model', 'whisper-large-v3');
+  formData.append('language', 'es');
+
+  const response = await withTimeout(fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${groqApiKey}` },
+    body: formData
+  }), 8000, 'Groq Whisper');
+  const data = await response.json() as { text?: string; error?: { message?: string } };
+  if (!response.ok || !data.text?.trim()) {
+    throw new Error(data.error?.message || 'La transcripción web devolvió texto vacío');
+  }
+  return data.text.trim();
 };
 
 const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, providerName: string): Promise<T> => {
@@ -122,6 +147,10 @@ INSTRUCCIONES DE CONVERSIÓN:
 - Si el cliente es clínica o salud: habla de triage, urgencias, agenda, recordatorios, seguridad, escalamiento humano, volumen de pacientes y flujo sin fricción.
 - Si el cliente es negocio general: habla de atención al cliente, lead qualification, ventas, ventas por WhatsApp, coordinación y retención.
 - Si el cliente dice que quiere probar, ver cómo funciona o activar algo: no lo envíes a un simulador inexistente. Lo correcto es moverlo a activación de flujo o onboarding.
+- Si responde "sí", "si", "claro", "por favor", "dale" o equivalente después de que le ofrezcas mostrarlo, trátalo como intención de activación y llévalo directamente a onboarding.
+- Nunca repitas la misma pregunta ni presentes formularios numerados. Haz una sola pregunta por turno.
+- Si el cliente responde "todos", reconoce los tres frentes y recomienda empezar por el cuello de botella más costoso; no vuelvas a pedir que elija uno.
+- Si el cliente cambia, aclara o corrige su sector, acepta la corrección y continúa desde ese contexto sin reiniciar el diagnóstico.
 
 🚨 REGLA SUPREMA DE DIRECCIONAMIENTO AL ONBOARDING:
 Si el cliente dice que quiere "probar", "ver demo", "simular", "cómo funciona", "quiero verlo en acción" o "activarlo":
@@ -147,6 +176,7 @@ PATRÓN DE CONVERSACIÓN RECOMENDADO:
 - Luego responde con valor concreto según ese sector.
 - Luego pregunta solo una pieza extra si importa: ¿qué te cuesta más operar? ¿qué volumen maneja? ¿qué quieres automatizar primero?
 - Cierra con la opción correcta: diagnóstico, activación o onboarding.
+- Mantén las respuestas web en 2 párrafos cortos como máximo, salvo que el cliente pida detalle.
 
 RESPUESTAS TIPO POR SECTOR:
 - Clínica: "Entiendo, en clínicas lo más crítico suele ser la agenda, los recordatorios, los no-shows, la atención inicial y la coordinación con recepción. Upway puede ayudarte a automatizar confirmaciones, coordinar citas, atender dudas recurrentes y mantener un flujo más ordenado sin perder atención humana cuando hace falta."
@@ -179,8 +209,16 @@ export async function POST(req: NextRequest) {
     }
 
     const { messages, audioUsuario } = body;
+    let audioTranscrito: string | undefined;
+    if (audioUsuario) {
+      try {
+        audioTranscrito = await transcribirAudioWeb(audioUsuario);
+      } catch (audioError) {
+        console.warn('⚠️ No se pudo transcribir el audio web; Gemini intentará procesarlo directamente.', audioError);
+      }
+    }
 
-    const contents = buildSophieContents(messages.filter((m: SophieMessage) => m.role !== 'system'), audioUsuario);
+    const contents = buildSophieContents(messages.filter((m: SophieMessage) => m.role !== 'system'), audioUsuario, audioTranscrito);
 
     const openAiMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
       { role: 'system', content: AGENTE_SUPREMO_PROMPT },
