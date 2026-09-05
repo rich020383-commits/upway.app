@@ -151,27 +151,76 @@ export const authOptions: NextAuthOptions = {
       token.accessState = accessState;
       token.billingState = accessState;
 
-      // 1. Momento exacto del login (existe 'user')
-      if (user) {
-        if (user.email === 'revisor_meta@upway.business') {
+      const email = (user?.email as string | undefined) ?? (token.email as string | undefined);
+
+      if (email) {
+        if (email === 'revisor_meta@upway.business') {
           token.id = 'meta-reviewer';
+          token.role = 'admin';
+          token.organizationName = 'Upway';
+          token.clinicName = 'Operación central';
+          token.organizationId = 'meta-reviewer-org';
+          token.clinicId = 'meta-reviewer-clinic';
+          token.vertical = 'general';
         } else {
           const dbUser = await prisma.user.findUnique({
-            where: { email: user.email as string }
+            where: { email },
+            include: {
+              ownedOrganizations: {
+                include: {
+                  clinics: {
+                    orderBy: { createdAt: 'asc' },
+                    take: 1,
+                  },
+                },
+              },
+            },
           });
-          token.id = dbUser ? dbUser.id : user.id;
+
+          token.id = dbUser ? dbUser.id : (user?.id as string | undefined) ?? token.id;
+
+          const organization = dbUser?.ownedOrganizations?.[0];
+          const clinic = organization?.clinics?.[0];
+
+          token.organizationId = organization?.id ?? 'default-org';
+          token.clinicId = clinic?.id ?? 'default-clinic';
+          token.organizationName = organization?.name ?? 'Negocio general';
+          token.clinicName = clinic?.name ?? 'Espacio operativo';
+          token.role = organization ? 'owner' : 'admin';
+          token.vertical = (organization?.vertical ? String(organization.vertical).toLowerCase() : 'general');
+          token.businessType = token.vertical;
         }
       }
-      // 2. 🔥 SALVAVIDAS DE PERSISTENCIA
-      else if (token.email && !token.id) {
-        if (token.email === 'revisor_meta@upway.business') {
-          token.id = 'meta-reviewer';
-        } else {
-          const dbUser = await prisma.user.findUnique({
-            where: { email: token.email as string }
-          });
-          if (dbUser) {
-            token.id = dbUser.id;
+
+      if (user && !token.id && user.email && user.email !== 'revisor_meta@upway.business') {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: user.email as string },
+          include: {
+            ownedOrganizations: {
+              include: {
+                clinics: {
+                  orderBy: { createdAt: 'asc' },
+                  take: 1,
+                },
+              },
+            },
+          },
+        });
+
+        if (dbUser) {
+          token.id = dbUser.id;
+          const organization = dbUser.ownedOrganizations?.[0];
+          if (organization) {
+            token.organizationId = organization.id;
+            token.organizationName = organization.name;
+            token.role = 'owner';
+            token.vertical = String(organization.vertical).toLowerCase();
+            token.businessType = token.vertical;
+          }
+          const clinic = organization?.clinics?.[0];
+          if (clinic) {
+            token.clinicId = clinic.id;
+            token.clinicName = clinic.name;
           }
         }
       }
@@ -184,7 +233,13 @@ export const authOptions: NextAuthOptions = {
         session.accessToken = token.accessToken;
         session.user.accessState = (token.accessState as string) ?? 'trial';
         session.user.billingState = (token.billingState as string) ?? 'trial';
-        session.user.role = (token.role as string) ?? 'clinic-admin';
+        session.user.role = (token.role as string) ?? 'owner';
+        session.user.organizationId = (token.organizationId as string) ?? 'default-org';
+        session.user.clinicId = (token.clinicId as string) ?? 'default-clinic';
+        session.user.organizationName = (token.organizationName as string) ?? 'Negocio general';
+        session.user.clinicName = (token.clinicName as string) ?? 'Espacio operativo';
+        session.user.vertical = (token.vertical as string) ?? 'general';
+        session.user.businessType = (token.businessType as string) ?? 'general';
       }
       return session;
     }

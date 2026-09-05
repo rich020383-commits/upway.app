@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
   const code = String(body.code ?? '').trim().toUpperCase();
   const label = String(body.label ?? '').trim();
   const description = String(body.description ?? '').trim();
-  const allowedRole = String(body.allowedRole ?? 'clinic-admin').trim();
+  const allowedRole = String(body.allowedRole ?? 'owner').trim();
   const isActive = body.isActive !== undefined ? Boolean(body.isActive) : true;
   const expiresAt = body.expiresAt ? new Date(body.expiresAt) : null;
 
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
     description: description || 'Acceso gestionado desde el panel de administración.',
     state: normalizeState(body.state) as BillingAccessState,
     type: normalizeType(body.type) as BillingAccessType,
-    allowedRole: allowedRole || 'clinic-admin',
+    allowedRole: allowedRole || 'owner',
     isActive,
     expiresAt: expiresAt && !isNaN(expiresAt.getTime()) ? expiresAt : null,
     createdByUserId: sessionUser.id,

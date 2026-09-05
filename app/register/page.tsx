@@ -81,7 +81,7 @@ function RegisterPage() {
                 Construye tu operación con confianza.
               </h1>
               <p className="mt-5 max-w-md text-base leading-7 text-slate-200/80">
-                Crea tu acceso a una plataforma premium para atención médica, coordinación y automatización con un nivel de servicio humano, claro y escalable.
+                Crea tu acceso a una plataforma premium para coordinación operativa, atención comercial y automatización con un nivel de servicio humano, claro y escalable.
               </p>
             </div>
 
@@ -108,7 +108,7 @@ function RegisterPage() {
                 Crear cuenta
               </div>
               <h2 className="text-3xl font-black tracking-[-0.05em] text-slate-900">Empieza hoy</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-600">Completa tus datos y accede a tu centro de mando inteligente para {activeSegment.label.toLowerCase()}.</p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">Completa tus datos y accede a tu centro de mando inteligente para operar con más claridad y velocidad.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -125,7 +125,7 @@ function RegisterPage() {
               </div>
 
               <div>
-                <label className="mb-2 block text-[11px] font-mono uppercase tracking-[0.18em] text-slate-500">Nombre de la clínica o negocio</label>
+                <label className="mb-2 block text-[11px] font-mono uppercase tracking-[0.18em] text-slate-500">Nombre del negocio</label>
                 <input
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}

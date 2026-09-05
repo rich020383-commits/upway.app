@@ -10,7 +10,7 @@ const initialForm = {
   description: '',
   state: 'trial',
   type: 'trial',
-  allowedRole: 'clinic-admin',
+  allowedRole: 'owner',
   isActive: true,
   expiresAt: '',
 };
@@ -206,9 +206,9 @@ export default function BillingAccessCodesPage() {
                     onChange={(event) => setForm((current) => ({ ...current, allowedRole: event.target.value }))}
                     className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-[#1b5ed6]"
                   >
-                    <option value="clinic-admin">clinic-admin</option>
-                    <option value="operations-admin">operations-admin</option>
                     <option value="owner">owner</option>
+                    <option value="admin">admin</option>
+                    <option value="operations-admin">operations-admin</option>
                   </select>
                 </label>
               </div>
@@ -276,7 +276,7 @@ export default function BillingAccessCodesPage() {
                     <div className="mt-3 flex flex-wrap gap-2 text-[10px] uppercase tracking-[0.18em] text-slate-500">
                       <span className="rounded-full border border-slate-200 bg-white px-2 py-1">{code.state}</span>
                       <span className="rounded-full border border-slate-200 bg-white px-2 py-1">{code.type}</span>
-                      <span className="rounded-full border border-slate-200 bg-white px-2 py-1">rol: {code.allowedRole || 'clinic-admin'}</span>
+                      <span className="rounded-full border border-slate-200 bg-white px-2 py-1">rol: {code.allowedRole || 'owner'}</span>
                     </div>
 
                     {code.expiresAt && (
