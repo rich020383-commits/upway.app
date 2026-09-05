@@ -14,3 +14,11 @@ services:
         value: false
       - key: NODE_OPTIONS
         value: --max_old_space_size=450
+      - key: META_VERIFY_TOKEN
+        sync: false
+      - key: WHATSAPP_TOKEN
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
