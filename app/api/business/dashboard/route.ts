@@ -107,6 +107,92 @@ export async function GET(request: Request) {
       };
     }).sort((a, b) => b.totalLeads - a.totalLeads);
 
+    // ==========================================
+    // 🎯 ACCIONES DE HOY (lista priorizada de la operación)
+    // ==========================================
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const leadWhere = tiendaId ? { tiendaId } : {};
+
+    const dueRemindersList = await prisma.leadReminder.findMany({
+      where: { status: 'PENDING', scheduledFor: { lte: now }, ...(tiendaId ? { lead: { tiendaId } } : {}) },
+      take: 10,
+      include: { lead: { select: { id: true, nombre: true, phone: true } } },
+      orderBy: { scheduledFor: 'asc' },
+    });
+
+    const unassignedNewLeads = await prisma.lead.findMany({
+      where: { ...leadWhere, estado: 'NEW', assignedToUserId: null, createdAt: { lt: new Date(now.getTime() - 24 * 60 * 60 * 1000) } },
+      take: 10,
+      select: { id: true, nombre: true, phone: true, createdAt: true },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const coldLeads = await prisma.lead.findMany({
+      where: {
+        ...leadWhere,
+        estado: { in: ['CONTACTED', 'FOLLOW_UP'] },
+        lastContactAt: { lt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000) },
+      },
+      take: 10,
+      select: { id: true, nombre: true, phone: true, estado: true, lastContactAt: true },
+      orderBy: { lastContactAt: 'asc' },
+    });
+
+    const tomorrowEnd = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
+    const upcomingAppointmentsAll = await prisma.cita.findMany({
+      where: { ...(tiendaId ? { tiendaId } : {}), fechaHora: { gte: now, lte: tomorrowEnd } },
+      select: { id: true, clienteNombre: true, fechaHora: true, estado: true },
+      orderBy: { fechaHora: 'asc' },
+    });
+    const unconfirmedAppointments = upcomingAppointmentsAll.filter((c) => c.estado !== 'CONFIRMED');
+
+    const todayActions = {
+      dueReminders: dueRemindersList.map((r) => ({ id: r.id, leadId: r.leadId, nombre: r.lead?.nombre ?? 'Cliente', phone: r.lead?.phone ?? null, scheduledFor: r.scheduledFor })),
+      unassignedNewLeads,
+      coldLeads,
+      unconfirmedAppointments,
+    };
+
+    // ==========================================
+    // 📈 TENDENCIA 7 DÍAS (comparativa vs semana anterior)
+    // ==========================================
+    const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    const [leadsThisWeek, leadsLastWeek, citasThisWeek, citasLastWeek] = await Promise.all([
+      prisma.lead.count({ where: { ...leadWhere, createdAt: { gte: weekAgo } } }),
+      prisma.lead.count({ where: { ...leadWhere, createdAt: { gte: twoWeeksAgo, lt: weekAgo } } }),
+      prisma.cita.count({ where: { ...(tiendaId ? { tiendaId } : {}), createdAt: { gte: weekAgo } } }),
+      prisma.cita.count({ where: { ...(tiendaId ? { tiendaId } : {}), createdAt: { gte: twoWeeksAgo, lt: weekAgo } } }),
+    ]);
+    const pct = (current: number, previous: number) => previous === 0 ? (current > 0 ? 100 : 0) : Math.round(((current - previous) / previous) * 100);
+    const trend = {
+      leads: { current: leadsThisWeek, previous: leadsLastWeek, pct: pct(leadsThisWeek, leadsLastWeek) },
+      citas: { current: citasThisWeek, previous: citasLastWeek, pct: pct(citasThisWeek, citasLastWeek) },
+    };
+
+    // ==========================================
+    // 💰 CONSUMO DEL MES (mensajes + minutos de voz facturables)
+    // ==========================================
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const voiceWhere = tiendaId ? { tiendaId, createdAt: { gte: monthStart } } : { createdAt: { gte: monthStart } };
+    const [voiceAgg, messagesThisMonth] = await Promise.all([
+      prisma.llamadaLog.aggregate({
+        where: voiceWhere,
+        _count: { _all: true },
+        _sum: { durationMinutes: true, vapiCost: true, upwayBilledCost: true },
+      }),
+      prisma.message.count({ where: { conversation: tiendaId ? { tiendaId } : undefined, createdAt: { gte: monthStart } } }),
+    ]);
+    const consumption = {
+      month: monthStart.toISOString(),
+      messages: messagesThisMonth,
+      voiceCalls: voiceAgg._count._all,
+      voiceMinutes: Math.round((voiceAgg._sum.durationMinutes ?? 0) * 10) / 10,
+      vapiCost: Math.round((voiceAgg._sum.vapiCost ?? 0) * 100) / 100,
+      billedCost: Math.round((voiceAgg._sum.upwayBilledCost ?? 0) * 100) / 100,
+    };
+
+
     return NextResponse.json({
       ok: true,
       segment,
@@ -131,6 +217,9 @@ export async function GET(request: Request) {
       pipeline,
       inbox,
       agentPerformance,
+      todayActions,
+      trend,
+      consumption,
     });
   } catch (error) {
     console.error('Error fetching business dashboard:', error);

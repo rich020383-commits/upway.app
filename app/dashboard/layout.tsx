@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { Package, Bot, Sparkles, UserCircle, Gauge, ShieldCheck } from 'lucide-react';
+import { Package, Bot, Sparkles, UserCircle, Gauge } from 'lucide-react';
 import LogoutButton from '@/components/LogoutButton';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -12,8 +12,7 @@ import { billingStateMeta, resolveBillingState } from '@/lib/billing/access';
 const primaryNav = [
   { href: '/dashboard', label: 'Resumen', icon: Gauge },
   { href: '/dashboard/bots', label: 'Centro de mando', icon: Bot },
-  { href: '/dashboard/onboarding', label: 'Onboarding', icon: Sparkles },
-  { href: '/dashboard/admin/codigos', label: 'Accesos', icon: ShieldCheck },
+  { href: '/dashboard/onboarding', label: 'Configuración', icon: Sparkles },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -21,7 +20,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const isOnboarding = pathname.includes('/onboarding');
   const { data: session, status } = useSession();
-  const { clinicName, organizationName, displayRole } = useBusinessContext();
+  const { clinicName, organizationName } = useBusinessContext();
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -70,7 +69,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </Link>
               ))}
               <Link href="/dashboard/inventario" className="flex items-center gap-2 rounded-full px-3 py-2 transition-all hover:bg-white hover:text-[#1b5ed6]">
-                <Package className="h-4 w-4" /> Cerebro RAG
+                <Package className="h-4 w-4" /> Base de conocimiento
               </Link>
             </nav>
 
@@ -81,9 +80,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
               <div className="hidden rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-sky-700 md:inline-flex">
                 {clinicName}
-              </div>
-              <div className="hidden rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-600 md:inline-flex">
-                {displayRole}
               </div>
               <div className="hidden rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-sky-700 md:inline-flex">
                 {billingMeta.label}

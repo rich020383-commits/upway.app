@@ -55,6 +55,27 @@ type LeadActivityEntry = {
   actor?: { id: string; name?: string | null; email?: string | null } | null;
 };
 
+type TodayActions = {
+  dueReminders: Array<{ id: string; leadId: string; nombre: string; phone?: string | null; scheduledFor: string }>;
+  unassignedNewLeads: Array<{ id: string; nombre: string; phone?: string | null; createdAt: string }>;
+  coldLeads: Array<{ id: string; nombre: string; phone?: string | null; estado: string; lastContactAt?: string | null }>;
+  unconfirmedAppointments: Array<{ id: string; clienteNombre: string; fechaHora: string; estado: string }>;
+};
+
+type Trend = {
+  leads: { current: number; previous: number; pct: number };
+  citas: { current: number; previous: number; pct: number };
+};
+
+type Consumption = {
+  month: string;
+  messages: number;
+  voiceCalls: number;
+  voiceMinutes: number;
+  vapiCost: number;
+  billedCost: number;
+};
+
 type DashboardPayload = {
   segment?: string;
   summary: {
@@ -70,6 +91,9 @@ type DashboardPayload = {
   leads: LeadSummary[];
   inbox: InboxConversation[];
   agentPerformance: AgentPerformance[];
+  todayActions?: TodayActions;
+  trend?: Trend;
+  consumption?: Consumption;
 };
 
 const statusLabels: Record<string, string> = {
@@ -344,6 +368,9 @@ export default function OperacionesPage() {
     }
   };
 
+  const actions: TodayActions = data?.todayActions ?? { dueReminders: [], unassignedNewLeads: [], coldLeads: [], unconfirmedAppointments: [] };
+  const accionesTotal = actions.dueReminders.length + actions.unassignedNewLeads.length + actions.coldLeads.length + actions.unconfirmedAppointments.length;
+
   return (
     <div className="min-h-screen bg-slate-950 px-6 py-10 text-slate-100">
       <div className="mx-auto max-w-7xl space-y-8">
@@ -368,6 +395,136 @@ export default function OperacionesPage() {
             </div>
           ))}
         </div>
+
+        {/* 📈 TENDENCIA 7 DÍAS + 💰 CONSUMO */}
+        <div className="grid gap-4 lg:grid-cols-2">
+          <section className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5">
+            <h2 className="mb-4 text-lg font-semibold text-white">Tendencia · últimos 7 días</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: `Nuevos ${industry.audienceNoun}s`, data: data?.trend?.leads },
+                { label: `${industry.appointmentNoun}s creados`, data: data?.trend?.citas },
+              ].map((item) => {
+                const t = item.data;
+                const up = (t?.pct ?? 0) >= 0;
+                return (
+                  <div key={item.label} className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                    <p className="text-xs text-slate-400">{item.label}</p>
+                    <div className="mt-2 flex items-baseline gap-2">
+                      <p className="text-2xl font-semibold text-white">{t?.current ?? 0}</p>
+                      <span className={`text-xs font-semibold ${up ? 'text-emerald-300' : 'text-rose-300'}`}>
+                        {up ? '▲' : '▼'} {Math.abs(t?.pct ?? 0)}%
+                      </span>
+                    </div>
+                    <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-slate-500">vs semana anterior: {t?.previous ?? 0}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5">
+            <h2 className="mb-4 text-lg font-semibold text-white">Consumo del mes</h2>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                <p className="text-[10px] uppercase tracking-[0.16em] text-slate-500">Mensajes</p>
+                <p className="mt-2 text-2xl font-semibold text-sky-300">{data?.consumption?.messages ?? 0}</p>
+              </div>
+              <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                <p className="text-[10px] uppercase tracking-[0.16em] text-slate-500">Llamadas voz</p>
+                <p className="mt-2 text-2xl font-semibold text-violet-300">{data?.consumption?.voiceCalls ?? 0}</p>
+                <p className="text-[10px] text-slate-500">{data?.consumption?.voiceMinutes ?? 0} min</p>
+              </div>
+              <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                <p className="text-[10px] uppercase tracking-[0.16em] text-slate-500">Costo voz</p>
+                <p className="mt-2 text-2xl font-semibold text-emerald-300">${data?.consumption?.vapiCost ?? 0}</p>
+                <p className="text-[10px] text-slate-500">facturado: ${data?.consumption?.billedCost ?? 0}</p>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* 🎯 ACCIONES DE HOY */}
+        <section className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-slate-900 via-slate-900 to-amber-950/30 p-5">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-white">🎯 Acciones de hoy</h2>
+            <span className="text-xs uppercase tracking-[0.22em] text-amber-300">
+              {accionesTotal} pendientes
+            </span>
+          </div>
+
+          {accionesTotal === 0 ? (
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-100">
+              ✅ Todo al día. No hay acciones críticas pendientes en tu operación.
+            </div>
+          ) : (
+            <div className="grid gap-4 lg:grid-cols-4">
+              {/* Recordatorios vencidos */}
+              <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                <p className="mb-3 text-sm font-semibold text-amber-300">⏰ Recordatorios vencidos ({actions.dueReminders.length})</p>
+                <div className="space-y-2">
+                  {actions.dueReminders.length === 0 && <p className="text-xs text-slate-500">Nada vencido.</p>}
+                  {actions.dueReminders.map((r) => (
+                    <button
+                      key={r.id}
+                      onClick={() => r.leadId && openTimeline(r.leadId)}
+                      className="w-full rounded-lg border border-slate-800 bg-slate-900 p-2 text-left text-xs text-slate-200 transition hover:border-amber-500/40"
+                    >
+                      <span className="font-medium text-white">{r.nombre}</span>
+                      <span className="block text-[10px] text-slate-500">venció {new Date(r.scheduledFor).toLocaleDateString()}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Leads sin asignar */}
+              <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                <p className="mb-3 text-sm font-semibold text-rose-300">🚨 Sin asignar +24h ({actions.unassignedNewLeads.length})</p>
+                <div className="space-y-2">
+                  {actions.unassignedNewLeads.length === 0 && <p className="text-xs text-slate-500">Todo asignado.</p>}
+                  {actions.unassignedNewLeads.map((l) => (
+                    <div key={l.id} className="rounded-lg border border-slate-800 bg-slate-900 p-2 text-xs">
+                      <span className="font-medium text-white">{l.nombre}</span>
+                      <span className="block text-[10px] text-slate-500">creado {new Date(l.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Leads fríos */}
+              <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                <p className="mb-3 text-sm font-semibold text-sky-300">🧊 Sin contacto +3 días ({actions.coldLeads.length})</p>
+                <div className="space-y-2">
+                  {actions.coldLeads.length === 0 && <p className="text-xs text-slate-500">Nadie enfriándose.</p>}
+                  {actions.coldLeads.map((l) => (
+                    <button
+                      key={l.id}
+                      onClick={() => handleCreateReminder(l.id)}
+                      className="w-full rounded-lg border border-slate-800 bg-slate-900 p-2 text-left text-xs transition hover:border-sky-500/40"
+                    >
+                      <span className="font-medium text-white">{l.nombre}</span>
+                      <span className="block text-[10px] text-slate-500">+ programar recordatorio</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Citas sin confirmar */}
+              <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                <p className="mb-3 text-sm font-semibold text-violet-300">📅 Próximas sin confirmar ({actions.unconfirmedAppointments.length})</p>
+                <div className="space-y-2">
+                  {actions.unconfirmedAppointments.length === 0 && <p className="text-xs text-slate-500">Todo confirmado.</p>}
+                  {actions.unconfirmedAppointments.map((c) => (
+                    <div key={c.id} className="rounded-lg border border-slate-800 bg-slate-900 p-2 text-xs">
+                      <span className="font-medium text-white">{c.clienteNombre}</span>
+                      <span className="block text-[10px] text-slate-500">{new Date(c.fechaHora).toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
 
         <div className="grid gap-4 lg:grid-cols-4">
           {industry.serviceCards.map((card) => (
