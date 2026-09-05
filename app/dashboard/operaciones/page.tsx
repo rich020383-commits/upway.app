@@ -372,23 +372,23 @@ export default function OperacionesPage() {
   const accionesTotal = actions.dueReminders.length + actions.unassignedNewLeads.length + actions.coldLeads.length + actions.unconfirmedAppointments.length;
 
   return (
-    <div className="text-slate-900">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.08),transparent_22%),radial-gradient(circle_at_top_right,_rgba(168,85,247,0.08),transparent_22%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_100%)] px-2 py-3 text-slate-900 sm:px-4">
       <div className="space-y-8">
-        <div className="flex flex-col gap-3 rounded-3xl border border-slate-200 border-slate-200/80 bg-white/90 p-6 backdrop-blur-xl shadow-[0_25px_80px_rgba(2,6,23,0.6)] md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 rounded-[30px] border border-slate-200/80 bg-gradient-to-r from-white via-sky-50/80 to-white p-6 shadow-[0_26px_80px_rgba(15,23,42,0.06)] backdrop-blur-xl md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-sky-600">Upway Business OS · Command Center</p>
             <h1 className="mt-2 text-3xl font-semibold text-slate-900">Centro de operaciones · {industry.label}</h1>
             <p className="mt-1 text-sm text-slate-500">Visión ejecutiva del pipeline, agenda y automatización adaptada a tu negocio.</p>
           </div>
-          <div className="flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-700">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+          <div className="flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-700 shadow-[0_0_24px_rgba(16,185,129,0.10)]">
+            <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-400" />
             Sistema en operación
           </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-5">
           {industry.metrics.map((metric) => (
-            <div key={metric.key} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.45)]">
+            <div key={metric.key} className="group rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-[0_14px_50px_rgba(15,23,42,0.06)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_55px_rgba(15,23,42,0.12)]">
               <p className="text-sm text-slate-500">{metric.label}</p>
               <p className={`mt-4 text-3xl font-semibold ${metric.accent}`}>{metricValue(metric.key)}</p>
               <p className="mt-2 text-xs text-slate-500">{metric.hint}</p>
@@ -398,7 +398,7 @@ export default function OperacionesPage() {
 
         {/* 📈 TENDENCIA 7 DÍAS + 💰 CONSUMO */}
         <div className="grid gap-4 lg:grid-cols-2">
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
+          <section className="rounded-2xl border border-slate-200/80 bg-white/85 p-5 shadow-[0_16px_55px_rgba(15,23,42,0.05)] backdrop-blur-sm">
             <h2 className="mb-4 text-lg font-semibold text-slate-900">Tendencia · últimos 7 días</h2>
             <div className="grid grid-cols-2 gap-3">
               {[
@@ -408,7 +408,7 @@ export default function OperacionesPage() {
                 const t = item.data;
                 const up = (t?.pct ?? 0) >= 0;
                 return (
-                  <div key={item.label} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div key={item.label} className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
                     <p className="text-xs text-slate-500">{item.label}</p>
                     <div className="mt-2 flex items-baseline gap-2">
                       <p className="text-2xl font-semibold text-slate-900">{t?.current ?? 0}</p>
@@ -423,19 +423,19 @@ export default function OperacionesPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
+          <section className="rounded-2xl border border-slate-200/80 bg-white/85 p-5 shadow-[0_16px_55px_rgba(15,23,42,0.05)] backdrop-blur-sm">
             <h2 className="mb-4 text-lg font-semibold text-slate-900">Consumo del mes</h2>
             <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-sky-50 to-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
                 <p className="text-[10px] uppercase tracking-[0.16em] text-slate-500">Mensajes</p>
                 <p className="mt-2 text-2xl font-semibold text-sky-600">{data?.consumption?.messages ?? 0}</p>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-violet-50 to-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
                 <p className="text-[10px] uppercase tracking-[0.16em] text-slate-500">Llamadas voz</p>
                 <p className="mt-2 text-2xl font-semibold text-violet-600">{data?.consumption?.voiceCalls ?? 0}</p>
                 <p className="text-[10px] text-slate-500">{data?.consumption?.voiceMinutes ?? 0} min</p>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
                 <p className="text-[10px] uppercase tracking-[0.16em] text-slate-500">Costo voz</p>
                 <p className="mt-2 text-2xl font-semibold text-emerald-600">${data?.consumption?.vapiCost ?? 0}</p>
                 <p className="text-[10px] text-slate-500">facturado: ${data?.consumption?.billedCost ?? 0}</p>
@@ -445,7 +445,7 @@ export default function OperacionesPage() {
         </div>
 
         {/* 🎯 ACCIONES DE HOY */}
-        <section className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-white via-white to-amber-50/60 p-5">
+        <section className="rounded-[28px] border border-amber-500/30 bg-gradient-to-br from-white via-white to-amber-50/80 p-5 shadow-[0_20px_55px_rgba(251,191,36,0.07)]">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-semibold text-slate-900">🎯 Acciones de hoy</h2>
             <span className="text-xs uppercase tracking-[0.22em] text-amber-600">
@@ -460,7 +460,7 @@ export default function OperacionesPage() {
           ) : (
             <div className="grid gap-4 lg:grid-cols-4">
               {/* Recordatorios vencidos */}
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-amber-50 to-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
                 <p className="mb-3 text-sm font-semibold text-amber-600">⏰ Recordatorios vencidos ({actions.dueReminders.length})</p>
                 <div className="space-y-2">
                   {actions.dueReminders.length === 0 && <p className="text-xs text-slate-500">Nada vencido.</p>}
@@ -468,7 +468,7 @@ export default function OperacionesPage() {
                     <button
                       key={r.id}
                       onClick={() => r.leadId && openTimeline(r.leadId)}
-                      className="w-full rounded-lg border border-slate-200 bg-slate-50 p-2 text-left text-xs text-slate-700 transition hover:border-amber-500/40"
+                      className="w-full rounded-lg border border-slate-200 bg-white/80 p-2 text-left text-xs text-slate-700 transition hover:border-amber-500/40 hover:bg-amber-50/60"
                     >
                       <span className="font-medium text-slate-900">{r.nombre}</span>
                       <span className="block text-[10px] text-slate-500">venció {new Date(r.scheduledFor).toLocaleDateString()}</span>
@@ -478,12 +478,12 @@ export default function OperacionesPage() {
               </div>
 
               {/* Leads sin asignar */}
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-rose-50 to-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
                 <p className="mb-3 text-sm font-semibold text-rose-600">🚨 Sin asignar +24h ({actions.unassignedNewLeads.length})</p>
                 <div className="space-y-2">
                   {actions.unassignedNewLeads.length === 0 && <p className="text-xs text-slate-500">Todo asignado.</p>}
                   {actions.unassignedNewLeads.map((l) => (
-                    <div key={l.id} className="rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs">
+                    <div key={l.id} className="rounded-lg border border-slate-200 bg-white/80 p-2 text-xs">
                       <span className="font-medium text-slate-900">{l.nombre}</span>
                       <span className="block text-[10px] text-slate-500">creado {new Date(l.createdAt).toLocaleDateString()}</span>
                     </div>
@@ -492,7 +492,7 @@ export default function OperacionesPage() {
               </div>
 
               {/* Leads fríos */}
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-sky-50 to-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
                 <p className="mb-3 text-sm font-semibold text-sky-600">🧊 Sin contacto +3 días ({actions.coldLeads.length})</p>
                 <div className="space-y-2">
                   {actions.coldLeads.length === 0 && <p className="text-xs text-slate-500">Nadie enfriándose.</p>}
@@ -500,7 +500,7 @@ export default function OperacionesPage() {
                     <button
                       key={l.id}
                       onClick={() => handleCreateReminder(l.id)}
-                      className="w-full rounded-lg border border-slate-200 bg-slate-50 p-2 text-left text-xs transition hover:border-sky-500/40"
+                      className="w-full rounded-lg border border-slate-200 bg-white/80 p-2 text-left text-xs transition hover:border-sky-500/40 hover:bg-sky-50/70"
                     >
                       <span className="font-medium text-slate-900">{l.nombre}</span>
                       <span className="block text-[10px] text-slate-500">+ programar recordatorio</span>
@@ -510,12 +510,12 @@ export default function OperacionesPage() {
               </div>
 
               {/* Citas sin confirmar */}
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-violet-50 to-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
                 <p className="mb-3 text-sm font-semibold text-violet-600">📅 Próximas sin confirmar ({actions.unconfirmedAppointments.length})</p>
                 <div className="space-y-2">
                   {actions.unconfirmedAppointments.length === 0 && <p className="text-xs text-slate-500">Todo confirmado.</p>}
                   {actions.unconfirmedAppointments.map((c) => (
-                    <div key={c.id} className="rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs">
+                    <div key={c.id} className="rounded-lg border border-slate-200 bg-white/80 p-2 text-xs">
                       <span className="font-medium text-slate-900">{c.clienteNombre}</span>
                       <span className="block text-[10px] text-slate-500">{new Date(c.fechaHora).toLocaleString()}</span>
                     </div>
@@ -528,7 +528,7 @@ export default function OperacionesPage() {
 
         <div className="grid gap-4 lg:grid-cols-4">
           {industry.serviceCards.map((card) => (
-            <div key={card.title} className={`rounded-2xl border p-4 shadow-[0_10px_40px_rgba(15,23,42,0.25)] ${card.tone}`}>
+            <div key={card.title} className={`rounded-2xl border p-4 shadow-[0_12px_42px_rgba(15,23,42,0.10)] transition-all duration-200 hover:-translate-y-0.5 ${card.tone}`}>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-[10px] uppercase tracking-[0.22em] opacity-80">{card.badge}</span>
                 <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.9)]" />
@@ -539,14 +539,14 @@ export default function OperacionesPage() {
           ))}
         </div>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-5">
+        <section className="rounded-[28px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_16px_55px_rgba(15,23,42,0.05)]">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-semibold text-slate-900">KPI por responsable</h2>
             <span className="text-xs uppercase tracking-[0.22em] text-slate-500">{data?.agentPerformance?.length ?? 0} agentes</span>
           </div>
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             {(data?.agentPerformance ?? []).map((agent) => (
-              <div key={agent.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div key={agent.id} className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
                 <p className="font-medium text-slate-900">{agent.name}</p>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                   <div>
@@ -576,7 +576,7 @@ export default function OperacionesPage() {
         </section>
 
         <div className="grid gap-6 xl:grid-cols-[1.8fr_1fr]">
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
+          <section className="rounded-[28px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_16px_55px_rgba(15,23,42,0.05)]">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-slate-900">Pipeline de leads</h2>
               <span className="text-xs uppercase tracking-[0.22em] text-slate-500">{data?.leads.length ?? 0} registros</span>
@@ -584,7 +584,7 @@ export default function OperacionesPage() {
 
             <div className="grid gap-4 xl:grid-cols-5">
               {pipelineColumns.map((stage) => (
-                <div key={stage.key} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div key={stage.key} className="rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50 to-white p-3 shadow-[0_12px_35px_rgba(15,23,42,0.04)]">
                   <div className="mb-3 flex items-center justify-between border-b border-slate-200 pb-2">
                     <span className="text-sm font-medium text-slate-900">{stage.label}</span>
                     <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] text-slate-600">
@@ -604,7 +604,7 @@ export default function OperacionesPage() {
                         const selectedUser = selectedUserByLead[lead.id] ?? lead.assignedTo?.id ?? '';
 
                         return (
-                          <div key={lead.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                          <div key={lead.id} className="rounded-xl border border-slate-200 bg-white/80 p-3 shadow-[0_8px_22px_rgba(15,23,42,0.03)]">
                             <div className="flex items-start justify-between gap-2">
                               <div>
                                 <p className="font-medium text-slate-900">{lead.nombre}</p>
@@ -624,7 +624,7 @@ export default function OperacionesPage() {
                               <select
                                 value={selectedUser}
                                 onChange={(event) => setSelectedUserByLead((current) => ({ ...current, [lead.id]: event.target.value }))}
-                                className="w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-900"
+                                className="w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-900 shadow-sm"
                               >
                                 <option value="">Asignar agente</option>
                                 {users.map((user) => (
@@ -685,7 +685,7 @@ export default function OperacionesPage() {
           </section>
 
           <aside className="space-y-6">
-            <section className="rounded-2xl border border-slate-200 bg-white p-5">
+            <section className="rounded-[24px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_14px_45px_rgba(15,23,42,0.05)]">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <h2 className="text-xl font-semibold text-slate-900">Automatización</h2>
                 <button
@@ -697,11 +697,11 @@ export default function OperacionesPage() {
                 </button>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-amber-50 to-white p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Pendientes</p>
                   <p className="mt-2 text-2xl font-semibold text-amber-600">{automation.pendingReminders}</p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-rose-50 to-white p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Vencidos</p>
                   <p className="mt-2 text-2xl font-semibold text-rose-600">{automation.dueReminders}</p>
                 </div>
@@ -711,11 +711,11 @@ export default function OperacionesPage() {
               </div>
             </section>
 
-            <section className="rounded-2xl border border-slate-200 bg-white p-5">
+            <section className="rounded-[24px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_14px_45px_rgba(15,23,42,0.05)]">
               <h2 className="mb-4 text-xl font-semibold text-slate-900">Agenda de {industry.appointmentNoun.toLowerCase()}s</h2>
               <div className="space-y-3">
                 {(data?.nextAppointments ?? []).map((appointment) => (
-                  <div key={appointment.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <div key={appointment.id} className="rounded-xl border border-slate-200 bg-gradient-to-br from-violet-50 to-white p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
                     <p className="font-medium text-slate-900">{appointment.clienteNombre}</p>
                     <p className="mt-1 text-sm text-slate-500">{new Date(appointment.fechaHora).toLocaleString()}</p>
                     <span className="mt-2 inline-flex rounded-full border border-violet-500/40 bg-violet-500/10 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-violet-700">
@@ -731,11 +731,11 @@ export default function OperacionesPage() {
               </div>
             </section>
 
-            <section className="rounded-2xl border border-slate-200 bg-white p-5">
+            <section className="rounded-[24px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_14px_45px_rgba(15,23,42,0.05)]">
               <h2 className="mb-4 text-xl font-semibold text-slate-900">Inbox live</h2>
               <div className="space-y-3">
                 {(data?.inbox ?? []).map((conversation) => (
-                  <div key={conversation.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <div key={conversation.id} className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <p className="font-medium text-slate-900">{conversation.clientName || conversation.clientPhone}</p>
