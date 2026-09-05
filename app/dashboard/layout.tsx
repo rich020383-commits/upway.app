@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { Package, Bot, Sparkles, UserCircle, Gauge } from 'lucide-react';
+import { Package, Bot, Sparkles, UserCircle, Gauge, Activity } from 'lucide-react';
 import LogoutButton from '@/components/LogoutButton';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -11,6 +11,7 @@ import { billingStateMeta, resolveBillingState } from '@/lib/billing/access';
 
 const primaryNav = [
   { href: '/dashboard', label: 'Resumen', icon: Gauge },
+  { href: '/dashboard/operaciones', label: 'Operaciones', icon: Activity },
   { href: '/dashboard/bots', label: 'Centro de mando', icon: Bot },
   { href: '/dashboard/onboarding', label: 'Configuración', icon: Sparkles },
 ];
