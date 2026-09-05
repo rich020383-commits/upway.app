@@ -209,7 +209,7 @@ export async function POST(req: NextRequest) {
     ];
 
     if (genAI) {
-      fallbackProviders.unshift({
+      fallbackProviders.push({
         name: 'Gemini Premium 💎',
         execute: async () => {
           const model = genAI.getGenerativeModel({
