@@ -63,6 +63,13 @@ const mistralClient = process.env.MISTRAL_API_KEY
 const openRouterClient = process.env.OPENROUTER_API_KEY
   ? new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY, baseURL: 'https://openrouter.ai/api/v1' })
   : null;
+const kimiClient = process.env.KIMI_API_KEY
+  ? new OpenAI({ apiKey: process.env.KIMI_API_KEY, baseURL: process.env.KIMI_API_URL || 'https://api.moonshot.ai/v1' })
+  : null;
+const cerebrasClient = process.env.CEREBRAS_API_KEY
+  ? new OpenAI({ apiKey: process.env.CEREBRAS_API_KEY, baseURL: 'https://api.cerebras.ai/v1' })
+  : null;
+const kimiModelName = process.env.KIMI_MODEL || 'moonshot-v1-8k';
 
 // 5. Gemini Premium (EL ESCUDO FINAL)
 const geminiPremiumApiKey = process.env.GEMINI_PREMIUM_API_KEY;
@@ -397,6 +404,54 @@ export async function POST(req: NextRequest) {
         execute: async () => {
           const completion = await openRouterClient!.chat.completions.create({
             model: 'openrouter/free',
+            messages: formattedMessages,
+            temperature: 0.3,
+            tools: herramientas_ia,
+            tool_choice: "auto"
+          });
+          const message = completion.choices[0]?.message;
+          const textoRespuesta = message?.content || '';
+
+          if (message?.tool_calls && message.tool_calls.length > 0) {
+            const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
+            const inicio = args.fechaInicio || args.fecha_inicio;
+            const fin = args.fechaFin || args.fecha_fin;
+            await crearEventoCalendario(args.asunto, inicio, fin);
+            return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
+          }
+          return textoRespuesta;
+        }
+      },
+      {
+        name: 'Kimi ✨ (Plan E)',
+        enabled: !!kimiClient,
+        execute: async () => {
+          const completion = await kimiClient!.chat.completions.create({
+            model: kimiModelName,
+            messages: formattedMessages,
+            temperature: 0.3,
+            tools: herramientas_ia,
+            tool_choice: "auto"
+          });
+          const message = completion.choices[0]?.message;
+          const textoRespuesta = message?.content || '';
+
+          if (message?.tool_calls && message.tool_calls.length > 0) {
+            const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
+            const inicio = args.fechaInicio || args.fecha_inicio;
+            const fin = args.fechaFin || args.fecha_fin;
+            await crearEventoCalendario(args.asunto, inicio, fin);
+            return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
+          }
+          return textoRespuesta;
+        }
+      },
+      {
+        name: 'Cerebras ⚡ (Plan F)',
+        enabled: !!cerebrasClient,
+        execute: async () => {
+          const completion = await cerebrasClient!.chat.completions.create({
+            model: 'llama-3.3-70b',
             messages: formattedMessages,
             temperature: 0.3,
             tools: herramientas_ia,
