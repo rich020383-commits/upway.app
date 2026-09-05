@@ -333,18 +333,19 @@ export default function Home() {
                 </p>
 
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-  <a 
-    href="mailto:contacto@upway.business?subject=Solicitud%20de%20consultoría%20-%20Upway%20Business" 
+  <button
+    type="button"
+    onClick={() => window.dispatchEvent(new Event('abrir-chat'))}
     className="btn-glow-primary inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold text-white transition hover:-translate-y-0.5"
   >
-    Agendar consultoría
+    Hablar con un especialista
     <ArrowRight className="h-4 w-4" />
-  </a>
+  </button>
   <Link 
-    href="#sectores" 
-    className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-3.5 text-sm font-semibold text-slate-200 backdrop-blur-md transition hover:border-white/30 hover:bg-white/10"
+   href="#sectores" 
+   className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-3.5 text-sm font-semibold text-slate-200 backdrop-blur-md transition hover:border-white/30 hover:bg-white/10"
   >
-    Ver sectores
+   Ver sectores
   </Link>
 </div>
 
