@@ -50,6 +50,19 @@ if (!process.env.META_VERIFY_TOKEN) {
 export const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || '';
 export const UPWAY_PHONE_ID = process.env.META_UPWAY_PHONE_ID || '1172769935927318'; // 👑 EL NÚMERO VIP DE UPWAY
 export const INWORKER_PHONE_ID = process.env.META_INWORKER_PHONE_ID || '1334640129724588'; // 🚀 EL NUEVO NÚMERO DE INWORKER (SOPHIE)
+export const HUMAN_TRANSFER_NUMBER = '573126427824'; // 📱 Teléfono humano de transferencia para handoff
+
+const normalizeWhatsAppNumber = (telefono?: string | null): string => {
+  if (!telefono) return HUMAN_TRANSFER_NUMBER;
+  const digits = telefono.replace(/\D/g, '');
+  if (!digits) return HUMAN_TRANSFER_NUMBER;
+
+  const withCountryPrefix = digits.startsWith('57')
+    ? digits
+    : `57${digits}`;
+
+  return withCountryPrefix;
+};
 
 const groqClient = process.env.GROQ_API_KEY
   ? new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' })
@@ -441,7 +454,7 @@ async function handleHumanHandoff(params: {
   await enviarMensajePorWhatsApp(userPhone, msgCliente, phoneIdDestino, dynamicToken);
 
   // 🚀 DINÁMICO: Usamos el celular guardado por el admin en su onboarding (o un fallback)
-  const numeroAdmin = tiendaRecord?.telefonoAdmin || "573116778098";
+  const numeroAdmin = normalizeWhatsAppNumber(tiendaRecord?.telefonoAdmin || HUMAN_TRANSFER_NUMBER);
   const linkPanel = "https://upway.business/dashboard/inbox";
   const msgAdmin = `🚨 *ALERTA UPWAY*\n\nEl cliente ${userName || userPhone} requiere asistencia humana.\nLa IA se ha pausado automáticamente.\n\nAtiende el chat aquí:\n${linkPanel}`;
 
