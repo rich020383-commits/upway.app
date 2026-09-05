@@ -301,7 +301,7 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
                           onClick={() => window.location.href = '/dashboard/onboarding'} 
                           className="bg-[#00D1FF]/20 border border-[#00D1FF]/50 text-[#00D1FF] px-4 py-2.5 rounded text-[12px] font-mono tracking-widest uppercase hover:bg-[#00D1FF] hover:text-black transition-all flex items-center justify-center gap-2 mt-2 shadow-[0_0_15px_rgba(0,209,255,0.3)]"
                         >
-                          <Zap className="w-4 h-4" /> INICIAR ONBOARDING
+                          <Zap className="w-4 h-4" /> REGISTRARME / INICIAR SESIÓN
                         </motion.button>
                       </div>
                     ) : (
