@@ -79,6 +79,13 @@ const mistralClient = process.env.MISTRAL_API_KEY
 const openRouterClient = process.env.OPENROUTER_API_KEY
   ? new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY, baseURL: 'https://openrouter.ai/api/v1' })
   : null;
+const kimiClient = process.env.KIMI_API_KEY
+  ? new OpenAI({ apiKey: process.env.KIMI_API_KEY, baseURL: process.env.KIMI_API_URL || 'https://api.moonshot.ai/v1' })
+  : null;
+const cerebrasClient = process.env.CEREBRAS_API_KEY
+  ? new OpenAI({ apiKey: process.env.CEREBRAS_API_KEY, baseURL: 'https://api.cerebras.ai/v1' })
+  : null;
+const kimiModelName = process.env.KIMI_MODEL || 'moonshot-v1-8k';
 
 const geminiPremiumApiKey = process.env.GEMINI_PREMIUM_API_KEY || process.env.GEMINI_API_KEY;
 const geminiGenAI = geminiPremiumApiKey ? new GoogleGenerativeAI(geminiPremiumApiKey) : null;
@@ -325,7 +332,9 @@ CALL TO ACTION: no envíes a un “simulador” inexistente. Invita a activar el
     { name: 'Groq 🚀 (Plan A)', client: groqClient, timeout: 3500, run: openAiCompatible('openai/gpt-oss-20b') },
     { name: 'SambaNova ⚡ (Plan B)', client: sambanovaClient, timeout: 3500, run: openAiCompatible('Meta-Llama-3.1-8B-Instruct') },
     { name: 'Mistral 🔥 (Plan C)', client: mistralClient, timeout: 3500, run: openAiCompatible('mistral-small-latest') },
-    { name: 'OpenRouter 🃏 (Plan D)', client: openRouterClient, timeout: 3500, run: openAiCompatible('openrouter/free') }
+    { name: 'OpenRouter 🃏 (Plan D)', client: openRouterClient, timeout: 3500, run: openAiCompatible('openrouter/free') },
+    { name: 'Kimi ✨ (Plan E)', client: kimiClient, timeout: 4500, run: openAiCompatible(kimiModelName) },
+    { name: 'Cerebras ⚡ (Plan F)', client: cerebrasClient, timeout: 3500, run: openAiCompatible('llama-3.3-70b') }
   ];
 
   const providerConfigs: Array<ProviderConfig<OpenAiCompatibleClient> | ProviderConfig<GoogleGenerativeAI>> = [

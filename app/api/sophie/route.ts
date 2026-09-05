@@ -2,14 +2,30 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// 💎 LLAVE PREMIUM EXCLUSIVA PARA SOPHIE
-const geminiApiKey = process.env.GEMINI_PREMIUM_API_KEY;
+// 💎 SOPHIE acepta la llave premium o la llave estándar de Gemini
+const geminiApiKey = process.env.GEMINI_PREMIUM_API_KEY || process.env.GEMINI_API_KEY;
 const genAI = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
 
 const kimiApiKey = process.env.KIMI_API_KEY;
 const kimiApiUrl = process.env.KIMI_API_URL || 'https://api.moonshot.ai/v1';
 const kimiModelName = process.env.KIMI_MODEL || 'moonshot-v1-8k';
 const kimiClient = kimiApiKey ? new OpenAI({ apiKey: kimiApiKey, baseURL: kimiApiUrl }) : null;
+const groqClient = process.env.GROQ_API_KEY
+  ? new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' })
+  : null;
+const sambanovaClient = process.env.SAMBANOVA_API_KEY
+  ? new OpenAI({ apiKey: process.env.SAMBANOVA_API_KEY, baseURL: 'https://api.sambanova.ai/v1' })
+  : null;
+const mistralClient = process.env.MISTRAL_API_KEY
+  ? new OpenAI({ apiKey: process.env.MISTRAL_API_KEY, baseURL: 'https://api.mistral.ai/v1' })
+  : null;
+const openRouterClient = process.env.OPENROUTER_API_KEY
+  ? new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY, baseURL: 'https://openrouter.ai/api/v1' })
+  : null;
+const cerebrasClient = process.env.CEREBRAS_API_KEY
+  ? new OpenAI({ apiKey: process.env.CEREBRAS_API_KEY, baseURL: 'https://api.cerebras.ai/v1' })
+  : null;
+const PROVIDER_TIMEOUT_MS = 8000;
 
 type SophieMessage = {
   role?: string;
@@ -27,7 +43,7 @@ type SophieContent = {
 
 const buildSophieContents = (messages: SophieMessage[], audioUsuario?: string): SophieContent[] => {
   const contents: SophieContent[] = messages.map((m) => ({
-    role: m.role === 'bot' ? 'model' : 'user',
+    role: m.role === 'bot' || m.role === 'assistant' || m.role === 'model' ? 'model' : 'user',
     parts: [{ text: m.content || '' }]
   }));
 
@@ -50,6 +66,19 @@ const buildSophieContents = (messages: SophieMessage[], audioUsuario?: string): 
   }
 
   return contents;
+};
+
+const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, providerName: string): Promise<T> => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(`${providerName} timeout after ${timeoutMs}ms`)), timeoutMs);
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId !== undefined) clearTimeout(timeoutId);
+  }
 };
 
 // 🔥 PROMPT MAESTRO DEFINITIVO Y OPTIMIZADO: SOPHIE V2 (UPWAY)
@@ -137,58 +166,89 @@ export async function POST(req: NextRequest) {
 
     const contents = buildSophieContents(messages.filter((m: SophieMessage) => m.role !== 'system'), audioUsuario);
 
-    const generateWithGemini = async () => {
-      if (!genAI) throw new Error('Falta GEMINI_PREMIUM_API_KEY en el .env');
-      const model = genAI.getGenerativeModel({
-        model: 'gemini-2.5-flash',
-        systemInstruction: AGENTE_SUPREMO_PROMPT,
-        generationConfig: {
-          temperature: 0.45,
-          maxOutputTokens: 500, // Subí un poco el límite para que los prompts generados no se corten
-        }
-      });
-      const result = await model.generateContent({ contents });
-      return result.response.text();
+    const openAiMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+      { role: 'system', content: AGENTE_SUPREMO_PROMPT },
+      ...contents.map((content) => ({
+        role: content.role === 'model' ? 'assistant' as const : 'user' as const,
+        content: content.parts.map((part) => ('text' in part ? part.text : '')).join(' ').trim() || ' '
+      }))
+    ];
+
+    type OpenAiClient = Pick<OpenAI, 'chat'>;
+    type Provider = {
+      name: string;
+      client: OpenAiClient | null;
+      model: string;
     };
 
-    const generateWithKimiFallback = async () => {
-      if (!kimiClient) throw new Error('Falta KIMI_API_KEY para fallback de Sophie');
-      const mappedMessages: Array<{ role: 'user' | 'assistant'; content: string }> = contents.map((c) => ({
-        role: c.role === 'model' ? 'assistant' : 'user',
-        content: c.parts.map((p) => ('text' in p ? p.text : '')).join(' ').trim() || ' '
-      }));
+    const providers: Provider[] = [
+      { name: 'Kimi ✨', client: kimiClient, model: kimiModelName },
+      { name: 'Groq 🚀', client: groqClient, model: 'openai/gpt-oss-20b' },
+      { name: 'SambaNova ⚡', client: sambanovaClient, model: 'Meta-Llama-3.1-8B-Instruct' },
+      { name: 'Mistral 🔥', client: mistralClient, model: 'mistral-small-latest' },
+      { name: 'OpenRouter 🃏', client: openRouterClient, model: 'openrouter/free' },
+      { name: 'Cerebras ⚡', client: cerebrasClient, model: 'llama-3.3-70b' }
+    ];
 
-      const fallbackMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-        { role: 'system', content: AGENTE_SUPREMO_PROMPT },
-        ...mappedMessages
-      ];
-      const completion = await kimiClient.chat.completions.create({
-        model: kimiModelName,
-        messages: fallbackMessages,
+    const generateWithOpenAiCompatible = async (provider: Provider): Promise<string> => {
+      if (!provider.client) throw new Error(`${provider.name} no está configurado`);
+      const completion = await provider.client.chat.completions.create({
+        model: provider.model,
+        messages: openAiMessages,
         temperature: 0.45,
-        max_tokens: 500,
+        max_tokens: 500
       });
       return completion.choices[0]?.message?.content || '';
     };
 
+    const fallbackProviders: Array<{ name: string; execute: () => Promise<string> }> = [
+      ...providers.map((provider) => ({
+        name: provider.name,
+        execute: () => generateWithOpenAiCompatible(provider)
+      }))
+    ];
+
+    if (genAI) {
+      fallbackProviders.unshift({
+        name: 'Gemini Premium 💎',
+        execute: async () => {
+          const model = genAI.getGenerativeModel({
+            model: 'gemini-2.5-flash',
+            systemInstruction: AGENTE_SUPREMO_PROMPT,
+            generationConfig: { temperature: 0.45, maxOutputTokens: 500 }
+          });
+          const result = await model.generateContent({ contents });
+          return result.response.text();
+        }
+      });
+    }
+
     let botReply = '';
-    let chosenProvider = 'Gemini Premium 💎';
-    try {
-      botReply = await generateWithGemini();
-    } catch (primaryError) {
-      console.warn('⚠️ Gemini Premium falló en Sophie. Intentando fallback con Kimi...', primaryError);
+    let chosenProvider = 'Sin proveedor disponible';
+    let providerWorked = false;
+    let lastError: unknown;
+
+    for (const provider of fallbackProviders) {
       try {
-        botReply = await generateWithKimiFallback();
-        chosenProvider = 'Kimi K3 ✨ (fallback)';
-      } catch (fallbackError) {
-        console.error('❌ Fallback de Kimi también falló:', fallbackError);
-        botReply = '⚠️ Estoy teniendo problemas técnicos en este momento. Por favor, inténtalo de nuevo en unos minutos.';
-        chosenProvider = 'Ninguno (error)';
+        const reply = await withTimeout(provider.execute(), PROVIDER_TIMEOUT_MS, provider.name);
+        if (!reply.trim()) throw new Error(`${provider.name} devolvió respuesta vacía`);
+        botReply = reply;
+        chosenProvider = provider.name;
+        providerWorked = true;
+        console.log(`✅ Sophie respondió con éxito con ${chosenProvider}`);
+        break;
+      } catch (providerError) {
+        lastError = providerError;
+        console.warn(`⚠️ ${provider.name} falló en Sophie. Activando siguiente relevo...`, providerError);
       }
     }
 
-    console.log(`✅ Sophie respondió con éxito con ${chosenProvider}`);
-    return NextResponse.json({ reply: botReply, provider: chosenProvider });
+    if (!providerWorked) {
+      console.error('❌ Todos los motores de la cascada de Sophie fallaron.', lastError);
+      botReply = '⚠️ Estoy teniendo problemas técnicos en este momento. Por favor, inténtalo de nuevo en unos minutos.';
+    }
+
+    return NextResponse.json({ reply: botReply, provider: chosenProvider, ok: providerWorked });
 
   } catch (error: unknown) {
     console.error('Error crítico en Sophie:', error);
