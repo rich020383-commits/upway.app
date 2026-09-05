@@ -257,7 +257,17 @@ function buscarEnInventarioLocal(mensaje: string, todosLosProductos: Producto[])
 // ==========================================
 // 🛡️ NÚCLEO DE LA CASCADA INQUEBRANTABLE
 // ==========================================
-export async function generarRespuesta(textoCliente: string, phoneId: string, tiendaRecord: TiendaContext | null) {
+type WhatsAppConversationMessage = {
+  senderRole: string;
+  content: string;
+};
+
+export async function generarRespuesta(
+  textoCliente: string,
+  phoneId: string,
+  tiendaRecord: TiendaContext | null,
+  conversationHistory: WhatsAppConversationMessage[] = []
+) {
   let systemPromptText = "";
   const isVip = (phoneId === UPWAY_PHONE_ID || phoneId === INWORKER_PHONE_ID);
 
@@ -278,6 +288,7 @@ Principios clave:
 - Si el cliente responde "todos", reconoce los frentes y recomienda un primer punto de intervención sin volver a preguntar lo mismo.
 - Si el cliente corrige el tipo de negocio, acepta la corrección y continúa desde ese contexto.
 - Mantén WhatsApp en mensajes cortos: máximo 2 párrafos y una sola pregunta.
+- Si el cliente dice que busca ayuda porque ese es precisamente su problema, no vuelvas a preguntarle cuál es el problema. Explica una solución concreta y ofrece el siguiente paso.
 
 Objetivo principal: diagnosticar el problema operativo del cliente, mostrar valor real y mover la conversación hacia activación de flujo, onboarding o implementación con el equipo de Upway.
 
@@ -312,6 +323,10 @@ CALL TO ACTION: no envíes a un “simulador” inexistente. Invita a activar el
 
   const formattedMessages = [
     { role: 'system' as const, content: systemPromptText },
+    ...conversationHistory.slice(-12, -1).map((message) => ({
+      role: message.senderRole === 'AI' || message.senderRole === 'HUMAN' ? 'assistant' as const : 'user' as const,
+      content: message.content
+    })),
     { role: 'user' as const, content: textoCliente }
   ];
 
@@ -613,6 +628,7 @@ async function resolveBusinessContext(payload: ReturnType<typeof extractMessageP
   if (!textoCliente.trim()) return null;
 
   let conversationId: string | null = null;
+  let conversationHistory: WhatsAppConversationMessage[] = [];
   let isAiActive = true;
 
   if (payload.phoneIdDestino !== UPWAY_PHONE_ID && tiendaRecord) {
@@ -623,10 +639,18 @@ async function resolveBusinessContext(payload: ReturnType<typeof extractMessageP
       textoCliente,
       msgIdEntrante: payload.msgIdEntrante
     });
+    if (conversationId) {
+      conversationHistory = await prisma.message.findMany({
+        where: { conversationId },
+        orderBy: { createdAt: 'asc' },
+        take: 12,
+        select: { senderRole: true, content: true }
+      });
+    }
     isAiActive = Boolean(tiendaRecord.isAiActive);
   }
 
-  return { ...payload, tiendaRecord, dynamicToken, textoCliente, conversationId, isAiActive };
+  return { ...payload, tiendaRecord, dynamicToken, textoCliente, conversationId, conversationHistory, isAiActive };
 }
 
 async function deliverAndRecordReply(
@@ -665,7 +689,12 @@ export async function handleIncomingMessage(value: MetaWebhookValue): Promise<vo
     }
 
     // 3. Generación de Respuesta (IA Cascade)
-    const respuesta = await generarRespuesta(context.textoCliente, context.phoneIdDestino, context.tiendaRecord);
+    const respuesta = await generarRespuesta(
+      context.textoCliente,
+      context.phoneIdDestino,
+      context.tiendaRecord,
+      context.conversationHistory
+    );
 
     // 🚨 Handoff Inteligente
     if (respuesta.includes('[TRANSFERIR_HUMANO]')) {
