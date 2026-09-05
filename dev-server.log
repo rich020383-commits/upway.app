@@ -46,3 +46,17 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
  GET / 200 in 119ms (next.js: 25ms, application-code: 94ms)
 👂 Servidor Upway conectado y escuchando eventos de Neon...
 ✓ Compiled in 596ms
+ HEAD / 200 in 11.8s (next.js: 6.9s, application-code: 4.9s)
+👂 Servidor Upway conectado y escuchando eventos de Neon...
+○ Compiling /api/sophie ...
+✓ Finished writing to filesystem cache in 16.2s
+Error crítico en Sophie: SyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+    at JSON.parse (<anonymous>)
+ POST /api/sophie 500 in 2.3min (next.js: 2.2min, application-code: 7.2s)
+✓ Finished writing to filesystem cache in 11.8s
+Error crítico en Sophie: SyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+    at JSON.parse (<anonymous>)
+ POST /api/sophie 500 in 137ms (next.js: 67ms, application-code: 70ms)
+✓ Finished writing to filesystem cache in 15.9s
+ HEAD / 200 in 8.2s (next.js: 4.2s, application-code: 4.0s)
+👂 Servidor Upway conectado y escuchando eventos de Neon...
