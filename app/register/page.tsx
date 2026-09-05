@@ -5,13 +5,14 @@ import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useMemo, useState } from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
-import { resolveVertical } from '../../lib/verticals';
+import { resolvePostLoginRoute, resolveVertical } from '../../lib/verticals';
 
 function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const segment = searchParams.get('segment') ?? 'general';
-  const nextRoute = searchParams.get('next') && searchParams.get('next')?.startsWith('/') ? searchParams.get('next')! : '/dashboard/onboarding';
+  const requestedNext = searchParams.get('next');
+  const nextRoute = requestedNext && requestedNext.startsWith('/') ? requestedNext : resolvePostLoginRoute(segment);
   const activeSegment = useMemo(() => resolveVertical(segment), [segment]);
   const [name, setName] = useState('');
   const [businessName, setBusinessName] = useState('');
