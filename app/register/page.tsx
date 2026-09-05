@@ -11,6 +11,7 @@ function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const segment = searchParams.get('segment') ?? 'general';
+  const nextRoute = searchParams.get('next') && searchParams.get('next')?.startsWith('/') ? searchParams.get('next')! : '/dashboard/onboarding';
   const activeSegment = useMemo(() => resolveVertical(segment), [segment]);
   const [name, setName] = useState('');
   const [businessName, setBusinessName] = useState('');
@@ -46,7 +47,7 @@ function RegisterPage() {
       return;
     }
 
-    router.push(segment === 'general' ? '/login' : `/login?segment=${segment}`);
+    router.push(`/login?next=${encodeURIComponent(nextRoute)}`);
   }
 
   return (

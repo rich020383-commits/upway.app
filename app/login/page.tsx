@@ -12,7 +12,8 @@ function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const segment = searchParams.get('segment');
-  const targetAfterLogin = resolvePostLoginRoute(segment);
+  const nextParam = searchParams.get('next');
+  const targetAfterLogin = nextParam && nextParam.startsWith('/') ? nextParam : resolvePostLoginRoute(segment);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [cargando, setCargando] = useState(false);

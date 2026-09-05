@@ -1,10 +1,10 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { Package, Bot, Sparkles, UserCircle, Gauge, ShieldCheck } from 'lucide-react';
 import LogoutButton from '@/components/LogoutButton';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useBusinessContext } from '@/components/business-context';
 import { billingStateMeta, resolveBillingState } from '@/lib/billing/access';
@@ -18,9 +18,24 @@ const primaryNav = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const isOnboarding = pathname.includes('/onboarding');
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { clinicName, organizationName, displayRole } = useBusinessContext();
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+    }
+  }, [status, pathname, router]);
+
+  if (status === 'loading') {
+    return <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center">Cargando...</div>;
+  }
+
+  if (status === 'unauthenticated') {
+    return null;
+  }
 
   const userName = session?.user?.name || session?.user?.email?.split('@')[0] || 'Usuario Upway';
   const accessState = resolveBillingState(
