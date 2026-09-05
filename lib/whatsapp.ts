@@ -151,7 +151,7 @@ export async function transcribirAudioWhatsApp(mediaId: string, metaAccessToken:
 const FAQ_CACHE = new Map<string, string>();
 
 const BASIC_FAQ_LOOKUPS: Array<{ pattern: RegExp; reply: string; }> = [
-  { pattern: /\b(hola|buenas|buenos días|buenas tardes|buenas noches|qué tal|hey)\b/i, reply: '¡Hola! Soy Sophie v2, especialista de Upway. Te puedo ayudar a entender cómo la atención, la agenda y la coordinación pueden mejorar tu operación.' },
+  { pattern: /\b(hola|buenas|buenos días|buenas tardes|buenas noches|qué tal|hey)\b/i, reply: '¡Hola! Soy Sophie v2, especialista de Upway. ¿Qué tipo de negocio tienes y qué te cuesta más operar hoy: atención, agenda, seguimiento o coordinación?' },
   { pattern: /\b(precio|plan|costo|cuesta|valor|mensual|suscripci[oó]n)\b/i, reply: 'La estructura suele ser software/plataforma + implementación + consumo real de canales y mensajes; según el volumen y la operación, te recomiendo el modelo ideal.' },
   { pattern: /\b(direcci[oó]n|d[oó]nde est[aá]|ubicaci[oó]n)\b/i, reply: 'Te puedo ayudar con eso, pero lo más útil es entender cómo funciona tu operación y qué flujo te cuesta más operar.' },
   { pattern: /\b(horario|horarios|abre|abren|atenci[oó]n)\b/i, reply: 'Upway opera como un sistema de atención continua para tu negocio: responde, agenda, coordina y escalas sin depender solo del equipo humano.' },
@@ -273,6 +273,11 @@ Principios clave:
 - Si el cliente habla de costos, hazlo con propiedad: software/plataforma, implementación, consumo real de mensajes/canales y posibilidad de créditos o paquetes iniciales.
 - La Agenda Upway inteligente es una pieza central del valor: coordina citas, recordatorios, cancelaciones, no-shows y reprogramación sin intervención manual.
 - Si el cliente quiere ver la experiencia, empújalo a activar su flujo en onboarding o a un diagnóstico de implementación real.
+- Si responde "sí", "si", "claro", "por favor", "dale" o equivalente después de que le ofrezcas mostrarlo, trátalo como intención de activación y llévalo directamente a onboarding.
+- Nunca repitas la misma pregunta ni presentes formularios numerados. Haz una sola pregunta por turno.
+- Si el cliente responde "todos", reconoce los frentes y recomienda un primer punto de intervención sin volver a preguntar lo mismo.
+- Si el cliente corrige el tipo de negocio, acepta la corrección y continúa desde ese contexto.
+- Mantén WhatsApp en mensajes cortos: máximo 2 párrafos y una sola pregunta.
 
 Objetivo principal: diagnosticar el problema operativo del cliente, mostrar valor real y mover la conversación hacia activación de flujo, onboarding o implementación con el equipo de Upway.
 

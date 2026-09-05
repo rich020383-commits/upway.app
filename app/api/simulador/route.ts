@@ -72,7 +72,7 @@ const cerebrasClient = process.env.CEREBRAS_API_KEY
 const kimiModelName = process.env.KIMI_MODEL || 'moonshot-v1-8k';
 
 // 5. Gemini Premium (EL ESCUDO FINAL)
-const geminiPremiumApiKey = process.env.GEMINI_PREMIUM_API_KEY;
+const geminiPremiumApiKey = process.env.GEMINI_PREMIUM_API_KEY || process.env.GEMINI_API_KEY;
 const geminiGenAI = geminiPremiumApiKey ? new GenerativeAI.GoogleGenerativeAI(geminiPremiumApiKey) : null;
 
 // ==========================================
@@ -476,7 +476,22 @@ export async function POST(req: NextRequest) {
         execute: async () => {
           const geminiModel = geminiGenAI!.getGenerativeModel({
             model: 'gemini-2.5-flash',
-            systemInstruction: systemPromptText
+            systemInstruction: systemPromptText,
+            tools: [{
+              functionDeclarations: [{
+                name: 'agendar_reunion',
+                description: 'Usa esta herramienta cuando el usuario pida explícitamente agendar o programar una reunión, cita o evento.',
+                parameters: {
+                  type: GenerativeAI.SchemaType.OBJECT,
+                  properties: {
+                    asunto: { type: GenerativeAI.SchemaType.STRING, description: 'Tema o título de la reunión' },
+                    fechaInicio: { type: GenerativeAI.SchemaType.STRING, description: 'Fecha y hora ISO 8601 de inicio' },
+                    fechaFin: { type: GenerativeAI.SchemaType.STRING, description: 'Fecha y hora ISO 8601 de finalización' }
+                  },
+                  required: ['asunto', 'fechaInicio', 'fechaFin']
+                }
+              }]
+            }]
           });
           const contents = formattedMessages
             .filter(m => m.role !== 'system')
@@ -486,7 +501,29 @@ export async function POST(req: NextRequest) {
             }));
 
           const result = await geminiModel.generateContent({ contents });
-          return result.response.text();
+          const response = result.response as {
+            text: () => string;
+            candidates?: Array<{
+              content?: {
+                parts?: Array<{
+                  functionCall?: { name?: string; args?: Record<string, unknown> };
+                }>;
+              };
+            }>;
+          };
+          const functionCall = response.candidates?.[0]?.content?.parts?.find((part) => part.functionCall)?.functionCall;
+          if (functionCall?.name === 'agendar_reunion' && functionCall.args) {
+            const args = functionCall.args;
+            const inicio = String(args.fechaInicio || args.fecha_inicio || '');
+            const fin = String(args.fechaFin || args.fecha_fin || '');
+            const asunto = String(args.asunto || '');
+            if (!asunto || !inicio || !fin) {
+              throw new Error('Gemini devolvió datos incompletos para agendar la reunión');
+            }
+            await crearEventoCalendario(asunto, inicio, fin);
+            return `¡Listo! Acabo de agendar tu cita "${asunto}". Todo quedó confirmado en la agenda.`;
+          }
+          return response.text();
         }
       }
     ];
