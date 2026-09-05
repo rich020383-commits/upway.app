@@ -1,66 +1,14 @@
 "use client";
 
 import React, { Suspense } from 'react';
-import { MessageCircleMore, Headphones, Sparkles, ArrowRight, Check, ShieldCheck, CalendarRange } from 'lucide-react';
+import { ArrowRight, Check, Sparkles } from 'lucide-react';
 import { useUpwayStore } from '../../../store/upwayStore';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 import { resolveVertical } from '../../../../lib/verticals';
+import { MODULO_LISTA } from '../../../../lib/modulos';
+import { OnboardingProgress, SkipToPanelLink } from '../../../../components/onboarding/shared';
 
-const paquetes = [
-  {
-    id: 'workspace', 
-    titulo: 'Centro de Control de Negocio',
-    descripcion: 'La base para organizar a tu equipo y asegurar que ninguna oportunidad de venta o atención se quede sin respuesta.',
-    esBase: true,
-    capacidades: [
-      'Chat centralizado para todo el equipo de asesores.',
-      'Tablero visual para gestionar el estado de cada cliente.',
-      'Asignación clara de responsables por cada cuenta.',
-      'Historial completo de la trazabilidad operativa.'
-    ],
-    icon: <ShieldCheck size={28} className="text-slate-900" />
-  },
-  {
-    id: 'agenda', 
-    titulo: 'Agenda Operativa Inteligente',
-    descripcion: 'Coordina la disponibilidad de especialistas y espacios sin enredos ni cruces de horarios.',
-    esBase: true,
-    capacidades: [
-      'Programación de citas enlazada al flujo de chat.',
-      'Control de turnos y disponibilidad por especialista.',
-      'Seguimiento estricto de asistencias y reprogramaciones.',
-      'Registro de notas y ubicación por cita.'
-    ],
-    icon: <CalendarRange size={28} className="text-slate-900" />
-  },
-  {
-    id: 'whatsapp',
-    titulo: 'Empleado Digital: WhatsApp IA',
-    descripcion: 'Atiende, califica y perfila clientes en piloto automático 24/7 a través de mensajería.',
-    esBase: false,
-    capacidades: [
-      'Captura y perfilamiento automático de leads 24/7.',
-      'Recordatorios inteligentes para asegurar la asistencia.',
-      'Contexto de negocio persistente en cada interacción.',
-      'Derivación fluida hacia el cierre o la agenda.'
-    ],
-    icon: <MessageCircleMore size={28} />
-  },
-  {
-    id: 'voz',
-    titulo: 'Empleado Digital: Voz IA',
-    descripcion: 'Recepcionista telefónica autónoma con voz natural para gestionar llamadas de alta demanda.',
-    esBase: false,
-    capacidades: [
-      'Atención de llamadas entrantes con naturalidad.',
-      'Agendamiento de citas en tiempo real por voz.',
-      'Transferencia inteligente a asesores humanos.',
-      'Gestión controlada de llamadas simultáneas.'
-    ],
-    icon: <Headphones size={28} />
-  }
-];
+const paquetes = MODULO_LISTA;
 
 function Paso01Infraestructura() {
   const router = useRouter();
@@ -72,45 +20,23 @@ function Paso01Infraestructura() {
   return (
     <main className="relative min-h-screen bg-[#F8FAFC] text-slate-900 pb-32 font-sans selection:bg-slate-900 selection:text-white">
       
-      {/* Botón Superior */}
-      <div className="absolute top-6 right-6 sm:top-8 sm:right-10 z-10">
-        <Link 
-          href="/dashboard" 
-          className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:text-slate-900"
-        >
-          Ir al Panel
-          <ArrowRight size={16} />
-        </Link>
-      </div>
+      <SkipToPanelLink />
 
       <div className="mx-auto max-w-5xl px-6 pt-12 md:pt-20">
-        
-        {/* Cabecera / Narrativa Corporativa */}
-        <div className="mb-12">
-          <div className="mb-6 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
-            <span>Configuración de Infraestructura</span>
-            <span className="h-1 w-1 rounded-full bg-slate-300"></span>
-            <span className="text-slate-900">01 / 05</span>
-            <span className="ml-auto rounded-full border border-slate-200 bg-white px-3 py-1 text-[10px] font-bold text-slate-700 shadow-sm">
-              {activeSegment.label}
-            </span>
-          </div>
-          
-          <div className="mb-10 flex gap-2">
-            <div className="h-1 flex-1 rounded-full bg-slate-900"></div>
-            <div className="h-1 flex-1 rounded-full bg-slate-200"></div>
-            <div className="h-1 flex-1 rounded-full bg-slate-200"></div>
-            <div className="h-1 flex-1 rounded-full bg-slate-200"></div>
-            <div className="h-1 flex-1 rounded-full bg-slate-200"></div>
-          </div>
+        <OnboardingProgress
+          current={1}
+          total={5}
+          label="Configuración de Infraestructura"
+          valueLabel={activeSegment.label}
+          accentClass="bg-slate-900"
+        />
 
-          <h1 className="mb-4 text-4xl font-black tracking-tight text-slate-900 md:text-5xl">
-            Infraestructura premium
-          </h1>
-          <p className="max-w-2xl text-lg text-slate-600 leading-relaxed">
-            Diseña tu arquitectura operativa. Centraliza la atención, el agendamiento y los agentes inteligentes impulsados por <span className="font-bold text-slate-900 inline-flex items-center gap-1"><Sparkles size={16}/> Sophie v2</span>.
-          </p>
-        </div>
+        <h1 className="mb-4 text-4xl font-black tracking-tight text-slate-900 md:text-5xl">
+          Infraestructura premium
+        </h1>
+        <p className="max-w-2xl text-lg text-slate-600 leading-relaxed">
+          Diseña tu arquitectura operativa. Centraliza la atención, el agendamiento y los agentes inteligentes impulsados por <span className="font-bold text-slate-900 inline-flex items-center gap-1"><Sparkles size={16}/> Sophie v2</span>.
+        </p>
 
         {/* Grid 2x2 Equilibrado */}
         <div className="grid gap-6 md:grid-cols-2">
