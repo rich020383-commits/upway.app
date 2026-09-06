@@ -151,8 +151,16 @@ export async function ensureConversationForLead(params: {
     return existing;
   }
 
-  return prisma.conversation.create({
-    data: {
+  // Upsert blindado contra race conditions: si otra request crea la misma
+  // conversación entre el findUnique y el create, devolvemos la existente.
+  return prisma.conversation.upsert({
+    where: {
+      tiendaId_clientPhone: {
+        tiendaId: params.tiendaId,
+        clientPhone: phone,
+      },
+    },
+    create: {
       tiendaId: params.tiendaId,
       leadId: params.leadId ?? null,
       clientPhone: phone,
@@ -160,6 +168,9 @@ export async function ensureConversationForLead(params: {
       status: ConversationStatus.ACTIVE,
       metaCategory: params.metaCategory ?? null,
     },
+    update: params.leadId
+      ? { leadId: params.leadId, clientName: params.clientName ?? undefined, metaCategory: params.metaCategory ?? undefined }
+      : {},
   });
 }
 
@@ -176,7 +187,7 @@ const ACTIVITY_DEFAULT_SUMMARIES: Record<ActivityType, string> = {
   NOTE_ADDED: 'Nota añadida',
   STATUS_CHANGED: 'Estado actualizado',
 };
-function toJson(value: Record<string, unknown> | null | undefined): Prisma.InputJsonValue {
+export function toJson(value: Record<string, unknown> | null | undefined): Prisma.InputJsonValue {
   if (!value) return {};
   // Filtra valores no serializables (undefined, funciones, símbolos) para que
   // Prisma no falle al persistir metadatos que lleguen desde cualquier caller.
@@ -308,7 +319,7 @@ export async function createLeadFromInbound(params: {
     },
   });
 
-  if (params.messageContent) {
+  if (params.messageContent && conversation?.id) {
     await prisma.message.create({
       data: {
         conversationId: conversation?.id ?? '',

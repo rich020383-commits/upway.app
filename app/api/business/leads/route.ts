@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
+import { ActivityType, LeadStatus, ReminderStatus } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { assignLeadToUser, createLeadFromInbound } from '@/lib/business-ops';
+import { assignLeadToUser, createLeadFromInbound, normalizeLeadStatus, toJson } from '@/lib/business-ops';
 
 export async function GET(request: Request) {
   try {
@@ -75,8 +76,30 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const { leadId, userId, assignedByUserId, reason, status } = body ?? {};
 
-    if (!leadId || !userId) {
-      return NextResponse.json({ error: 'leadId y userId son requeridos' }, { status: 400 });
+    if (!leadId) {
+      return NextResponse.json({ error: 'leadId es requerido' }, { status: 400 });
+    }
+
+    // Cambio de etapa sin reasignación de agente (ej. "Mover a Cita").
+    if (status && !userId) {
+      const lead = await prisma.lead.update({
+        where: { id: leadId },
+        data: { estado: normalizeLeadStatus(status) },
+      });
+      await prisma.leadActivity.create({
+        data: {
+          leadId,
+          actorUserId: assignedByUserId ?? null,
+          type: ActivityType.STATUS_CHANGED,
+          summary: reason ?? `Lead movido a ${lead.estado}`,
+          metadataJson: toJson({ status: lead.estado }),
+        },
+      });
+      return NextResponse.json({ ok: true, lead });
+    }
+
+    if (!userId) {
+      return NextResponse.json({ error: 'userId es requerido para asignar el lead' }, { status: 400 });
     }
 
     const result = await assignLeadToUser({
