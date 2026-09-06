@@ -70,25 +70,29 @@ export async function POST(req: NextRequest) {
 
     if (metaPhoneNumberId && metaPhoneNumberId !== 'ID_DEL_NUMERO') {
       try {
-        const pinDeRegistro = '123456';
-
-        const registroMeta = await fetch(`https://graph.facebook.com/v20.0/${metaPhoneNumberId}/register`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({
-            messaging_product: 'whatsapp',
-            pin: pinDeRegistro,
-          }),
-        });
-
-        if (!registroMeta.ok) {
-          const errorMeta = await registroMeta.json().catch(() => null);
-          console.warn('⚠️ Aviso de Meta (no crítico):', errorMeta);
+        const pinDeRegistro = process.env.META_REGISTER_PIN;
+        if (!pinDeRegistro) {
+          // No abortamos el flujo: registrar la línea es no crítico. Solo lo avisamos.
+          console.warn('⚠️ META_REGISTER_PIN no está definida; se omite el registro de la línea.');
         } else {
-          console.log('✅ Línea de WhatsApp registrada oficialmente en Meta.');
+          const registroMeta = await fetch(`https://graph.facebook.com/v20.0/${metaPhoneNumberId}/register`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({
+              messaging_product: 'whatsapp',
+              pin: pinDeRegistro,
+            }),
+          });
+
+          if (!registroMeta.ok) {
+            const errorMeta = await registroMeta.json().catch(() => null);
+            console.warn('⚠️ Aviso de Meta (no crítico):', errorMeta);
+          } else {
+            console.log('✅ Línea de WhatsApp registrada oficialmente en Meta.');
+          }
         }
       } catch (error) {
         console.error('Error menor al intentar registrar la línea en Graph API:', error);

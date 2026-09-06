@@ -19,7 +19,7 @@ function Paso01Infraestructura() {
 
   return (
     <main className="relative min-h-screen bg-[#F8FAFC] text-slate-900 pb-32 font-sans selection:bg-slate-900 selection:text-white">
-      
+
       <SkipToPanelLink />
 
       <div className="mx-auto max-w-5xl px-6 pt-12 md:pt-20">
@@ -37,17 +37,22 @@ function Paso01Infraestructura() {
         <p className="max-w-2xl text-lg text-slate-600 leading-relaxed">
           Diseña tu arquitectura operativa. Centraliza la atención, el agendamiento y los agentes inteligentes impulsados por <span className="font-bold text-slate-900 inline-flex items-center gap-1"><Sparkles size={16}/> Sophie v2</span>.
         </p>
+        <div className="mt-4 max-w-2xl rounded-2xl border border-[#dbe4f5] bg-white/70 p-4 text-sm leading-6 text-slate-600">
+          <p className="font-semibold text-slate-800">¿Cómo funciona esta selección?</p>
+          <p className="mt-1">Los módulos marcados como <span className="font-semibold text-slate-900">Base Incluida</span> forman el núcleo operativo ya están instalados. Los de <span className="font-semibold text-slate-900">Modelo por Consumo</span> (WhatsApp IA y Voz IA) se facturan por uso real: los activas tocando la tarjeta y podrás desactivarlos cuando quieras.</p>
+        </div>
 
         {/* Grid 2x2 Equilibrado */}
         <div className="grid gap-6 md:grid-cols-2">
-          
+
           {paquetes.map((p) => {
             const seleccionado = p.esBase || modulosSeleccionados.includes(p.id);
-            
+
             return (
               <div
                 key={p.id}
                 onClick={() => !p.esBase && toggleModulo(p.id)}
+                title={p.esBase ? `${p.titulo}: módulo base incluido en tu plan.` : `Activa o desactiva ${p.titulo} (facturación por consumo).`}
                 className={`group relative flex flex-col justify-between rounded-3xl border p-7 transition-all duration-300 ${p.esBase ? 'cursor-default' : 'cursor-pointer'} ${
                   seleccionado
                     ? 'border-slate-900 bg-white shadow-[0_20px_40px_rgba(15,23,42,0.06)] ring-1 ring-slate-900'
@@ -130,7 +135,7 @@ function Paso01Infraestructura() {
               Configuración modular lista
             </p>
           </div>
-          <button 
+          <button
             onClick={() => router.push('/dashboard/onboarding/tonalidad')}
             className="flex items-center gap-2 rounded-full bg-slate-900 px-8 py-3.5 text-sm font-bold text-white shadow-xl transition-all hover:-translate-y-0.5 hover:shadow-2xl"
           >

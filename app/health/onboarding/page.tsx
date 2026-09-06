@@ -10,6 +10,7 @@ import {
   type OnboardingStage,
 } from '@/lib/health/onboarding';
 import { useBusinessContext } from '@/components/business-context';
+import { Tooltip } from '@/components/ui/tooltip';
 
 type OnboardingForm = {
   clinicName: string;
@@ -51,6 +52,35 @@ const initialForm: OnboardingForm = {
   webhook: '',
   approval: false, // Debe empezar desmarcado
 };
+// 🔥 Ayuda contextual por campo: explica qué se pide y por qué importa, para
+// que el responsable clínico pueda completarlo sin adivinar el criterio.
+const fieldHelp: Partial<Record<keyof OnboardingForm, string>> = {
+  clinicName: 'Nombre comercial con el que tus pacientes identificarán la operación.',
+  specialty: 'Especialidad médica principal. Define el enfoque del agente y del triaje.',
+  location: 'Sucursal o zona de atención. Ayuda a contextualizar direcciones y horarios.',
+  careModel: 'Cómo se atiende al paciente: triaje asistido, atención prioritaria, etc.',
+  schedule: 'Horario real de operación. El agente lo usa para coordinar citas y urgencias.',
+  priority: 'Niveles de prioridad con los que el agente clasificará cada consulta.',
+  agentName: 'Nombre del asistente clínico que verán tus pacientes.',
+  mission: 'Objetivo y límites del agente: qué debe resolver y qué debe escalar.',
+  triageRules: 'Reglas de clasificación: cuándo priorizar, redirigir o escalar a humano.',
+  tone: 'Tono verbal del agente (empático, formal, cercano…).',
+  responseStyle: 'Forma de responder: longitud, lenguaje y nivel de detalle.',
+  cancellationWindow: 'Anticipación mínima para cancelar o reprogramar sin penalización.',
+  policy: 'Reglas de escalamiento y seguridad ante riesgo clínico.',
+  faq: 'Preguntas frecuentes que el agente responderá de forma automática.',
+  channel: 'Canales por los que atiende el agente (WhatsApp, voz, web…).',
+  webhook: 'Integraciones conectadas para registrar turnos, emisión y CRM.',
+};
+function FieldHint({ text }: { text?: string }) {
+  if (!text) return null;
+  return (
+    <p className="mt-1.5 flex items-start gap-1.5 text-[12px] leading-5 text-slate-500">
+      <span className="mt-0.5 text-[#1b5ed6]">ℹ️</span>
+      <span>{text}</span>
+    </p>
+  );
+}
 
 const parseStoredForm = (input: unknown): Partial<OnboardingForm> => {
   if (!input || typeof input !== 'object') return {};
@@ -86,14 +116,17 @@ const stageContent: Record<
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Nombre de la clínica</label>
         <input placeholder="Ej. Mi clínica" value={form.clinicName} onChange={(event) => onChange('clinicName', event.target.value)} style={inputStyle} />
+        <FieldHint text={fieldHelp.clinicName} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Especialidad principal</label>
         <input placeholder="Ej. Medicina general y urgencias" value={form.specialty} onChange={(event) => onChange('specialty', event.target.value)} style={inputStyle} />
+        <FieldHint text={fieldHelp.specialty} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Ubicación / sucursal</label>
         <input placeholder="Ej. Providencia, Santiago" value={form.location} onChange={(event) => onChange('location', event.target.value)} style={inputStyle} />
+        <FieldHint text={fieldHelp.location} />
       </div>
     </div>
   ),
@@ -102,14 +135,17 @@ const stageContent: Record<
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Modelo de atención</label>
         <input placeholder="Ej. Triage asistido + atención prioritaria" value={form.careModel} onChange={(event) => onChange('careModel', event.target.value)} style={inputStyle} />
+        <FieldHint text={fieldHelp.careModel} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Horario operativo</label>
         <input placeholder="Ej. Lun - Vie 08:00 - 20:00" value={form.schedule} onChange={(event) => onChange('schedule', event.target.value)} style={inputStyle} />
+        <FieldHint text={fieldHelp.schedule} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Nivel de prioridad</label>
         <input placeholder="Ej. Urgencias / atención prioritaria / seguimiento" value={form.priority} onChange={(event) => onChange('priority', event.target.value)} style={inputStyle} />
+        <FieldHint text={fieldHelp.priority} />
       </div>
     </div>
   ),
@@ -118,10 +154,12 @@ const stageContent: Record<
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Nombre del agente</label>
         <input placeholder="Ej. Alicia Health Assistant" value={form.agentName} onChange={(event) => onChange('agentName', event.target.value)} style={inputStyle} />
+        <FieldHint text={fieldHelp.agentName} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Misión del agente</label>
         <textarea placeholder="Ej. Atender pacientes con empatía, aclarar dudas frecuentes..." value={form.mission} onChange={(event) => onChange('mission', event.target.value)} style={{ ...inputStyle, minHeight: 120, resize: 'vertical' }} />
+        <FieldHint text={fieldHelp.mission} />
       </div>
     </div>
   ),
@@ -129,6 +167,7 @@ const stageContent: Record<
     <div style={{ display: 'grid', gap: 12 }}>
       <label style={labelStyle}>Reglas de triaje</label>
       <textarea placeholder="Ej. Si el paciente reporta dolor intenso, priorizar urgencia..." value={form.triageRules} onChange={(event) => onChange('triageRules', event.target.value)} style={{ ...inputStyle, minHeight: 140, resize: 'vertical' }} />
+      <FieldHint text={fieldHelp.triageRules} />
     </div>
   ),
   'tone-and-voice': (form, onChange) => (
@@ -136,10 +175,12 @@ const stageContent: Record<
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Tono</label>
         <input placeholder="Ej. Empático, claro y profesional" value={form.tone} onChange={(event) => onChange('tone', event.target.value)} style={inputStyle} />
+        <FieldHint text={fieldHelp.tone} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Estilo de respuesta</label>
         <input placeholder="Ej. Breve, humano, claro y sin tecnicismos" value={form.responseStyle} onChange={(event) => onChange('responseStyle', event.target.value)} style={inputStyle} />
+        <FieldHint text={fieldHelp.responseStyle} />
       </div>
     </div>
   ),
@@ -148,10 +189,12 @@ const stageContent: Record<
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Política de cancelación</label>
         <input placeholder="Ej. 24 horas antes del turno" value={form.cancellationWindow} onChange={(event) => onChange('cancellationWindow', event.target.value)} style={inputStyle} />
+        <FieldHint text={fieldHelp.cancellationWindow} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Escalación de seguridad</label>
         <textarea placeholder="Ej. Escalar a humano cuando exista riesgo clínico..." value={form.policy} onChange={(event) => onChange('policy', event.target.value)} style={{ ...inputStyle, minHeight: 120, resize: 'vertical' }} />
+        <FieldHint text={fieldHelp.policy} />
       </div>
     </div>
   ),
@@ -160,6 +203,7 @@ const stageContent: Record<
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>FAQ estratégica</label>
         <textarea placeholder="Ej. ¿Cuánto tarda la respuesta? En promedio, 30-90 segundos..." value={form.faq} onChange={(event) => onChange('faq', event.target.value)} style={{ ...inputStyle, minHeight: 120, resize: 'vertical' }} />
+        <FieldHint text={fieldHelp.faq} />
       </div>
     </div>
   ),
@@ -168,10 +212,12 @@ const stageContent: Record<
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Canales activos</label>
         <input placeholder="Ej. WhatsApp + Vapi" value={form.channel} onChange={(event) => onChange('channel', event.target.value)} style={inputStyle} />
+        <FieldHint text={fieldHelp.channel} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Webhook / integración</label>
         <input placeholder="Ej. WhatsApp Business + Vapi API + CRM" value={form.webhook} onChange={(event) => onChange('webhook', event.target.value)} style={inputStyle} />
+        <FieldHint text={fieldHelp.webhook} />
       </div>
     </div>
   ),
@@ -187,10 +233,13 @@ const stageContent: Record<
           <li>{form.tone || 'Tono no especificado'}</li>
         </ul>
       </div>
-      <label style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#1b3558', fontWeight: 700 }}>
-        <input type="checkbox" checked={form.approval} onChange={(event) => onChange('approval', event.target.checked)} />
-        Aprobación del responsable clínico
-      </label>
+      <div style={{ display: 'grid', gap: 8 }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#1b3558', fontWeight: 700, cursor: 'pointer' }}>
+          <input type="checkbox" checked={form.approval} onChange={(event) => onChange('approval', event.target.checked)} />
+          Aprobación del responsable clínico
+        </label>
+        <FieldHint text="Marca esta casilla solo cuando el responsable clínico haya validado la configuración. Sin aprobación, el sistema no activará el modo go-live." />
+      </div>
     </div>
   ),
   'go-live': (form) => (
@@ -224,6 +273,49 @@ const inputStyle: React.CSSProperties = {
   fontSize: 14,
   fontWeight: 600,
   outline: 'none',
+};
+// 🧭 Explicación de cada etapa para guiar al responsable clínico sin que adivine.
+const stageHelp: Record<OnboardingStage, { title: string; hint: string }> = {
+  'clinic-setup': {
+    title: 'Identifica tu operación',
+    hint: 'Define cómo se llama tu clínica, su foco y dónde atiende. Esto personaliza el agente y el triaje.',
+  },
+  'specialty-and-care-model': {
+    title: 'Modelo de atención',
+    hint: 'Explica cómo atiendes (triaje, prioridad) y en qué horario. El agente lo usa para coordinar.',
+  },
+  'agent-profile': {
+    title: 'Personalidad del agente',
+    hint: 'Dale nombre y misión al asistente clínico que verán tus pacientes.',
+  },
+  'triage-rules': {
+    title: 'Reglas de clasificación',
+    hint: 'Define cuándo priorizar, redirigir o escalar a un humano según el riesgo.',
+  },
+  'tone-and-voice': {
+    title: 'Tono y estilo',
+    hint: 'Ajusta cómo habla el agente: empático, formal, breve o detallado.',
+  },
+  'policies-and-escalation': {
+    title: 'Políticas y seguridad',
+    hint: 'Establece cancelaciones y cuándo escalar ante riesgo clínico.',
+  },
+  'faq-content': {
+    title: 'Preguntas frecuentes',
+    hint: 'Carga las dudas que el agente responderá de forma automática.',
+  },
+  'channel-integration': {
+    title: 'Canales e integraciones',
+    hint: 'Define por dónde atiende el agente y qué sistemas conecta.',
+  },
+  'review-and-approve': {
+    title: 'Revisión final',
+    hint: 'Verifica el resumen y aprueba la configuración para lanzar.',
+  },
+  'go-live': {
+    title: 'Activación',
+    hint: 'Confirma el modo de lanzamiento y pasa a producción.',
+  },
 };
 
 export default function HealthOnboardingPage() {
@@ -322,6 +414,11 @@ export default function HealthOnboardingPage() {
     setCurrentStageIndex(nextIndex);
     await persistCurrentStage(nextIndex);
   };
+  const goToStage = async (index: number) => {
+    const clamped = Math.max(0, Math.min(index, onboardingStages.length - 1));
+    setCurrentStageIndex(clamped);
+    await persistCurrentStage(clamped);
+  };
 
   const finalizeOnboarding = async () => {
     setIsSubmitting(true);
@@ -374,7 +471,9 @@ export default function HealthOnboardingPage() {
             <section className="upway-surface rounded-[30px] p-5 md:p-7">
               <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <div className="text-[11px] font-mono uppercase tracking-[0.18em] text-slate-500">Onboarding</div>
+                  <div className="text-[11px] font-mono uppercase tracking-[0.18em] text-slate-500">
+                    Paso {currentStageIndex + 1} de {onboardingStages.length} · Onboarding
+                  </div>
                   <h1 className="mt-2 text-3xl font-black tracking-[-0.05em] text-slate-900 md:text-[2rem]">{stageMeta.label}</h1>
                 </div>
                 <div className="rounded-full border border-[#dfeaff] bg-[#edf4ff] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#1b5ed6]">
@@ -382,8 +481,14 @@ export default function HealthOnboardingPage() {
                 </div>
               </div>
 
-              <div className="mb-6 rounded-[20px] border border-slate-200 bg-slate-50/90 p-4 shadow-[0_8px_18px_rgba(15,23,42,0.02)]">
-                <p className="text-sm leading-6 text-slate-600">{stageMeta.description}</p>
+              <div className="mb-6 rounded-[20px] border border-[#dfeaff] bg-[#f4f9ff] p-4 shadow-[0_8px_18px_rgba(27,94,214,0.03)]">
+                <div className="flex items-start gap-2.5">
+                  <span className="mt-0.5 text-base leading-none" aria-hidden="true">💡</span>
+                  <p className="text-sm leading-6 text-slate-700">
+                    <span className="font-bold text-[#1b5ed6]">{stageHelp[currentStage]?.hint ?? stageMeta.description}</span>
+                  </p>
+                </div>
+                <p className="mt-2 text-sm leading-6 text-slate-500">{stageMeta.description}</p>
               </div>
 
               <div className="mb-6">
@@ -433,15 +538,25 @@ export default function HealthOnboardingPage() {
             <div className="mb-4 text-[11px] font-mono uppercase tracking-[0.18em] text-slate-500">Checklist</div>
 
             <div className="space-y-2.5">
-              {onboardingStages.map((stage) => {
+              {onboardingStages.map((stage, index) => {
                 const status = getOnboardingStageStatus(currentStage, stage);
                 const isCurrent = stage === currentStage;
-
                 return (
-                  <div
+                  <Tooltip
                     key={stage}
-                    className={`flex items-center justify-between gap-3 rounded-[18px] border p-3 transition-all ${
-                      isCurrent ? 'border-[#d3e2ff] bg-[#edf5ff]' : 'border-slate-200 bg-white/80'
+                    side="left"
+                    content={`${stageHelp[stage].hint} ${getOnboardingStageMeta(stage).description}`}
+                    className="w-full"
+                  >
+                  <button
+                    type="button"
+                    onClick={() => goToStage(index)}
+                    className={`flex w-full items-center justify-between gap-3 rounded-[18px] border p-3 text-left transition-all hover:-translate-y-0.5 ${
+                      isCurrent
+                        ? 'border-[#d3e2ff] bg-[#edf5ff] shadow-[0_10px_26px_rgba(27,94,214,0.10)]'
+                        : status === 'done'
+                          ? 'border-emerald-200/70 bg-emerald-50/40 hover:bg-emerald-50/70'
+                          : 'border-slate-200 bg-white/80 hover:border-slate-300 hover:bg-white'
                     }`}
                   >
                     <div className="min-w-0">
@@ -459,7 +574,8 @@ export default function HealthOnboardingPage() {
                     >
                       {status}
                     </span>
-                  </div>
+                  </button>
+                  </Tooltip>
                 );
               })}
             </div>

@@ -48,9 +48,11 @@ if (!process.env.META_VERIFY_TOKEN) {
   console.warn('⚠️ [WHATSAPP] Falta META_VERIFY_TOKEN: la verificación GET del webhook de Meta rechazará todas las solicitudes hasta configurarlo.');
 }
 export const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || '';
-export const UPWAY_PHONE_ID = process.env.META_UPWAY_PHONE_ID || '1172769935927318'; // 👑 EL NÚMERO VIP DE UPWAY
-export const INWORKER_PHONE_ID = process.env.META_INWORKER_PHONE_ID || '1334640129724588'; // 🚀 EL NUEVO NÚMERO DE INWORKER (SOPHIE)
-export const HUMAN_TRANSFER_NUMBER = '573126427824'; // 📱 Teléfono humano de transferencia para handoff
+// Identificadores sensibles: deben venir de variables de entorno. No se
+// hardcodean números de producción (evita fugas y permite staging/local).
+export const UPWAY_PHONE_ID = process.env.META_UPWAY_PHONE_ID || '';
+export const INWORKER_PHONE_ID = process.env.META_INWORKER_PHONE_ID || '';
+export const HUMAN_TRANSFER_NUMBER = process.env.HUMAN_TRANSFER_NUMBER || '';
 
 const normalizeWhatsAppNumber = (telefono?: string | null): string => {
   if (!telefono) return HUMAN_TRANSFER_NUMBER;
@@ -555,7 +557,7 @@ async function handleHumanHandoff(params: {
 
   // 🚀 DINÁMICO: Usamos el celular guardado por el admin en su onboarding (o un fallback)
   const numeroAdmin = normalizeWhatsAppNumber(tiendaRecord?.telefonoAdmin || HUMAN_TRANSFER_NUMBER);
-  const linkPanel = "https://upway.business/dashboard/inbox";
+  const linkPanel = `${process.env.NEXT_PUBLIC_APP_URL || 'https://upway.business'}/dashboard/inbox`;
   const msgAdmin = `🚨 *ALERTA UPWAY*\n\nEl cliente ${userName || userPhone} requiere asistencia humana.\nLa IA se ha pausado automáticamente.\n\nAtiende el chat aquí:\n${linkPanel}`;
 
   await enviarMensajePorWhatsApp(numeroAdmin, msgAdmin, phoneIdDestino, dynamicToken);

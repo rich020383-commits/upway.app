@@ -1,17 +1,16 @@
-import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
+import { NextRequest, NextResponse } from 'next/server';
+import { getSessionUser } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
-
-    if (!session?.user?.id) {
+    const sessionUser = await getSessionUser(req);
+    if (!sessionUser?.id) {
       return NextResponse.json({ error: 'No hay sesión activa' }, { status: 401 });
     }
 
     const tienda = await prisma.tienda.findFirst({
-      where: { userId: session.user.id },
+      where: { userId: sessionUser.id },
       orderBy: { id: 'asc' },
       select: { id: true, nombre: true },
     });

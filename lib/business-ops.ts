@@ -163,6 +163,40 @@ export async function ensureConversationForLead(params: {
   });
 }
 
+const ACTIVITY_DEFAULT_SUMMARIES: Record<ActivityType, string> = {
+  LEAD_CREATED: 'Lead creado',
+  LEAD_QUALIFIED: 'Lead calificado',
+  LEAD_ASSIGNED: 'Lead asignado a un agente',
+  MESSAGE_RECEIVED: 'Mensaje recibido',
+  MESSAGE_SENT: 'Mensaje enviado',
+  APPOINTMENT_CREATED: 'Cita agendada',
+  APPOINTMENT_CONFIRMED: 'Cita confirmada',
+  REMINDER_SENT: 'Recordatorio enviado',
+  FOLLOW_UP_SCHEDULED: 'Seguimiento programado',
+  NOTE_ADDED: 'Nota añadida',
+  STATUS_CHANGED: 'Estado actualizado',
+};
+function toJson(value: Record<string, unknown> | null | undefined): Prisma.InputJsonValue {
+  if (!value) return {};
+  // Filtra valores no serializables (undefined, funciones, símbolos) para que
+  // Prisma no falle al persistir metadatos que lleguen desde cualquier caller.
+  const sanitized: Record<string, unknown> = {};
+  for (const [key, val] of Object.entries(value)) {
+    if (val === undefined || typeof val === 'function' || typeof val === 'symbol') {
+      continue;
+    }
+    sanitized[key] = val;
+  }
+  return sanitized as Prisma.InputJsonValue;
+}
+/**
+ * Registra un evento en la línea de tiempo del lead (pipeline).
+ *
+ * - `summary` cae a un texto por defecto legible si no se provee.
+ * - `metadata` se sanitiza (descarta `undefined`/funciones/símbolos) para
+ *   evitar errores de serialización JSON en Prisma.
+ * - `actorUserId` distingue acciones del sistema (nulo) de las humanas.
+ */
 export async function createLeadPipelineActivity(params: {
   leadId: string;
   type: ActivityType;
@@ -170,13 +204,14 @@ export async function createLeadPipelineActivity(params: {
   actorUserId?: string | null;
   metadata?: Record<string, unknown> | null;
 }) {
+  const type = params.type as ActivityType;
   return prisma.leadActivity.create({
     data: {
       leadId: params.leadId,
       actorUserId: params.actorUserId ?? null,
-      type: params.type,
-      summary: params.summary ?? null,
-      metadataJson: params.metadata ? (params.metadata as Prisma.InputJsonValue) : Prisma.JsonNull,
+      type,
+      summary: params.summary ?? ACTIVITY_DEFAULT_SUMMARIES[type] ?? null,
+      metadataJson: toJson(params.metadata),
     },
   });
 }
@@ -505,50 +540,83 @@ export async function runLeadAutomation(params: { tiendaId?: string | null; limi
   };
 }
 
+/**
+ * Asigna un lead a un agente/usuario y registra todo el flujo de pipeline:
+ * - Actualiza el lead (asignación, estado y marca de contacto).
+ * - Crea un registro histórico en `LeadAssignment`.
+ * - Programa un recordatorio de seguimiento una hora después.
+ * - Escribe una actividad de tipo `LEAD_ASSIGNED` en el timeline del lead.
+ *
+ * Todo ocurre dentro de una transacción: si cualquier paso falla, nada se guarda
+ * a medias, evitando leads en estado inconsistente.
+ */
 export async function assignLeadToUser(params: {
   leadId: string;
   userId: string;
   assignedByUserId?: string | null;
   reason?: string | null;
   status?: LeadStatus | string | null;
+  /** Minutos que deben pasar antes del recordatorio de seguimiento (default 60). */
+  reminderDelayMinutes?: number;
 }) {
+  if (!params.leadId?.trim()) throw new Error('leadId is required');
+  if (!params.userId?.trim()) throw new Error('userId is required');
   const nextStatus = params.status ? normalizeLeadStatus(params.status) : LeadStatus.CONTACTED;
-
-  const lead = await prisma.lead.update({
-    where: { id: params.leadId },
-    data: {
-      assignedToUserId: params.userId,
-      estado: nextStatus,
-      lastContactAt: new Date(),
-    },
+  const delayMs = Math.max(1, params.reminderDelayMinutes ?? 60) * 60 * 1000;
+  const reminderAt = new Date(Date.now() + delayMs);
+  const now = new Date();
+  // Resolvemos el nombre del agente para un summary legible en la UI.
+  const agent = await prisma.user.findUnique({
+    where: { id: params.userId },
+    select: { name: true },
   });
-
-  const assignment = await prisma.leadAssignment.create({
-    data: {
-      leadId: params.leadId,
-      userId: params.userId,
-      assignedByUserId: params.assignedByUserId ?? null,
-      status: 'active',
-      reason: params.reason ?? null,
-    },
+  const agentLabel = agent?.name ?? params.userId;
+  return prisma.$transaction(async (tx) => {
+    // 1. Desactiva asignaciones activas previas para mantener una sola vigente.
+    await tx.leadAssignment.updateMany({
+      where: { leadId: params.leadId, status: 'active', userId: { not: params.userId } },
+      data: { status: 'inactive' },
+    });
+    // 2. Actualiza el lead.
+    const lead = await tx.lead.update({
+      where: { id: params.leadId },
+      data: {
+        assignedToUserId: params.userId,
+        estado: nextStatus,
+        lastContactAt: now,
+      },
+    });
+    // 3. Registra la asignación en el historial.
+    const assignment = await tx.leadAssignment.create({
+      data: {
+        leadId: params.leadId,
+        userId: params.userId,
+        assignedByUserId: params.assignedByUserId ?? null,
+        status: 'active',
+        reason: params.reason ?? null,
+      },
+    });
+    // 4. Crea el recordatorio de seguimiento.
+    await tx.leadReminder.create({
+      data: {
+        leadId: params.leadId,
+        createdByUserId: params.assignedByUserId ?? null,
+        channel: 'whatsapp',
+        status: ReminderStatus.PENDING,
+        message: 'Seguimiento de lead: revisa el estado del cliente y responde por WhatsApp.',
+        scheduledFor: reminderAt,
+      },
+    });
+    // 5. Escribe la actividad en el timeline del pipeline.
+    await tx.leadActivity.create({
+      data: {
+        leadId: params.leadId,
+        actorUserId: params.assignedByUserId ?? null,
+        type: ActivityType.LEAD_ASSIGNED,
+        summary: `Lead asignado a ${agentLabel}`,
+        metadataJson: toJson({ assignmentId: assignment.id, userId: params.userId }),
+      },
+    });
+    return { lead, assignment };
   });
-
-  const reminderAt = new Date(Date.now() + 60 * 60 * 1000);
-  await createFollowUpReminder({
-    leadId: params.leadId,
-    scheduledFor: reminderAt,
-    message: 'Seguimiento de lead: revisa el estado del cliente y responde por WhatsApp.',
-    channel: 'whatsapp',
-    createdByUserId: params.assignedByUserId ?? null,
-  });
-
-  await createLeadPipelineActivity({
-    leadId: params.leadId,
-    type: ActivityType.LEAD_ASSIGNED,
-    summary: `Lead asignado al usuario ${params.userId}`,
-    actorUserId: params.assignedByUserId ?? null,
-    metadata: { assignmentId: assignment.id, userId: params.userId },
-  });
-
-  return { lead, assignment };
 }

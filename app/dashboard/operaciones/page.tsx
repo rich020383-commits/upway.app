@@ -581,7 +581,37 @@ export default function OperacionesPage() {
               <h2 className="text-xl font-semibold text-slate-900">Pipeline de leads</h2>
               <span className="text-xs uppercase tracking-[0.22em] text-slate-500">{data?.leads.length ?? 0} registros</span>
             </div>
-
+            {/* 🧭 Explicación de la lógica del pipeline */}
+            <div className="mb-5 rounded-2xl border border-sky-200/70 bg-gradient-to-br from-sky-50/80 to-white p-4">
+              <p className="flex items-center gap-2 text-sm font-semibold text-sky-900">
+                <span>🧭</span> Cómo funciona el pipeline
+              </p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Cada columna es una <span className="font-semibold text-slate-900">etapa de avance</span>. Los leads entran por la izquierda
+                (columna <span className="font-semibold">{pipelineStages[0]?.label ?? 'Nuevo'}</span>) y avanzan hacia la derecha a medida que
+                avanzan en el proceso. El botón verde <span className="font-semibold text-emerald-700">“Mover a…”</span> lleva un lead a la
+                siguiente etapa. Usa <span className="font-semibold text-slate-900">Asignar</span> para poner un responsable,{' '}
+                <span className="font-semibold text-violet-700">Reminder</span> para programar un seguimiento automático,{' '}
+                <span className="font-semibold text-fuchsia-700">Cita rápida</span> para agendar al instante y{' '}
+                <span className="font-semibold text-slate-700">Timeline</span> para ver el historial completo del lead.
+              </p>
+            </div>
+            {/* 🔀 Flujo visual de etapas */}
+            <div className="mb-5 flex flex-wrap items-center gap-2">
+              {pipelineStages.map((stage, index) => (
+                <div key={stage.key} className="flex items-center gap-2">
+                  <span
+                    title={stage.action ? `Acción clave en esta etapa: ${stage.action}.` : 'Etapa final del pipeline.'}
+                    className="cursor-help rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-sky-300"
+                  >
+                    {index + 1}. {stage.label}
+                  </span>
+                  {index < pipelineStages.length - 1 && (
+                    <span className="text-slate-400" aria-hidden="true">→</span>
+                  )}
+                </div>
+              ))}
+            </div>
             <div className="grid gap-4 xl:grid-cols-5">
               {pipelineColumns.map((stage) => (
                 <div key={stage.key} className="rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50 to-white p-3 shadow-[0_12px_35px_rgba(15,23,42,0.04)]">
@@ -624,6 +654,7 @@ export default function OperacionesPage() {
                               <select
                                 value={selectedUser}
                                 onChange={(event) => setSelectedUserByLead((current) => ({ ...current, [lead.id]: event.target.value }))}
+                                title="Elige el agente responsable de este lead. Luego pulsa «Asignar» para guardar el cambio."
                                 className="w-full rounded-xl border border-slate-200 bg-slate-50/80 px-2.5 py-2 text-xs text-slate-900 shadow-inner outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
                               >
                                 <option value="">Asignar agente</option>
@@ -636,6 +667,7 @@ export default function OperacionesPage() {
                             <div className="mt-3 flex gap-2">
                               <button
                                 onClick={() => handleAssignLead(lead.id)}
+                                title="Asigna este lead al agente seleccionado en el menú de arriba. Así queda un responsable a cargo del seguimiento."
                                 disabled={!selectedUserByLead[lead.id] && !lead.assignedTo?.id || assigningId === lead.id}
                                 className="flex-1 rounded-xl border border-sky-200 bg-gradient-to-r from-sky-500/10 to-sky-600/10 px-2.5 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-sky-700 shadow-[0_8px_18px_rgba(14,165,233,0.08)] transition-all hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-[0_10px_22px_rgba(14,165,233,0.12)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
                               >
@@ -643,6 +675,7 @@ export default function OperacionesPage() {
                               </button>
                               <button
                                 onClick={() => handleCreateReminder(lead.id)}
+                                title="Crea un recordatorio automático para volver a contactar a este lead en una fecha futura. El sistema te avisará cuando toque."
                                 className="rounded-xl border border-violet-200 bg-gradient-to-r from-violet-500/10 to-violet-600/10 px-2.5 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-violet-700 shadow-[0_8px_18px_rgba(168,85,247,0.08)] transition-all hover:-translate-y-0.5 hover:border-violet-300"
                               >
                                 Reminder
@@ -652,6 +685,7 @@ export default function OperacionesPage() {
                             <div className="mt-2 flex gap-2">
                               <button
                                 onClick={() => handleQuickBooking(lead)}
+                                title="Agenda una cita al instante para este lead sin salir del pipeline."
                                 disabled={bookingSubmitting && bookingLeadId === lead.id}
                                 className="flex-1 rounded-xl border border-fuchsia-200 bg-gradient-to-r from-fuchsia-500/10 to-fuchsia-600/10 px-2.5 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-fuchsia-700 shadow-[0_8px_18px_rgba(217,70,239,0.08)] transition-all hover:-translate-y-0.5 hover:border-fuchsia-300 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
                               >
@@ -659,6 +693,7 @@ export default function OperacionesPage() {
                               </button>
                               <button
                                 onClick={() => openTimeline(lead.id)}
+                                title="Abre el historial completo de actividad de este lead: mensajes, cambios de etapa, citas y más."
                                 className="rounded-xl border border-slate-200 bg-slate-100 px-2.5 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-700 transition-all hover:-translate-y-0.5 hover:border-slate-300"
                               >
                                 Timeline
@@ -668,6 +703,7 @@ export default function OperacionesPage() {
                             {nextStage && (
                               <button
                                 onClick={() => handleStatusChange(lead.id, nextStage)}
+                                title={`Avanza este lead a la siguiente etapa del pipeline (${pipelineStages.find((s) => s.key === nextStage)?.label ?? statusLabels[nextStage]}).`}
                                 disabled={statusUpdatingId === lead.id}
                                 className="mt-3 w-full rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-500 to-emerald-600 px-2.5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white shadow-[0_12px_24px_rgba(16,185,129,0.2)] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_28px_rgba(16,185,129,0.25)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
                               >
@@ -691,6 +727,7 @@ export default function OperacionesPage() {
                 <button
                   onClick={handleRunAutomation}
                   disabled={runningAutomation}
+                  title="Ejecuta ahora la automatización: revisa todos los leads, envía los recordatorios vencidos y avanza automáticamente los que ya cumplen su siguiente etapa.\"
                   className="rounded-lg border border-sky-500/40 bg-sky-500/10 px-2.5 py-1.5 text-[11px] font-medium text-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {runningAutomation ? 'Procesando...' : 'Ejecutar'}
@@ -706,7 +743,7 @@ export default function OperacionesPage() {
                   <p className="mt-2 text-2xl font-semibold text-rose-600">{automation.dueReminders}</p>
                 </div>
               </div>
-              <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-800">
+              <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-800" title="Regla automática: cuando un lead entra, se le crea un seguimiento; al cumplirlo pasa a cita, y de la cita pasa a cierre. Todo se encadena solo.">
                 Trigger activo: lead → seguimiento → cita → cierre
               </div>
             </section>

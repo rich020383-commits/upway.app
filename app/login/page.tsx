@@ -6,14 +6,23 @@ import { signIn } from 'next-auth/react';
 import { Mail, Lock, Loader2, ArrowRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { resolvePostLoginRoute } from '@/lib/verticals';
+import { normalizeSegment, resolvePostLoginRoute } from '@/lib/verticals';
 
 function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const segment = searchParams.get('segment');
   const nextParam = searchParams.get('next');
-  const targetAfterLogin = nextParam && nextParam.startsWith('/') ? nextParam : resolvePostLoginRoute(segment);
+  // 🔥 Health tiene un onboarding separado: si el login llega marcado como "health"
+  // (o cualquier alias: salud, clínica, clínicas…), se envía a su flujo específico.
+  // normalizeSegment resuelve el alias una sola vez y evita duplicar la lista aquí.
+  const isHealthSegment = normalizeSegment(segment) === 'health';
+  const targetAfterLogin =
+    isHealthSegment
+      ? '/health/onboarding'
+      : nextParam && nextParam.startsWith('/')
+        ? nextParam
+        : resolvePostLoginRoute(segment);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [cargando, setCargando] = useState(false);
@@ -21,7 +30,7 @@ function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       setError('Por favor, completa todos los campos.');
       return;
@@ -41,6 +50,8 @@ function LoginPage() {
         setError('Credenciales incorrectas. Verifica tu correo y contraseña.');
         setCargando(false);
       } else if (result?.ok) {
+        // Preserva el segmento para que la ruta post-login sepa hacia qué onboarding ir.
+        if (segment) sessionStorage.setItem('upway-login-segment', segment);
         router.push(targetAfterLogin);
       }
     } catch (err) {
