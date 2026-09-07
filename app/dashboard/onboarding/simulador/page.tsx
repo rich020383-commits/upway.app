@@ -12,15 +12,15 @@ import { WhatsappSimulator, type Mensaje } from '../../../../components/onboardi
 
 type Tab = 'whatsapp' | 'voz';
 
-let vapi: any = null;
+let vapi: Vapi | null = null;
 
 export default function Paso05Simulador() {
   const router = useRouter();
   const hydrated = useHydrated();
   const { promptMaestro, nicho, tonoWhatsapp, nombreAgente } = useUpwayStore();
-  
+
   const [tabActiva, setTabActiva] = useState<Tab>('whatsapp');
-  
+
   // Estados de WhatsApp
   const [input, setInput] = useState('');
   const [mensajes, setMensajes] = useState<Mensaje[]>([
@@ -30,7 +30,7 @@ export default function Paso05Simulador() {
   const [grabando, setGrabando] = useState(false);
   const [tiendaId, setTiendaId] = useState<string | null>(null);
   const [simulatorError, setSimulatorError] = useState<string | null>(null);
-  
+
   // Estados de Vapi (Voz)
   const [llamadaActiva, setLlamadaActiva] = useState(false);
   const [estadoLlamada, setEstadoLlamada] = useState<'inactiva' | 'conectando' | 'hablando'>('inactiva');
@@ -116,9 +116,9 @@ export default function Paso05Simulador() {
     try {
       const promptEnriquecido = `[NOMBRE_AGENTE] ${nombreAgente || 'Asistente'}\n[TONO] Formalidad: ${tonoWhatsapp.formalidad}%, Cercanía: ${tonoWhatsapp.cercania}%, Persuasión: ${tonoWhatsapp.persuasion}%\n[NEGOCIO] Sector: ${nicho}\n[INSTRUCCIONES] ${promptMaestro}`.trim();
       const historialMapeado = mensajes.map(m => ({ rol: m.rol === 'ia' ? 'assistant' : 'user', texto: m.texto }));
-      const payload: any = { promptMaestro: promptEnriquecido, historial: historialMapeado, tienda_id: tiendaId };
+      const payload: Record<string, unknown> = { promptMaestro: promptEnriquecido, historial: historialMapeado, tienda_id: tiendaId };
       if (audioBase64) payload.audioUsuario = audioBase64; else payload.mensajeUsuario = texto;
-      
+
       const res = await fetch('/api/simulador', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const data = await res.json();
       if (res.ok) setMensajes(prev => [...prev, { rol: 'ia', texto: data.respuesta, provider: data.provider }]);
@@ -141,7 +141,7 @@ export default function Paso05Simulador() {
     } else {
       setLlamadaActiva(true);
       setEstadoLlamada('conectando');
-      
+
       try {
         vapi.removeAllListeners();
 
@@ -150,7 +150,7 @@ export default function Paso05Simulador() {
           setLlamadaActiva(false);
           setEstadoLlamada('inactiva');
         });
-        vapi.on('error', (e: any) => {
+        vapi.on('error', (e: unknown) => {
           console.error("Vapi Error:", e);
           setLlamadaActiva(false);
           setEstadoLlamada('inactiva');

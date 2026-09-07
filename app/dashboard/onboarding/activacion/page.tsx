@@ -8,9 +8,14 @@ import Script from 'next/script';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 
+type FBLoginResponse = { authResponse?: { code?: string } | null };
+
 declare global {
   interface Window {
-    FB?: any;
+    FB?: {
+      init: (options: Record<string, unknown>) => void;
+      login: (callback: (response: FBLoginResponse) => void, options?: Record<string, unknown>) => void;
+    };
   }
 }
 
@@ -43,6 +48,7 @@ export default function Paso07Activacion() {
 
   useEffect(() => {
     if (window.FB) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- el SDK carga de forma asíncrona fuera de React
       inicializarFacebook();
       return;
     }
@@ -61,7 +67,7 @@ export default function Paso07Activacion() {
       return;
     }
 
-    if (!(session?.user as any)?.id) {
+    if (!(session?.user as { id?: string } | null)?.id) {
       setError('No se detectó tu sesión. Por favor, recarga la página.');
       return;
     }
@@ -69,7 +75,7 @@ export default function Paso07Activacion() {
     setError(null);
     setIsProcessing(true);
 
-    window.FB.login(function (response: any) {
+    window.FB.login(function (response) {
       (async () => {
         try {
           if (response && response.authResponse) {
@@ -78,7 +84,7 @@ export default function Paso07Activacion() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 code: response.authResponse.code,
-                userId: (session?.user as any)?.id,
+                userId: (session?.user as { id?: string } | null)?.id,
               }),
             });
 

@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Package, Bot, Sparkles, UserCircle, Gauge, Activity } from 'lucide-react';
+import { Package, Bot, Sparkles, UserCircle, Gauge, Activity, Menu, X, LogOut } from 'lucide-react';
 import LogoutButton from '@/components/LogoutButton';
 import { usePathname, useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import { useBusinessContext } from '@/components/business-context';
 import { billingStateMeta, resolveBillingState } from '@/lib/billing/access';
 
@@ -22,6 +22,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const isOnboarding = pathname.includes('/onboarding');
   const { data: session, status } = useSession();
   const { clinicName, organizationName } = useBusinessContext();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -75,6 +76,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </nav>
 
             <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen((open) => !open)}
+                aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white/80 shadow-sm transition hover:bg-slate-100 md:hidden"
+              >
+                {mobileMenuOpen ? <X className="h-5 w-5 text-slate-700" /> : <Menu className="h-5 w-5 text-slate-700" />}
+              </button>
               <div className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 shadow-sm md:flex">
                 <UserCircle className="h-4 w-4 text-slate-500" />
                 <span className="text-xs font-medium text-slate-700 capitalize">{userName}</span>
@@ -88,6 +97,51 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <LogoutButton />
             </div>
           </div>
+
+          {mobileMenuOpen && (
+            <div className="border-t border-slate-200/80 bg-white/95 px-4 pb-4 pt-3 shadow-[0_10px_30px_rgba(15,23,42,0.08)] md:hidden">
+              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-2.5">
+                <UserCircle className="h-8 w-8 shrink-0 text-slate-400" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold text-slate-900 capitalize">{userName}</p>
+                  <p className="truncate text-xs text-slate-500">{clinicName} · {billingMeta.label}</p>
+                </div>
+              </div>
+
+              <nav className="mt-3 grid gap-1 text-sm font-medium text-slate-600">
+                {primaryNav.map(({ href, label, icon: Icon }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all ${pathname === href ? 'bg-slate-900 text-white' : 'bg-slate-50/60 hover:bg-slate-100'}`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {label}
+                  </Link>
+                ))}
+                <Link
+                  href="/dashboard/inventario"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-xl bg-slate-50/60 px-3 py-2.5 transition-all hover:bg-slate-100"
+                >
+                  <Package className="h-4 w-4" />
+                  Base de conocimiento
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    void signOut({ callbackUrl: '/' });
+                  }}
+                  className="mt-1 flex items-center gap-3 rounded-xl bg-rose-50 px-3 py-2.5 text-rose-600 transition hover:bg-rose-100"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Cerrar sesión
+                </button>
+              </nav>
+            </div>
+          )}
         </header>
       )}
 

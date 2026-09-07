@@ -4,9 +4,15 @@ import React, { useState, useEffect } from 'react';
 import { CheckCircle2, MessageCircle, Zap } from 'lucide-react';
 import Script from 'next/script';
 
+type FbAuthResponse = { authResponse?: { code?: string } | null };
+type FbSdk = {
+  init: (options: Record<string, unknown>) => void;
+  login: (callback: (response: FbAuthResponse) => void, options?: Record<string, unknown>) => void;
+};
+
 declare global {
   interface Window {
-    FB?: any;
+    FB?: FbSdk;
   }
 }
 
@@ -20,10 +26,10 @@ export default function ActivacionWhatsAppPage() {
 
   const inicializarFacebook = () => {
     if (!window.FB) return;
-    
+
     // Usamos tu App ID real directamente para no depender del entorno
     window.FB.init({
-      appId: '1768431177666982', 
+      appId: '1768431177666982',
       cookie: true,
       xfbml: true,
       version: 'v20.0',
@@ -33,7 +39,7 @@ export default function ActivacionWhatsAppPage() {
 
   useEffect(() => {
     if (window.FB) {
-      inicializarFacebook();
+      queueMicrotask(() => inicializarFacebook());
       return;
     }
     const interval = window.setInterval(() => {
@@ -54,7 +60,7 @@ export default function ActivacionWhatsAppPage() {
     setError(null);
     setProcesando(true);
 
-    window.FB.login(async (response: any) => {
+    window.FB.login(async (response: FbAuthResponse) => {
       if (response.authResponse) {
         const code = response.authResponse.code; // El código de autorización de Meta
 
@@ -63,9 +69,9 @@ export default function ActivacionWhatsAppPage() {
           const res = await fetch('/api/whatsapp/guardar', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
               code: code,
-              tiendaId: tiendaIdActual 
+              tiendaId: tiendaIdActual
             })
           });
 
@@ -101,7 +107,7 @@ export default function ActivacionWhatsAppPage() {
     <>
       <Script src='https://connect.facebook.net/es_LA/sdk.js' strategy='afterInteractive' onLoad={inicializarFacebook} />
       <div className='min-h-screen bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.15),_transparent_55%)] bg-slate-950 px-4 py-12 text-white flex flex-col items-center justify-center'>
-        
+
         <div className='w-full max-w-4xl overflow-hidden rounded-[32px] border border-white/10 bg-[#0A0E14] shadow-2xl relative'>
           <div className='absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-cyan-400 to-emerald-400'></div>
           <div className='grid md:grid-cols-2'>
@@ -111,11 +117,11 @@ export default function ActivacionWhatsAppPage() {
               </div>
               <h1 className='text-3xl font-bold text-white mb-4'>Vinculación Oficial</h1>
               <p className='text-slate-400 text-sm mb-6'>Concede los permisos para que tu Empleado Digital tome el control de tu línea y automatice tus ventas 24/7.</p>
-              
+
               {/* Infobox de Claridad de Costos (Para evitar confusiones con Meta) */}
               <div className="mt-4 bg-[#1E293B]/30 border border-[#19C8E8]/20 rounded-2xl p-5">
                 <h4 className="text-white font-bold mb-3 flex items-center gap-2 text-sm">
-                  <Zap className="h-4 w-4 text-[#19C8E8]" /> 
+                  <Zap className="h-4 w-4 text-[#19C8E8]" />
                   Estructura de Costos
                 </h4>
                 <ul className="space-y-2 text-xs text-[#8994A6]">
@@ -136,9 +142,9 @@ export default function ActivacionWhatsAppPage() {
                 <h2 className='text-xl font-semibold text-white mb-2'>Conecta tu WhatsApp</h2>
                 <p className='text-sm text-slate-400 mb-8'>Inicia sesión con la cuenta de Facebook de tu negocio.</p>
 
-                <button 
-                  onClick={iniciarConexionMeta} 
-                  disabled={!sdkCargado || procesando} 
+                <button
+                  onClick={iniciarConexionMeta}
+                  disabled={!sdkCargado || procesando}
                   className='w-full flex items-center justify-center gap-3 rounded-2xl bg-[#1877F2] px-6 py-4 font-semibold text-white shadow-lg transition-all hover:bg-[#166FE5] disabled:opacity-75 cursor-pointer'
                 >
                   <MessageCircle className='h-5 w-5 fill-white' />
@@ -149,7 +155,7 @@ export default function ActivacionWhatsAppPage() {
             </div>
           </div>
         </div>
-        
+
       </div>
     </>
   );

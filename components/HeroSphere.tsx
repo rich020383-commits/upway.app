@@ -14,15 +14,16 @@ export default function HeroSphere() {
     let width = canvas.width = canvas.offsetWidth;
     let height = canvas.height = canvas.offsetHeight;
 
-    const particles: any[] = [];
+    type Particle = { x: number; y: number; z: number; baseX: number; baseY: number; baseZ: number };
+    const particles: Particle[] = [];
     const particleCount = 400; // Densidad de la red neuronal
     const sphereRadius = width < 768 ? 150 : 250;
-    
+
     // Generar puntos en una esfera 3D usando coordenadas esféricas
     for (let i = 0; i < particleCount; i++) {
       const phi = Math.acos(-1 + (2 * i) / particleCount);
       const theta = Math.sqrt(particleCount * Math.PI) * phi;
-      
+
       particles.push({
         x: sphereRadius * Math.cos(theta) * Math.sin(phi),
         y: sphereRadius * Math.sin(theta) * Math.sin(phi),
@@ -38,7 +39,7 @@ export default function HeroSphere() {
 
     const animate = () => {
       ctx.clearRect(0, 0, width, height);
-      
+
       // Rotación constante y elegante
       angleX += 0.001;
       angleY += 0.002;
@@ -94,7 +95,7 @@ export default function HeroSphere() {
       }
       requestAnimationFrame(animate);
     };
-    
+
     animate();
 
     const handleResize = () => {

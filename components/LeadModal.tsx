@@ -5,12 +5,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Building2, User, Mail, Phone, ArrowRight, Loader2 } from "lucide-react";
 import { useState } from "react";
 
+type LeadFormData = { nombre?: string; empresa?: string; email?: string; telefono?: string; [key: string]: string | undefined };
+
 export default function LeadModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<LeadFormData>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: LeadFormData) => {
     setIsSubmitting(true);
     try {
       // 🔥 ACTUALIZADO: Apunta al nuevo dominio unificado

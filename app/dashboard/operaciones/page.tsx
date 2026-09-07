@@ -149,6 +149,10 @@ function normalizeStage(status?: string | null): LeadStatusKey {
   }
 }
 
+function reminderScheduledFor(): string {
+  return new Date(Date.now() + 60 * 60 * 1000).toISOString();
+}
+
 export default function OperacionesPage() {
   const [data, setData] = useState<DashboardPayload | null>(null);
   const [users, setUsers] = useState<UserOption[]>([]);
@@ -169,7 +173,17 @@ export default function OperacionesPage() {
     setCollapsedStages((current) => ({ ...current, [stageKey]: !current[stageKey] }));
   };
 
-  const loadDashboard = async () => {
+  const loadUsers = useCallback(async () => {
+    try {
+      const response = await fetch('/api/business/users');
+      const payload = await response.json();
+      if (response.ok) setUsers(payload.users ?? []);
+    } catch (error) {
+      console.error('Error loading users:', error);
+    }
+  }, []);
+
+  const loadDashboard = useCallback(async () => {
     try {
       const response = await fetch('/api/business/dashboard');
       const payload = await response.json();
@@ -178,9 +192,9 @@ export default function OperacionesPage() {
     } catch (error) {
       console.error('Error loading operations dashboard:', error);
     }
-  };
+  }, []);
 
-  const loadAutomationStatus = async () => {
+  const loadAutomationStatus = useCallback(async () => {
     try {
       const response = await fetch('/api/business/automation');
       const payload = await response.json();
@@ -193,7 +207,7 @@ export default function OperacionesPage() {
     } catch (error) {
       console.error('Error loading automation status:', error);
     }
-  };
+  }, []);
 
   const handleRunAutomation = async () => {
     setRunningAutomation(true);
@@ -217,20 +231,12 @@ export default function OperacionesPage() {
   };
 
   useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        const response = await fetch('/api/business/users');
-        const payload = await response.json();
-        if (response.ok) setUsers(payload.users ?? []);
-      } catch (error) {
-        console.error('Error loading users:', error);
-      }
-    };
-
-    loadUsers();
-    loadDashboard().finally(() => setLoading(false));
-    loadAutomationStatus();
-  }, []);
+    // Los loaders hacen setState solo después de await, no de forma síncrona.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void Promise.all([loadUsers(), loadDashboard(), loadAutomationStatus()]).finally(() => {
+      setLoading(false);
+    });
+  }, [loadUsers, loadDashboard, loadAutomationStatus]);
 
   const handleAssignLead = async (leadId: string) => {
     const userId = selectedUserByLead[leadId];
@@ -274,7 +280,7 @@ export default function OperacionesPage() {
   };
 
   const handleCreateReminder = async (leadId: string) => {
-    const scheduledFor = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    const scheduledFor = reminderScheduledFor();
     try {
       await fetch('/api/business/reminders', {
         method: 'POST',
