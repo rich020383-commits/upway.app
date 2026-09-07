@@ -43,7 +43,7 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
     },
     {
       role: "bot",
-      content: "¡Hola! Soy Sophie v2, especialista de Upway. Cuéntame cuál es tu operación, qué volumen de atención gestionas y dónde más te está costando crecer, responder mejor o coordinar tu agenda y clientes."
+      content: "¡Hola! Soy Sophie v2, especialista de Upway.\nNo somos un bot genérico: ayudamos a negocios y clínicas a operar con menos fricción, más orden y mejor atención. La ventaja real de Upway está en la atención inteligente, la agenda coordinada, los recordatorios automáticos, la calificación de leads y la capacidad de escalar cuando hace falta.\nPara ayudarte bien, dime: ¿Qué negocio tienes o en qué sector operas?"
     }
   ]);
 
