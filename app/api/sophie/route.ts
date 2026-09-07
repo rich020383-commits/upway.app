@@ -191,8 +191,20 @@ Si el usuario solicita diseñar, estructurar o mejorar un prompt para un asisten
 // de la conexión comercial ya asignada.
 const HUMAN_TRANSFER_WA_NUMBER = process.env.HUMAN_TRANSFER_NUMBER || '573126427824';
 
-const buildWaAdvisorLink = (lastUserMessage: string): string => {
-  const contexto = lastUserMessage ? ` Contexto de mi consulta: "${lastUserMessage.slice(0, 180)}"` : '';
+const buildWaAdvisorLink = (messages: SophieMessage[]): string => {
+  // 🧠 Contexto completo del handoff: el asesor humano debe abrir el chat de WhatsApp
+  // sabiendo de qué habló el cliente con Sophie, no solo su última frase.
+  const conversacion = [...messages]
+    .filter((m) => (m.role !== 'system') && m.content?.trim())
+    .slice(-6) // últimos 6 turnos (usuario + Sophie) para no pasarnos de longitud en la URL
+    .map((m) => {
+      const esBot = m.role === 'bot' || m.role === 'assistant' || m.role === 'model';
+      const texto = m.content!.replace(/\[(BOTON_REGISTRO|CONTACTAR_ASESOR)\]/g, '').trim();
+      return `${esBot ? 'Sophie' : 'Cliente'}: ${texto.slice(0, 220)}`;
+    })
+    .join('\n');
+
+  const contexto = conversacion ? `\n\nResumen de mi conversación con Sophie:\n${conversacion}` : '';
   const texto = encodeURIComponent(`Hola, vengo del chat de Sophie en la web. Quiero hablar con un asesor humano para conocer el precio y el tiempo de implementación de Upway.${contexto}`);
   return `https://wa.me/${HUMAN_TRANSFER_WA_NUMBER}?text=${texto}`;
 };
@@ -339,11 +351,7 @@ export async function POST(req: NextRequest) {
       if (!botReply.includes('[CONTACTAR_ASESOR]')) {
         botReply = humanIntentReply;
       }
-      const lastUserMessage = [...messages]
-        .reverse()
-        .find((m) => m.role !== 'bot' && m.role !== 'assistant' && m.role !== 'model')
-        ?.content?.trim() || '';
-      waAdvisorLink = buildWaAdvisorLink(lastUserMessage);
+      waAdvisorLink = buildWaAdvisorLink(messages);
     }
 
     return NextResponse.json({ reply: botReply, provider: chosenProvider, ok: providerWorked, waAdvisorLink });
