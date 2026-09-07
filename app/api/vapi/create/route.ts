@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import type { Session } from 'next-auth';
 
 export async function POST(request: Request) {
   try {
@@ -70,8 +71,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ assistantId: vapiData.id });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("❌ Error creando agente en Vapi:", error);
-    return NextResponse.json({ error: error.message || "Error interno del servidor" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Error interno del servidor";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

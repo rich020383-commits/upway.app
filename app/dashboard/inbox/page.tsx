@@ -5,17 +5,49 @@ import { useSession } from 'next-auth/react';
 import { Bot, User, Send, Check, CheckCheck, Loader2, ArrowLeft, Power } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+interface TiendaData {
+  tiendaId: string;
+  token: string;
+  phoneId: string;
+  isAiActive: boolean;
+}
+
+interface TiendaRow {
+  id: string;
+  whatsapp_enabled?: boolean;
+  meta_access_token?: string | null;
+  meta_phone_number_id?: string | null;
+  nombre_tienda?: string | null;
+}
+
+interface MessageRow {
+  id: string;
+  from_me: boolean;
+  body: string;
+  timestamp: string | Date;
+  contact_name?: string | null;
+}
+
+interface InboxMessage {
+  id: string;
+  senderRole: string;
+  body: string;
+  content: string;
+  status: string;
+  timestamp: string | Date;
+}
+
 export default function InboxPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const userEmail = session?.user?.email;
 
-  const [conversations, setConversations] = useState<any[]>([]);
+  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [tiendaData, setTiendaData] = useState<any>(null);
+  const [tiendaData, setTiendaData] = useState<TiendaData | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -56,7 +88,7 @@ export default function InboxPage() {
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || !activeChat || !tiendaData) return;
-    
+
     setSending(true);
     const mensajeAEnviar = inputMessage;
     setInputMessage(''); // Limpiamos el input rápido para mejor UX
@@ -112,13 +144,13 @@ export default function InboxPage() {
           </button>
           <h1 className="text-xl font-bold">Buzón Omnicanal</h1>
         </div>
-        
+
         {/* BOTÓN DE PAUSA RÁPIDA EN EL HEADER */}
-        <button 
+        <button
           onClick={handleToggleAI}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border transition-all ${
-            tiendaData?.isAiActive 
-              ? 'border-[#10B981]/30 bg-[#10B981]/10 text-[#10B981] hover:bg-[#10B981]/20' 
+            tiendaData?.isAiActive
+              ? 'border-[#10B981]/30 bg-[#10B981]/10 text-[#10B981] hover:bg-[#10B981]/20'
               : 'border-[#F59E0B]/30 bg-[#F59E0B]/10 text-[#F59E0B] hover:bg-[#F59E0B]/20'
           }`}
         >
@@ -135,8 +167,8 @@ export default function InboxPage() {
             conversations.map(chat => {
               const ultimoMensaje = chat.messages[chat.messages.length - 1];
               return (
-                <div 
-                  key={chat.id} 
+                <div
+                  key={chat.id}
                   onClick={() => setActiveChatId(chat.id)}
                   className={`p-4 border-b border-[#1E293B] cursor-pointer hover:bg-[#121821] transition-all ${activeChatId === chat.id ? 'bg-[#121821] border-l-4 border-l-[#19C8E8]' : 'border-l-4 border-l-transparent'}`}
                 >
@@ -166,17 +198,17 @@ export default function InboxPage() {
 
               {/* ÁREA DE MENSAJES */}
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                {activeChat.messages.map((msg: any) => {
+                {activeChat.messages.map((msg: InboxMessage) => {
                   const isUser = msg.senderRole === 'USER';
                   const isAI = msg.senderRole === 'AI';
                   return (
                     <div key={msg.id} className={`flex ${isUser ? 'justify-start' : 'justify-end'}`}>
                       <div className={`max-w-[70%] p-3 text-sm rounded-2xl relative group ${
-                        isUser ? 'bg-[#1E293B] rounded-tl-sm' : 
-                        isAI ? 'bg-[#10B981]/10 border border-[#10B981]/20 text-[#F5F7FA] rounded-tr-sm' : 
+                        isUser ? 'bg-[#1E293B] rounded-tl-sm' :
+                        isAI ? 'bg-[#10B981]/10 border border-[#10B981]/20 text-[#F5F7FA] rounded-tr-sm' :
                         'bg-[#9B5CFF]/10 border border-[#9B5CFF]/20 text-[#F5F7FA] rounded-tr-sm' // Modo Humano (Morado)
                       }`}>
-                        
+
                         {/* Indicador de quién respondió */}
                         {!isUser && (
                           <div className="flex items-center gap-1 mb-1 opacity-50">
@@ -184,9 +216,9 @@ export default function InboxPage() {
                             <span className="text-[9px] font-bold uppercase tracking-wider">{isAI ? 'Sofía' : 'Humano'}</span>
                           </div>
                         )}
-                        
+
                         <p className="leading-relaxed">{msg.content}</p>
-                        
+
                         {/* Doble Check Azul de Meta */}
                         {!isUser && (
                           <div className="absolute bottom-1 right-2">
@@ -217,7 +249,7 @@ export default function InboxPage() {
                   disabled={tiendaData?.isAiActive || sending}
                   className="flex-1 bg-[#07090C] text-sm px-4 py-3 rounded-xl border border-[#1E293B] focus:border-[#19C8E8] outline-none disabled:opacity-50 transition-all"
                 />
-                <button 
+                <button
                   onClick={handleSendMessage}
                   disabled={tiendaData?.isAiActive || !inputMessage.trim() || sending}
                   className="h-12 w-12 bg-[#19C8E8] text-[#07090C] rounded-xl flex items-center justify-center hover:bg-[#33DDFF] disabled:opacity-50 disabled:hover:bg-[#19C8E8] transition-all shrink-0"
