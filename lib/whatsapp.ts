@@ -384,7 +384,7 @@ export async function generarRespuesta(
 
   if (isVip) {
     console.log(`👑 Canal VIP (${phoneId}). Preparando IA...`);
-    systemPromptText = tiendaRecord?.systemPrompt || SOPHIE_VIP_PROMPT;
+    systemPromptText = ensureHandoffRule(tiendaRecord?.systemPrompt || SOPHIE_VIP_PROMPT);
   } else {
     console.log(`🏢 Usando base de datos del cliente para el número: ${phoneId}`);
 
@@ -407,7 +407,7 @@ export async function generarRespuesta(
       contextoInventario = `PRODUCTOS ENCONTRADOS:\n${productosRelevantes.map(p => `- ${p.nombre} - Precio: $${p.precio}`).join('\n')}`;
     }
 
-    const promptCliente = tiendaRecord?.systemPrompt || `Eres Sophie v2, agente comercial y operativo de Upway. La marca pública es Upway. Habla con claridad, enfoque comercial y operación real. Tu misión es mostrar cómo Upway maneja WhatsApp, agenda inteligente, triage, coordinación, seguimiento y atención al cliente sin fricción. Hazlo en un tono premium y claro. Habla de precio con propiedad: software/plataforma + implementación + consumo real + créditos o paquete inicial si aplica.`;
+    const promptCliente = ensureHandoffRule(tiendaRecord?.systemPrompt || `Eres Sophie v2, agente comercial y operativo de Upway. La marca pública es Upway. Habla con claridad, enfoque comercial y operación real. Tu misión es mostrar cómo Upway maneja WhatsApp, agenda inteligente, triage, coordinación, seguimiento y atención al cliente sin fricción. Hazlo en un tono premium y claro. Habla de precio con propiedad: software/plataforma + implementación + consumo real + créditos o paquete inicial si aplica.`);
     systemPromptText = `${promptCliente}\n\n=== BASE DE DATOS (SISTEMA RAG) ===\n${contextoInventario}\nRegla RAG: Basa tus respuestas de inventario SOLO en la información de la base de datos entregada arriba.`;
   }
 
@@ -719,6 +719,17 @@ const HUMAN_REQUEST_PATTERN = /(hablar (con|a) (un|una) (asesor|persona|humano|a
 function shouldHandoffToHuman(respuesta: string, textoCliente: string): boolean {
   if (respuesta.includes('[TRANSFERIR_HUMANO]')) return true;
   return HUMAN_REQUEST_PATTERN.test(textoCliente);
+}
+
+/**
+ * Garantiza que cualquier system prompt (VIP o de cliente) incluya la regla de
+ * transferencia a un asesor humano con el número configurado en
+ * HUMAN_TRANSFER_NUMBER (el 311). Evita prompts personalizados que omitan la
+ * instrucción y dejen a la IA sin saber cómo derivar.
+ */
+export function ensureHandoffRule(prompt: string): string {
+  if (prompt.includes('[TRANSFERIR_HUMANO]')) return prompt;
+  return `${prompt}\n\n=== REGLA DE TRANSFERENCIA A HUMANO (OBLIGATORIA) ===\nSi el cliente pide hablar con un asesor, persona real, agente humano o alguien del equipo ("hablar con un asesor", "quiero una persona", "pásame con alguien", etc.), NO intentes resolverlo tú. Responde brevemente que derivas la conversación con un asesor humano y emite EXACTAMENTE el marcador [TRANSFERIR_HUMANO] en tu respuesta. Nada más después del marcador.`;
 }
 
 export async function handleIncomingMessage(value: MetaWebhookValue): Promise<void> {

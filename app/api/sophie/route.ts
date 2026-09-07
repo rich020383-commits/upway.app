@@ -189,7 +189,7 @@ Si el usuario solicita diseñar, estructurar o mejorar un prompt para un asisten
 // 🚨 Número de WhatsApp del equipo humano de Upway (handoff web -> WhatsApp).
 // Se puede sobreescribir con HUMAN_TRANSFER_WEB_NUMBER; por defecto usa el número
 // de la conexión comercial ya asignada.
-const HUMAN_TRANSFER_WA_NUMBER = process.env.HUMAN_TRANSFER_WEB_NUMBER || '573126427856';
+const HUMAN_TRANSFER_WA_NUMBER = process.env.HUMAN_TRANSFER_WEB_NUMBER || '573116778098';
 
 const buildWaAdvisorLink = (lastUserMessage: string): string => {
   const contexto = lastUserMessage ? ` Contexto de mi consulta: "${lastUserMessage.slice(0, 180)}"` : '';
