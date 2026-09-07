@@ -1,8 +1,4 @@
-import { buildHealthQuery } from '@/lib/health/data';
-
 export default function AnalyticsPage() {
-  const query = buildHealthQuery({ organizationId: 'org-1', clinicId: 'clinic-1', role: 'analyst' }, 'analytics');
-
   const metrics = [
     { label: 'Conversiones', value: '0', delta: '0%' },
     { label: 'Resolución', value: '0%', delta: '0%' },
