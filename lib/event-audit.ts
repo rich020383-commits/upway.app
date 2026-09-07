@@ -1,4 +1,6 @@
 import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
+type InputJsonValue = Prisma.InputJsonValue;
 
 export type ProviderEventStatus = 'received' | 'accepted' | 'processed' | 'rejected' | 'failed';
 
@@ -29,8 +31,8 @@ export async function recordProviderEvent(input: ProviderEventInput) {
       entityType: input.entityType ?? null,
       entityId: input.entityId ?? null,
       performedBy: input.performedBy ?? null,
-      payloadJson: safePayload as any,
-      metadataJson: safeMetadata as any,
+      payloadJson: safePayload as InputJsonValue,
+      metadataJson: safeMetadata as InputJsonValue,
     },
   });
 }
@@ -61,8 +63,8 @@ export async function appendHealthAuditEntry({
       entityId,
       action,
       performedBy: performedBy ?? null,
-      beforeJson: before as any,
-      afterJson: after as any,
+      beforeJson: (before ?? null) as InputJsonValue | null,
+      afterJson: (after ?? null) as InputJsonValue | null,
     },
   });
 }

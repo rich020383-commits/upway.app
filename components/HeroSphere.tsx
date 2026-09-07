@@ -50,10 +50,10 @@ export default function HeroSphere() {
 
       particles.forEach((p, i) => {
         // Rotación 3D
-        let y1 = p.baseY * cosX - p.baseZ * sinX;
-        let z1 = p.baseY * sinX + p.baseZ * cosX;
-        let x2 = p.baseX * cosY + z1 * sinY;
-        let z2 = -p.baseX * sinY + z1 * cosY;
+        const y1 = p.baseY * cosX - p.baseZ * sinX;
+        const z1 = p.baseY * sinX + p.baseZ * cosX;
+        const x2 = p.baseX * cosY + z1 * sinY;
+        const z2 = -p.baseX * sinY + z1 * cosY;
 
         // Perspectiva 2D
         const fov = 400;

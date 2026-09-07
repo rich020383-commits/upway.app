@@ -31,6 +31,12 @@ export async function POST(req: Request) {
     const eventType = String(payload?.eventType ?? 'generic_event');
     const status = String(payload?.status ?? 'received');
 
+    // Validar status contra el union type para evitar casts implícitos
+    const validStatuses = ['received', 'accepted', 'processed', 'rejected', 'failed'] as const;
+    const parsedStatus = (validStatuses as readonly string[]).includes(status)
+      ? (status as (typeof validStatuses)[number])
+      : ('received' as const);
+
     if (!provider || provider === 'unknown') {
       return NextResponse.json({ success: false, error: 'provider is required' }, { status: 400 });
     }
@@ -38,7 +44,7 @@ export async function POST(req: Request) {
     const event = await recordProviderEvent({
       provider,
       eventType,
-      status: status as any,
+      status: parsedStatus,
       clinicId: payload?.clinicId ?? null,
       tenantId: payload?.tenantId ?? null,
       entityType: payload?.entityType ?? null,

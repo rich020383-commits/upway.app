@@ -8,7 +8,7 @@ export default function TerminosPage() {
   return (
     <div className="min-h-screen bg-[#03050a] px-4 py-12 text-slate-300 sm:px-6 lg:px-8 selection:bg-[#00D1FF]/30 selection:text-white">
       <div className="mx-auto max-w-4xl">
-        
+
         {/* Cabecera */}
         <div className="mb-10">
           <Link href="/" className="inline-flex items-center gap-2 text-sm font-mono text-slate-400 hover:text-[#00D1FF] transition-colors mb-8">
@@ -29,12 +29,12 @@ export default function TerminosPage() {
           <div className="absolute top-0 right-0 w-96 h-96 bg-[#00D1FF]/5 rounded-full blur-[100px] pointer-events-none"></div>
 
           <div className="prose prose-invert max-w-none prose-slate relative z-10 font-body">
-            
+
             <p className="lead text-lg text-slate-300 mb-8 font-medium">
               Bienvenido a Upway (incluyendo sus verticales <strong className="text-white">Upway Business</strong> y <strong className="text-[#00D1FF]">Upway Health</strong>). Los presentes Términos regulan el acceso a la infraestructura SaaS operada por <strong className="text-white">BARAKAH TECH HUB S.A.S.</strong>
             </p>
             <p className="mb-8 leading-relaxed">
-              Al registrarse o utilizar nuestra plataforma de inteligencia artificial y automatización omnicanal, el usuario (en adelante, "el Cliente" o "la Clínica") acepta someterse a estos términos.
+              Al registrarse o utilizar nuestra plataforma de inteligencia artificial y automatización omnicanal, el usuario (en adelante, &quot;el Cliente&quot; o &quot;la Clínica&quot;) acepta someterse a estos términos.
             </p>
 
             <h3 className="text-xl font-bold text-white mt-10 mb-4 flex items-center gap-2">
@@ -57,7 +57,7 @@ export default function TerminosPage() {
               <span className="text-[#00D1FF]">03.</span> Inteligencia Artificial (Alucinaciones y Límites)
             </h3>
             <p className="mb-4 leading-relaxed">
-              El Cliente comprende que la IA puede generar respuestas imprecisas ("alucinaciones"). BARAKAH TECH HUB S.A.S. no asume responsabilidad civil ni médica por interacciones autónomas de la IA con los pacientes. El Cliente debe utilizar el mecanismo de <em>Human Handoff</em> (intervención humana) para gestionar consultas críticas o que excedan la capacidad administrativa del bot.
+              El Cliente comprende que la IA puede generar respuestas imprecisas (&quot;alucinaciones&quot;). BARAKAH TECH HUB S.A.S. no asume responsabilidad civil ni médica por interacciones autónomas de la IA con los pacientes. El Cliente debe utilizar el mecanismo de <em>Human Handoff</em> (intervención humana) para gestionar consultas críticas o que excedan la capacidad administrativa del bot.
             </p>
 
             <h3 className="text-xl font-bold text-white mt-10 mb-4 flex items-center gap-2">

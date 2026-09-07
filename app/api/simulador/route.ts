@@ -341,7 +341,7 @@ export async function POST(req: NextRequest) {
           const textoRespuesta = message?.content || '';
 
           if (message?.tool_calls && message.tool_calls.length > 0) {
-            const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
+            const args = JSON.parse(message.tool_calls[0].function.arguments);
             const inicio = args.fechaInicio || args.fecha_inicio;
             const fin = args.fechaFin || args.fecha_fin;
             await crearEventoCalendario(args.asunto, inicio, fin);
@@ -365,7 +365,7 @@ export async function POST(req: NextRequest) {
           const textoRespuesta = message?.content || '';
 
           if (message?.tool_calls && message.tool_calls.length > 0) {
-            const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
+            const args = JSON.parse(message.tool_calls[0].function.arguments);
             const inicio = args.fechaInicio || args.fecha_inicio;
             const fin = args.fechaFin || args.fecha_fin;
             await crearEventoCalendario(args.asunto, inicio, fin);
@@ -389,7 +389,7 @@ export async function POST(req: NextRequest) {
           const textoRespuesta = message?.content || '';
 
           if (message?.tool_calls && message.tool_calls.length > 0) {
-            const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
+            const args = JSON.parse(message.tool_calls[0].function.arguments);
             const inicio = args.fechaInicio || args.fecha_inicio;
             const fin = args.fechaFin || args.fecha_fin;
             await crearEventoCalendario(args.asunto, inicio, fin);
@@ -413,7 +413,7 @@ export async function POST(req: NextRequest) {
           const textoRespuesta = message?.content || '';
 
           if (message?.tool_calls && message.tool_calls.length > 0) {
-            const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
+            const args = JSON.parse(message.tool_calls[0].function.arguments);
             const inicio = args.fechaInicio || args.fecha_inicio;
             const fin = args.fechaFin || args.fecha_fin;
             await crearEventoCalendario(args.asunto, inicio, fin);
@@ -437,7 +437,7 @@ export async function POST(req: NextRequest) {
           const textoRespuesta = message?.content || '';
 
           if (message?.tool_calls && message.tool_calls.length > 0) {
-            const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
+            const args = JSON.parse(message.tool_calls[0].function.arguments);
             const inicio = args.fechaInicio || args.fecha_inicio;
             const fin = args.fechaFin || args.fecha_fin;
             await crearEventoCalendario(args.asunto, inicio, fin);
@@ -461,7 +461,7 @@ export async function POST(req: NextRequest) {
           const textoRespuesta = message?.content || '';
 
           if (message?.tool_calls && message.tool_calls.length > 0) {
-            const args = JSON.parse((message.tool_calls[0] as any).function.arguments);
+            const args = JSON.parse(message.tool_calls[0].function.arguments);
             const inicio = args.fechaInicio || args.fecha_inicio;
             const fin = args.fechaFin || args.fecha_fin;
             await crearEventoCalendario(args.asunto, inicio, fin);

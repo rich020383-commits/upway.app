@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     }
 
     // 🎙️ TRADUCTOR DE VOCES MULTI-GÉNERO (ElevenLabs)
-    let vapiVoice = {
+    const vapiVoice = {
       provider: "11labs",
       voiceId: "21m00Tcm4TlvDq8ikWAM" // Rachel (Femenina por defecto)
     };

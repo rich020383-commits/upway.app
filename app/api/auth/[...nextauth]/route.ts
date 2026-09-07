@@ -54,8 +54,9 @@ export const authOptions: NextAuthOptions = {
           }
 
           return { id: user.id, name: user.name, email: user.email };
-        } catch (error: any) {
-          throw new Error(error.message || "Error interno al procesar el acceso");
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Error interno al procesar el acceso";
+          throw new Error(message);
         }
       }
     }),
@@ -141,9 +142,9 @@ export const authOptions: NextAuthOptions = {
       }
 
       const storedAccessState =
-        (user as any)?.accessState ??
-        (token as any)?.accessState ??
-        (token as any)?.billingState ??
+        (user as { accessState?: string } | null)?.accessState ??
+        (token as { accessState?: string }).accessState ??
+        (token as { billingState?: string }).billingState ??
         process.env.DEFAULT_BILLING_STATE ??
         'trial';
 
@@ -227,7 +228,7 @@ export const authOptions: NextAuthOptions = {
 
       return token;
     },
-    async session({ session, token }: any) {
+    async session({ session, token }: { session: any; token: any }) {
       if (token && session.user) {
         session.user.id = token.id as string;
         session.accessToken = token.accessToken;
