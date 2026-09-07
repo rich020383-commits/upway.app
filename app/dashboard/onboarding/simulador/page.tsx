@@ -157,7 +157,10 @@ export default function Paso05Simulador() {
         });
 
         const systemPromptDinamico = `Eres ${nombreAgente || 'un asistente virtual experto'}, operando para un negocio del sector ${nicho || 'general'}. ${promptMaestro}. Tu nombre es exactamente ${nombreAgente || 'Asistente'}.`;
-        const isHombre = (nombreAgente || '').toLowerCase().includes('mauricio') || (nicho || '').toLowerCase().includes('hombre');
+        const textoDeteccion = `${nombreAgente || ''} ${nicho || ''} ${promptMaestro || ''}`.toLowerCase();
+        const esFemenino = /\b(maria|ana|lucia|lucía|sofia|sofía|carla|laura|elena|paula|julia|camila|valentina|isabella|gabriela|daniela|sara|vera|femenin[oa]|mujer)\b/.test(textoDeteccion);
+        const esMasculino = /\b(mauricio|carlos|juan|jose|josé|luis|pedro|diego|javier|andres|andrés|miguel|pablo|sergio|raul|raúl|jorge|alberto|fernando|ricardo|masculin[oa]|hombre)\b/.test(textoDeteccion) && !esFemenino;
+        const isHombre = esMasculino;
 
         // Si hay un asistente masculino configurado, usamos su ID (override de voz real)
         const vapiAssistantIdMasculino = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID_MASCULINO;
@@ -174,8 +177,13 @@ export default function Paso05Simulador() {
           firstMessage: `¡Hola! Soy ${nombreAgente || 'tu asistente'}, ¿en qué puedo ayudarte hoy?`,
           model: { provider: "openai", model: "gpt-4o", messages: [{ role: "system", content: systemPromptDinamico }] }
         };
-        if (isHombre && !vapiAssistantIdMasculino) {
-          overrides.voice = { provider: "deepgram", voiceId: "nestor" };
+        // Override de voz masculina: aplicamos siempre que detectemos un agente hombre,
+        // incluso si el asistente base ya es el masculino (garantiza que no suene femenina).
+        if (isHombre) {
+          overrides.voice = vapiAssistantIdMasculino
+            ? undefined
+            : { provider: "deepgram", voiceId: "nestor" };
+          if (overrides.voice === undefined) delete overrides.voice;
         }
 
         await vapi.start(vapiAssistantId, overrides);

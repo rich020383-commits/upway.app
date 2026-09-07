@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { ShieldCheck, Bot, Loader2, ExternalLink, Lock, Server } from 'lucide-react';
+import { ShieldCheck, Loader2, ExternalLink, Lock, Server } from 'lucide-react';
 import { useUpwayStore } from '../../../store/upwayStore';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';

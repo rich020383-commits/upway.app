@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, MessageSquare, PhoneCall, QrCode, ArrowRight, ShieldAlert, Loader2, Server, Activity } from 'lucide-react';
+import { CheckCircle2, MessageSquare, PhoneCall, QrCode, ArrowRight, ShieldAlert, Loader2, Activity } from 'lucide-react';
 import { useUpwayStore } from '../../../store/upwayStore';
 import { useRouter } from 'next/navigation';
 import Script from 'next/script';
