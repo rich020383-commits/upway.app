@@ -56,9 +56,15 @@ export default function BillingAccessCodesPage() {
     if (status !== 'authenticated') return;
     if (!isAdmin) return;
 
+    let cancelled = false;
     loadCodes().catch((error) => {
-      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Error al cargar códigos.' });
+      if (!cancelled) {
+        setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Error al cargar códigos.' });
+      }
     });
+    return () => {
+      cancelled = true;
+    };
   }, [status, isAdmin]);
 
   const handleSubmit = async (event: React.FormEvent) => {

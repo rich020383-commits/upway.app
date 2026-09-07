@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
 
 type Faq = {
@@ -20,7 +20,7 @@ export default function HealthFaqPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
 
-  const loadFaqs = async () => {
+  const loadFaqs = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/health/faq');
@@ -31,11 +31,11 @@ export default function HealthFaqPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadFaqs();
-  }, []);
+  }, [loadFaqs]);
 
   const handleCreate = async () => {
     if (!form.question.trim() || !form.answer.trim()) {
