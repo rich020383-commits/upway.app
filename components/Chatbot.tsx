@@ -2,15 +2,17 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, Cpu, Activity, Zap, ShieldCheck, Mic, Square } from "lucide-react";
+import { X, Send, Cpu, Activity, Zap, ShieldCheck, Mic, Square, MessageCircle } from "lucide-react";
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [aiProvider, setAiProvider] = useState("SISTEMA_EN_ESPERA");
-  
+  // 🚨 Link de WhatsApp del asesor humano (handoff web -> WhatsApp)
+  const [waAdvisorLink, setWaAdvisorLink] = useState<string | null>(null);
+
   const [messages, setMessages] = useState([
-    { 
-      role: "system", 
+    {
+      role: "system",
 content: `Eres Sophie v2, especialista comercial y operativa de Upway. Tu marca pública es Upway. No hables como “Upway 2.0”. “v2” es el nombre del agente, no la marca del producto.
 
 REGLAS ESTRICTAS:
@@ -37,17 +39,17 @@ PATRÓN DE CONVERSACIÓN:
 
 CIERRE HACIA EL ONBOARDING:
 Si el cliente menciona que quiere probarlo, ver una demostración, agendar una cita o saber cómo funciona, dile que no tiene que esperar a ningún agendamiento. Invítalo a activar su flujo en onboarding y a ver cómo se comporta en su operación real.
-Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta para habilitarle el acceso al sistema: [BOTON_REGISTRO]` 
+Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta para habilitarle el acceso al sistema: [BOTON_REGISTRO]`
     },
-    { 
-      role: "bot", 
-      content: "¡Hola! Soy Sophie v2, especialista de Upway. Cuéntame cuál es tu operación, qué volumen de atención gestionas y dónde más te está costando crecer, responder mejor o coordinar tu agenda y clientes." 
+    {
+      role: "bot",
+      content: "¡Hola! Soy Sophie v2, especialista de Upway. Cuéntame cuál es tu operación, qué volumen de atención gestionas y dónde más te está costando crecer, responder mejor o coordinar tu agenda y clientes."
     }
   ]);
-  
+
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // 🔥 ESTADOS PARA AUDIO
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -65,7 +67,7 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
 
   useEffect(() => {
     const escucharBoton = () => {
-      setIsOpen(true); 
+      setIsOpen(true);
     };
     window.addEventListener('abrir-chat', escucharBoton);
     return () => window.removeEventListener('abrir-chat', escucharBoton);
@@ -73,7 +75,7 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
 
   const cerrarChat = (e: React.MouseEvent) => {
     e.preventDefault();
-    e.stopPropagation(); 
+    e.stopPropagation();
     setIsOpen(false);
   };
 
@@ -95,7 +97,7 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
 
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        
+
         const reader = new FileReader();
         reader.readAsDataURL(audioBlob);
         reader.onloadend = () => {
@@ -125,7 +127,7 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setIsLoading(true);
-    setAiProvider("ESCUCHANDO_AUDIO..."); 
+    setAiProvider("ESCUCHANDO_AUDIO...");
 
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
@@ -133,12 +135,13 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
       const res = await fetch(`${baseUrl}/api/sophie`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: updatedMessages, audioUsuario: base64Audio }), 
+        body: JSON.stringify({ messages: updatedMessages, audioUsuario: base64Audio }),
       });
       const data = await res.json();
-      
+
       if (data.provider) setAiProvider(data.provider);
-      
+      if (data.waAdvisorLink) setWaAdvisorLink(data.waAdvisorLink);
+
       const organicDelay = Math.floor(Math.random() * 800) + 500;
       setTimeout(() => {
         setMessages((prev) => [...prev, { role: "bot", content: data.reply }]);
@@ -159,10 +162,10 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
   // ==========================================
   const sendMessage = async () => {
     if (!input.trim()) return;
-    
+
     const userMessage = { role: "user", content: input };
-    const updatedMessages = [...messages, userMessage]; 
-    setMessages(updatedMessages); 
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setInput("");
     setIsLoading(true);
     setAiProvider("ENRUTANDO_PETICIÓN...");
@@ -173,12 +176,13 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
       const res = await fetch(`${baseUrl}/api/sophie`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: updatedMessages }), 
+        body: JSON.stringify({ messages: updatedMessages }),
       });
       const data = await res.json();
-      
+
       if (data.provider) setAiProvider(data.provider);
-      
+      if (data.waAdvisorLink) setWaAdvisorLink(data.waAdvisorLink);
+
       const organicDelay = Math.floor(Math.random() * 800) + 500;
       setTimeout(() => {
         setMessages((prev) => [...prev, { role: "bot", content: data.reply }]);
@@ -197,10 +201,10 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
   return (
     <>
       {/* BOTÓN FLOTANTE */}
-      <motion.button 
-        animate={{ 
-          boxShadow: isOpen 
-            ? "0px 0px 0px rgba(0,0,0,0)" 
+      <motion.button
+        animate={{
+          boxShadow: isOpen
+            ? "0px 0px 0px rgba(0,0,0,0)"
             : ["0px 0px 15px rgba(0,209,255,0.4)", "0px 0px 30px rgba(0,209,255,0.8)", "0px 0px 15px rgba(0,209,255,0.4)"]
         }}
         transition={{ duration: 2, repeat: isOpen ? 0 : Infinity, ease: "easeInOut" }}
@@ -212,17 +216,17 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
         }`}
       >
         <div className="absolute inset-0 bg-gradient-to-tr from-[#00D1FF]/20 to-transparent pointer-events-none" />
-        <img 
-          src="/sophie-icon.png" 
-          alt="Abrir Sophie V2" 
-          className="w-7 h-7 rounded-[8px] object-cover shadow-[0_0_10px_rgba(34,211,238,0.3)] transition-transform group-hover:scale-110 relative z-10" 
+        <img
+          src="/sophie-icon.png"
+          alt="Abrir Sophie V2"
+          className="w-7 h-7 rounded-[8px] object-cover shadow-[0_0_10px_rgba(34,211,238,0.3)] transition-transform group-hover:scale-110 relative z-10"
         />
       </motion.button>
 
       {/* PANEL DE COMANDO SOPHIE V2 */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 30, scale: 0.95, filter: "blur(10px)" }}
             animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
             exit={{ opacity: 0, y: 20, scale: 0.95, filter: "blur(10px)" }}
@@ -232,18 +236,18 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
             {/* CABECERA (HUD TECH) */}
             <div className="bg-[#03050a]/80 p-4 border-b border-[#00D1FF]/20 flex items-center justify-between shrink-0 relative overflow-hidden">
               <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,209,255,0.05)_50%)] bg-[length:100%_4px] pointer-events-none" />
-              
+
               <div className="flex items-center gap-4 relative z-10">
                 <div className="relative shrink-0">
                   {/* Brillo de fondo dinámico */}
                   <div className={`absolute inset-0 bg-[#00D1FF] blur-md rounded-xl transition-opacity duration-300 ${isLoading ? 'opacity-80 animate-pulse' : 'opacity-30'}`}></div>
-                  
-                  <img 
-                    src="/sophie-icon.png" 
-                    alt="Sophie V2" 
-                    className={`relative w-11 h-11 rounded-xl object-cover border transition-all duration-300 ${isLoading ? 'border-white shadow-[0_0_20px_rgba(0,209,255,0.8)]' : 'border-[#00D1FF]/50 shadow-sm'}`} 
+
+                  <img
+                    src="/sophie-icon.png"
+                    alt="Sophie V2"
+                    className={`relative w-11 h-11 rounded-xl object-cover border transition-all duration-300 ${isLoading ? 'border-white shadow-[0_0_20px_rgba(0,209,255,0.8)]' : 'border-[#00D1FF]/50 shadow-sm'}`}
                   />
-                  
+
                   {/* Punto verde de status */}
                   <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-[#0A0E14] rounded-full"></span>
                 </div>
@@ -262,30 +266,30 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
                   </div>
                 </div>
               </div>
-              
-              <button 
-                onClick={cerrarChat} 
+
+              <button
+                onClick={cerrarChat}
                 className="text-white/60 hover:text-white hover:bg-white/10 p-2.5 rounded-xl transition-all relative z-[9999] cursor-pointer flex items-center justify-center bg-black/20"
                 title="Cerrar chat"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             {/* ÁREA DE MENSAJES (TERMINAL) */}
             <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-gradient-to-b from-[#03050a]/50 to-[#0A0E14]/80 scroll-smooth">
               {messages.filter(m => m.role !== "system").map((m, i) => (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, x: m.role === 'user' ? 20 : -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ type: "spring", stiffness: 250, damping: 25 }}
-                  key={i} 
+                  key={i}
                   className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div 
+                  <div
                     className={`max-w-[85%] p-4 text-[13px] leading-relaxed relative ${
-                      m.role === 'user' 
-                        ? 'bg-[#00D1FF]/10 text-white border border-[#00D1FF]/30 rounded-lg rounded-tr-none shadow-[0_0_15px_rgba(0,209,255,0.1)]' 
+                      m.role === 'user'
+                        ? 'bg-[#00D1FF]/10 text-white border border-[#00D1FF]/30 rounded-lg rounded-tr-none shadow-[0_0_15px_rgba(0,209,255,0.1)]'
                         : 'bg-white/[0.03] text-slate-300 border border-white/10 rounded-lg rounded-tl-none'
                     }`}
                   >
@@ -295,14 +299,29 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
                     {m.content.includes('[BOTON_REGISTRO]') ? (
                       <div className="flex flex-col gap-3">
                         <span>{m.content.replace('[BOTON_REGISTRO]', '')}</span>
-                        <motion.button 
+                        <motion.button
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => window.location.href = '/register?next=' + encodeURIComponent('/dashboard/onboarding')} 
+                          onClick={() => window.location.href = '/register?next=' + encodeURIComponent('/dashboard/onboarding')}
                           className="bg-[#00D1FF]/20 border border-[#00D1FF]/50 text-[#00D1FF] px-4 py-2.5 rounded text-[12px] font-mono tracking-widest uppercase hover:bg-[#00D1FF] hover:text-black transition-all flex items-center justify-center gap-2 mt-2 shadow-[0_0_15px_rgba(0,209,255,0.3)]"
                         >
                           <Zap className="w-4 h-4" /> REGISTRARME / INICIAR SESIÓN
                         </motion.button>
+                      </div>
+                    ) : m.content.includes('[CONTACTAR_ASESOR]') ? (
+                      <div className="flex flex-col gap-3">
+                        <span className="font-body whitespace-pre-line">{m.content.replace('[CONTACTAR_ASESOR]', '')}</span>
+                        <motion.a
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          href={waAdvisorLink || `https://wa.me/573126427856`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => setWaAdvisorLink(null)}
+                          className="bg-[#25D366]/15 border border-[#25D366]/50 text-[#25D366] px-4 py-2.5 rounded text-[12px] font-mono tracking-widest uppercase hover:bg-[#25D366] hover:text-black transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(37,211,102,0.3)]"
+                        >
+                          <MessageCircle className="w-4 h-4" /> CONECTAR CON ASESOR
+                        </motion.a>
                       </div>
                     ) : (
                       <span className="font-body whitespace-pre-line">{m.content}</span>
@@ -310,10 +329,10 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
                   </div>
                 </motion.div>
               ))}
-              
+
               <AnimatePresence>
                 {isLoading && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     className="flex justify-start"
                   >
@@ -326,7 +345,7 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
                   </motion.div>
                 )}
               </AnimatePresence>
-              
+
               <AnimatePresence>
                 {isRecording && (
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="flex justify-end">
@@ -336,7 +355,7 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
                   </motion.div>
                 )}
               </AnimatePresence>
-              
+
               <div ref={messagesEndRef} />
             </div>
 
@@ -344,38 +363,38 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
             <div className="p-4 bg-[#03050a] border-t border-[#00D1FF]/20 shrink-0 relative z-20">
               <div className="relative flex items-center bg-[#0A0E14] border border-white/10 focus-within:border-[#00D1FF]/50 rounded text-white overflow-hidden transition-colors">
                 <div className="pl-3 text-[#00D1FF] font-mono text-[14px]">{'>'}</div>
-                <input 
-                  value={input} 
+                <input
+                  value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                   placeholder={isRecording ? "Grabando audio..." : "Ingresa un comando o audio..."}
                   disabled={isLoading || isRecording}
                   className="w-full bg-transparent pl-3 pr-14 py-3.5 text-[13px] font-mono text-white placeholder-white/30 outline-none disabled:opacity-50"
                 />
-                
+
                 {/* 🔥 BOTONERA DINÁMICA DE SOFÍA */}
                 <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
                   {input.trim() ? (
-                    <motion.button 
+                    <motion.button
                       whileTap={{ scale: 0.9 }}
-                      onClick={sendMessage} 
+                      onClick={sendMessage}
                       disabled={isLoading}
                       className="bg-white/5 hover:bg-[#00D1FF]/20 disabled:bg-transparent text-[#00D1FF] disabled:text-white/20 p-2.5 rounded transition-colors flex items-center justify-center"
                     >
                       <Send className="w-4 h-4" />
                     </motion.button>
                   ) : isRecording ? (
-                    <motion.button 
+                    <motion.button
                       whileTap={{ scale: 0.9 }}
-                      onClick={stopRecording} 
+                      onClick={stopRecording}
                       className="bg-red-500/20 hover:bg-red-500/40 text-red-500 p-2.5 rounded transition-colors flex items-center justify-center shadow-[0_0_10px_rgba(239,68,68,0.3)] animate-pulse"
                     >
                       <Square className="w-4 h-4 fill-current" />
                     </motion.button>
                   ) : (
-                    <motion.button 
+                    <motion.button
                       whileTap={{ scale: 0.9 }}
-                      onClick={startRecording} 
+                      onClick={startRecording}
                       disabled={isLoading}
                       className="bg-white/5 hover:bg-[#00D1FF]/20 text-[#00D1FF] p-2.5 rounded transition-colors flex items-center justify-center disabled:opacity-50"
                     >

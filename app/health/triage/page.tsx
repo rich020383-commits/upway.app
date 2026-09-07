@@ -42,7 +42,18 @@ export default function HealthTriagePage() {
   };
 
   useEffect(() => {
-    loadRules();
+    const load = async () => {
+      try {
+        const res = await fetch('/api/health/triage');
+        const data = await res.json();
+        setRules(data.items ?? []);
+      } catch (error) {
+        console.error('Error cargando reglas de triaje:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
   }, []);
 
   const handleCreate = async () => {

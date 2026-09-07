@@ -126,10 +126,10 @@ export function Tooltip({
                 side === 'top'
                   ? 'absolute left-1/2 top-full -translate-x-1/2 border-8 border-transparent border-t-white'
                   : side === 'bottom'
-                  ? 'absolute left-1/2 bottom-full -translate-x-1/2 border-8 border-transparent border-b-white'
-                  : side === 'left'
-                  ? 'absolute left-full top-1/2 -translate-y-1/2 border-8 border-transparent border-l-white'
-                  : 'absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-white'
+                    ? 'absolute left-1/2 bottom-full -translate-x-1/2 border-8 border-transparent border-b-white'
+                    : side === 'left'
+                      ? 'absolute left-full top-1/2 -translate-y-1/2 border-8 border-transparent border-l-white'
+                      : 'absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-white'
               }
             />
           )}

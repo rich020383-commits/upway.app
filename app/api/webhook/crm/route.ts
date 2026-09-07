@@ -16,7 +16,7 @@ export async function POST(req: Request) {
 
     const callData = body.message.call;
     const vapiAssistantId = callData?.assistantId;
-    
+
     // Captura robusta para todas las versiones de payloads de Vapi
     const toolCalls = body.message.toolCalls || body.message.toolWithToolCallList || [];
 
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
     if (!tienda) {
       return NextResponse.json({
-        results: toolCalls.map((item: any) => ({
+        results: toolCalls.map((item: { id?: string; toolCall?: { id?: string } }) => ({
           toolCallId: item.id || item.toolCall?.id,
           result: "Error: No se encontró la base de datos de la empresa."
         }))
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       if (typeof args === 'string') {
         try {
           args = JSON.parse(args);
-        } catch (e) {
+        } catch {
           args = {};
         }
       }
@@ -66,11 +66,11 @@ export async function POST(req: Request) {
       if (toolName === 'consultar_paciente') {
         try {
           const { documento } = args || {};
-          
+
           const pacienteEncontrado = await prisma.lead.findFirst({
-            where: { 
+            where: {
               tiendaId: tienda.id,
-              documento: documento 
+              documento: documento
             }
           });
 
@@ -92,7 +92,7 @@ export async function POST(req: Request) {
           toolCallResults.push({ toolCallId, result: "Error al consultar la base de datos." });
         }
       }
-      
+
       // ==========================================
       // 💾 HERRAMIENTA 2: AGENDAR / GUARDAR LEAD
       // ==========================================

@@ -1,6 +1,6 @@
 // 📱 Lógica de WhatsApp (Meta) extraída del webhook para mantener el route como dispatcher delgado
 import { prisma } from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
+import { Prisma, MessageStatus } from '@prisma/client';
 import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { createLeadFromInbound } from '@/lib/business-ops';
@@ -43,6 +43,18 @@ export interface MetaWebhookBody {
     changes?: Array<{ field?: string; value?: MetaWebhookValue }>;
   }>;
 }
+
+/** Payload de envío de mensaje de texto a la API de WhatsApp Cloud (Meta) */
+export interface MetaTextMessagePayload {
+  messaging_product: 'whatsapp';
+  to: string;
+  type: 'text';
+  text: { body: string };
+}
+
+/** Estados válidos del enum MessageStatus de Prisma */
+const VALID_MESSAGE_STATUSES = ['SENT', 'DELIVERED', 'READ', 'FAILED'] as const;
+type ValidMessageStatus = (typeof VALID_MESSAGE_STATUSES)[number];
 
 if (!process.env.META_VERIFY_TOKEN) {
   console.warn('⚠️ [WHATSAPP] Falta META_VERIFY_TOKEN: la verificación GET del webhook de Meta rechazará todas las solicitudes hasta configurarlo.');
@@ -264,18 +276,7 @@ type WhatsAppConversationMessage = {
   content: string;
 };
 
-export async function generarRespuesta(
-  textoCliente: string,
-  phoneId: string,
-  tiendaRecord: TiendaContext | null,
-  conversationHistory: WhatsAppConversationMessage[] = []
-) {
-  let systemPromptText = "";
-  const isVip = (phoneId === UPWAY_PHONE_ID || phoneId === INWORKER_PHONE_ID);
-
-  if (isVip) {
-    console.log(`👑 Canal VIP (${phoneId}). Preparando IA...`);
-    const promptPorDefecto = `Rol: Eres Sophie v2, agente comercial y operativo de Upway. Tu marca pública es Upway. No hables como “Upway 2.0”. “v2” es el nombre del agente, no la marca del producto.
+const SOPHIE_VIP_PROMPT = `Rol: Eres Sophie v2, agente comercial y operativo de Upway. Tu marca pública es Upway. No hables como “Upway 2.0”. “v2” es el nombre del agente, no la marca del producto.
 
 Estilo: directo, elegante, muy claro, orientado a negocio real. Eres experta en triage, agenda inteligente, atención 24/7, lead qualification, escalamiento y coordinación operativa.
 
@@ -333,6 +334,12 @@ MODELO DE COSTO Y NEGOCIACIÓN:
 - Si el usuario pregunta por precios, responde con estructura y recomendación basada en volumen, complejidad y operación.
 - Si el cliente está listo, ofrece instalación e implementación por el equipo de Upway.
 
+🚨 REGLA SUPREMA DE TRANSFERENCIA A HUMANO (PRECIO Y TIEMPO DE IMPLEMENTACIÓN):
+Si el cliente pide hablar con un asesor humano, una persona real, o solicita precio exacto y tiempo de implementación:
+- CORTA cualquier diagnóstico adicional. No calcules ni estimes nada.
+- Tu respuesta DEBE incluir exactamente este texto al final: "Con gusto te conecto de inmediato con nuestro equipo humano, ellos te confirman la tarifa exacta y el tiempo de implementación para tu operación. [TRANSFERIR_HUMANO]"
+- Es la única forma de derivar al cliente: emite SIEMPRE el marcador [TRANSFERIR_HUMANO] en esos casos.
+
 RESTRICCIONES IMPORTANTES:
 - No menciones Vapi ni marcas de infraestructura de forma visible al cliente.
 - No hables del proveedor de IA como si fuera el producto.
@@ -366,7 +373,18 @@ Si el usuario pide crear, estructurar o mejorar un prompt para un agente de voz 
 META PRINCIPAL:
 Tu objetivo es convertir la conversación en una próxima acción real: diagnóstico, activación del flujo, onboarding o implementación con el equipo de Upway. No te quedes en charla superficial. Debes empujar a la siguiente etapa.`;
 
-    systemPromptText = tiendaRecord?.systemPrompt || promptPorDefecto;
+export async function generarRespuesta(
+  textoCliente: string,
+  phoneId: string,
+  tiendaRecord: TiendaContext | null,
+  conversationHistory: WhatsAppConversationMessage[] = []
+) {
+  let systemPromptText = "";
+  const isVip = (phoneId === UPWAY_PHONE_ID || phoneId === INWORKER_PHONE_ID);
+
+  if (isVip) {
+    console.log(`👑 Canal VIP (${phoneId}). Preparando IA...`);
+    systemPromptText = tiendaRecord?.systemPrompt || SOPHIE_VIP_PROMPT;
   } else {
     console.log(`🏢 Usando base de datos del cliente para el número: ${phoneId}`);
 
@@ -395,80 +413,18 @@ Tu objetivo es convertir la conversación en una próxima acción real: diagnós
 
   const formattedMessages = [
     { role: 'system' as const, content: systemPromptText },
-    ...conversationHistory.slice(-12, -1).map((message) => ({
+    // Historial previo (ya sin el turno actual, que se persiste después de
+    // leerlo; el turno actual va al final como user).
+    ...conversationHistory.map((message) => ({
       role: message.senderRole === 'AI' || message.senderRole === 'HUMAN' ? 'assistant' as const : 'user' as const,
       content: message.content
     })),
     { role: 'user' as const, content: textoCliente }
   ];
 
-  type ProviderConfig<T> = {
-    name: string;
-    timeout: number;
-    run: (client: T) => Promise<string>;
-    client?: T | null;
-  };
+  const providers = buildProviderCascade({ formattedMessages, systemPromptText, textoCliente });
 
-  type OpenAiCompatibleClient = Pick<OpenAI, 'chat'>;
-
-  const openAiCompatible = (model: string) => async (client: OpenAiCompatibleClient) => {
-    const completion = await client.chat.completions.create({
-      model,
-      messages: formattedMessages,
-      temperature: 0.3,
-    });
-    return completion.choices[0]?.message?.content || '';
-  };
-
-  const openAiProviders: ProviderConfig<OpenAiCompatibleClient>[] = [
-    { name: 'Groq 🚀 (Plan A)', client: groqClient, timeout: 3500, run: openAiCompatible('openai/gpt-oss-20b') },
-    { name: 'SambaNova ⚡ (Plan B)', client: sambanovaClient, timeout: 3500, run: openAiCompatible('Meta-Llama-3.1-8B-Instruct') },
-    { name: 'Mistral 🔥 (Plan C)', client: mistralClient, timeout: 3500, run: openAiCompatible('mistral-small-latest') },
-    { name: 'OpenRouter 🃏 (Plan D)', client: openRouterClient, timeout: 3500, run: openAiCompatible('openrouter/free') },
-    { name: 'Kimi ✨ (Plan E)', client: kimiClient, timeout: 4500, run: openAiCompatible(kimiModelName) },
-    { name: 'Cerebras ⚡ (Plan F)', client: cerebrasClient, timeout: 3500, run: openAiCompatible('llama-3.3-70b') }
-  ];
-
-  const providerConfigs: Array<ProviderConfig<OpenAiCompatibleClient> | ProviderConfig<GoogleGenerativeAI>> = [
-    ...openAiProviders,
-    {
-      name: 'Gemini Premium 🛡️ (Escudo Final)',
-      client: geminiGenAI,
-      timeout: 4500,
-      run: async (client: GoogleGenerativeAI) => {
-        const model = client.getGenerativeModel({
-          model: 'gemini-2.5-flash',
-          systemInstruction: systemPromptText,
-          generationConfig: { temperature: 0.45, maxOutputTokens: 280 }
-        });
-        const result = await model.generateContent(textoCliente);
-        return result.response.text();
-      }
-    }
-  ];
-
-  const providers = providerConfigs
-    .filter((p): p is typeof p & { client: OpenAiCompatibleClient | GoogleGenerativeAI } => Boolean(p.client))
-    .map((p) => ({ name: p.name, timeout: p.timeout, execute: () => p.run(p.client as never) }));
-
-  let lastError: unknown;
-  for (const provider of providers) {
-    try {
-      const reply = await withTimeout(provider.execute(), provider.timeout, provider.name);
-      if (!reply || !reply.trim()) throw new Error(`${provider.name} devolvió respuesta vacía`);
-
-      console.log(`✅ [WEBHOOK] Respondido exitosamente con: ${provider.name}`);
-      return reply;
-    } catch (error) {
-      console.warn(`🔴 ERROR EXACTO DE ${provider.name}:`, error);
-      console.warn(`⚠️ [WEBHOOK] ${provider.name} falló. Activando relevo...`);
-      await sendProviderAlert(provider.name, error);
-      lastError = error;
-    }
-  }
-
-  console.error('🔴 CRÍTICO: Todos los motores de la cascada fallaron en el Webhook.', lastError);
-  return "⚠️ Estoy recibiendo demasiados mensajes en este momento. Por favor, escríbeme en un par de minutos.";
+  return await runProviderCascade(providers);
 }
 
 // ==========================================
@@ -479,7 +435,7 @@ export async function enviarMensajePorWhatsApp(destinoTelefono: string, mensaje:
 
   const url = `https://graph.facebook.com/v20.0/${phoneId}/messages`;
 
-  const payload: any = {
+  const payload: MetaTextMessagePayload = {
     messaging_product: 'whatsapp',
     to: destinoTelefono,
     type: 'text',
@@ -515,14 +471,14 @@ export async function handleStatusUpdate(value: MetaWebhookValue): Promise<void>
     const currentStatus = statusObj.status;
     const normalizedStatus = currentStatus?.toUpperCase();
 
-    if (!normalizedStatus || !['SENT', 'DELIVERED', 'READ', 'FAILED'].includes(normalizedStatus)) {
+    if (!normalizedStatus || !VALID_MESSAGE_STATUSES.includes(normalizedStatus as ValidMessageStatus)) {
       continue;
     }
 
     try {
       await prisma.message.update({
         where: { metaMessageId: metaMessageId },
-        data: { status: normalizedStatus as any }
+        data: { status: normalizedStatus as MessageStatus }
       });
     } catch (e) {
       // Ignoramos si el mensaje no existe en la DB
@@ -552,7 +508,7 @@ async function handleHumanHandoff(params: {
     });
   }
 
-  const msgCliente = "Comprendo perfectamente. Te voy a transferir con uno de nuestros asesores humanos. Por favor, dame un momento.";
+  const msgCliente = "Comprendo perfectamente. Te voy a conectar de inmediato con uno de nuestros asesores humanos: te confirmarán la tarifa exacta y el tiempo de implementación para tu operación. En un momento te escriben por aquí mismo.";
   await enviarMensajePorWhatsApp(userPhone, msgCliente, phoneIdDestino, dynamicToken);
 
   // 🚀 DINÁMICO: Usamos el celular guardado por el admin en su onboarding (o un fallback)
@@ -704,6 +660,25 @@ async function resolveBusinessContext(payload: ReturnType<typeof extractMessageP
   let isAiActive = true;
 
   if (payload.phoneIdDestino !== UPWAY_PHONE_ID && tiendaRecord) {
+    // 🕐 Historial ANTES de persistir el mensaje entrante: así el último
+    // registro es el turno anterior del cliente y el modelo ve una ventana
+    // coherente (el turno actual se pasa aparte como textoCliente).
+    if (typeof tiendaRecord.id === 'string' && tiendaRecord.id) {
+      const existingLead = await prisma.lead.findFirst({
+        where: { tiendaId: tiendaRecord.id, phone: payload.userPhone },
+        include: { conversations: { orderBy: { createdAt: 'desc' }, take: 1 } },
+      });
+      const existingConversationId = existingLead?.conversations?.[0]?.id ?? null;
+      if (existingConversationId) {
+        conversationHistory = await prisma.message.findMany({
+          where: { conversationId: existingConversationId },
+          orderBy: { createdAt: 'asc' },
+          take: 12,
+          select: { senderRole: true, content: true }
+        });
+      }
+    }
+
     conversationId = await persistConversation({
       tiendaRecord,
       userName: payload.userName,
@@ -711,14 +686,6 @@ async function resolveBusinessContext(payload: ReturnType<typeof extractMessageP
       textoCliente,
       msgIdEntrante: payload.msgIdEntrante
     });
-    if (conversationId) {
-      conversationHistory = await prisma.message.findMany({
-        where: { conversationId },
-        orderBy: { createdAt: 'asc' },
-        take: 12,
-        select: { senderRole: true, content: true }
-      });
-    }
     isAiActive = Boolean(tiendaRecord.isAiActive);
   }
 
@@ -744,6 +711,16 @@ async function deliverAndRecordReply(
 // ==========================================
 // 🚀 EL ORQUESTADOR FINAL (Pipeline Limpio)
 // ==========================================
+// 🚨 Detección de intención de handoff: la IA emite [TRANSFERIR_HUMANO] o el
+// cliente lo pide explícitamente con frases comunes (red de seguridad si el
+// modelo no genera el marcador).
+const HUMAN_REQUEST_PATTERN = /(hablar (con|a) (un|una) (asesor|persona|humano|agente|consultor)|asesor humano|persona real|humano real|hablar con alguien|me atienda alguien|transferirme (con|a)|hablar con sophie humana)/i;
+
+function shouldHandoffToHuman(respuesta: string, textoCliente: string): boolean {
+  if (respuesta.includes('[TRANSFERIR_HUMANO]')) return true;
+  return HUMAN_REQUEST_PATTERN.test(textoCliente);
+}
+
 export async function handleIncomingMessage(value: MetaWebhookValue): Promise<void> {
   try {
     // 1. Extracción de Payload
@@ -769,7 +746,7 @@ export async function handleIncomingMessage(value: MetaWebhookValue): Promise<vo
     );
 
     // 🚨 Handoff Inteligente
-    if (respuesta.includes('[TRANSFERIR_HUMANO]')) {
+    if (shouldHandoffToHuman(respuesta, context.textoCliente)) {
       await handleHumanHandoff({
         userPhone: context.userPhone,
         userName: context.userName,
@@ -786,5 +763,95 @@ export async function handleIncomingMessage(value: MetaWebhookValue): Promise<vo
 
   } catch (error) {
     console.error('❌ Fallo crítico en el pipeline de handleIncomingMessage:', error);
+    // 🚨 Observable: alerta al canal de monitoreo si está configurado, para que
+    // el fallo no quede solo en los logs del servidor.
+    await sendMonitorAlert(`❌ Upway Webhook: fallo crítico procesando un mensaje entrante. ${String(error)}`);
   }
+}
+
+// ==========================================
+// 🏗️ CASCADA DE PROVEEDORES (construcción y relevo)
+// ==========================================
+type ProviderConfig<T> = {
+  name: string;
+  timeout: number;
+  run: (client: T) => Promise<string>;
+  client?: T | null;
+};
+
+type OpenAiCompatibleClient = Pick<OpenAI, 'chat'>;
+
+type CascadeProvider = {
+  name: string;
+  timeout: number;
+  execute: () => Promise<string>;
+};
+
+function buildProviderCascade(params: {
+  formattedMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
+  systemPromptText: string;
+  textoCliente: string;
+}): CascadeProvider[] {
+  const { formattedMessages, systemPromptText, textoCliente } = params;
+
+  const openAiCompatible = (model: string) => async (client: OpenAiCompatibleClient) => {
+    const completion = await client.chat.completions.create({
+      model,
+      messages: formattedMessages,
+      temperature: 0.3,
+    });
+    return completion.choices[0]?.message?.content || '';
+  };
+
+  const openAiProviders: ProviderConfig<OpenAiCompatibleClient>[] = [
+    { name: 'Groq 🚀 (Plan A)', client: groqClient, timeout: 3500, run: openAiCompatible('openai/gpt-oss-20b') },
+    { name: 'SambaNova ⚡ (Plan B)', client: sambanovaClient, timeout: 3500, run: openAiCompatible('Meta-Llama-3.1-8B-Instruct') },
+    { name: 'Mistral 🔥 (Plan C)', client: mistralClient, timeout: 3500, run: openAiCompatible('mistral-small-latest') },
+    { name: 'OpenRouter 🃏 (Plan D)', client: openRouterClient, timeout: 3500, run: openAiCompatible('openrouter/free') },
+    { name: 'Kimi ✨ (Plan E)', client: kimiClient, timeout: 4500, run: openAiCompatible(kimiModelName) },
+    { name: 'Cerebras ⚡ (Plan F)', client: cerebrasClient, timeout: 3500, run: openAiCompatible('llama-3.3-70b') }
+  ];
+
+  const providerConfigs: Array<ProviderConfig<OpenAiCompatibleClient> | ProviderConfig<GoogleGenerativeAI>> = [
+    ...openAiProviders,
+    {
+      name: 'Gemini Premium 🛡️ (Escudo Final)',
+      client: geminiGenAI,
+      timeout: 4500,
+      run: async (client: GoogleGenerativeAI) => {
+        const model = client.getGenerativeModel({
+          model: 'gemini-2.5-flash',
+          systemInstruction: systemPromptText,
+          generationConfig: { temperature: 0.45, maxOutputTokens: 280 }
+        });
+        const result = await model.generateContent(textoCliente);
+        return result.response.text();
+      }
+    }
+  ];
+
+  return providerConfigs
+    .filter((p): p is typeof p & { client: OpenAiCompatibleClient | GoogleGenerativeAI } => Boolean(p.client))
+    .map((p) => ({ name: p.name, timeout: p.timeout, execute: () => p.run(p.client as never) }));
+}
+
+async function runProviderCascade(providers: CascadeProvider[]): Promise<string> {
+  let lastError: unknown;
+  for (const provider of providers) {
+    try {
+      const reply = await withTimeout(provider.execute(), provider.timeout, provider.name);
+      if (!reply || !reply.trim()) throw new Error(`${provider.name} devolvió respuesta vacía`);
+
+      console.log(`✅ [WEBHOOK] Respondido exitosamente con: ${provider.name}`);
+      return reply;
+    } catch (error) {
+      console.warn(`🔴 ERROR EXACTO DE ${provider.name}:`, error);
+      console.warn(`⚠️ [WEBHOOK] ${provider.name} falló. Activando relevo...`);
+      await sendProviderAlert(provider.name, error);
+      lastError = error;
+    }
+  }
+
+  console.error('🔴 CRÍTICO: Todos los motores de la cascada fallaron en el Webhook.', lastError);
+  return "⚠️ Estoy recibiendo demasiados mensajes en este momento. Por favor, escríbeme en un par de minutos.";
 }

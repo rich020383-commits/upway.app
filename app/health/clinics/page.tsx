@@ -3,9 +3,9 @@ import { buildHealthQuery } from '@/lib/health/data';
 export default function HealthClinicsPage() {
   const query = buildHealthQuery({ organizationId: 'org-1', clinicId: 'clinic-1', role: 'clinic-admin' }, 'clinics');
 
-  // 🔥 Eliminamos las clínicas hardcodeadas. 
+  // 🔥 Eliminamos las clínicas hardcodeadas.
   // Reemplaza este arreglo vacío con los datos reales que vienen de tu backend/contexto.
-  const clinics: any[] = []; 
+  const clinics: { name: string; status: string; specialty: string; region: string }[] = [];
 
   return (
     <div className="space-y-6">

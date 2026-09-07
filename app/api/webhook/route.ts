@@ -49,6 +49,8 @@ export async function POST(req: Request) {
     });
 
     if (body?.object === 'whatsapp_business_account') {
+      // Meta puede agrupar varios entries/changes en un mismo payload: se
+      // procesan TODOS, no solo el primero.
       for (const entry of body.entry || []) {
         for (const change of entry.changes || []) {
           const value = change.value;
@@ -62,13 +64,13 @@ export async function POST(req: Request) {
           if (value?.messages?.length) {
             // Registramos la promesa con after() para que el runtime de Next
             // mantenga la invocación viva hasta terminar y capture fallos,
-            // mientras respondemos 200 a Meta de inmediato.
+            // mientras respondemos 200 a Meta de inmediato. Se programa UNA
+            // tarea por cada change con mensajes, sin cortar el loop.
             after(() =>
               handleIncomingMessage(value).catch((error) => {
                 console.error('❌ [WEBHOOK] Fallo procesando el mensaje entrante:', error);
               })
             );
-            return new NextResponse(null, { status: 200 });
           }
         }
       }

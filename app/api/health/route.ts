@@ -1,17 +1,17 @@
 import { enforceHealthAccess } from '@/lib/health/access';
-import { summarizeHealthMetrics } from '@/lib/health/data';
+import { summarizeDemoHealthMetrics } from '@/lib/health/data';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const role = searchParams.get('role') ?? 'clinic-admin';
-  const module = 'overview' as const;
+  const moduleName = 'overview' as const;
   const organizationId = searchParams.get('organizationId') ?? undefined;
   const clinicId = searchParams.get('clinicId') ?? undefined;
 
   try {
-    enforceHealthAccess({ role, module });
+    enforceHealthAccess({ role, module: moduleName });
 
-    const metrics = await summarizeHealthMetrics({ organizationId: organizationId ?? undefined, clinicId: clinicId ?? undefined, role });
+    const metrics = await summarizeDemoHealthMetrics({ organizationId: organizationId ?? undefined, clinicId: clinicId ?? undefined, role });
 
     return Response.json({
       vertical: 'health',

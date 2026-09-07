@@ -24,7 +24,19 @@ function getFallbackMetrics() {
   };
 }
 
-export async function summarizeHealthMetrics(scope: TenantScope = {}) {
+/**
+ * DERIVED/DEMO METRICS — NOT real operational data.
+ *
+ * These values are synthesized from configuration state (number of triage rules,
+ * FAQs, compliance policies, onboarding status) to seed the health dashboard UI
+ * while real conversation/agent analytics are not yet available. They do NOT
+ * count actual Message/Conversation records.
+ *
+ * To wire this to real data, replace the derived values below with Prisma
+ * aggregate queries against the `Conversation` and `Message` models
+ * (e.g. counts by status, response times from message timestamps).
+ */
+export async function summarizeDemoHealthMetrics(scope: TenantScope = {}) {
   const clinicWhere = scope.clinicId
     ? { id: scope.clinicId }
     : scope.organizationId

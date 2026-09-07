@@ -34,7 +34,18 @@ export default function HealthPoliciesPage() {
   };
 
   useEffect(() => {
-    loadPolicies();
+    const load = async () => {
+      try {
+        const res = await fetch('/api/health/policies');
+        const data = await res.json();
+        setPolicies(data.items ?? []);
+      } catch (error) {
+        console.error('Error cargando políticas:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
   }, []);
 
   const handleCreate = async () => {

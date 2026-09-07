@@ -1,7 +1,8 @@
-import { summarizeHealthMetrics } from '@/lib/health/data';
+import { summarizeDemoHealthMetrics } from '@/lib/health/data';
 
 export default async function HealthOverviewPage() {
-  const metrics = await summarizeHealthMetrics();
+  // Derived/demo metrics synthesized from clinic configuration — not real Message/Conversation counts.
+  const metrics = await summarizeDemoHealthMetrics();
 
   const statCards = [
     { label: 'Atenciones', value: metrics.conversations, delta: '0%' },
