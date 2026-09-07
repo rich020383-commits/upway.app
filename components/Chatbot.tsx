@@ -314,7 +314,7 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
                         <motion.a
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          href={waAdvisorLink || `https://wa.me/573116778098`}
+                          href={waAdvisorLink || `https://wa.me/573126427824`}
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={() => setWaAdvisorLink(null)}
