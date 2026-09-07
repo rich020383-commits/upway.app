@@ -5,6 +5,14 @@ import { useSession } from 'next-auth/react';
 import { Bot, User, Send, Check, CheckCheck, Loader2, ArrowLeft, Power } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+interface ConversationSummary {
+  id: string;
+  name: string;
+  lastMessage: string;
+  unread: number;
+  status: string;
+}
+
 interface TiendaData {
   tiendaId: string;
   token: string;
