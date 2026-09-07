@@ -22,7 +22,7 @@ function Paso01Infraestructura() {
 
       <SkipToPanelLink />
 
-      <div className="mx-auto md:max-w-5xl px-6 pt-12 md:pt-20">
+      <div className="mx-auto max-w-7xl px-6 pt-12 md:pt-20">
         <OnboardingProgress
           current={1}
           total={5}
@@ -126,7 +126,7 @@ function Paso01Infraestructura() {
 
       {/* Barra Inferior Persistente (Sin restricción de precios por ahora) */}
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/90 backdrop-blur-xl p-6 shadow-[0_-10px_40px_rgba(15,23,42,0.05)]">
-        <div className="mx-auto flex md:max-w-5xl items-center justify-between">
+        <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div>
             <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
               Estado de arquitectura

@@ -113,7 +113,7 @@ function CACPage() {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(95,144,255,0.12),_transparent_30%),linear-gradient(180deg,_#edf4ff_0%,_#f8fbff_100%)] text-slate-900">
-      <header className="mx-auto flex w-full md:max-w-6xl items-center justify-between px-6 py-8 md:px-10">
+      <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-8 md:px-10">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white/80 shadow-sm">
             <Building2 className="h-5 w-5 text-[#1b5ed6]" />
@@ -130,7 +130,7 @@ function CACPage() {
         </div>
       </header>
 
-      <main className="mx-auto md:max-w-6xl px-6 pb-20 md:px-10">
+      <main className="mx-auto max-w-7xl px-6 pb-20 md:px-10">
         <section className="rounded-[32px] border border-slate-200 bg-white/80 p-6 shadow-[0_30px_80px_rgba(15,23,42,0.08)] backdrop-blur-sm md:p-8">
           <div className="md:max-w-3xl">
             <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-[#1b5ed6]">

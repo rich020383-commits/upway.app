@@ -60,11 +60,11 @@ export default function Paso04Conocimiento() {
   return (
     // 🔥 EL CASCARÓN: h-full y flex-col congelan la pantalla general
     <div className="flex flex-col h-full w-full relative bg-transparent text-[#F5F7FA]">
-      
+
       {/* Botón de Saltar */}
       <div className="absolute top-4 right-4 md:top-6 md:right-8 z-50">
-        <Link 
-          href="/dashboard" 
+        <Link
+          href="/dashboard"
           className="text-xs md:text-sm font-semibold text-[#8994A6] hover:text-[#19C8E8] flex items-center gap-2 bg-[#1E293B]/30 hover:bg-[#1E293B] px-4 py-2 md:px-5 md:py-2.5 rounded-xl transition-all duration-300 border border-[#1E293B]/50 hover:border-[#19C8E8]/30"
         >
           Ir al Panel
@@ -75,8 +75,8 @@ export default function Paso04Conocimiento() {
       </div>
 
       {/* 🔥 EL RESORTE CENTRAL: Distribuye el contenido perfectamente al centro */}
-      <div className="flex-1 w-full md:max-w-4xl mx-auto px-6 py-4 mt-8 md:mt-2 flex flex-col justify-center overflow-y-auto no-scrollbar">
-        
+      <div className="flex-1 w-full max-w-7xl mx-auto px-6 py-4 mt-8 md:mt-2 flex flex-col justify-center overflow-y-auto no-scrollbar">
+
         {/* Barra de progreso / Narrativa */}
         <div className="mb-6 md:mb-8">
           <div className="flex items-center gap-3 text-[#8994A6] text-[10px] md:text-xs font-semibold tracking-widest uppercase mb-4 md:mb-6">
@@ -84,7 +84,7 @@ export default function Paso04Conocimiento() {
             <span className="w-1 h-1 rounded-full bg-[#8994A6]"></span>
             <span className="text-[#F5F7FA]">04 / 05</span>
           </div>
-          
+
           <div className="flex gap-2 mb-6 md:mb-8">
             <div className="h-1 flex-1 bg-[#19C8E8] rounded-full"></div>
             <div className="h-1 flex-1 bg-[#19C8E8] rounded-full"></div>
@@ -103,21 +103,21 @@ export default function Paso04Conocimiento() {
         </div>
 
         {/* Tarjeta Principal de Importación */}
-        <div className="md:max-w-2xl mx-auto w-full pb-4">
+        <div className="max-w-7xl mx-auto w-full pb-4">
           <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-6 md:p-10 relative overflow-hidden shadow-2xl">
-            
+
             {/* Background pattern sutil */}
             <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#F5F7FA 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
 
             <div className="relative z-10 flex flex-col items-center text-center">
-              
+
               {/* Icono de estado */}
               <div className="mb-6 md:mb-8">
                 <div className={`p-4 md:p-5 rounded-2xl transition-all duration-500 border ${
-                  completado 
-                    ? 'bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]' 
-                    : cargando 
-                      ? 'bg-[#19C8E8]/10 border-[#19C8E8]/30 text-[#19C8E8]' 
+                  completado
+                    ? 'bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]'
+                    : cargando
+                      ? 'bg-[#19C8E8]/10 border-[#19C8E8]/30 text-[#19C8E8]'
                       : 'bg-[#1E293B]/50 border-[#1E293B] text-[#8994A6]'
                 }`}>
                   {cargando ? (
@@ -134,7 +134,7 @@ export default function Paso04Conocimiento() {
               <h2 className="text-xl md:text-2xl font-bold mb-2 md:mb-3 text-[#F5F7FA]">
                 {cargando ? 'Importando catálogo...' : completado ? 'Catálogo importado' : omitido ? 'Paso omitido' : 'Listo para importar tu catálogo'}
               </h2>
-              
+
               <div className="mb-6 md:mb-8">
                 {cargando ? (
                   <p className="text-[#8994A6] text-xs md:text-sm">Procesando el archivo, esto toma unos segundos.</p>
@@ -164,7 +164,7 @@ export default function Paso04Conocimiento() {
               {/* Botones de Acción */}
               {!completado && !omitido && (
                 <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm mx-auto">
-                  <button 
+                  <button
                     onClick={handleSeleccionarArchivo}
                     disabled={cargando}
                     className="flex-1 bg-[#F5F7FA] text-[#07090C] px-6 py-3 md:px-8 md:py-3.5 rounded-xl font-bold hover:bg-[#E2E8F0] transition-all flex items-center justify-center gap-2 shadow-lg text-sm md:text-base disabled:opacity-60"
@@ -190,7 +190,7 @@ export default function Paso04Conocimiento() {
 
       {/* 🔥 BARRA INFERIOR: Anclada (shrink-0) */}
       <div className="shrink-0 w-full bg-[#07090C]/90 backdrop-blur-xl border-t border-[#1E293B] px-6 py-4 z-40">
-        <div className="md:max-w-4xl mx-auto flex justify-between items-center">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div>
             <p className="text-[#8994A6] text-[10px] md:text-xs font-semibold uppercase tracking-wider mb-1">
               Paso 4 {puedeContinuar ? 'completado' : 'pendiente'}
@@ -199,7 +199,7 @@ export default function Paso04Conocimiento() {
               {completado ? 'Memoria conectada' : omitido ? 'Configurable después' : 'Importa tu catálogo'}
             </p>
           </div>
-          <button 
+          <button
             onClick={() => router.push('/dashboard/onboarding/simulador')}
             disabled={!puedeContinuar}
             className="bg-[#F5F7FA] text-[#07090C] px-6 py-2.5 md:px-8 md:py-3.5 rounded-xl font-bold hover:bg-[#E2E8F0] transition-colors disabled:opacity-20 flex items-center gap-2 text-sm md:text-base"
@@ -208,7 +208,7 @@ export default function Paso04Conocimiento() {
           </button>
         </div>
       </div>
-      
+
     </div>
   );
 }
