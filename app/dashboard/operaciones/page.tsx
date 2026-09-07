@@ -163,6 +163,11 @@ export default function OperacionesPage() {
   const [timelineLoading, setTimelineLoading] = useState(false);
   const [bookingLeadId, setBookingLeadId] = useState<string | null>(null);
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
+  const [collapsedStages, setCollapsedStages] = useState<Record<string, boolean>>({});
+
+  const toggleStageCollapse = (stageKey: string) => {
+    setCollapsedStages((current) => ({ ...current, [stageKey]: !current[stageKey] }));
+  };
 
   const loadDashboard = async () => {
     try {
@@ -612,17 +617,38 @@ export default function OperacionesPage() {
                 </div>
               ))}
             </div>
-            <div className="grid gap-4 xl:grid-cols-5">
+            <div className="grid items-start gap-4 xl:grid-cols-5">
               {pipelineColumns.map((stage) => (
-                <div key={stage.key} className="rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50 to-white p-3 shadow-[0_12px_35px_rgba(15,23,42,0.04)]">
-                  <div className="mb-3 flex items-center justify-between border-b border-slate-200 pb-2">
-                    <span className="text-sm font-medium text-slate-900">{stage.label}</span>
-                    <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] text-slate-600">
-                      {stage.leads.length}
+                <div key={stage.key} className="flex flex-col rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50 to-white p-3 shadow-[0_12px_35px_rgba(15,23,42,0.04)]">
+                  <button
+                    type="button"
+                    onClick={() => toggleStageCollapse(stage.key)}
+                    title={collapsedStages[stage.key] ? 'Expandir esta etapa del pipeline' : 'Colapsar esta etapa del pipeline'}
+                    className="mb-3 flex w-full items-center justify-between gap-2 border-b border-slate-200 pb-2 text-left transition hover:text-sky-700"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <span
+                        className={`text-slate-400 transition-transform duration-200 ${collapsedStages[stage.key] ? '-rotate-90' : 'rotate-0'}`}
+                        aria-hidden="true"
+                      >
+                        ▾
+                      </span>
+                      <span className="text-sm font-medium text-slate-900">{stage.label}</span>
                     </span>
-                  </div>
+                    <span className="flex items-center gap-2">
+                      <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] text-slate-600">
+                        {stage.leads.length}
+                      </span>
+                      <span
+                        className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${collapsedStages[stage.key] ? 'text-sky-600' : 'text-slate-400'}`}
+                      >
+                        {collapsedStages[stage.key] ? 'Ver' : 'Ocultar'}
+                      </span>
+                    </span>
+                  </button>
 
-                  <div className="space-y-3">
+                  {!collapsedStages[stage.key] && (
+                  <div className="max-h-[420px] min-h-[120px] flex-1 space-y-3 overflow-y-auto pr-1">
                     {stage.leads.length === 0 ? (
                       <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-3 text-center text-xs text-slate-500">
                         Vacío
@@ -715,6 +741,12 @@ export default function OperacionesPage() {
                       })
                     )}
                   </div>
+                  )}
+                  {collapsedStages[stage.key] && stage.leads.length > 0 && (
+                    <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 py-2 text-center text-xs text-slate-500">
+                      {stage.leads.length} lead{stage.leads.length === 1 ? '' : 's'} oculto{stage.leads.length === 1 ? '' : 's'} — pulsa «Ver»
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
