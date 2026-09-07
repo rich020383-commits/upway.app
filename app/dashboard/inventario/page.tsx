@@ -9,8 +9,8 @@ type Producto = { id: string; nombre: string; categoria: string; precio: number 
 export default function InventarioPage() {
   const [metodoCarga, setMetodoCarga] = useState<'manual' | 'csv'>('manual');
   // Iniciamos la base de datos vacía para que se vea limpio
-  const [productos, setProductos] = useState<Producto[]>([]); 
-  
+  const [productos, setProductos] = useState<Producto[]>([]);
+
   // Estados del formulario manual
   const [nombre, setNombre] = useState('');
   const [precio, setPrecio] = useState('');
@@ -19,14 +19,14 @@ export default function InventarioPage() {
   const handleAgregarManual = (e: React.FormEvent) => {
     e.preventDefault();
     if (!nombre || !precio) return;
-    
+
     const nuevo: Producto = {
       id: Math.random().toString(36).substring(7),
       nombre,
       categoria: categoria || 'General',
       precio: parseFloat(precio)
     };
-    
+
     setProductos([nuevo, ...productos]);
     setNombre('');
     setPrecio('');
@@ -41,9 +41,9 @@ export default function InventarioPage() {
 
   return (
     <div className="min-h-screen bg-[#07090C] text-[#F5F7FA] font-sans pb-20 selection:bg-[#9B5CFF] selection:text-[#07090C]">
-      
-      <div className="max-w-6xl mx-auto px-6 pt-12 md:pt-16">
-        
+
+      <div className="max-w-6xl mx-auto px-3 pt-12 sm:px-6 md:pt-16">
+
         {/* Header Premium */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 pb-6 border-b border-[#1E293B]">
           <div>
@@ -57,24 +57,24 @@ export default function InventarioPage() {
               Alimenta a tu empleado digital con tu inventario. La IA consultará estos datos en tiempo real para generar respuestas precisas.
             </p>
           </div>
-          
+
           <button className="inline-flex items-center gap-2 rounded-xl bg-[#F5F7FA] text-[#07090C] px-5 py-2.5 text-sm font-bold hover:bg-[#E2E8F0] transition-all shadow-[0_0_20px_rgba(245,247,250,0.1)]">
             <Database className="h-4 w-4" /> Forzar Indexación
           </button>
         </div>
 
         <div className="grid lg:grid-cols-[1fr_1.5fr] gap-8">
-          
+
           {/* COLUMNA IZQUIERDA: Ingesta de Datos */}
           <div className="space-y-6">
             <div className="rounded-2xl border border-[#1E293B] bg-[#0D1117] p-8 shadow-xl">
               <h2 className="text-lg font-bold text-[#F5F7FA] mb-6 flex items-center gap-2">
                 <UploadCloud className="h-5 w-5 text-[#9B5CFF]" /> Ingesta de Datos
               </h2>
-              
+
               {/* Selector de Método */}
               <div className="flex p-1 bg-[#07090C] border border-[#1E293B] rounded-xl mb-8">
-                <button 
+                <button
                   onClick={() => setMetodoCarga('manual')}
                   className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
                     metodoCarga === 'manual' ? 'bg-[#1E293B] text-[#F5F7FA]' : 'text-[#8994A6] hover:text-[#F5F7FA]'
@@ -82,7 +82,7 @@ export default function InventarioPage() {
                 >
                   Registro Manual
                 </button>
-                <button 
+                <button
                   onClick={() => setMetodoCarga('csv')}
                   className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
                     metodoCarga === 'csv' ? 'bg-[#1E293B] text-[#F5F7FA]' : 'text-[#8994A6] hover:text-[#F5F7FA]'
@@ -96,27 +96,27 @@ export default function InventarioPage() {
                 <form onSubmit={handleAgregarManual} className="space-y-5">
                   <div>
                     <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#8994A6]">Nombre del Producto / Servicio</label>
-                    <input 
+                    <input
                       type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} required
-                      placeholder="Ej. Taladro Percutor 12V" 
-                      className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3 text-sm text-[#F5F7FA] outline-none transition focus:border-[#9B5CFF] focus:ring-1 focus:ring-[#9B5CFF]" 
+                      placeholder="Ej. Taladro Percutor 12V"
+                      className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3 text-sm text-[#F5F7FA] outline-none transition focus:border-[#9B5CFF] focus:ring-1 focus:ring-[#9B5CFF]"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#8994A6]">Precio</label>
-                      <input 
+                      <input
                         type="number" value={precio} onChange={(e) => setPrecio(e.target.value)} required
-                        placeholder="Ej. 150000" 
-                        className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3 text-sm text-[#F5F7FA] outline-none transition focus:border-[#9B5CFF]" 
+                        placeholder="Ej. 150000"
+                        className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3 text-sm text-[#F5F7FA] outline-none transition focus:border-[#9B5CFF]"
                       />
                     </div>
                     <div>
                       <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#8994A6]">Categoría</label>
-                      <input 
+                      <input
                         type="text" value={categoria} onChange={(e) => setCategoria(e.target.value)}
-                        placeholder="Ej. Herramientas" 
-                        className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3 text-sm text-[#F5F7FA] outline-none transition focus:border-[#9B5CFF]" 
+                        placeholder="Ej. Herramientas"
+                        className="w-full rounded-xl border border-[#1E293B] bg-[#07090C] px-4 py-3 text-sm text-[#F5F7FA] outline-none transition focus:border-[#9B5CFF]"
                       />
                     </div>
                   </div>
@@ -146,13 +146,13 @@ export default function InventarioPage() {
                 </h2>
                 <p className="text-xs text-[#8994A6] mt-1">{productos.length} registros vectorizados</p>
               </div>
-              
+
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8994A6]" />
-                <input 
-                  type="text" 
-                  placeholder="Buscar registro..." 
-                  className="w-full sm:w-64 rounded-xl border border-[#1E293B] bg-[#07090C] pl-9 pr-4 py-2 text-sm text-[#F5F7FA] outline-none transition focus:border-[#9B5CFF]" 
+                <input
+                  type="text"
+                  placeholder="Buscar registro..."
+                  className="w-full sm:w-64 rounded-xl border border-[#1E293B] bg-[#07090C] pl-9 pr-4 py-2 text-sm text-[#F5F7FA] outline-none transition focus:border-[#9B5CFF]"
                 />
               </div>
             </div>
@@ -172,7 +172,7 @@ export default function InventarioPage() {
                     <div className="col-span-3">Valor Ref.</div>
                     <div className="col-span-1 text-right">Acción</div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     {productos.map((p) => (
                       <div key={p.id} className="grid grid-cols-12 gap-4 items-center bg-[#07090C] border border-[#1E293B] rounded-xl px-4 py-3 transition-colors hover:border-[#8994A6]/50">
@@ -190,7 +190,7 @@ export default function InventarioPage() {
                 </div>
               )}
             </div>
-            
+
           </div>
 
         </div>

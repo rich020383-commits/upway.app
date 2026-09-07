@@ -46,7 +46,7 @@ export default function Paso02Tonalidad() {
         </Link>
       </div>
 
-      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center overflow-y-auto px-6 py-4 pt-12 md:mt-2 md:pt-10 no-scrollbar">
+      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center overflow-y-auto px-3 py-4 pt-12 sm:px-6 md:mt-2 md:pt-10 no-scrollbar">
 
         <div className="mb-6 md:mb-8">
           <div className="mb-4 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500 md:mb-6 md:text-xs">

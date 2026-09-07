@@ -567,7 +567,7 @@ export default function AgentesBotPage() {
   // ==========================================
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(255,214,170,0.18),_transparent_18%),linear-gradient(180deg,_#f5efe9_0%,_#f8f5f2_18%,_#eef4fa_100%)] text-slate-900 font-sans pb-20 selection:bg-[#1b5ed6] selection:text-white">
-      <div className="mx-auto max-w-7xl px-6 pt-10 md:pt-12">
+      <div className="mx-auto max-w-7xl px-3 pt-10 sm:px-6 md:pt-12">
 
         <div className="mb-6 rounded-[28px] border border-[#eadfd4] bg-[#f5efe8]/90 p-3 shadow-[0_22px_60px_rgba(15,23,42,0.06)] backdrop-blur-sm md:p-4">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

@@ -127,7 +127,7 @@ export default function BillingAccessCodesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.12),_transparent_28%),linear-gradient(180deg,_#f5f9ff_0%,_#edf5ff_100%)] px-6 py-10 text-slate-900">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.12),_transparent_28%),linear-gradient(180deg,_#f5f9ff_0%,_#edf5ff_100%)] px-3 py-10 text-slate-900 sm:px-6">
       <div className="mx-auto max-w-6xl space-y-8">
         <header className="flex items-end justify-between gap-4">
           <div>

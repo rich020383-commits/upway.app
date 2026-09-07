@@ -20,7 +20,7 @@ function BillingGateContent() {
   const meta = billingStateMeta[state];
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-12">
+    <div className="mx-auto max-w-4xl px-3 py-12 sm:px-6">
       <div className="rounded-[32px] border border-slate-200 bg-white/80 p-8 shadow-[0_25px_60px_rgba(15,23,42,0.06)] backdrop-blur-xl">
         <div className="text-[10px] font-mono uppercase tracking-[0.24em] text-slate-500">Access control</div>
         <h1 className="mt-3 text-4xl font-black tracking-[-0.06em] text-slate-900">Acceso restringido por billing</h1>

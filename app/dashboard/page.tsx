@@ -4,10 +4,10 @@ import { ArrowRight, Sparkles, ShieldCheck, CalendarRange, MessageCircleMore, He
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-slate-900 selection:text-white">
-      
+
       {/* Navbar Superior */}
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-white font-black text-lg shadow-sm">
               UP
@@ -24,8 +24,8 @@ export default function LandingPage() {
             <Link href="/dashboard" className="text-sm font-semibold text-slate-700 hover:text-slate-900 transition">
               Panel
             </Link>
-            <Link 
-              href="/dashboard/onboarding/lienzo?segment=general" 
+            <Link
+              href="/dashboard/onboarding/lienzo?segment=general"
               className="flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-slate-800 transition"
             >
               Reservar demo <ArrowRight size={16} />
@@ -35,26 +35,26 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="mx-auto max-w-7xl px-6 pt-16 pb-24 lg:pt-24 lg:pb-32">
+      <section className="mx-auto max-w-7xl px-4 pt-16 pb-24 sm:px-6 lg:pt-24 lg:pb-32">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          
+
           {/* Columna Izquierda: Mensaje Directo al Empresario */}
           <div className="lg:col-span-6 space-y-8">
             <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-slate-700 shadow-sm">
               <Sparkles size={14} className="text-slate-900" /> Operación premium
             </div>
-              
+
             <h1 className="text-5xl lg:text-6xl font-black tracking-tight text-slate-900 leading-[1.08]">
               Control total para hacer crecer tu operación.
             </h1>
-              
+
             <p className="text-lg text-slate-600 leading-relaxed max-w-xl">
               Centralizamos atención, ventas, agenda y seguimiento para empresas, inmobiliarias, retail y equipos operativos que quieren crecer con orden, velocidad y claridad.
             </p>
-              
+
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
-              <Link 
-                href="/dashboard/onboarding/lienzo?segment=general" 
+              <Link
+                href="/dashboard/onboarding/lienzo?segment=general"
                 className="flex items-center justify-center gap-2 rounded-full bg-slate-900 px-8 py-4 text-sm font-bold text-white shadow-xl hover:bg-slate-800 transition"
               >
                 Agendar consultoría <ArrowRight size={18} />
@@ -73,7 +73,7 @@ export default function LandingPage() {
           {/* Columna Derecha: El Command Center con Sophie v2 (Video Animado Prominente) */}
           <div className="lg:col-span-6">
             <div className="relative rounded-[32px] border border-slate-800 bg-[#0A0D14] p-6 shadow-[0_30px_70px_rgba(15,23,42,0.2)] text-white">
-              
+
               {/* Barra de Estado Superior */}
               <div className="flex items-center justify-between pb-6 border-b border-slate-800">
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-cyan-400">
@@ -82,7 +82,7 @@ export default function LandingPage() {
                 </div>
                 <span className="text-xs font-mono text-slate-400">live</span>
               </div>
- 
+
               <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 my-6 p-4 flex items-center gap-5 shadow-inner">
                 <div className="relative h-20 w-20 shrink-0 rounded-2xl overflow-hidden border border-slate-700 bg-slate-900 shadow-md bg-gradient-to-br from-slate-800 via-slate-900 to-cyan-950 flex items-center justify-center">
                   <Sparkles size={28} className="text-cyan-300" />

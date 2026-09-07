@@ -160,7 +160,7 @@ export default function Paso06Checkout() {
       </div>
 
       {/* 🔥 EL RESORTE CENTRAL: Distribuye el contenido perfectamente al centro con scroll interno si es necesario */}
-      <div className="flex-1 w-full max-w-7xl mx-auto px-6 py-4 mt-8 md:mt-2 flex flex-col justify-center overflow-y-auto no-scrollbar">
+      <div className="flex-1 w-full max-w-7xl mx-auto px-3 py-4 mt-8 sm:px-6 md:mt-2 flex flex-col justify-center overflow-y-auto no-scrollbar">
 
         {/* Cabecera / Narrativa */}
         <div className="mb-6 md:mb-8 text-center md:text-left">

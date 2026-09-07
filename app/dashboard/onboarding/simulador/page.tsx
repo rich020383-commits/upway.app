@@ -200,7 +200,7 @@ export default function Paso05Simulador() {
     <div className="flex flex-col h-full w-full relative bg-transparent text-[#F5F7FA]">
       <SkipToPanelLink className="bg-[#1E293B]/30 text-[#8994A6] hover:text-[#19C8E8] border-[#1E293B]/50 hover:border-[#19C8E8]/30" />
 
-      <div className="flex-1 w-full max-w-7xl mx-auto px-6 py-4 mt-8 md:mt-2 flex flex-col min-h-0 overflow-hidden">
+      <div className="flex-1 w-full max-w-7xl mx-auto px-3 py-4 mt-8 sm:px-6 md:mt-2 flex flex-col min-h-0 overflow-hidden">
         <div className="shrink-0 mb-4 md:mb-6">
           <OnboardingProgress
             current={5}
