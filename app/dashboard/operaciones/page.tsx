@@ -504,9 +504,9 @@ export default function OperacionesPage() {
   const accionesTotal = actions.dueReminders.length + actions.unassignedNewLeads.length + actions.coldLeads.length + actions.unconfirmedAppointments.length;
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.08),transparent_22%),radial-gradient(circle_at_top_right,_rgba(168,85,247,0.08),transparent_22%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_100%)] px-2 py-3 text-slate-900 sm:px-4">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.08),transparent_22%),radial-gradient(circle_at_top_right,_rgba(168,85,247,0.08),transparent_22%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_100%)] px-1.5 py-2.5 text-slate-900 sm:px-4 sm:py-5">
       <div className="space-y-8">
-        <div className="flex flex-col gap-3 rounded-[30px] border border-slate-200/80 bg-gradient-to-r from-white via-sky-50/80 to-white p-6 shadow-[0_26px_80px_rgba(15,23,42,0.06)] backdrop-blur-xl md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 rounded-[30px] border border-slate-200/80 bg-gradient-to-r from-white via-sky-50/80 to-white p-4 shadow-[0_26px_80px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:p-6 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-sky-600">Upway Business OS · Command Center</p>
             <h1 className="mt-2 text-3xl font-semibold text-slate-900">Centro de operaciones · {industry.label}</h1>
@@ -520,7 +520,7 @@ export default function OperacionesPage() {
 
         <div className="grid gap-4 md:grid-cols-5">
           {industry.metrics.map((metric) => (
-            <div key={metric.key} className="group rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-[0_14px_50px_rgba(15,23,42,0.06)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_55px_rgba(15,23,42,0.12)]">
+            <div key={metric.key} className="group rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-4 shadow-[0_14px_50px_rgba(15,23,42,0.06)] sm:p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_55px_rgba(15,23,42,0.12)]">
               <p className="text-sm text-slate-500">{metric.label}</p>
               <p className={`mt-4 text-3xl font-semibold ${metric.accent}`}>{metricValue(metric.key)}</p>
               <p className="mt-2 text-xs text-slate-500">{metric.hint}</p>

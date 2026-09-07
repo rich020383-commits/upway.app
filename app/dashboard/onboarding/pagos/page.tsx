@@ -160,7 +160,7 @@ export default function Paso06Checkout() {
       </div>
 
       {/* 🔥 EL RESORTE CENTRAL: Distribuye el contenido perfectamente al centro con scroll interno si es necesario */}
-      <div className="flex-1 w-full max-w-5xl mx-auto px-6 py-4 mt-8 md:mt-2 flex flex-col justify-center overflow-y-auto no-scrollbar">
+      <div className="flex-1 w-full md:max-w-5xl mx-auto px-6 py-4 mt-8 md:mt-2 flex flex-col justify-center overflow-y-auto no-scrollbar">
 
         {/* Cabecera / Narrativa */}
         <div className="mb-6 md:mb-8 text-center md:text-left">
@@ -172,7 +172,7 @@ export default function Paso06Checkout() {
           </div>
 
           <h1 className="text-2xl md:text-4xl font-bold tracking-tight mb-2 md:mb-3">Autorización de Facturación</h1>
-          <p className="text-[#8994A6] text-xs md:text-base max-w-2xl mx-auto md:mx-0">
+          <p className="text-[#8994A6] text-xs md:text-base md:max-w-2xl mx-auto md:mx-0">
             Revisa la configuración final de <strong className="text-[#F5F7FA]">{nombreAgente || 'tu agente'}</strong> y autoriza el aprovisionamiento de infraestructura en nuestros servidores.
           </p>
           <p className="text-[#8994A6] text-[10px] md:text-xs mt-1">

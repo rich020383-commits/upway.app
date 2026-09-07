@@ -135,8 +135,8 @@ export default function Paso07Activacion() {
           </Link>
         </div>
 
-        <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-16 md:px-10">
-          <header className="mx-auto mb-9 max-w-2xl text-center">
+        <div className="relative z-10 mx-auto flex min-h-screen md:max-w-6xl flex-col justify-center px-6 py-16 md:px-10">
+          <header className="mx-auto mb-9 md:max-w-2xl text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#dfeaff] bg-white shadow-[0_20px_60px_rgba(27,94,214,0.08)] text-[#1b5ed6]">
               <CheckCircle2 className="h-8 w-8" />
             </div>

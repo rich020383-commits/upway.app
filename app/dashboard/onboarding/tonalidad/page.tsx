@@ -46,7 +46,7 @@ export default function Paso02Tonalidad() {
         </Link>
       </div>
  
-      <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center overflow-y-auto px-6 py-4 pt-12 md:mt-2 md:pt-10 no-scrollbar">
+      <div className="mx-auto flex w-full md:max-w-5xl flex-1 flex-col justify-center overflow-y-auto px-6 py-4 pt-12 md:mt-2 md:pt-10 no-scrollbar">
         
         <div className="mb-6 md:mb-8">
           <div className="mb-4 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500 md:mb-6 md:text-xs">
@@ -67,7 +67,7 @@ export default function Paso02Tonalidad() {
             <BrainCircuit className="h-6 w-6 text-[#1b5ed6] md:h-8 md:w-8" />
             <h1 className="text-2xl font-black tracking-[-0.05em] text-slate-900 md:text-4xl">Personalidad y Tono</h1>
           </div>
-          <p className="max-w-2xl text-xs text-slate-600 md:text-base">
+          <p className="md:max-w-2xl text-xs text-slate-600 md:text-base">
             Define la actitud exacta con la que tu asistente interactuará con tus clientes en cada conversación.
           </p>
         </div>
@@ -128,7 +128,7 @@ export default function Paso02Tonalidad() {
       </div>
 
       <div className="z-40 w-full shrink-0 border-t border-slate-200 bg-white/85 px-6 py-4 backdrop-blur-xl shadow-[0_-12px_35px_rgba(15,23,42,0.04)]">
-        <div className="mx-auto flex max-w-5xl items-center justify-between">
+        <div className="mx-auto flex md:max-w-5xl items-center justify-between">
           <div>
             <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500 md:text-xs">
               Paso 2 completado

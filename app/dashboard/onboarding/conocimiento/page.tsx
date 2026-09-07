@@ -75,7 +75,7 @@ export default function Paso04Conocimiento() {
       </div>
 
       {/* 🔥 EL RESORTE CENTRAL: Distribuye el contenido perfectamente al centro */}
-      <div className="flex-1 w-full max-w-4xl mx-auto px-6 py-4 mt-8 md:mt-2 flex flex-col justify-center overflow-y-auto no-scrollbar">
+      <div className="flex-1 w-full md:max-w-4xl mx-auto px-6 py-4 mt-8 md:mt-2 flex flex-col justify-center overflow-y-auto no-scrollbar">
         
         {/* Barra de progreso / Narrativa */}
         <div className="mb-6 md:mb-8">
@@ -97,13 +97,13 @@ export default function Paso04Conocimiento() {
             <Database className="text-[#19C8E8] h-6 w-6 md:h-8 md:w-8" />
             <h1 className="text-2xl md:text-4xl font-bold tracking-tight">Cerebro de Datos (RAG)</h1>
           </div>
-          <p className="text-[#8994A6] text-xs md:text-base max-w-2xl">
+          <p className="text-[#8994A6] text-xs md:text-base md:max-w-2xl">
             Sube tu catálogo (CSV con nombre, categoría, precio, disponible) para que tu asistente responda con datos reales de tu inventario. Puedes omitir este paso y cargarlo después desde el panel.
           </p>
         </div>
 
         {/* Tarjeta Principal de Importación */}
-        <div className="max-w-2xl mx-auto w-full pb-4">
+        <div className="md:max-w-2xl mx-auto w-full pb-4">
           <div className="bg-[#0D1117] border border-[#1E293B] rounded-2xl p-6 md:p-10 relative overflow-hidden shadow-2xl">
             
             {/* Background pattern sutil */}
@@ -190,7 +190,7 @@ export default function Paso04Conocimiento() {
 
       {/* 🔥 BARRA INFERIOR: Anclada (shrink-0) */}
       <div className="shrink-0 w-full bg-[#07090C]/90 backdrop-blur-xl border-t border-[#1E293B] px-6 py-4 z-40">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
+        <div className="md:max-w-4xl mx-auto flex justify-between items-center">
           <div>
             <p className="text-[#8994A6] text-[10px] md:text-xs font-semibold uppercase tracking-wider mb-1">
               Paso 4 {puedeContinuar ? 'completado' : 'pendiente'}

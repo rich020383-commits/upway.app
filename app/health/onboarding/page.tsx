@@ -463,7 +463,7 @@ export default function HealthOnboardingPage() {
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.14),_transparent_28%),linear-gradient(180deg,_#f5f9ff_0%,_#edf5ff_100%)] p-4 md:p-6">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto md:max-w-7xl">
         <div className="mb-5 flex items-center justify-between gap-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.22em] text-slate-600 shadow-[0_10px_30px_rgba(15,23,42,0.04)] backdrop-blur-sm">
             <span className="h-2 w-2 rounded-full bg-[#1b5ed6]" />

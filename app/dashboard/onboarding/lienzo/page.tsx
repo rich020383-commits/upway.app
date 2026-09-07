@@ -22,7 +22,7 @@ function Paso01Infraestructura() {
 
       <SkipToPanelLink />
 
-      <div className="mx-auto max-w-5xl px-6 pt-12 md:pt-20">
+      <div className="mx-auto md:max-w-5xl px-6 pt-12 md:pt-20">
         <OnboardingProgress
           current={1}
           total={5}
@@ -34,10 +34,10 @@ function Paso01Infraestructura() {
         <h1 className="mb-4 text-4xl font-black tracking-tight text-slate-900 md:text-5xl">
           Infraestructura premium
         </h1>
-        <p className="max-w-2xl text-lg text-slate-600 leading-relaxed">
+        <p className="md:max-w-2xl text-lg text-slate-600 leading-relaxed">
           Diseña tu arquitectura operativa. Centraliza la atención, el agendamiento y los agentes inteligentes impulsados por <span className="font-bold text-slate-900 inline-flex items-center gap-1"><Sparkles size={16}/> Sophie v2</span>.
         </p>
-        <div className="mt-4 max-w-2xl rounded-2xl border border-[#dbe4f5] bg-white/70 p-4 text-sm leading-6 text-slate-600">
+        <div className="mt-4 md:max-w-2xl rounded-2xl border border-[#dbe4f5] bg-white/70 p-4 text-sm leading-6 text-slate-600">
           <p className="font-semibold text-slate-800">¿Cómo funciona esta selección?</p>
           <p className="mt-1">Los módulos marcados como <span className="font-semibold text-slate-900">Base Incluida</span> forman el núcleo operativo ya están instalados. Los de <span className="font-semibold text-slate-900">Modelo por Consumo</span> (WhatsApp IA y Voz IA) se facturan por uso real: los activas tocando la tarjeta y podrás desactivarlos cuando quieras.</p>
         </div>
@@ -126,7 +126,7 @@ function Paso01Infraestructura() {
 
       {/* Barra Inferior Persistente (Sin restricción de precios por ahora) */}
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/90 backdrop-blur-xl p-6 shadow-[0_-10px_40px_rgba(15,23,42,0.05)]">
-        <div className="mx-auto flex max-w-5xl items-center justify-between">
+        <div className="mx-auto flex md:max-w-5xl items-center justify-between">
           <div>
             <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
               Estado de arquitectura

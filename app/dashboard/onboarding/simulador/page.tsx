@@ -200,7 +200,7 @@ export default function Paso05Simulador() {
     <div className="flex flex-col h-full w-full relative bg-transparent text-[#F5F7FA]">
       <SkipToPanelLink className="bg-[#1E293B]/30 text-[#8994A6] hover:text-[#19C8E8] border-[#1E293B]/50 hover:border-[#19C8E8]/30" />
 
-      <div className="flex-1 w-full max-w-5xl mx-auto px-6 py-4 mt-8 md:mt-2 flex flex-col min-h-0 overflow-hidden">
+      <div className="flex-1 w-full md:max-w-5xl mx-auto px-6 py-4 mt-8 md:mt-2 flex flex-col min-h-0 overflow-hidden">
         <div className="shrink-0 mb-4 md:mb-6">
           <OnboardingProgress
             current={5}
@@ -214,7 +214,7 @@ export default function Paso05Simulador() {
             <TerminalSquare className="text-[#19C8E8] h-6 w-6 md:h-8 md:w-8" />
             <h1 className="text-2xl md:text-4xl font-bold tracking-tight">Simulador de Producción</h1>
           </div>
-          <p className="text-[#8994A6] text-xs md:text-sm max-w-2xl">
+          <p className="text-[#8994A6] text-xs md:text-sm md:max-w-2xl">
             Prueba la lógica, respuestas y latencia de tu empleado digital antes de conectarlo a tus canales oficiales.
           </p>
           {simulatorError && (
@@ -291,7 +291,7 @@ export default function Paso05Simulador() {
       </div>
 
       <div className="shrink-0 w-full bg-[#07090C]/90 backdrop-blur-xl border-t border-[#1E293B] px-6 py-4 z-40">
-        <div className="max-w-5xl mx-auto flex justify-between items-center">
+        <div className="md:max-w-5xl mx-auto flex justify-between items-center">
           <div>
             <p className="text-[#8994A6] text-[10px] md:text-xs font-semibold uppercase tracking-wider mb-1">
               Estado del sistema

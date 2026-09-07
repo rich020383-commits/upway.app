@@ -42,7 +42,7 @@ export default function Paso03Personalizacion() {
         </Link>
       </div>
  
-      <div className="mx-auto flex w-full max-w-6xl flex-1 overflow-y-auto px-6 py-4 pt-12 md:mt-4 md:pt-10 no-scrollbar">
+      <div className="mx-auto flex w-full md:max-w-6xl flex-1 overflow-y-auto px-6 py-4 pt-12 md:mt-4 md:pt-10 no-scrollbar">
         
         <div className="mb-8 w-full md:mb-10">
           <div className="mb-4 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500 md:mb-6 md:text-xs">
@@ -51,7 +51,7 @@ export default function Paso03Personalizacion() {
             <span className="text-slate-900">03 / 05</span>
           </div>
           
-          <div className="mb-6 flex max-w-4xl gap-2 md:mb-8">
+          <div className="mb-6 flex md:max-w-4xl gap-2 md:mb-8">
             <div className="h-1 flex-1 rounded-full bg-[#1b5ed6]"></div>
             <div className="h-1 flex-1 rounded-full bg-[#1b5ed6]"></div>
             <div className="h-1 flex-1 rounded-full bg-[#1b5ed6]"></div>
@@ -60,7 +60,7 @@ export default function Paso03Personalizacion() {
           </div>
  
           <h1 className="mb-2 text-2xl font-black tracking-[-0.05em] text-slate-900 md:mb-3 md:text-4xl">Identidad del Agente</h1>
-          <p className="max-w-2xl text-sm text-slate-600 md:text-base">
+          <p className="md:max-w-2xl text-sm text-slate-600 md:text-base">
             Bautiza a tu empleado digital y define su marco operativo. Esta será la cara visible frente a tus clientes.
           </p>
         </div>
@@ -227,7 +227,7 @@ export default function Paso03Personalizacion() {
 
       {/* 🔥 BARRA INFERIOR */}
       <div className="shrink-0 w-full bg-[#07090C]/90 backdrop-blur-xl border-t border-[#1E293B] px-6 py-4 z-40">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
+        <div className="md:max-w-6xl mx-auto flex justify-between items-center">
           <div>
             <p className="text-[#8994A6] text-[10px] md:text-xs font-semibold uppercase tracking-wider mb-1">
               Paso 3 completado
