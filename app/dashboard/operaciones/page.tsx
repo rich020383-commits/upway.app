@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { resolveIndustryConfig, type BusinessSegment } from '@/lib/industry-config';
 
 type LeadStatusKey = 'NEW' | 'CONTACTED' | 'APPOINTMENT_BOOKED' | 'FOLLOW_UP' | 'CLOSED_WON' | 'CLOSED_LOST';
@@ -168,6 +168,71 @@ export default function OperacionesPage() {
   const [bookingLeadId, setBookingLeadId] = useState<string | null>(null);
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
   const [collapsedStages, setCollapsedStages] = useState<Record<string, boolean>>({});
+  const [toast, setToast] = useState<{ kind: 'success' | 'error' | 'info'; text: string } | null>(null);
+  const [remindingId, setRemindingId] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [mobileStage, setMobileStage] = useState<string | null>(null);
+  const [instruction, setInstruction] = useState('');
+  const [brainRunning, setBrainRunning] = useState(false);
+  const [brainResult, setBrainResult] = useState<{ summary: string; provider?: string; results: Array<{ action: string; target?: string; ok: boolean; detail: string }> } | null>(null);
+  const [draggingLeadId, setDraggingLeadId] = useState<string | null>(null);
+  const [dragOverStage, setDragOverStage] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showToast = useCallback((kind: 'success' | 'error' | 'info', text: string) => {
+    setToast({ kind, text });
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 4000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    };
+  }, []);
+
+  const handleRunAutopilot = async (rawInstruction?: string) => {
+    const text = (rawInstruction ?? instruction).trim();
+    if (!text) {
+      showToast('info', 'Escribe una instrucción para el Autopiloto.');
+      return;
+    }
+    setBrainRunning(true);
+    setBrainResult(null);
+    try {
+      const response = await fetch('/api/business/autopilot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ instruction: text }),
+      });
+      const payload = await response.json();
+      if (response.ok) {
+        setBrainResult(payload);
+        const failed = (payload.results ?? []).filter((r: { ok: boolean }) => !r.ok).length;
+        showToast(
+          failed > 0 ? 'info' : 'success',
+          `Autopiloto terminó · ${(payload.results ?? []).length} acciones${failed > 0 ? `, ${failed} fallaron` : ''}.`
+        );
+        await loadDashboard();
+        await loadAutomationStatus();
+      } else {
+        showToast('error', payload.error || 'El Autopiloto no pudo completar la instrucción.');
+      }
+    } catch (error) {
+      console.error('Error running autopilot:', error);
+      showToast('error', 'Error de red al hablar con el Autopiloto.');
+    } finally {
+      setBrainRunning(false);
+    }
+  };
+
+  const handleDropOnStage = async (stageKey: LeadStatusKey) => {
+    const leadId = draggingLeadId;
+    setDraggingLeadId(null);
+    setDragOverStage(null);
+    if (!leadId) return;
+    await handleStatusChange(leadId, stageKey);
+  };
 
   const toggleStageCollapse = (stageKey: string) => {
     setCollapsedStages((current) => ({ ...current, [stageKey]: !current[stageKey] }));
@@ -219,12 +284,16 @@ export default function OperacionesPage() {
       });
       const payload = await response.json();
       if (response.ok) {
+        const sent = payload.sent ?? payload.processed ?? payload.remindersSent ?? null;
+        showToast('success', sent != null ? `Automatización ejecutada · ${sent} procesados.` : 'Automatización ejecutada correctamente.');
         await loadDashboard();
         await loadAutomationStatus();
-        console.info('Automation result:', payload);
+      } else {
+        showToast('error', payload.error || 'La automatización falló. Intenta de nuevo.');
       }
     } catch (error) {
       console.error('Error running automation:', error);
+      showToast('error', 'Error de red al ejecutar la automatización.');
     } finally {
       setRunningAutomation(false);
     }
@@ -249,12 +318,17 @@ export default function OperacionesPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ leadId, userId, status: 'CONTACTED', reason: 'Asignado desde dashboard operativo' }),
       });
+      const payload = await response.json().catch(() => ({}));
 
       if (response.ok) {
+        showToast('success', 'Lead asignado correctamente.');
         await loadDashboard();
+      } else {
+        showToast('error', payload.error || 'No se pudo asignar el lead. Intenta de nuevo.');
       }
     } catch (error) {
       console.error('Error assigning lead:', error);
+      showToast('error', 'Error de red al asignar el lead.');
     } finally {
       setAssigningId(null);
     }
@@ -269,20 +343,26 @@ export default function OperacionesPage() {
         body: JSON.stringify({ leadId, status: nextStatus, reason: `Avance de pipeline a ${statusLabels[nextStatus]}` }),
       });
 
+      const payload = await response.json().catch(() => ({}));
       if (response.ok) {
+        showToast('success', `Lead movido a ${statusLabels[nextStatus]}.`);
         await loadDashboard();
+      } else {
+        showToast('error', payload.error || 'No se pudo mover el lead. Intenta de nuevo.');
       }
     } catch (error) {
       console.error('Error updating lead status:', error);
+      showToast('error', 'Error de red al mover el lead.');
     } finally {
       setStatusUpdatingId(null);
     }
   };
 
   const handleCreateReminder = async (leadId: string) => {
+    setRemindingId(leadId);
     const scheduledFor = reminderScheduledFor();
     try {
-      await fetch('/api/business/reminders', {
+      const response = await fetch('/api/business/reminders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -292,10 +372,17 @@ export default function OperacionesPage() {
           message: 'Hola, queremos cerrar el seguimiento hoy mismo para confirmar la próxima acción.',
         }),
       });
-      await loadDashboard();
-      await loadAutomationStatus();
+      if (response.ok) {
+        showToast('success', 'Recordatorio programado para dentro de 1 hora.');
+        await Promise.all([loadDashboard(), loadAutomationStatus()]);
+      } else {
+        showToast('error', 'No se pudo programar el recordatorio.');
+      }
     } catch (error) {
       console.error('Error creating reminder:', error);
+      showToast('error', 'Error de red al programar el recordatorio.');
+    } finally {
+      setRemindingId(null);
     }
   };
 
@@ -318,12 +405,26 @@ export default function OperacionesPage() {
     setTimelineActivities([]);
   };
 
+  useEffect(() => {
+    if (!timelineLeadId) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeTimeline();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [timelineLeadId]);
+
   const handleQuickBooking = async (lead: LeadSummary) => {
     setBookingLeadId(lead.id);
     setBookingSubmitting(true);
     try {
       const fechaHora = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-      await fetch('/api/business/appointments', {
+      const response = await fetch('/api/business/appointments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -336,9 +437,15 @@ export default function OperacionesPage() {
           source: 'command-center',
         }),
       });
-      await loadDashboard();
+      if (response.ok) {
+        showToast('success', `Cita agendada para ${new Date(fechaHora).toLocaleString()}.`);
+        await loadDashboard();
+      } else {
+        showToast('error', 'No se pudo agendar la cita.');
+      }
     } catch (error) {
       console.error('Error creating quick booking:', error);
+      showToast('error', 'Error de red al agendar la cita.');
     } finally {
       setBookingSubmitting(false);
       setBookingLeadId(null);
@@ -367,6 +474,20 @@ export default function OperacionesPage() {
     ...stage,
     leads: (data?.leads ?? []).filter((lead) => normalizeStage(lead.estado) === stage.key),
   }));
+
+  const normalizedSearch = search.trim().toLowerCase();
+  const visiblePipelineColumns = !normalizedSearch
+    ? pipelineColumns
+    : pipelineColumns.map((stage) => ({
+        ...stage,
+        leads: stage.leads.filter(
+          (lead) =>
+            lead.nombre.toLowerCase().includes(normalizedSearch) ||
+            (lead.phone ?? '').includes(normalizedSearch) ||
+            lead.origen.toLowerCase().includes(normalizedSearch),
+        ),
+      }));
+  const totalVisibleLeads = visiblePipelineColumns.reduce((sum, stage) => sum + stage.leads.length, 0);
 
   const metricValue = (key: string) => {
     switch (key) {
@@ -454,6 +575,109 @@ export default function OperacionesPage() {
             </div>
           </section>
         </div>
+
+        {/* 🧠 CEREBRO · AUTOPILOTO */}
+        <section className="rounded-[28px] border border-violet-500/30 bg-gradient-to-br from-white via-violet-50/60 to-white p-5 shadow-[0_20px_55px_rgba(139,92,246,0.08)]">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">🧠 Cerebro · Autopiloto</h2>
+              <p className="mt-1 text-sm text-slate-500">Escribe lo que necesitas en lenguaje natural y el cerebro lo ejecuta sobre tu operación real.</p>
+            </div>
+            <span className="flex items-center gap-2 rounded-full border border-violet-500/40 bg-violet-500/10 px-3 py-1.5 text-xs font-medium text-violet-700">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-violet-400" />
+              {brainRunning ? 'Pensando…' : 'Listo para operar'}
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <textarea
+              value={instruction}
+              onChange={(event) => setInstruction(event.target.value)}
+              onKeyDown={(event) => {
+                if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') void handleRunAutopilot();
+              }}
+              rows={2}
+              placeholder='Ej: "Asigna los leads nuevos sin agente y ponles recordatorio para mañana"… (Ctrl+Enter para ejecutar)'
+              className="flex-1 resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-inner outline-none transition focus:border-violet-300 focus:ring-2 focus:ring-violet-100"
+            />
+            <button
+              onClick={() => void handleRunAutopilot()}
+              disabled={brainRunning}
+              className="shrink-0 self-end rounded-2xl bg-gradient-to-r from-violet-500 to-fuchsia-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(139,92,246,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(139,92,246,0.3)] disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none sm:w-40"
+            >
+              {brainRunning ? 'Ejecutando…' : 'Ejecutar 🚀'}
+            </button>
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            {[
+              'Asigna los leads nuevos sin agente',
+              'Corre la automatización y programa recordatorios para los leads fríos',
+              'Agenda citas para mañana con los leads en seguimiento',
+              '¿Cuántos leads fríos tengo y hace cuánto no se les contacta?',
+              'Envía un WhatsApp a los leads sin asignar preguntando si siguen interesados',
+            ].map((suggestion) => (
+              <button
+                key={suggestion}
+                onClick={() => {
+                  setInstruction(suggestion);
+                  void handleRunAutopilot(suggestion);
+                }}
+                disabled={brainRunning}
+                className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 transition hover:border-violet-300 hover:text-violet-700 disabled:opacity-50"
+              >
+                ✨ {suggestion}
+              </button>
+            ))}
+          </div>
+
+          {brainRunning && (
+            <div className="mt-4 space-y-2">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-10 animate-pulse rounded-xl bg-violet-100/70" />
+              ))}
+            </div>
+          )}
+
+          {brainResult && !brainRunning && (
+            <div className="mt-4 rounded-2xl border border-slate-200 bg-white/90 p-4">
+              <p className="text-sm font-medium text-slate-900">{brainResult.summary}</p>
+              {brainResult.provider && (
+                <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-slate-400">cerebro: {brainResult.provider}</p>
+              )}
+              <div className="mt-3 space-y-2">
+                {brainResult.results.length === 0 && (
+                  <p className="text-sm text-slate-500">El cerebro decidió que no hay acciones que ejecutar.</p>
+                )}
+                {brainResult.results.map((result, index) =>
+                  result.action === 'answer' ? (
+                    <div
+                      key={index}
+                      className="rounded-xl border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-sm text-violet-900"
+                    >
+                      <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-600">💬 Respuesta del cerebro</p>
+                      <p className="leading-6">{result.detail}</p>
+                    </div>
+                  ) : (
+                    <div
+                      key={index}
+                      className={`flex items-start gap-2 rounded-xl border px-3 py-2 text-xs ${
+                        result.ok ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-800' : 'border-rose-500/30 bg-rose-500/10 text-rose-800'
+                      }`}
+                    >
+                      <span aria-hidden="true">{result.ok ? '✅' : '⚠️'}</span>
+                      <span className="flex-1">
+                        <span className="font-semibold uppercase tracking-[0.1em]">{result.action}</span>
+                        {result.target && <span className="font-medium"> · {result.target}</span>}
+                        <span className="block text-[11px] opacity-80">{result.detail}</span>
+                      </span>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          )}
+        </section>
 
         {/* 🎯 ACCIONES DE HOY */}
         <section className="rounded-[28px] border border-amber-500/30 bg-gradient-to-br from-white via-white to-amber-50/80 p-5 shadow-[0_20px_55px_rgba(251,191,36,0.07)]">
@@ -607,25 +831,71 @@ export default function OperacionesPage() {
                 <span className="font-semibold text-slate-700">Timeline</span> para ver el historial completo del lead.
               </p>
             </div>
-            {/* 🔀 Flujo visual de etapas */}
-            <div className="mb-5 flex flex-wrap items-center gap-2">
-              {pipelineStages.map((stage, index) => (
-                <div key={stage.key} className="flex items-center gap-2">
-                  <span
-                    title={stage.action ? `Acción clave en esta etapa: ${stage.action}.` : 'Etapa final del pipeline.'}
-                    className="cursor-help rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-sky-300"
+            {/* 🔎 Buscador de leads */}
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="relative flex-1">
+                <input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Buscar por nombre, teléfono u origen…"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 pl-9 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
+                />
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true">🔍</span>
+                {search && (
+                  <button
+                    onClick={() => setSearch('')}
+                    aria-label="Limpiar búsqueda"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500 hover:bg-slate-200"
                   >
-                    {index + 1}. {stage.label}
-                  </span>
-                  {index < pipelineStages.length - 1 && (
-                    <span className="text-slate-400" aria-hidden="true">→</span>
-                  )}
-                </div>
+                    ✕
+                  </button>
+                )}
+              </div>
+              <span className="text-xs text-slate-500 sm:whitespace-nowrap">
+                {totalVisibleLeads} de {data?.leads.length ?? 0} registros
+              </span>
+            </div>
+            {search && totalVisibleLeads === 0 && (
+              <div className="mb-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-center text-sm text-slate-500">
+                Sin resultados para “{search}”.
+                <button onClick={() => setSearch('')} className="ml-2 font-medium text-sky-600 underline">limpiar</button>
+              </div>
+            )}
+            {/* 📱 Selector de etapa para móvil */}
+            <div className="mb-4 flex gap-2 overflow-x-auto pb-2 lg:hidden" role="tablist" aria-label="Etapas del pipeline">
+              {visiblePipelineColumns.map((stage) => (
+                <button
+                  key={stage.key}
+                  onClick={() => setMobileStage(stage.key)}
+                  aria-pressed={mobileStage === stage.key}
+                  className={`shrink-0 rounded-full border px-3.5 py-2 text-xs font-semibold transition ${
+                    mobileStage === stage.key
+                      ? 'border-sky-500 bg-sky-500 text-white shadow-[0_8px_18px_rgba(14,165,233,0.25)]'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-sky-300'
+                  }`}
+                >
+                  {stage.label} · {stage.leads.length}
+                </button>
               ))}
             </div>
-            <div className="grid items-start gap-4 xl:grid-cols-5">
-              {pipelineColumns.map((stage) => (
-                <div key={stage.key} className="flex flex-col rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50 to-white p-3 shadow-[0_12px_35px_rgba(15,23,42,0.04)]">
+            <p className="mt-2 text-[11px] text-slate-400 sm:text-xs">💡 Arrastra una tarjeta de lead a otra columna para cambiar su etapa · o usa los botones de acción.</p>
+            <div className="flex snap-x snap-mandatory items-start gap-4 overflow-x-auto pb-4 lg:grid lg:grid-cols-3 lg:overflow-visible xl:grid-cols-5">
+              {(mobileStage ? visiblePipelineColumns.filter((stage) => stage.key === mobileStage) : visiblePipelineColumns).map((stage) => (
+                <div
+                  key={stage.key}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    setDragOverStage(stage.key);
+                  }}
+                  onDragLeave={() => setDragOverStage((current) => (current === stage.key ? null : current))}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    void handleDropOnStage(stage.key as LeadStatusKey);
+                  }}
+                  className={`flex w-[86%] shrink-0 snap-center flex-col rounded-2xl border-2 border-dashed bg-gradient-to-b from-slate-50 to-white p-3 shadow-[0_12px_35px_rgba(15,23,42,0.04)] transition-colors lg:w-auto lg:snap-none ${
+                    dragOverStage === stage.key ? 'border-emerald-400 bg-emerald-50/60' : 'border-slate-200'
+                  }`}
+                >
                   <button
                     type="button"
                     onClick={() => toggleStageCollapse(stage.key)}
@@ -666,7 +936,22 @@ export default function OperacionesPage() {
                         const selectedUser = selectedUserByLead[lead.id] ?? lead.assignedTo?.id ?? '';
 
                         return (
-                          <div key={lead.id} className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-white p-3.5 shadow-[0_12px_28px_rgba(15,23,42,0.05)] ring-1 ring-slate-100/80">
+                          <div
+                            key={lead.id}
+                            draggable
+                            onDragStart={(event) => {
+                              setDraggingLeadId(lead.id);
+                              event.dataTransfer.effectAllowed = 'move';
+                              event.dataTransfer.setData('text/plain', lead.id);
+                            }}
+                            onDragEnd={() => {
+                              setDraggingLeadId(null);
+                              setDragOverStage(null);
+                            }}
+                            className={`cursor-grab rounded-2xl border bg-gradient-to-br from-white via-slate-50 to-white p-3.5 shadow-[0_12px_28px_rgba(15,23,42,0.05)] ring-1 ring-slate-100/80 transition active:cursor-grabbing ${
+                              draggingLeadId === lead.id ? 'opacity-40 ring-2 ring-sky-300' : 'border-slate-200'
+                            }`}
+                          >
                             <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0 flex-1">
                                 <p className="truncate font-semibold text-slate-900">{lead.nombre}</p>
@@ -708,9 +993,10 @@ export default function OperacionesPage() {
                               <button
                                 onClick={() => handleCreateReminder(lead.id)}
                                 title="Crea un recordatorio automático para volver a contactar a este lead en una fecha futura. El sistema te avisará cuando toque."
-                                className="rounded-xl border border-violet-200 bg-gradient-to-r from-violet-500/10 to-violet-600/10 px-2.5 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-violet-700 shadow-[0_8px_18px_rgba(168,85,247,0.08)] transition-all hover:-translate-y-0.5 hover:border-violet-300"
+                                disabled={remindingId === lead.id}
+                                className="rounded-xl border border-violet-200 bg-gradient-to-r from-violet-500/10 to-violet-600/10 px-2.5 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-violet-700 shadow-[0_8px_18px_rgba(168,85,247,0.08)] transition-all hover:-translate-y-0.5 hover:border-violet-300 disabled:cursor-not-allowed disabled:opacity-50"
                               >
-                                Reminder
+                                {remindingId === lead.id ? 'Creando…' : 'Reminder'}
                               </button>
                             </div>
 
@@ -753,11 +1039,10 @@ export default function OperacionesPage() {
                       {stage.leads.length} lead{stage.leads.length === 1 ? '' : 's'} oculto{stage.leads.length === 1 ? '' : 's'} — pulsa «Ver»
                     </div>
                   )}
-                </div>
+                 </div>
               ))}
             </div>
           </section>
-
           <div className="grid gap-6 xl:grid-cols-3">
             <section className="rounded-[24px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_14px_45px_rgba(15,23,42,0.05)]">
               <div className="mb-4 flex items-center justify-between gap-3">
@@ -843,16 +1128,45 @@ export default function OperacionesPage() {
         </div>
       </div>
 
+      {toast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={[
+            'fixed inset-x-3 bottom-3 z-[60] flex items-start gap-3 rounded-2xl border p-4 shadow-[0_18px_45px_rgba(15,23,42,0.18)] backdrop-blur-md sm:inset-x-auto sm:bottom-6 sm:right-6 sm:max-w-sm',
+            toast.kind === 'success' && 'border-emerald-500/30 bg-emerald-50/95 text-emerald-800',
+            toast.kind === 'error' && 'border-rose-500/30 bg-rose-50/95 text-rose-800',
+            toast.kind === 'info' && 'border-sky-500/30 bg-sky-50/95 text-sky-800',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+        >
+          <span aria-hidden="true" className="text-lg">{toast.kind === 'success' ? '✅' : toast.kind === 'error' ? '⚠️' : 'ℹ️'}</span>
+          <p className="flex-1 text-sm font-medium">{toast.text}</p>
+          <button
+            onClick={() => setToast(null)}
+            aria-label="Descartar aviso"
+            className="rounded-full px-2 text-sm opacity-60 transition hover:opacity-100"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {timelineLeadId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-end bg-slate-950/70 backdrop-blur-sm" onClick={closeTimeline}>
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/70 backdrop-blur-sm sm:items-center sm:justify-end" onClick={closeTimeline}>
           <div
-            className="h-full w-full max-w-md overflow-y-auto border-l border-slate-200 bg-slate-50 p-6 shadow-[0_0_60px_rgba(0,0,0,0.6)]"
+            role="dialog"
+            aria-modal="true"
+            className="h-[88dvh] w-full overflow-y-auto rounded-t-3xl border border-slate-200 bg-slate-50 p-5 shadow-[0_0_60px_rgba(0,0,0,0.6)] sm:h-full sm:max-w-md sm:rounded-none sm:rounded-l-3xl sm:border-l sm:border-t-0 sm:p-6"
             onClick={(event) => event.stopPropagation()}
           >
+            {/* 📱 Agarre de arrastre (solo móvil) */}
+            <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-slate-300 sm:hidden" aria-hidden="true" />
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-slate-900">Timeline del lead</h2>
-              <button onClick={closeTimeline} className="rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-600">
-                Cerrar
+              <button onClick={closeTimeline} aria-label="Cerrar historial" className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-600 hover:bg-white">
+                Cerrar ✕
               </button>
             </div>
 
@@ -892,6 +1206,6 @@ export default function OperacionesPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
   );
 }

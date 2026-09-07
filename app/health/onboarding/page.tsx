@@ -434,10 +434,22 @@ export default function HealthOnboardingPage() {
         ...form,
         clinicName: normalizedClinicName,
       });
-      router.push('/health');
+    } catch (error) {
+      // La persistencia falló: avisar pero intentar navegar de todos modos para
+      // que el usuario nunca quede "atrapado" en el onboarding.
+      console.warn('No se pudo persistir el onboarding de health:', error);
     } finally {
       setIsSubmitting(false);
     }
+    // 🧭 Navegación garantizada: primero router.push, y si tras 1.5s seguimos
+    // en el onboarding (p.ej. por un error silencioso de React Router), cae a
+    // una navegación dura que siempre funciona.
+    router.push('/dashboard/operaciones');
+    window.setTimeout(() => {
+      if (typeof window !== 'undefined' && window.location.pathname.includes('/onboarding')) {
+        window.location.assign('/dashboard/operaciones');
+      }
+    }, 1500);
   };
 
   const handlePrimaryAction = async () => {
@@ -506,11 +518,11 @@ export default function HealthOnboardingPage() {
 
               <div className="grid gap-5">{renderStage(form, updateField)}</div>
 
-              <div className="mt-7 flex items-center justify-between gap-3">
+              <div className="mt-7 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
                 <button
                   onClick={goPrev}
                   disabled={currentStageIndex === 0}
-                  className={`rounded-full border px-4 py-2.5 text-sm font-semibold transition-all ${
+                  className={`min-h-[48px] rounded-full border px-4 py-2.5 text-sm font-semibold transition-all ${
                     currentStageIndex === 0
                       ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400'
                       : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
@@ -522,7 +534,7 @@ export default function HealthOnboardingPage() {
                 <button
                   onClick={handlePrimaryAction}
                   disabled={isSubmitting}
-                  className="rounded-full bg-[linear-gradient(135deg,_#1b5ed6_0%,_#4d8bff_100%)] px-5 py-2.5 text-sm font-bold text-white shadow-[0_18px_40px_rgba(27,94,214,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(27,94,214,0.32)] disabled:cursor-not-allowed disabled:opacity-75"
+                  className="min-h-[48px] rounded-full bg-[linear-gradient(135deg,_#1b5ed6_0%,_#4d8bff_100%)] px-5 py-2.5 text-sm font-bold text-white shadow-[0_18px_40px_rgba(27,94,214,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(27,94,214,0.32)] disabled:cursor-not-allowed disabled:opacity-75"
                 >
                   {isSubmitting
                     ? 'Finalizando…'
@@ -531,6 +543,26 @@ export default function HealthOnboardingPage() {
                       : 'Siguiente'}
                 </button>
               </div>
+
+              {currentStageIndex === onboardingStages.length - 1 && (
+                <div className="mt-4 grid gap-3 rounded-[20px] border border-emerald-200/70 bg-emerald-50/60 p-4 sm:grid-cols-2">
+                  <p className="text-sm font-semibold text-emerald-800 sm:col-span-2">
+                    ✅ Activación lista. Accede donde lo necesites:
+                  </p>
+                  <a
+                    href="/dashboard"
+                    className="flex min-h-[48px] items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-800 shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300"
+                  >
+                    🏠 Ir al centro de mando
+                  </a>
+                  <a
+                    href="/dashboard/operaciones"
+                    className="flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,_#0f9f6e_0%,_#34d399_100%)] px-5 py-2.5 text-sm font-bold text-white shadow-[0_14px_32px_rgba(15,159,110,0.25)] transition-all hover:-translate-y-0.5"
+                  >
+                    ⚡ Ir a Operaciones
+                  </a>
+                </div>
+              )}
             </section>
           )}
 

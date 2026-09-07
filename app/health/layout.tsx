@@ -90,6 +90,20 @@ export default function HealthLayout({ children }: { children: React.ReactNode }
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/dashboard/operaciones"
+              className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:text-slate-900"
+            >
+              <BarChart3 size={14} strokeWidth={2.2} />
+              Panel de control
+            </Link>
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:text-slate-900"
+            >
+              <House size={14} strokeWidth={2.2} />
+              Resumen
+            </Link>
             <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">Sistema saludable</span>
             <span className="rounded-full border border-[#dfeaff] bg-[#edf4ff] px-3 py-1.5 text-xs font-semibold text-[#1b5ed6]">{displayRole}</span>
           </div>
