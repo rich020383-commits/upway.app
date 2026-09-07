@@ -26,6 +26,7 @@ model Account {
   session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([provider, providerAccountId])
 }
 
@@ -43,21 +44,21 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-  password      String?   // Para que tus clientes entren con su clave
+  password      String? // Para que tus clientes entren con su clave
 
   accounts                Account[]
   sessions                Session[]
-  tiendas                 Tienda[]  // Enlace directo al negocio de tu cliente
-  ownedOrganizations      Organization[] @relation("OrganizationOwner")
-  organizationMemberships  OrganizationMember[]
-  billingAccessCodes      BillingAccessCode[] @relation("BillingAccessCodeCreator")
-  leadAssignments         LeadAssignment[] @relation("LeadAssignmentAssignee")
-  leadAssignmentHistory   LeadAssignment[] @relation("LeadAssignmentOwner")
-  leadActivities          LeadActivity[] @relation("LeadActivityActor")
-  leadReminders           LeadReminder[] @relation("LeadReminderCreator")
-  appointmentAssignments Cita[] @relation("AppointmentAssignee")
-  createdLeads            Lead[] @relation("LeadCreator")
-  assignedLeads           Lead[] @relation("LeadAssignee")
+  tiendas                 Tienda[] // Enlace directo al negocio de tu cliente
+  ownedOrganizations      Organization[]       @relation("OrganizationOwner")
+  organizationMemberships OrganizationMember[]
+  billingAccessCodes      BillingAccessCode[]  @relation("BillingAccessCodeCreator")
+  leadAssignments         LeadAssignment[]     @relation("LeadAssignmentAssignee")
+  leadAssignmentHistory   LeadAssignment[]     @relation("LeadAssignmentOwner")
+  leadActivities          LeadActivity[]       @relation("LeadActivityActor")
+  leadReminders           LeadReminder[]       @relation("LeadReminderCreator")
+  appointmentAssignments  Cita[]               @relation("AppointmentAssignee")
+  createdLeads            Lead[]               @relation("LeadCreator")
+  assignedLeads           Lead[]               @relation("LeadAssignee")
 }
 
 enum VerticalType {
@@ -191,18 +192,18 @@ enum ActivityType {
 }
 
 model Organization {
-  id          String        @id @default(cuid())
-  name        String
-  slug        String        @unique
-  vertical    VerticalType  @default(BUSINESS)
-  verticals   VerticalType[] @default([BUSINESS])
-  ownerId     String
-  owner       User          @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  members     OrganizationMember[]
-  clinics     Clinic[]
-  tiendas     Tienda[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id        String               @id @default(cuid())
+  name      String
+  slug      String               @unique
+  vertical  VerticalType         @default(BUSINESS)
+  verticals VerticalType[]       @default([BUSINESS])
+  ownerId   String
+  owner     User                 @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members   OrganizationMember[]
+  clinics   Clinic[]
+  tiendas   Tienda[]
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
 }
 
 model OrganizationMember {
@@ -218,17 +219,17 @@ model OrganizationMember {
 }
 
 model Clinic {
-  id              String       @id @default(cuid())
-  organizationId  String
-  name            String
-  specialty       String?
-  timezone        String?      @default("UTC")
-  vertical        VerticalType @default(BUSINESS)
-  status          String       @default("active")
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  specialty      String?
+  timezone       String?      @default("UTC")
+  vertical       VerticalType @default(BUSINESS)
+  status         String       @default("active")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
-  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization       Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   tiendas            Tienda[]
   healthProfile      HealthProfile?
   onboardingSessions HealthOnboardingSession[]
@@ -236,23 +237,23 @@ model Clinic {
 }
 
 model HealthProfile {
-  id                       String   @id @default(cuid())
-  clinicId                 String   @unique
-  specialty                String?
-  appointmentMode         String?  @default("phone")
-  patientContextRequired   Boolean  @default(true)
-  emergencyEscalation      Boolean  @default(true)
-  cancellationPolicy       String?  @db.Text
-  toneProfile              String?  @default("professional")
-  privacyMode              String   @default("strict")
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
+  id                     String   @id @default(cuid())
+  clinicId               String   @unique
+  specialty              String?
+  appointmentMode        String?  @default("phone")
+  patientContextRequired Boolean  @default(true)
+  emergencyEscalation    Boolean  @default(true)
+  cancellationPolicy     String?  @db.Text
+  toneProfile            String?  @default("professional")
+  privacyMode            String   @default("strict")
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
-  clinic                   Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-  triageRules              HealthTriageRule[]
-  faqs                     HealthFAQ[]
-  handoffRules             HealthHandoffRule[]
-  compliancePolicies       HealthCompliancePolicy[]
+  clinic             Clinic                   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  triageRules        HealthTriageRule[]
+  faqs               HealthFAQ[]
+  handoffRules       HealthHandoffRule[]
+  compliancePolicies HealthCompliancePolicy[]
 }
 
 model HealthOnboardingSession {
@@ -260,7 +261,7 @@ model HealthOnboardingSession {
   clinicId        String
   vertical        VerticalType           @default(BUSINESS)
   status          HealthOnboardingStatus @default(DRAFT)
-  currentStep     String                 @default("overview")
+  currentStep     String                 @default("clinic-setup")
   progressPercent Int                    @default(0)
   notes           String?                @db.Text
   ownerUserId     String?
@@ -269,107 +270,107 @@ model HealthOnboardingSession {
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
 
-  clinic          Clinic                  @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-  steps           HealthOnboardingStep[]
-  approvals       HealthOnboardingApproval[]
+  clinic    Clinic                     @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  steps     HealthOnboardingStep[]
+  approvals HealthOnboardingApproval[]
 }
 
 model HealthOnboardingStep {
-  id            String                    @id @default(cuid())
-  sessionId     String
-  stepKey       String
-  title         String
-  status        HealthOnboardingStepStatus @default(NOT_STARTED)
-  required      Boolean                   @default(true)
-  notes         String?                   @db.Text
-  blockerReason String?                   @db.Text
+  id             String                     @id @default(cuid())
+  sessionId      String
+  stepKey        String
+  title          String
+  status         HealthOnboardingStepStatus @default(NOT_STARTED)
+  required       Boolean                    @default(true)
+  notes          String?                    @db.Text
+  blockerReason  String?                    @db.Text
   assigneeUserId String?
-  startedAt     DateTime?
-  completedAt   DateTime?
-  createdAt     DateTime                  @default(now())
-  updatedAt     DateTime                  @updatedAt
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
 
-  session       HealthOnboardingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session HealthOnboardingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId, stepKey])
 }
 
 model HealthOnboardingApproval {
-  id          String             @id @default(cuid())
+  id          String               @id @default(cuid())
   sessionId   String
-  entityType  String             @default("onboarding")
+  entityType  String               @default("onboarding")
   entityId    String?
   requestedBy String?
   approvedBy  String?
   status      HealthApprovalStatus @default(PENDING)
-  comments    String?            @db.Text
-  createdAt   DateTime           @default(now())
+  comments    String?              @db.Text
+  createdAt   DateTime             @default(now())
   reviewedAt  DateTime?
 
-  session     HealthOnboardingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session HealthOnboardingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId, status])
 }
 
 model HealthAuditLog {
-  id           String   @id @default(cuid())
-  clinicId     String
-  entityType   String
-  entityId     String
-  action       String
-  performedBy  String?
-  beforeJson   Json?
-  afterJson    Json?
-  createdAt    DateTime @default(now())
+  id          String   @id @default(cuid())
+  clinicId    String
+  entityType  String
+  entityId    String
+  action      String
+  performedBy String?
+  beforeJson  Json?
+  afterJson   Json?
+  createdAt   DateTime @default(now())
 
-  clinic       Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
 
   @@index([clinicId, entityType, createdAt])
 }
 
 model WebhookEventLog {
-  id          String   @id @default(cuid())
-  provider    String
-  eventType   String
-  status      String   @default("received")
-  clinicId    String?
-  tenantId    String?
-  entityType  String?
-  entityId    String?
-  performedBy String?
-  payloadJson Json?
+  id           String   @id @default(cuid())
+  provider     String
+  eventType    String
+  status       String   @default("received")
+  clinicId     String?
+  tenantId     String?
+  entityType   String?
+  entityId     String?
+  performedBy  String?
+  payloadJson  Json?
   metadataJson Json?
-  createdAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
 
   @@index([provider, createdAt])
   @@index([clinicId, createdAt])
 }
 
 model HealthTriageRule {
-  id            String   @id @default(cuid())
-  profileId     String
-  name          String
-  condition     String   @db.Text
-  severity      String   @default("medium")
-  action        String   @db.Text
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id        String   @id @default(cuid())
+  profileId String
+  name      String
+  condition String   @db.Text
+  severity  String   @default("medium")
+  action    String   @db.Text
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  profile       HealthProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profile HealthProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 }
 
 model HealthFAQ {
-  id            String   @id @default(cuid())
-  profileId     String
-  question      String   @db.Text
-  answer        String   @db.Text
-  category      String   @default("general")
-  isPublished   Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          String   @id @default(cuid())
+  profileId   String
+  question    String   @db.Text
+  answer      String   @db.Text
+  category    String   @default("general")
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  profile       HealthProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profile HealthProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 }
 
 model HealthHandoffRule {
@@ -382,20 +383,20 @@ model HealthHandoffRule {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  profile        HealthProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profile HealthProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 }
 
 model HealthCompliancePolicy {
-  id            String   @id @default(cuid())
-  profileId     String
-  title         String
-  body          String   @db.Text
-  version       String   @default("v1")
-  isRequired    Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id         String   @id @default(cuid())
+  profileId  String
+  title      String
+  body       String   @db.Text
+  version    String   @default("v1")
+  isRequired Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  profile       HealthProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profile HealthProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 }
 
 model BillingAccessCode {
@@ -412,7 +413,7 @@ model BillingAccessCode {
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
 
-  createdBy       User?              @relation("BillingAccessCodeCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdBy User? @relation("BillingAccessCodeCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
 
   @@index([isActive, expiresAt])
   @@index([code])
@@ -422,6 +423,7 @@ model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
+
   @@unique([identifier, token])
 }
 
@@ -430,55 +432,55 @@ model VerificationToken {
 // ==========================================
 
 model Tienda {
-  id                  String   @id @default(cuid())
-  userId              String
-  organizationId      String?
-  clinicId            String?
-  nombre              String
+  id             String  @id @default(cuid())
+  userId         String
+  organizationId String?
+  clinicId       String?
+  nombre         String
 
   // 🏭 Segmento de negocio (inmobiliaria, drogueria, retail, supermercado, general)
-  segment             String   @default("general")
+  segment String @default("general")
 
   // 🤖 Personalidad del Bot
-  agentName           String?
-  systemPrompt        String?  @db.Text
+  agentName    String?
+  systemPrompt String? @db.Text
 
   // 🔥 CAMPOS META WHATSAPP Y HANDOFF
-  telefono            String?  // El número oficial de la empresa en Meta
-  telefonoAdmin       String?  // Celular personal del dueño para Human Handoff
-  metaPhoneNumberId   String?
-  metaWabaId          String?
-  metaAccessToken     String?  @db.Text
-  isWhatsAppActive    Boolean  @default(false)
-  whatsappStatus      String   @default("PENDING") // 🟢 Para el letrero verde inteligente del frontend
-  isAiActive          Boolean  @default(true)      // 🛑 Botón del panel: true = IA responde, false = Humano responde
+  telefono          String? // El número oficial de la empresa en Meta
+  telefonoAdmin     String? // Celular personal del dueño para Human Handoff
+  metaPhoneNumberId String?
+  metaWabaId        String?
+  metaAccessToken   String? @db.Text
+  isWhatsAppActive  Boolean @default(false)
+  whatsappStatus    String  @default("PENDING") // 🟢 Para el letrero verde inteligente del frontend
+  isAiActive        Boolean @default(true) // 🛑 Botón del panel: true = IA responde, false = Humano responde
 
   // 🎙️ CAMPOS VAPI (Agentes de Voz)
-  vapiAssistantId     String?
-  vapiPhoneNumber     String?
-  isVapiActive        Boolean  @default(false)
+  vapiAssistantId String?
+  vapiPhoneNumber String?
+  isVapiActive    Boolean @default(false)
 
   // 🗑️ (Se eliminaron los campos de Google Calendar por el pivot estratégico)
 
-  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization        Organization?  @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  clinic              Clinic?        @relation(fields: [clinicId], references: [id], onDelete: SetNull)
-  productos           Producto[]
-  llamadas            LlamadaLog[]
-  leads               Lead[]
-  conversations       Conversation[] // 💬 Relación con el buzón omnicanal
-  citas               Cita[]         // 📅 Relación con la Agenda Nativa Upway
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization  Organization?  @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  clinic        Clinic?        @relation(fields: [clinicId], references: [id], onDelete: SetNull)
+  productos     Producto[]
+  llamadas      LlamadaLog[]
+  leads         Lead[]
+  conversations Conversation[] // 💬 Relación con el buzón omnicanal
+  citas         Cita[] // 📅 Relación con la Agenda Nativa Upway
 }
 
 model Producto {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   tiendaId    String
   nombre      String
   descripcion String?
   precio      Float
-  stock       Int      @default(0)
+  stock       Int     @default(0)
 
-  tienda      Tienda   @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  tienda Tienda @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
 }
 
 // ==========================================
@@ -486,17 +488,17 @@ model Producto {
 // ==========================================
 
 model LlamadaLog {
-  id                String   @id @default(cuid())
-  tiendaId          String
-  vapiCallId        String   @unique
-  direction         String   // "inbound" o "outbound"
-  durationMinutes   Float
-  vapiCost          Float    // Lo que te cobra Vapi a ti
-  upwayBilledCost   Float    // Lo que Upway le cobra a la IPS (con tu margen)
-  status            String   // "completed", "failed", "no_answer", etc.
-  createdAt         DateTime @default(now())
+  id              String   @id @default(cuid())
+  tiendaId        String
+  vapiCallId      String   @unique
+  direction       String // "inbound" o "outbound"
+  durationMinutes Float
+  vapiCost        Float // Lo que te cobra Vapi a ti
+  upwayBilledCost Float // Lo que Upway le cobra a la IPS (con tu margen)
+  status          String // "completed", "failed", "no_answer", etc.
+  createdAt       DateTime @default(now())
 
-  tienda            Tienda   @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  tienda Tienda @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
 }
 
 // ==========================================
@@ -504,30 +506,30 @@ model LlamadaLog {
 // ==========================================
 
 model Lead {
-  id               String        @id @default(cuid())
+  id               String       @id @default(cuid())
   tiendaId         String
   nombre           String
-  documento        String?       // Cédula, NIT o Pasaporte
-  motivo           String?       @db.Text // El resumen de la consulta o intención
-  origen           LeadSource    @default(WHATSAPP)
-  estado           LeadStatus    @default(NEW)
-  prioridad        LeadPriority  @default(MEDIUM)
+  documento        String? // Cédula, NIT o Pasaporte
+  motivo           String?      @db.Text // El resumen de la consulta o intención
+  origen           LeadSource   @default(WHATSAPP)
+  estado           LeadStatus   @default(NEW)
+  prioridad        LeadPriority @default(MEDIUM)
   phone            String?
   email            String?
   city             String?
-  qualityScore     Int           @default(0)
-  note             String?       @db.Text
+  qualityScore     Int          @default(0)
+  note             String?      @db.Text
   createdByUserId  String?
   assignedToUserId String?
   lastContactAt    DateTime?
   closedAt         DateTime?
   metadataJson     Json?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
-  tienda        Tienda            @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
-  createdBy     User?             @relation("LeadCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  assignedTo    User?             @relation("LeadAssignee", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  tienda        Tienda           @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  createdBy     User?            @relation("LeadCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  assignedTo    User?            @relation("LeadAssignee", fields: [assignedToUserId], references: [id], onDelete: SetNull)
   conversations Conversation[]
   assignments   LeadAssignment[]
   activities    LeadActivity[]
@@ -540,13 +542,13 @@ model Lead {
 }
 
 model LeadAssignment {
-  id               String   @id @default(cuid())
+  id               String    @id @default(cuid())
   leadId           String
   userId           String
   assignedByUserId String?
-  status           String   @default("active")
-  reason           String?  @db.Text
-  assignedAt       DateTime @default(now())
+  status           String    @default("active")
+  reason           String?   @db.Text
+  assignedAt       DateTime  @default(now())
   unassignedAt     DateTime?
 
   lead       Lead  @relation(fields: [leadId], references: [id], onDelete: Cascade)
@@ -574,17 +576,17 @@ model LeadActivity {
 }
 
 model LeadReminder {
-  id              String        @id @default(cuid())
+  id              String         @id @default(cuid())
   leadId          String
   appointmentId   String?
   conversationId  String?
   createdByUserId String?
-  channel         String        @default("whatsapp")
+  channel         String         @default("whatsapp")
   status          ReminderStatus @default(PENDING)
-  message         String?       @db.Text
+  message         String?        @db.Text
   scheduledFor    DateTime
   sentAt          DateTime?
-  createdAt       DateTime      @default(now())
+  createdAt       DateTime       @default(now())
 
   lead         Lead          @relation(fields: [leadId], references: [id], onDelete: Cascade)
   appointment  Cita?         @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
@@ -603,15 +605,15 @@ model Conversation {
   id           String             @id @default(cuid())
   tiendaId     String
   leadId       String?
-  clientPhone  String             // El número de WhatsApp del cliente
-  clientName   String?            // Nombre del cliente
+  clientPhone  String // El número de WhatsApp del cliente
+  clientName   String? // Nombre del cliente
   status       ConversationStatus @default(ACTIVE)
-  metaCategory String?            // "service", "utility", "marketing" (Métricas de cobro Meta)
+  metaCategory String? // "service", "utility", "marketing" (Métricas de cobro Meta)
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
 
-  tienda       Tienda             @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
-  lead         Lead?              @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  tienda       Tienda         @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  lead         Lead?          @relation(fields: [leadId], references: [id], onDelete: SetNull)
   messages     Message[]
   appointments Cita[]
   reminders    LeadReminder[]
@@ -661,10 +663,10 @@ model Cita {
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 
-  tienda       Tienda       @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
-  lead         Lead?        @relation(fields: [leadId], references: [id], onDelete: SetNull)
-  conversation Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
-  assignedTo   User?        @relation("AppointmentAssignee", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  tienda       Tienda         @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  lead         Lead?          @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  conversation Conversation?  @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  assignedTo   User?          @relation("AppointmentAssignee", fields: [assignedToUserId], references: [id], onDelete: SetNull)
   reminders    LeadReminder[]
 
   @@index([tiendaId, fechaHora])

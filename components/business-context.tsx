@@ -78,8 +78,13 @@ export function BusinessContextProvider({ children }: { children: React.ReactNod
       const clinicName = clinicCandidates.find(Boolean) ?? '';
       const organizationName = organizationCandidates.find(Boolean) ?? '';
 
-      if (clinicName) setStoredClinicName(clinicName);
-      if (organizationName) setStoredOrganizationName(organizationName);
+      // Diferimos el setState para evitar un render en cascada dentro del efecto.
+      const commit = () => {
+        if (clinicName) setStoredClinicName(clinicName);
+        if (organizationName) setStoredOrganizationName(organizationName);
+      };
+      const id = requestAnimationFrame(commit);
+      return () => cancelAnimationFrame(id);
     } catch {
       // localStorage may be unavailable on some environments.
     }

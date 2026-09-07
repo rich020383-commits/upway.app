@@ -57,13 +57,16 @@ export default function BillingAccessCodesPage() {
     if (!isAdmin) return;
 
     let cancelled = false;
-    loadCodes().catch((error) => {
-      if (!cancelled) {
-        setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Error al cargar códigos.' });
-      }
-    });
+    const timerId = setTimeout(() => {
+      loadCodes().catch((error) => {
+        if (!cancelled) {
+          setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Error al cargar códigos.' });
+        }
+      });
+    }, 0);
     return () => {
       cancelled = true;
+      if (timerId !== undefined) clearTimeout(timerId);
     };
   }, [status, isAdmin]);
 

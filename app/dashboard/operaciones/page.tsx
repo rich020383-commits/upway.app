@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { resolveIndustryConfig, type BusinessSegment } from '@/lib/industry-config';
 
 type LeadStatusKey = 'NEW' | 'CONTACTED' | 'APPOINTMENT_BOOKED' | 'FOLLOW_UP' | 'CLOSED_WON' | 'CLOSED_LOST';

@@ -11,7 +11,12 @@ const app = Fastify({ logger: true });
 // ============ Entrada única: el Gateway ya validó la firma de Meta ============
 app.post('/whatsapp/incoming', async (req, reply) => {
   reply.status(200).send(); // ACK inmediato; el procesamiento es async
-  const value: any = (req.body as any)?.changes?.[0]?.value;
+  const value = (req.body as { changes?: Array<{ value?: unknown }> })?.changes?.[0]?.value as
+    | {
+        messages?: Array<{ id: string; from: string; type: string; text?: { body?: string }; image?: { id?: string } }>;
+        contacts?: Array<{ profile?: { name?: string } }>;
+      }
+    | undefined;
   const msg = value?.messages?.[0];
   if (!msg) return;
 

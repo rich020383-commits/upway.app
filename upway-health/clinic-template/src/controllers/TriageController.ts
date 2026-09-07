@@ -28,7 +28,7 @@ Mensaje: "${texto}"`,
       options: { temperature: 0, num_predict: 12 },
     }),
   });
-  const data: any = await res.json();
+  const data = (await res.json()) as { response?: unknown };
   const etiqueta = String(data.response || '').match(/consulta_operativa|agendar|cancelar|emergencia|desconocido/)?.[0];
   return (etiqueta as Intencion) ?? 'desconocido';
 }
@@ -94,7 +94,7 @@ export const TriageController = {
         options: { temperature: 0.2, num_predict: 200 },
       }),
     });
-    const data: any = await res.json();
+    const data = (await res.json()) as { response?: unknown };
     const respuesta = String(data.response || 'No tengo ese dato, ¿te transfiero con recepción?').trim();
 
     await sendWhatsApp(telefono, respuesta);

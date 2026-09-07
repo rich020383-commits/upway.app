@@ -152,6 +152,13 @@ export async function POST(request: Request) {
 
     const status = String(body.status ?? getHealthStatusForStage(normalizedStep));
 
+    // 🔒 El go-live real exige aprobación explícita del responsable clínico.
+    // Nunca confiar en el cliente: si el status es ACTIVE sin approval=true,
+    // se degrada a NEEDS_CHANGES en lugar de activar.
+    const hasClinicalApproval = formData.approval === true;
+    const finalStatus =
+      status === 'ACTIVE' && !hasClinicalApproval ? 'NEEDS_CHANGES' : status;
+
     const existing = await prisma.healthOnboardingSession.findFirst({
       where: { clinicId: clinic.id },
       orderBy: { updatedAt: 'desc' },
@@ -185,7 +192,8 @@ export async function POST(request: Request) {
     const payload = {
       clinicId: clinic.id,
       currentStep: normalizedStep,
-      status: status as
+      ...(finalStatus === 'ACTIVE' ? { completedAt: new Date() } : {}),
+      status: finalStatus as
         | 'DRAFT'
         | 'IN_PROGRESS'
         | 'PENDING_REVIEW'

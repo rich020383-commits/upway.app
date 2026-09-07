@@ -81,8 +81,9 @@ app.post('/webhook', async (req, res) => {
           await waitingRoom.add('deliver', { clinic, value }, { jobId: `wa-${value.messages[0].id}` });
           console.log(`[GATEWAY] ${clinic.slug} saturada (${active}). Mensaje en sala de espera.`);
         } else {
-          deliver(clinic, value).catch(async (err: any) => {
-            console.error(`[GATEWAY] fallo entrega inmediata a ${clinic.slug}, encolando`, err.message);
+          deliver(clinic, value).catch(async (err: unknown) => {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(`[GATEWAY] fallo entrega inmediata a ${clinic.slug}, encolando`, message);
             await waitingRoom.add('deliver', { clinic, value }, { jobId: `wa-${value.messages[0].id}` });
           });
         }

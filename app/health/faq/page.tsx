@@ -34,7 +34,11 @@ export default function HealthFaqPage() {
   }, []);
 
   useEffect(() => {
-    loadFaqs();
+    // Diferimos la carga para evitar un render en cascada dentro del efecto.
+    const timerId = setTimeout(() => {
+      void loadFaqs();
+    }, 0);
+    return () => clearTimeout(timerId);
   }, [loadFaqs]);
 
   const handleCreate = async () => {

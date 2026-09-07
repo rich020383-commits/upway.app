@@ -92,7 +92,7 @@ export default function Paso05Simulador() {
       };
       mediaRecorderRef.current.start();
       setGrabando(true);
-    } catch (error) {
+    } catch {
       setSimulatorError('No se pudo acceder al micrófono. Verifica los permisos del navegador.');
     }
   };
@@ -123,7 +123,7 @@ export default function Paso05Simulador() {
       const data = await res.json();
       if (res.ok) setMensajes(prev => [...prev, { rol: 'ia', texto: data.respuesta, provider: data.provider }]);
       else setMensajes(prev => [...prev, { rol: 'ia', texto: 'Hubo un error de conexión.' }]);
-    } catch (error) {
+    } catch {
       setMensajes(prev => [...prev, { rol: 'ia', texto: 'Error de red.' }]);
     } finally {
       setEscribiendo(false);
@@ -158,18 +158,27 @@ export default function Paso05Simulador() {
 
         const systemPromptDinamico = `Eres ${nombreAgente || 'un asistente virtual experto'}, operando para un negocio del sector ${nicho || 'general'}. ${promptMaestro}. Tu nombre es exactamente ${nombreAgente || 'Asistente'}.`;
         const isHombre = (nombreAgente || '').toLowerCase().includes('mauricio') || (nicho || '').toLowerCase().includes('hombre');
-        const voiceConfig = isHombre ? { provider: "deepgram", voiceId: "nestor" } : { provider: "deepgram", voiceId: "celeste" };
 
-        const vapiAssistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
+        // Si hay un asistente masculino configurado, usamos su ID (override de voz real)
+        const vapiAssistantIdMasculino = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID_MASCULINO;
+        const vapiAssistantId = isHombre && vapiAssistantIdMasculino
+          ? vapiAssistantIdMasculino
+          : process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
+
         if (!vapiAssistantId) {
           throw new Error('Falta configurar el asistente de voz.');
         }
 
-        await vapi.start(vapiAssistantId, {
+        // Fallback: si aún no existe el asistente masculino, intentamos forzar la voz por override
+        const overrides: Record<string, unknown> = {
           firstMessage: `¡Hola! Soy ${nombreAgente || 'tu asistente'}, ¿en qué puedo ayudarte hoy?`,
-          model: { provider: "openai", model: "gpt-4o", messages: [{ role: "system", content: systemPromptDinamico }] },
-          voice: voiceConfig
-        });
+          model: { provider: "openai", model: "gpt-4o", messages: [{ role: "system", content: systemPromptDinamico }] }
+        };
+        if (isHombre && !vapiAssistantIdMasculino) {
+          overrides.voice = { provider: "deepgram", voiceId: "nestor" };
+        }
+
+        await vapi.start(vapiAssistantId, overrides);
       } catch (error) {
         console.error("Error Vapi:", error);
         setLlamadaActiva(false);

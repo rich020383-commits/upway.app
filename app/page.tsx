@@ -148,17 +148,19 @@ export default function Home() {
   const heroVideoRef = useRef<HTMLVideoElement | null>(null);
 
   // Efecto para cancelar el video en computadora (apaga el splash en pantallas >= 768px)
+  const shouldSkipSplash = typeof window !== 'undefined' && window.innerWidth >= 768;
+
+  // Efecto para cancelar el video en computadora (apaga el splash en pantallas >= 768px)
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
-    if (window.innerWidth >= 768) {
-      setShowSplash(false);
-    }
 
     const mediaQuery = window.matchMedia('(max-width: 767px)');
     const updateBreakpoint = () => setIsMobile(mediaQuery.matches);
 
-    updateBreakpoint();
+    if (mediaQuery.matches !== isMobile) {
+      const id = requestAnimationFrame(() => setIsMobile(mediaQuery.matches));
+      return () => cancelAnimationFrame(id);
+    }
 
     if (typeof mediaQuery.addEventListener === 'function') {
       mediaQuery.addEventListener('change', updateBreakpoint);
@@ -167,14 +169,21 @@ export default function Home() {
 
     mediaQuery.addListener(updateBreakpoint);
     return () => mediaQuery.removeListener(updateBreakpoint);
-  }, []);
+  }, [isMobile]);
+
+  // Apaga el splash en pantallas grandes de forma deferida (evita setState síncrono en efecto)
+  useEffect(() => {
+    if (!shouldSkipSplash) return;
+    const id = requestAnimationFrame(() => setShowSplash(false));
+    return () => cancelAnimationFrame(id);
+  }, [shouldSkipSplash]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !heroVideoRef.current) return;
 
     if (!('IntersectionObserver' in window)) {
-      setHeroVideoReady(true);
-      return;
+      const id = requestAnimationFrame(() => setHeroVideoReady(true));
+      return () => cancelAnimationFrame(id);
     }
 
     const video = heroVideoRef.current;
@@ -196,14 +205,14 @@ export default function Home() {
     setFadeOut(true);
     setTimeout(() => {
       setShowSplash(false);
-    }, 500); 
+    }, 500);
   };
 
   return (
     <>
       {/* PANTALLA DE CARGA (SPLASH SCREEN) - EXCLUSIVA PARA MÓVIL */}
       {showSplash && (
-        <div 
+        <div
           className={`fixed inset-0 z-[9999] flex md:hidden items-center justify-center bg-[#050b16] transition-opacity duration-500 ${
             fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
@@ -223,7 +232,7 @@ export default function Home() {
 
       {/* LANDING PAGE - Con overflow bloqueado y anchos optimizados para móvil */}
       <main className="upway-dark-shell relative min-h-screen w-full max-w-full overflow-x-hidden bg-[#050b16] text-slate-100">
-        
+
         {/* Resplandor superior encapsulado para evitar desbordamiento horizontal */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] overflow-hidden">
           <div className="absolute left-1/2 top-0 h-[420px] w-[820px] -translate-x-1/2 rounded-full bg-[#2d78ff]/20 blur-[140px]" />
@@ -346,8 +355,8 @@ export default function Home() {
     Hablar con un especialista
     <ArrowRight className="h-4 w-4" />
   </button>
-  <Link 
-   href="#sectores" 
+  <Link
+   href="#sectores"
    className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-3.5 text-sm font-semibold text-slate-200 backdrop-blur-md transition hover:border-white/30 hover:bg-white/10"
   >
    Ver sectores
@@ -367,7 +376,7 @@ export default function Home() {
               <div className="relative">
                 <div className="absolute -inset-2 rounded-[32px] bg-[#2d78ff]/15 blur-2xl md:-inset-6 md:rounded-[40px] md:blur-3xl" />
                 <div className="relative overflow-hidden rounded-[24px] border border-white/15 bg-gradient-to-br from-[#0c1626]/95 via-[#0e1d33]/90 to-[#142d54]/85 p-4 sm:p-6 md:p-8 shadow-2xl backdrop-blur-xl md:rounded-[32px]">
-                  
+
                   <div className="flex items-center justify-between border-b border-white/10 pb-3">
                     <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
                       <span className="relative flex h-2 w-2">

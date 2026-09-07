@@ -15,8 +15,14 @@ type MetaTokenExchangeResponse = {
 };
 
 async function exchangeCodeForToken(code: string, redirectUri: string) {
-  const appId = process.env.META_APP_ID || process.env.FACEBOOK_APP_ID;
-  const appSecret = process.env.META_APP_SECRET || process.env.FACEBOOK_APP_SECRET;
+  const appId =
+    process.env.META_APP_ID ||
+    process.env.FACEBOOK_APP_ID ||
+    process.env.META_CLIENT_ID; // 🔧 fallback: el .env real usa META_CLIENT_ID
+  const appSecret =
+    process.env.META_APP_SECRET ||
+    process.env.FACEBOOK_APP_SECRET ||
+    process.env.META_CLIENT_SECRET; // 🔧 fallback: el .env real usa META_CLIENT_SECRET
 
   if (!appId || !appSecret) {
     throw new Error('Faltan las variables META_APP_ID o META_APP_SECRET para intercambiar el código de Meta.');
@@ -46,10 +52,17 @@ export async function POST(req: NextRequest) {
 
     const {
       metaCode,
-      metaPhoneNumberId = 'ID_DEL_NUMERO',
-      metaWabaId = 'ID_DEL_WABA',
+      metaPhoneNumberId,
+      metaWabaId,
       tienda_id: tiendaIdFromBody,
     } = body;
+
+    if (!metaPhoneNumberId || !metaWabaId) {
+      return NextResponse.json(
+        { error: 'Faltan metaPhoneNumberId o metaWabaId; no se puede activar la línea.' },
+        { status: 400 }
+      );
+    }
 
     // 🛡️ La sesión decide la tienda destino; nunca confiamos en tokens del cliente
     const { tienda, error } = await getOwnedTienda(req, prisma, tiendaIdFromBody);
@@ -68,36 +81,9 @@ export async function POST(req: NextRequest) {
 
     const accessToken = await exchangeCodeForToken(metaCode, redirect);
 
-    if (metaPhoneNumberId && metaPhoneNumberId !== 'ID_DEL_NUMERO') {
-      try {
-        const pinDeRegistro = process.env.META_REGISTER_PIN;
-        if (!pinDeRegistro) {
-          // No abortamos el flujo: registrar la línea es no crítico. Solo lo avisamos.
-          console.warn('⚠️ META_REGISTER_PIN no está definida; se omite el registro de la línea.');
-        } else {
-          const registroMeta = await fetch(`https://graph.facebook.com/v20.0/${metaPhoneNumberId}/register`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${accessToken}`,
-            },
-            body: JSON.stringify({
-              messaging_product: 'whatsapp',
-              pin: pinDeRegistro,
-            }),
-          });
-
-          if (!registroMeta.ok) {
-            const errorMeta = await registroMeta.json().catch(() => null);
-            console.warn('⚠️ Aviso de Meta (no crítico):', errorMeta);
-          } else {
-            console.log('✅ Línea de WhatsApp registrada oficialmente en Meta.');
-          }
-        }
-      } catch (error) {
-        console.error('Error menor al intentar registrar la línea en Graph API:', error);
-      }
-    }
+    // ℹ️ NO llamamos a /{phone_number_id}/register aquí.
+    // Con Embedded Signup el cliente registra y activa su línea (con su propio PIN)
+    // dentro del flujo de Meta. Upway solo persiste las credenciales que Meta devuelve.
 
     // 🔥 Buscamos la tienda del usuario autenticado (ya resuelta con ownership)
     const tiendaIdReal = tienda.id;
