@@ -24,19 +24,19 @@ export type BusinessContextValue = {
 };
 
 const defaultContext: BusinessContextValue = {
-  organizationId: 'default-org',
-  clinicId: 'default-clinic',
-  organizationName: 'Negocio general',
-  clinicName: 'Espacio operativo',
-  role: 'owner',
-  displayRole: 'Propietario',
+  organizationId: '',
+  clinicId: '',
+  organizationName: '',
+  clinicName: '',
+  role: '',
+  displayRole: '',
   vertical: 'general',
   normalizedScope: {
-    organizationId: 'default-org',
-    clinicId: 'default-clinic',
-    role: 'owner',
+    organizationId: '',
+    clinicId: '',
+    role: '',
   },
-  canAccessModule: () => true,
+  canAccessModule: () => false,
 };
 
 const BusinessContext = createContext<BusinessContextValue>(defaultContext);
@@ -44,11 +44,12 @@ const BusinessContext = createContext<BusinessContextValue>(defaultContext);
 function normalizeDisplayRole(role: string) {
   const normalized = role
     .replace(/[-_]/g, ' ')
-    .trim();
+    .trim()
+    .toLowerCase();
 
-  if (!normalized) return 'Propietario';
-  if (normalized === 'clinic admin' || normalized === 'clinic-admin' || normalized === 'clinic_admin') return 'Administrador';
-  if (normalized === 'org owner' || normalized === 'org-owner' || normalized === 'org_owner') return 'Propietario';
+  if (!normalized) return '';
+  if (normalized === 'clinic admin') return 'Administrador';
+  if (normalized === 'org owner') return 'Propietario';
   if (normalized === 'admin') return 'Administrador';
   if (normalized === 'owner') return 'Propietario';
 
@@ -94,11 +95,13 @@ export function BusinessContextProvider({ children }: { children: React.ReactNod
     const user = (session?.user as Record<string, unknown> | undefined) ?? {};
     const vertical = String(user.vertical ?? user.businessType ?? 'general').toLowerCase();
     const resolvedVertical = resolveVertical(vertical);
-    const role = String(user.role ?? 'owner');
-    const organizationId = String(user.organizationId ?? 'default-org');
-    const clinicId = String(user.clinicId ?? 'default-clinic');
-    const organizationFallback = storedOrganizationName || resolvedVertical.label || 'Negocio general';
-    const clinicFallback = storedClinicName || 'Espacio operativo';
+    const role = String(user.role ?? '');
+    const organizationId = String(user.organizationId ?? '');
+    const clinicId = String(user.clinicId ?? '');
+    // Sin sesión no hay fallback inventado: se deja vacío para que el layout
+    // redirija a /login en vez de mostrar "Negocio general" fantasma.
+    const organizationFallback = storedOrganizationName || resolvedVertical.label || '';
+    const clinicFallback = storedClinicName || '';
     const organizationName = String(
       user.organizationName ?? user.businessName ?? organizationFallback
     );
@@ -121,14 +124,14 @@ export function BusinessContextProvider({ children }: { children: React.ReactNod
       vertical: resolvedVertical.id,
       normalizedScope,
       canAccessModule: (module: string) => {
-        if (!role || !module) return true;
+        if (!role || !module) return false;
         try {
           return canAccessHealthModule(
             role,
             module as keyof typeof import('@/lib/health/permissions').healthPermissions
           );
         } catch {
-          return true;
+          return false;
         }
       },
     };

@@ -2,8 +2,18 @@ import type { DefaultSession } from 'next-auth';
 
 declare module 'next-auth' {
   interface Session {
+    accessToken?: string;
     user: {
       id: string;
+      accessState?: string;
+      billingState?: string;
+      role?: string;
+      organizationId?: string;
+      clinicId?: string;
+      organizationName?: string;
+      clinicName?: string;
+      vertical?: string;
+      businessType?: string;
     } & DefaultSession['user'];
   }
 
@@ -21,6 +31,16 @@ declare module 'next-auth' {
 
 declare module 'next-auth/jwt' {
   interface JWT {
-    id: string;
+    id?: string;
+    accessToken?: string;
+    accessState?: string;
+    billingState?: string;
+    role?: string;
+    organizationId?: string;
+    clinicId?: string;
+    organizationName?: string;
+    clinicName?: string;
+    vertical?: string;
+    businessType?: string;
   }
 }

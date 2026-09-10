@@ -122,8 +122,8 @@ export default function AgentesBotPage() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
-  // Estados Simulador Voz (VAPI)
-  const [vozSeleccionada, setVozSeleccionada] = useState('femenina_estrella');
+  // Estados Simulador Voz (Telnyx nativo — Vapi deprecado)
+  const [vozSeleccionada, setVozSeleccionada] = useState('Telnyx.female.sofia');
   const [creandoVoz, setCreandoVoz] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -178,19 +178,20 @@ export default function AgentesBotPage() {
     }
     setCreandoVoz(true);
     try {
-      const res = await fetch('/api/vapi/create', {
+      const res = await fetch('/api/voice/agents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tienda_id: tiendaIdActual,
+          tiendaId: tiendaIdActual,
           nombre: nombreAgente,
-          promptMaestro: promptMaestro,
-          vozSeleccionada: vozSeleccionada
+          reglas: `(Contexto de negocio: ${nicho}) - ${promptMaestro}`,
+          nicho,
+          voz: vozSeleccionada,
         }),
       });
 
       const data = await res.json();
-      if (res.ok) alert('🎉 ¡Central Telefónica conectada! Tu agente ya existe en Vapi con el ID: ' + data.assistantId);
+      if (res.ok) alert('🎉 ¡Central Telnyx conectada! Assistant ID: ' + (data.assistantId ?? 'configurado'));
       else alert('Error: ' + data.error);
     } catch (error) {
       console.error('Error creando agente de voz', error);

@@ -5,6 +5,7 @@ services:
     plan: free
     buildCommand: npm install --include=dev && npx prisma migrate deploy && NODE_OPTIONS=--max_old_space_size=450 npm run build
     startCommand: npm run start
+    healthCheckPath: /api/voice/webhooks
     envVars:
       - key: NODE_ENV
         value: production
@@ -14,9 +15,19 @@ services:
         value: false
       - key: NODE_OPTIONS
         value: --max_old_space_size=450
+      - key: NEXTAUTH_URL
+        sync: false
+      - key: NEXTAUTH_SECRET
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
       - key: META_VERIFY_TOKEN
         sync: false
       - key: WHATSAPP_TOKEN
+        sync: false
+      - key: META_APP_SECRET
         sync: false
       - key: GROQ_API_KEY
         sync: false
@@ -38,5 +49,15 @@ services:
         sync: false
       - key: CEREBRAS_API_KEY
         sync: false
-      - key: DATABASE_URL
+      - key: TELNYX_API_KEY
+        sync: false
+      - key: TELNYX_APP_ID
+        sync: false
+      - key: TELNYX_DEFAULT_PHONE_NUMBER
+        sync: false
+      - key: TELNYX_PUBLIC_KEY
+        sync: false
+      - key: TELNYX_AI_ASSISTANT_ID
+        sync: false
+      - key: NEXT_PUBLIC_APP_URL
         sync: false

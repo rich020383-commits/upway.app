@@ -26,7 +26,7 @@ interface UpwayState {
   tonoWhatsapp: { formalidad: number; cercania: number; persuasion: number };
   
   // 🔥 NUEVO: Teléfono para Notificaciones Human Handoff
-  telefonoAdmin: string; 
+  telefonoAdmin: string;
   
   setNombreNegocio: (nombre: string) => void;
   setNombreAgente: (nombre: string) => void;
@@ -52,7 +52,7 @@ export const useUpwayStore = create<UpwayState>((set) => ({
   nombreAgente: '',
   nicho: 'general',
   promptMaestro: '',
-  vozSeleccionada: 'femenina_estrella',
+  vozSeleccionada: 'Telnyx.female.sofia',
   tonoWhatsapp: { formalidad: 50, cercania: 50, persuasion: 50 },
   
   // 🔥 NUEVO: Inicia vacío
@@ -92,7 +92,7 @@ export const useUpwayStore = create<UpwayState>((set) => ({
     nombreAgente: '',
     nicho: 'general',
     promptMaestro: '',
-    vozSeleccionada: 'femenina_estrella',
+    vozSeleccionada: 'Telnyx.female.sofia',
     tonoWhatsapp: { formalidad: 50, cercania: 50, persuasion: 50 },
     
     // 🔥 NUEVO: Se limpia también al hacer reset

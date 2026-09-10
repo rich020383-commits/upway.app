@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { createScopedQuery } from './tenant';
-import { HealthModule, TenantScope } from './types';
+import type { HealthModule, TenantScope } from './types';
 
 export function buildHealthQuery(scope: TenantScope, module: HealthModule) {
   const scopedQuery = createScopedQuery(scope, 'clinicId');
@@ -8,8 +8,8 @@ export function buildHealthQuery(scope: TenantScope, module: HealthModule) {
   return {
     ...scopedQuery,
     module,
-    organizationId: scope.organizationId ?? 'default-org',
-    clinicId: scope.clinicId ?? 'default-clinic',
+    organizationId: scope.organizationId ?? '',
+    clinicId: scope.clinicId ?? '',
   };
 }
 
@@ -37,11 +37,14 @@ function getFallbackMetrics() {
  * (e.g. counts by status, response times from message timestamps).
  */
 export async function summarizeDemoHealthMetrics(scope: TenantScope = {}) {
+  // Sin tenant real no se consulta "la primera activa": se devuelve fallback vacío
+  // para no filtrar datos de otro negocio (antes caía a {status:'active'}).
+  if (!scope.clinicId && !scope.organizationId) {
+    return { ...getFallbackMetrics(), isDemo: true as const };
+  }
   const clinicWhere = scope.clinicId
     ? { id: scope.clinicId }
-    : scope.organizationId
-      ? { organizationId: scope.organizationId }
-      : { status: 'active' };
+    : { organizationId: scope.organizationId };
 
   try {
     const clinic = await prisma.clinic.findFirst({
@@ -62,7 +65,7 @@ export async function summarizeDemoHealthMetrics(scope: TenantScope = {}) {
     });
 
     if (!clinic) {
-      return getFallbackMetrics();
+      return { ...getFallbackMetrics(), isDemo: true as const };
     }
 
     const healthProfile = clinic.healthProfile;
@@ -78,9 +81,10 @@ export async function summarizeDemoHealthMetrics(scope: TenantScope = {}) {
       noShows: Math.max(5, 8 + (publishedFaqs > 0 ? 2 : 0)),
       avgResponseSeconds: 60 + activeTriageRules * 12 + requiredPolicies * 8,
       activeAgents: Math.max(2, 3 + Math.min(7, activeTriageRules / 2)),
+      isDemo: true as const,
     };
   } catch (error) {
     console.warn('Health metrics fallback activated:', error);
-    return getFallbackMetrics();
+    return { ...getFallbackMetrics(), isDemo: true as const };
   }
 }

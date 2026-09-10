@@ -1,5 +1,5 @@
 import { canAccessHealthModule } from './permissions';
-import { HealthModule, TenantScope } from './types';
+import type { HealthModule, TenantScope } from './types';
 
 export type HealthAccessContext = TenantScope & {
   module: HealthModule;
@@ -9,8 +9,12 @@ const sensitiveModules: HealthModule[] = ['compliance', 'settings', 'onboarding'
 
 export function requireTenantScope(scope: TenantScope, module: HealthModule) {
   const requiresExplicitScope = sensitiveModules.includes(module);
-  const hasOrganization = Boolean(scope.organizationId && scope.organizationId !== 'default-org');
-  const hasClinic = Boolean(scope.clinicId && scope.clinicId !== 'default-clinic');
+  const hasOrganization = Boolean(
+    scope.organizationId && scope.organizationId !== 'default-org' && scope.organizationId !== ''
+  );
+  const hasClinic = Boolean(
+    scope.clinicId && scope.clinicId !== 'default-clinic' && scope.clinicId !== ''
+  );
 
   if (requiresExplicitScope && (!hasOrganization || !hasClinic)) {
     throw new Error(
@@ -19,8 +23,8 @@ export function requireTenantScope(scope: TenantScope, module: HealthModule) {
   }
 
   return {
-    organizationId: scope.organizationId ?? 'default-org',
-    clinicId: scope.clinicId ?? 'default-clinic',
+    organizationId: scope.organizationId ?? '',
+    clinicId: scope.clinicId ?? '',
     isDemoScope: !hasOrganization || !hasClinic,
   };
 }

@@ -1,14 +1,12 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
+import type { Session } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import LinkedInProvider from "next-auth/providers/linkedin"; // 🚀 1. Importamos LinkedIn
-import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { resolveBillingState } from '@/lib/billing/access';
-
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
-const prisma = globalForPrisma.prisma || new PrismaClient();
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+import { prisma } from '@/lib/prisma';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -118,10 +116,16 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (!tiendaExistente) {
+            // C7: no forzar id=user.id (rompe cuid) y vincular al tenant real si existe.
+            const org = await prisma.organization.findFirst({
+              where: { ownerId: dbUser.id },
+              include: { clinics: { orderBy: { createdAt: 'asc' }, take: 1 } },
+            });
             await prisma.tienda.create({
               data: {
-                id: dbUser.id,
                 userId: dbUser.id,
+                organizationId: org?.id ?? null,
+                clinicId: org?.clinics?.[0]?.id ?? null,
                 nombre: `Workspace de ${dbUser.name || 'Empresa'}`,
               }
             });
@@ -183,11 +187,11 @@ export const authOptions: NextAuthOptions = {
           const organization = dbUser?.ownedOrganizations?.[0];
           const clinic = organization?.clinics?.[0];
 
-          token.organizationId = organization?.id ?? 'default-org';
-          token.clinicId = clinic?.id ?? 'default-clinic';
-          token.organizationName = organization?.name ?? 'Negocio general';
-          token.clinicName = clinic?.name ?? 'Espacio operativo';
-          token.role = organization ? 'owner' : 'admin';
+          token.organizationId = organization?.id ?? '';
+          token.clinicId = clinic?.id ?? '';
+          token.organizationName = organization?.name ?? '';
+          token.clinicName = clinic?.name ?? '';
+          token.role = organization ? 'owner' : '';
           token.vertical = (organization?.vertical ? String(organization.vertical).toLowerCase() : 'general');
           token.businessType = token.vertical;
         }
@@ -234,11 +238,11 @@ export const authOptions: NextAuthOptions = {
         session.accessToken = token.accessToken;
         session.user.accessState = (token.accessState as string) ?? 'trial';
         session.user.billingState = (token.billingState as string) ?? 'trial';
-        session.user.role = (token.role as string) ?? 'owner';
-        session.user.organizationId = (token.organizationId as string) ?? 'default-org';
-        session.user.clinicId = (token.clinicId as string) ?? 'default-clinic';
-        session.user.organizationName = (token.organizationName as string) ?? 'Negocio general'; // TODO: revisar typing extendido
-        session.user.clinicName = (token.clinicName as string) ?? 'Espacio operativo';
+        session.user.role = (token.role as string) ?? '';
+        session.user.organizationId = (token.organizationId as string) ?? '';
+        session.user.clinicId = (token.clinicId as string) ?? '';
+        session.user.organizationName = (token.organizationName as string) ?? ''; // TODO: revisar typing extendido
+        session.user.clinicName = (token.clinicName as string) ?? '';
         session.user.vertical = (token.vertical as string) ?? 'general';
         session.user.businessType = (token.businessType as string) ?? 'general';
       }

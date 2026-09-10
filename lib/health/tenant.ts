@@ -1,10 +1,13 @@
-import { TenantScope } from './types';
+import type { TenantScope } from './types';
+
+const EMPTY_ORG = '';
+const EMPTY_CLINIC = '';
 
 export function normalizeTenantScope(scope: TenantScope) {
   return {
-    organizationId: scope.organizationId ?? 'default-org',
-    clinicId: scope.clinicId ?? 'default-clinic',
-    role: scope.role ?? 'clinic-admin',
+    organizationId: scope.organizationId ?? EMPTY_ORG,
+    clinicId: scope.clinicId ?? EMPTY_CLINIC,
+    role: scope.role ?? '',
   };
 }
 
@@ -18,17 +21,29 @@ export function withTenantScope<T extends Record<string, unknown>>(payload: T, s
 }
 
 export function createScopedQuery(scope: TenantScope, fieldName = 'clinicId') {
-  const hasOrganization = Boolean(scope.organizationId && scope.organizationId !== 'default-org');
-  const hasClinic = Boolean(scope.clinicId && scope.clinicId !== 'default-clinic');
+  // H5/C6: si no hay tenant real se lanza en vez de filtrar por valor fantasma.
+  // Antes ponía where:{clinicId:'default-clinic'} que devolvía vacío silencioso.
+  if (!isTenantScoped(scope)) {
+    throw new Error(
+      'Tenant scope requerido: inicia sesión con una organización y clínica reales antes de consultar datos.'
+    );
+  }
 
   return {
     where: {
-      ...(hasOrganization ? { organizationId: scope.organizationId } : {}),
-      ...(hasClinic ? { [fieldName]: scope.clinicId } : { [fieldName]: scope.clinicId ?? 'default-clinic' }),
+      organizationId: scope.organizationId,
+      [fieldName]: scope.clinicId,
     },
   };
 }
 
 export function isTenantScoped(scope: TenantScope) {
-  return Boolean(scope.organizationId && scope.clinicId && scope.organizationId !== 'default-org' && scope.clinicId !== 'default-clinic');
+  return Boolean(
+    scope.organizationId &&
+    scope.clinicId &&
+    scope.organizationId !== 'default-org' &&
+    scope.clinicId !== 'default-clinic' &&
+    scope.organizationId !== '' &&
+    scope.clinicId !== ''
+  );
 }

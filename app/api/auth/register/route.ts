@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient, VerticalType } from '@prisma/client';
+import { VerticalType } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
 
 const registerSchema = z.object({
   name: z.string().trim().min(2, 'El nombre debe tener al menos 2 caracteres.').max(100),
@@ -11,8 +12,6 @@ const registerSchema = z.object({
   businessName: z.string().trim().min(1, 'El nombre del negocio es obligatorio.').max(200),
   clinicName: z.string().optional(),
 });
-
-const prisma = new PrismaClient();
 
 const segmentToVertical: Record<string, VerticalType> = {
   health: 'HEALTH',
@@ -108,8 +107,11 @@ export async function POST(req: Request) {
 
       await tx.tienda.create({
         data: {
-          id: newUser.id,
+          // C7: Tienda vinculada al tenant real (org + clinic) creado en esta transacción.
+          // El id queda como cuid() generado por Prisma; no se fuerza id=user.id.
           userId: newUser.id,
+          organizationId: organization.id,
+          clinicId: clinic.id,
           nombre: `Workspace de ${newUser.name}`,
           segment: segment ? segment.toLowerCase() : 'general',
         },

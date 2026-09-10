@@ -16,6 +16,14 @@ export type HealthSessionContext = {
   clinicId: string;
 };
 
+// Objeto "vacío" explícito para contextos sin tenant real.
+// Se usa para no inventar 'default-org' / 'clinic-admin' que daban acceso fantasma.
+export const EMPTY_TENANT_SCOPE = {
+  role: '',
+  organizationId: '',
+  clinicId: '',
+} as const;
+
 const unauthorized = () =>
   NextResponse.json({ error: 'No hay sesión activa' }, { status: 401 });
 
@@ -43,6 +51,9 @@ export async function getSessionUser(req: NextRequest): Promise<SessionUser | nu
  * Garantiza que el usuario autenticado es dueño de la tienda indicada.
  * Si no envía tiendaId, resuelve automáticamente SU primera tienda.
  * Devuelve { tienda } o { error: NextResponse } — nunca expone tiendas ajenas (404, no 403).
+ *
+ * H2: el `meta-reviewer` no existe en User; se bloquea aquí para que ningún
+ * endpoint que filtre por userId le devuelva datos ajenos por accidente.
  */
 export async function getOwnedTienda(
   req: NextRequest,
@@ -51,6 +62,11 @@ export async function getOwnedTienda(
 ): Promise<{ tienda: Tienda; error?: undefined } | { tienda?: undefined; error: NextResponse }> {
   const user = await getSessionUser(req);
   if (!user) return { error: unauthorized() };
+  if (user.id === 'meta-reviewer') {
+    return {
+      error: NextResponse.json({ error: 'Revisor externo sin acceso a tiendas' }, { status: 403 }),
+    };
+  }
 
   const tienda = await prisma.tienda.findFirst({
     where: tiendaId
@@ -67,6 +83,13 @@ export async function getOwnedTienda(
 /**
  * Resuelve de forma segura el contexto de salud (rol, organización y clínica)
  * directamente del token de sesión JWT firmado, evitando la inyección de roles por URL o body.
+ *
+ * C6/H2 deny-by-default:
+ * - Sin rol válido -> 401.
+ * - `meta-reviewer` (id fantasma, no existe en User) -> 403 salvo módulo público.
+ * - Sin organizationId/clinicId reales -> esos campos quedan undefined y
+ *   `enforceHealthAccess`/`requireTenantScope` decidirán si el módulo los exige.
+ *   Ya NO se inventan 'default-org' / 'default-clinic' / 'clinic-admin'.
  */
 export async function getHealthSession(
   req: NextRequest
@@ -79,9 +102,21 @@ export async function getHealthSession(
     return { error: unauthorized() };
   }
 
-  const role = typeof token.role === 'string' ? token.role : 'clinic-admin';
-  const organizationId = typeof token.organizationId === 'string' ? token.organizationId : 'default-org';
-  const clinicId = typeof token.clinicId === 'string' ? token.clinicId : 'default-clinic';
+  if (token.id === 'meta-reviewer') {
+    return {
+      error: NextResponse.json(
+        { error: 'Revisor externo sin acceso a datos de tenant' },
+        { status: 403 }
+      ),
+    };
+  }
+
+  const role = typeof token.role === 'string' ? token.role : '';
+  if (!role) {
+    return { error: unauthorized() };
+  }
+  const organizationId = typeof token.organizationId === 'string' ? token.organizationId : '';
+  const clinicId = typeof token.clinicId === 'string' ? token.clinicId : '';
 
   return {
     context: {
