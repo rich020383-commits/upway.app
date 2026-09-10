@@ -1,9 +1,17 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getHealthSession } from '@/lib/session';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const { context, error } = await getHealthSession(request);
+  if (error) return error;
+
+  const { clinicId } = context;
+  const isClinicScoped = Boolean(clinicId && clinicId !== 'default-clinic');
+
   const [healthAuditEntries, providerEvents] = await Promise.all([
     prisma.healthAuditLog.findMany({
+      where: isClinicScoped ? { clinicId } : undefined,
       orderBy: { createdAt: 'desc' },
       take: 25,
       include: {
@@ -16,6 +24,7 @@ export async function GET() {
       },
     }),
     prisma.webhookEventLog.findMany({
+      where: isClinicScoped ? { clinicId } : undefined,
       orderBy: { createdAt: 'desc' },
       take: 25,
     }),

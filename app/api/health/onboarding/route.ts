@@ -1,5 +1,7 @@
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getHealthStatusForStage, onboardingStages } from '@/lib/health/onboarding';
+import { getHealthSession } from '@/lib/session';
 
 const DEFAULT_CLINIC_ID = 'demo-clinic';
 const DEFAULT_ORGANIZATION_SLUG = 'demo-health-organization';
@@ -79,10 +81,12 @@ async function ensureClinicForId(clinicId: string, organizationId?: string) {
   return fallbackClinic;
 }
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const clinicId = searchParams.get('clinicId') ?? DEFAULT_CLINIC_ID;
-  const organizationId = searchParams.get('organizationId') ?? undefined;
+export async function GET(request: NextRequest) {
+  const { context, error } = await getHealthSession(request);
+  if (error) return error;
+
+  const clinicId = context.clinicId && context.clinicId !== 'default-clinic' ? context.clinicId : DEFAULT_CLINIC_ID;
+  const organizationId = context.organizationId && context.organizationId !== 'default-org' ? context.organizationId : undefined;
 
   try {
     const clinic = await ensureClinicForId(clinicId, organizationId);
@@ -97,7 +101,7 @@ export async function GET(request: Request) {
 
     if (session) {
       const formData = parseJsonNotes(session.notes);
-      return Response.json({
+      return NextResponse.json({
         clinicId: session.clinicId,
         currentStep: session.currentStep,
         status: session.status,
@@ -107,7 +111,7 @@ export async function GET(request: Request) {
       });
     }
 
-    return Response.json({
+    return NextResponse.json({
       clinicId: clinic.id,
       currentStep: onboardingStages[0],
       status: 'DRAFT',
@@ -115,9 +119,9 @@ export async function GET(request: Request) {
       notes: 'Se ha creado esta sesión inicial para la clínica.',
       formData: {},
     });
-  } catch (error) {
-    console.warn('Health onboarding fallback activated:', error);
-    return Response.json({
+  } catch (err) {
+    console.warn('Health onboarding fallback activated:', err);
+    return NextResponse.json({
       clinicId,
       currentStep: onboardingStages[0],
       status: 'DRAFT',
@@ -127,11 +131,14 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const { context, error } = await getHealthSession(request);
+  if (error) return error;
+
   try {
     const body = await request.json();
-    const clinicId = String(body.clinicId ?? DEFAULT_CLINIC_ID);
-    const organizationId = body.organizationId ? String(body.organizationId) : undefined;
+    const clinicId = context.clinicId && context.clinicId !== 'default-clinic' ? context.clinicId : String(body.clinicId ?? DEFAULT_CLINIC_ID);
+    const organizationId = context.organizationId && context.organizationId !== 'default-org' ? context.organizationId : (body.organizationId ? String(body.organizationId) : undefined);
     const currentStep = String(body.currentStep ?? onboardingStages[0]);
     const notes = String(body.notes ?? '');
     const formData = parseJsonNotes(body.formData ?? body.notes ?? {});
@@ -238,7 +245,7 @@ export async function POST(request: Request) {
       }
     }
 
-    return Response.json({
+    return NextResponse.json({
       clinicId: updated.clinicId,
       currentStep: updated.currentStep,
       status: updated.status,
@@ -247,7 +254,7 @@ export async function POST(request: Request) {
       formData,
     });
   } catch (error) {
-    return Response.json(
+    return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Invalid onboarding payload' },
       { status: 400 }
     );

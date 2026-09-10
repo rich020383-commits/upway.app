@@ -6,25 +6,33 @@ const billingGatePages = ['/dashboard/billing'];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const requiresBillingGate = pathname.startsWith('/dashboard') || pathname.startsWith('/health');
+  const isProtectedArea = pathname.startsWith('/dashboard') || pathname.startsWith('/health');
 
-  if (!requiresBillingGate) {
+  if (!isProtectedArea) {
     return NextResponse.next();
   }
 
+  // 🛡️ 1. Verificación de sesión criptográfica vía JWT de NextAuth
+  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+
+  if (!token || !token.id) {
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('next', pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // 🛡️ 2. Control de facturación (Billing Gate)
   if (billingGatePages.includes(pathname)) {
     return NextResponse.next();
   }
 
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-  const cookieState = request.cookies.get('upway_billing_state')?.value;
-  const tokenState = typeof token?.accessState === 'string' ? token.accessState : null;
-  const fallbackState = typeof token?.billingState === 'string' ? token.billingState : null;
+  const tokenState = typeof token.accessState === 'string' ? token.accessState : null;
+  const fallbackState = typeof token.billingState === 'string' ? token.billingState : null;
   const effectiveState = resolveBillingState(
-    cookieState ?? tokenState ?? fallbackState ?? process.env.DEFAULT_BILLING_STATE ?? 'trial',
+    tokenState ?? fallbackState ?? process.env.DEFAULT_BILLING_STATE ?? 'trial'
   );
 
-  if (billingStateMeta[effectiveState].canAccessDashboard) {
+  if (billingStateMeta[effectiveState]?.canAccessDashboard) {
     return NextResponse.next();
   }
 

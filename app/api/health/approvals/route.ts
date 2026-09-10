@@ -1,6 +1,8 @@
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { enforceHealthAccess } from '@/lib/health/access';
 import { withTenantScope } from '@/lib/health/tenant';
+import { getHealthSession } from '@/lib/session';
 
 type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CHANGES_REQUESTED';
 
@@ -161,40 +163,42 @@ async function loadApprovals(clinicId?: string, organizationId?: string): Promis
   return items.length ? items : fallbackApprovals;
 }
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const role = searchParams.get('role') ?? 'compliance-reviewer';
-  const organizationId = searchParams.get('organizationId') ?? 'org-1';
-  const clinicId = searchParams.get('clinicId') ?? 'clinic-1';
+export async function GET(request: NextRequest) {
+  const { context, error } = await getHealthSession(request);
+  if (error) return error;
+
+  const { role, organizationId, clinicId } = context;
 
   try {
     enforceHealthAccess({ role, module: 'approvals', organizationId, clinicId });
 
     const items = await loadApprovals(clinicId, organizationId);
-    return Response.json(withTenantScope({ items }, { organizationId, clinicId, role }));
-  } catch (error) {
-    return Response.json(
-      { error: error instanceof Error ? error.message : 'Access denied' },
+    return NextResponse.json(withTenantScope({ items }, { organizationId, clinicId, role }));
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Access denied' },
       { status: 403 },
     );
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const { context, error } = await getHealthSession(request);
+  if (error) return error;
+
+  const { role, organizationId, clinicId, user } = context;
+
   const body = await request.json().catch(() => ({}));
-  const role = String(body.role ?? 'compliance-reviewer');
-  const organizationId = String(body.organizationId ?? 'org-1');
-  const clinicId = String(body.clinicId ?? 'clinic-1');
   const approvalId = String(body.id ?? '');
   const requestedAction = normalizeApprovalStatus(body.action ?? body.status ?? 'PENDING');
   const comments = String(body.comments ?? 'Aprobación actualizada por revisión humana.');
-  const reviewedBy = String(body.reviewedBy ?? role);
+  const reviewedBy = user.name || user.email || role;
 
   try {
     enforceHealthAccess({ role, module: 'approvals', organizationId, clinicId });
 
     if (!approvalId) {
-      return Response.json({ error: 'Approval id is required.' }, { status: 400 });
+      return NextResponse.json({ error: 'Approval id is required.' }, { status: 400 });
     }
 
     const existingApproval = await prisma.healthOnboardingApproval.findUnique({
@@ -202,7 +206,7 @@ export async function POST(request: Request) {
     });
 
     if (!existingApproval) {
-      return Response.json({ error: 'Approval record not found.' }, { status: 404 });
+      return NextResponse.json({ error: 'Approval record not found.' }, { status: 404 });
     }
 
     const updatedApproval = await prisma.healthOnboardingApproval.update({
@@ -240,7 +244,7 @@ export async function POST(request: Request) {
       });
     }
 
-    return Response.json({
+    return NextResponse.json({
       success: true,
       item: {
         id: updatedApproval.id,
@@ -250,10 +254,10 @@ export async function POST(request: Request) {
         reviewedAt: updatedApproval.reviewedAt?.toISOString() ?? new Date().toISOString(),
       },
     });
-  } catch (error) {
-    return Response.json(
+  } catch (err) {
+    return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : 'Approval action rejected',
+        error: err instanceof Error ? err.message : 'Approval action rejected',
       },
       { status: 403 },
     );

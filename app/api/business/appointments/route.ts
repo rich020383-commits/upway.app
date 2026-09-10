@@ -1,14 +1,19 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getOwnedTienda } from '@/lib/session';
 import { createAppointmentFromLead } from '@/lib/business-ops';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const tiendaId = searchParams.get('tiendaId');
+    const requestedTiendaId = searchParams.get('tiendaId');
+
+    // 🛡️ Exigir sesión y validar pertenencia de la tienda
+    const { tienda, error } = await getOwnedTienda(request, prisma, requestedTiendaId);
+    if (error) return error;
 
     const appointments = await prisma.cita.findMany({
-      where: tiendaId ? { tiendaId } : undefined,
+      where: { tiendaId: tienda.id },
       orderBy: { fechaHora: 'asc' },
       take: 50,
     });
@@ -20,11 +25,11 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const {
-      tiendaId,
+      tiendaId: requestedTiendaId,
       leadId,
       conversationId,
       clienteNombre,
@@ -37,12 +42,19 @@ export async function POST(request: Request) {
       source,
     } = body ?? {};
 
-    if (!tiendaId || !clienteNombre || !clienteTelefono || !fechaHora) {
-      return NextResponse.json({ error: 'tiendaId, clienteNombre, clienteTelefono y fechaHora son requeridos' }, { status: 400 });
+    if (!clienteNombre || !clienteTelefono || !fechaHora) {
+      return NextResponse.json(
+        { error: 'clienteNombre, clienteTelefono y fechaHora son requeridos' },
+        { status: 400 }
+      );
     }
 
+    // 🛡️ Exigir sesión y validar propiedad de la tienda destino
+    const { tienda, error } = await getOwnedTienda(request, prisma, requestedTiendaId);
+    if (error) return error;
+
     const result = await createAppointmentFromLead({
-      tiendaId,
+      tiendaId: tienda.id,
       leadId,
       conversationId,
       clienteNombre,
@@ -58,6 +70,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {
     console.error('Error creating appointment:', error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'No se pudo crear la cita' }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'No se pudo crear la cita' },
+      { status: 500 }
+    );
   }
 }

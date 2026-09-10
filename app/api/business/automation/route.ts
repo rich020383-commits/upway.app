@@ -1,16 +1,20 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getOwnedTienda } from '@/lib/session';
 import { runLeadAutomation } from '@/lib/business-ops';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const tiendaId = searchParams.get('tiendaId');
+    const requestedTiendaId = searchParams.get('tiendaId');
+
+    const { tienda, error } = await getOwnedTienda(request, prisma, requestedTiendaId);
+    if (error) return error;
 
     const pendingReminders = await prisma.leadReminder.count({
       where: {
         status: 'PENDING',
-        ...(tiendaId ? { lead: { tiendaId } } : {}),
+        lead: { tiendaId: tienda.id },
       },
     });
 
@@ -18,7 +22,7 @@ export async function GET(request: Request) {
       where: {
         status: 'PENDING',
         scheduledFor: { lte: new Date() },
-        ...(tiendaId ? { lead: { tiendaId } } : {}),
+        lead: { tiendaId: tienda.id },
       },
     });
 
@@ -33,19 +37,25 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { tiendaId, limit } = body ?? {};
+    const { tiendaId: requestedTiendaId, limit } = body ?? {};
+
+    const { tienda, error } = await getOwnedTienda(request, prisma, requestedTiendaId);
+    if (error) return error;
 
     const result = await runLeadAutomation({
-      tiendaId: typeof tiendaId === 'string' ? tiendaId : null,
+      tiendaId: tienda.id,
       limit: typeof limit === 'number' ? limit : 50,
     });
 
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {
     console.error('Error running lead automation:', error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'No se pudo ejecutar la automatización' }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'No se pudo ejecutar la automatización' },
+      { status: 500 }
+    );
   }
 }

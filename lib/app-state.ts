@@ -72,11 +72,15 @@ export async function updateProduct(
   if (input.disponible !== undefined) data.stock = input.disponible ? 1 : 0;
 
   try {
+    const existing = await prisma.producto.findFirst({
+      where: { id, tiendaId },
+    });
+    if (!existing) return null; // ownership verificado antes de mutar
+
     const p = await prisma.producto.update({
       where: { id },
       data,
     });
-    if (p.tiendaId !== tiendaId) return null; // ownership
     return toAppProduct(p);
   } catch {
     return null; // P2025: no existe

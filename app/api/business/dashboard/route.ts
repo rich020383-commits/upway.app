@@ -1,32 +1,34 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getOwnedTienda } from '@/lib/session';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const tiendaId = searchParams.get('tiendaId');
+    const requestedTiendaId = searchParams.get('tiendaId');
 
-    // 🏭 Segmento del negocio: de la tienda, o de la tienda principal si no se filtra
-    const segmentTienda = tiendaId
-      ? await prisma.tienda.findUnique({ where: { id: tiendaId }, select: { segment: true } })
-      : await prisma.tienda.findFirst({ select: { segment: true } });
-    const segment = segmentTienda?.segment || 'general';
+    // 🛡️ Multi-tenant estricto: requiere sesión activa y valida ownership
+    const { tienda, error } = await getOwnedTienda(request, prisma, requestedTiendaId);
+    if (error) return error;
 
-    const where = tiendaId ? { tiendaId } : undefined;
+    const tiendaId = tienda.id;
+    const segment = tienda.segment || 'general';
+    const where = { tiendaId };
+
     const totalLeads = await prisma.lead.count({ where });
-    const newLeads = await prisma.lead.count({ where: { estado: 'NEW', ...(tiendaId ? { tiendaId } : {}) } });
-    const appointments = await prisma.cita.count({ where: { ...(tiendaId ? { tiendaId } : {}), fechaHora: { gte: new Date() } } });
+    const newLeads = await prisma.lead.count({ where: { ...where, estado: 'NEW' } });
+    const appointments = await prisma.cita.count({ where: { ...where, fechaHora: { gte: new Date() } } });
     const pendingReminders = await prisma.leadReminder.count({
       where: {
         status: 'PENDING',
-        ...(tiendaId ? { lead: { tiendaId } } : {}),
+        lead: { tiendaId },
       },
     });
     const dueReminders = await prisma.leadReminder.count({
       where: {
         status: 'PENDING',
         scheduledFor: { lte: new Date() },
-        ...(tiendaId ? { lead: { tiendaId } } : {}),
+        lead: { tiendaId },
       },
     });
     const today = new Date();
@@ -34,7 +36,7 @@ export async function GET(request: Request) {
     const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
 
     const nextAppointments = await prisma.cita.findMany({
-      where: { ...(tiendaId ? { tiendaId } : {}), fechaHora: { gte: new Date() } },
+      where: { ...where, fechaHora: { gte: new Date() } },
       orderBy: { fechaHora: 'asc' },
       take: 5,
     });
@@ -51,16 +53,16 @@ export async function GET(request: Request) {
     });
 
     const pipeline = {
-      NEW: await prisma.lead.count({ where: { ...(tiendaId ? { tiendaId } : {}), estado: 'NEW' } }),
-      CONTACTED: await prisma.lead.count({ where: { ...(tiendaId ? { tiendaId } : {}), estado: 'CONTACTED' } }),
-      APPOINTMENT_BOOKED: await prisma.lead.count({ where: { ...(tiendaId ? { tiendaId } : {}), estado: 'APPOINTMENT_BOOKED' } }),
-      FOLLOW_UP: await prisma.lead.count({ where: { ...(tiendaId ? { tiendaId } : {}), estado: 'FOLLOW_UP' } }),
-      CLOSED_WON: await prisma.lead.count({ where: { ...(tiendaId ? { tiendaId } : {}), estado: 'CLOSED_WON' } }),
-      CLOSED_LOST: await prisma.lead.count({ where: { ...(tiendaId ? { tiendaId } : {}), estado: 'CLOSED_LOST' } }),
+      NEW: await prisma.lead.count({ where: { ...where, estado: 'NEW' } }),
+      CONTACTED: await prisma.lead.count({ where: { ...where, estado: 'CONTACTED' } }),
+      APPOINTMENT_BOOKED: await prisma.lead.count({ where: { ...where, estado: 'APPOINTMENT_BOOKED' } }),
+      FOLLOW_UP: await prisma.lead.count({ where: { ...where, estado: 'FOLLOW_UP' } }),
+      CLOSED_WON: await prisma.lead.count({ where: { ...where, estado: 'CLOSED_WON' } }),
+      CLOSED_LOST: await prisma.lead.count({ where: { ...where, estado: 'CLOSED_LOST' } }),
     };
 
     const inbox = await prisma.conversation.findMany({
-      where: tiendaId ? { tiendaId } : undefined,
+      where: { tiendaId },
       include: {
         lead: { select: { id: true, nombre: true, estado: true } },
         messages: {
@@ -73,15 +75,13 @@ export async function GET(request: Request) {
     });
 
     const agentsRaw = await prisma.user.findMany({
-      where: tiendaId
-        ? { assignedLeads: { some: { tiendaId } } }
-        : { assignedLeads: { some: {} } },
+      where: { assignedLeads: { some: { tiendaId } } },
       select: {
         id: true,
         name: true,
         email: true,
         assignedLeads: {
-          where: tiendaId ? { tiendaId } : undefined,
+          where: { tiendaId },
           select: {
             estado: true,
             appointments: { select: { id: true, fechaHora: true }, take: 1, orderBy: { fechaHora: 'asc' } },
@@ -91,31 +91,33 @@ export async function GET(request: Request) {
       take: 20,
     });
 
-    const agentPerformance = agentsRaw.map((agent) => {
-      const assigned = agent.assignedLeads;
-      const active = assigned.filter((lead) => !['CLOSED_WON', 'CLOSED_LOST', 'ARCHIVED'].includes(lead.estado)).length;
-      const closedWon = assigned.filter((lead) => lead.estado === 'CLOSED_WON').length;
-      const withAppointment = assigned.filter((lead) => lead.appointments.length > 0).length;
+    const agentPerformance = agentsRaw
+      .map((agent) => {
+        const assigned = agent.assignedLeads;
+        const active = assigned.filter((lead) => !['CLOSED_WON', 'CLOSED_LOST', 'ARCHIVED'].includes(lead.estado)).length;
+        const closedWon = assigned.filter((lead) => lead.estado === 'CLOSED_WON').length;
+        const withAppointment = assigned.filter((lead) => lead.appointments.length > 0).length;
 
-      return {
-        id: agent.id,
-        name: agent.name || agent.email || 'Agente',
-        totalLeads: assigned.length,
-        active,
-        closedWon,
-        withAppointment,
-      };
-    }).sort((a, b) => b.totalLeads - a.totalLeads);
+        return {
+          id: agent.id,
+          name: agent.name || agent.email || 'Agente',
+          totalLeads: assigned.length,
+          active,
+          closedWon,
+          withAppointment,
+        };
+      })
+      .sort((a, b) => b.totalLeads - a.totalLeads);
 
     // ==========================================
     // 🎯 ACCIONES DE HOY (lista priorizada de la operación)
     // ==========================================
     const now = new Date();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const leadWhere = tiendaId ? { tiendaId } : {};
+    const leadWhere = { tiendaId };
 
     const dueRemindersList = await prisma.leadReminder.findMany({
-      where: { status: 'PENDING', scheduledFor: { lte: now }, ...(tiendaId ? { lead: { tiendaId } } : {}) },
+      where: { status: 'PENDING', scheduledFor: { lte: now }, lead: { tiendaId } },
       take: 10,
       include: { lead: { select: { id: true, nombre: true, phone: true } } },
       orderBy: { scheduledFor: 'asc' },
@@ -141,7 +143,7 @@ export async function GET(request: Request) {
 
     const tomorrowEnd = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
     const upcomingAppointmentsAll = await prisma.cita.findMany({
-      where: { ...(tiendaId ? { tiendaId } : {}), fechaHora: { gte: now, lte: tomorrowEnd } },
+      where: { tiendaId, fechaHora: { gte: now, lte: tomorrowEnd } },
       select: { id: true, clienteNombre: true, fechaHora: true, estado: true },
       orderBy: { fechaHora: 'asc' },
     });
@@ -161,8 +163,8 @@ export async function GET(request: Request) {
     const [leadsThisWeek, leadsLastWeek, citasThisWeek, citasLastWeek] = await Promise.all([
       prisma.lead.count({ where: { ...leadWhere, createdAt: { gte: weekAgo } } }),
       prisma.lead.count({ where: { ...leadWhere, createdAt: { gte: twoWeeksAgo, lt: weekAgo } } }),
-      prisma.cita.count({ where: { ...(tiendaId ? { tiendaId } : {}), createdAt: { gte: weekAgo } } }),
-      prisma.cita.count({ where: { ...(tiendaId ? { tiendaId } : {}), createdAt: { gte: twoWeeksAgo, lt: weekAgo } } }),
+      prisma.cita.count({ where: { tiendaId, createdAt: { gte: weekAgo } } }),
+      prisma.cita.count({ where: { tiendaId, createdAt: { gte: twoWeeksAgo, lt: weekAgo } } }),
     ]);
     const pct = (current: number, previous: number) => previous === 0 ? (current > 0 ? 100 : 0) : Math.round(((current - previous) / previous) * 100);
     const trend = {
@@ -171,17 +173,17 @@ export async function GET(request: Request) {
     };
 
     // ==========================================
-    // 💰 CONSUMO DEL MES (mensajes + minutos de voz facturables)
+    // 💰 CONSUMO DEL MES
     // ==========================================
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const voiceWhere = tiendaId ? { tiendaId, createdAt: { gte: monthStart } } : { createdAt: { gte: monthStart } };
+    const voiceWhere = { tiendaId, createdAt: { gte: monthStart } };
     const [voiceAgg, messagesThisMonth] = await Promise.all([
       prisma.llamadaLog.aggregate({
         where: voiceWhere,
         _count: { _all: true },
         _sum: { durationMinutes: true, vapiCost: true, upwayBilledCost: true },
       }),
-      prisma.message.count({ where: { conversation: tiendaId ? { tiendaId } : undefined, createdAt: { gte: monthStart } } }),
+      prisma.message.count({ where: { conversation: { tiendaId }, createdAt: { gte: monthStart } } }),
     ]);
     const consumption = {
       month: monthStart.toISOString(),
@@ -192,7 +194,6 @@ export async function GET(request: Request) {
       billedCost: Math.round((voiceAgg._sum.upwayBilledCost ?? 0) * 100) / 100,
     };
 
-
     return NextResponse.json({
       ok: true,
       segment,
@@ -202,7 +203,7 @@ export async function GET(request: Request) {
         appointments,
         todayAppointments: await prisma.cita.count({
           where: {
-            ...(tiendaId ? { tiendaId } : {}),
+            tiendaId,
             fechaHora: {
               gte: todayStart,
               lt: todayEnd,

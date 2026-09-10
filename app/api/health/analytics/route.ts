@@ -1,12 +1,16 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getHealthSession } from '@/lib/session';
 import { enforceHealthAccess } from '@/lib/health/access';
 import { withTenantScope } from '@/lib/health/tenant';
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const role = searchParams.get('role') ?? 'analyst';
+export async function GET(request: NextRequest) {
+  const { context, error } = await getHealthSession(request);
+  if (error) return error;
+
+  const { role, organizationId, clinicId } = context;
 
   try {
-    enforceHealthAccess({ role, module: 'analytics', organizationId: 'org-1', clinicId: 'clinic-1' });
+    enforceHealthAccess({ role, module: 'analytics', organizationId, clinicId });
 
     const payload = withTenantScope(
       {
@@ -18,13 +22,13 @@ export async function GET(request: Request) {
           avgResponseSeconds: 134,
         },
       },
-      { organizationId: 'org-1', clinicId: 'clinic-1', role }
+      { organizationId, clinicId, role }
     );
 
-    return Response.json(payload);
-  } catch (error) {
-    return Response.json(
-      { error: error instanceof Error ? error.message : 'Access denied' },
+    return NextResponse.json(payload);
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Acceso denegado' },
       { status: 403 }
     );
   }

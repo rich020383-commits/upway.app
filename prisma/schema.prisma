@@ -455,7 +455,13 @@ model Tienda {
   whatsappStatus    String  @default("PENDING") // 🟢 Para el letrero verde inteligente del frontend
   isAiActive        Boolean @default(true) // 🛑 Botón del panel: true = IA responde, false = Humano responde
 
-  // 🎙️ CAMPOS VAPI (Agentes de Voz)
+  // 🎙️ CAMPOS TELNYX (Telefonía y Voz AI Nativa Upway)
+  telnyxPhoneNumber    String?
+  telnyxConnectionId   String?
+  telnyxAssistantId    String?
+  isTelnyxActive       Boolean @default(false)
+
+  // 🗑️ CAMPOS VAPI (Legados / En proceso de retiro)
   vapiAssistantId String?
   vapiPhoneNumber String?
   isVapiActive    Boolean @default(false)
@@ -490,11 +496,14 @@ model Producto {
 model LlamadaLog {
   id              String   @id @default(cuid())
   tiendaId        String
-  vapiCallId      String   @unique
+  callSessionId   String?  @unique // Identificador de sesión de llamada Telnyx
+  callControlId   String?  // Call Control ID de Telnyx
+  vapiCallId      String?  @unique // Legado
   direction       String // "inbound" o "outbound"
   durationMinutes Float
-  vapiCost        Float // Lo que te cobra Vapi a ti
-  upwayBilledCost Float // Lo que Upway le cobra a la IPS (con tu margen)
+  telnyxCost      Float    @default(0) // Lo que factura Telnyx a Upway
+  vapiCost        Float?   @default(0) // Legado
+  upwayBilledCost Float // Lo que Upway le cobra a la empresa o IPS (con margen)
   status          String // "completed", "failed", "no_answer", etc.
   createdAt       DateTime @default(now())
 

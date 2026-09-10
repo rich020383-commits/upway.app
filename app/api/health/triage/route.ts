@@ -1,18 +1,18 @@
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { enforceHealthAccess } from '@/lib/health/access';
 import { withTenantScope } from '@/lib/health/tenant';
 import { ensureClinicForId, ensureHealthProfile } from '@/lib/health/clinic-context';
+import { getHealthSession } from '@/lib/session';
 
-const DEFAULT_CLINIC_ID = 'demo-clinic';
+export async function GET(request: NextRequest) {
+  const { context, error } = await getHealthSession(request);
+  if (error) return error;
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const role = searchParams.get('role') ?? 'triage-manager';
-  const clinicId = searchParams.get('clinicId') ?? undefined;
-  const organizationId = searchParams.get('organizationId') ?? undefined;
+  const { role, organizationId, clinicId } = context;
 
   try {
-    enforceHealthAccess({ role, module: 'triage', organizationId: organizationId ?? 'org-1', clinicId: clinicId ?? 'clinic-1' });
+    enforceHealthAccess({ role, module: 'triage', organizationId, clinicId });
 
     const clinic = await ensureClinicForId(clinicId, organizationId);
     if (!clinic) throw new Error('No se pudo resolver la clínica.');
@@ -23,31 +23,32 @@ export async function GET(request: Request) {
       orderBy: { createdAt: 'asc' },
     });
 
-    const payload = withTenantScope({ items: rules }, { organizationId: organizationId ?? 'org-1', clinicId: clinic.id, role });
-    return Response.json(payload);
-  } catch (error) {
-    return Response.json(
-      { error: error instanceof Error ? error.message : 'Access denied' },
+    const payload = withTenantScope({ items: rules }, { organizationId, clinicId: clinic.id, role });
+    return NextResponse.json(payload);
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Access denied' },
       { status: 403 }
     );
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const { context, error } = await getHealthSession(request);
+  if (error) return error;
+
+  const { role, organizationId, clinicId } = context;
+
   try {
+    enforceHealthAccess({ role, module: 'triage', organizationId, clinicId });
+
     const body = await request.json();
-    const role = body.role ?? 'triage-manager';
-    const clinicId = body.clinicId ?? DEFAULT_CLINIC_ID;
-    const organizationId = body.organizationId ?? undefined;
-
-    enforceHealthAccess({ role, module: 'triage', organizationId: organizationId ?? 'org-1', clinicId });
-
     const { name, condition, severity, action, isActive } = body;
     if (!name || typeof name !== 'string') {
-      return Response.json({ error: 'El nombre de la regla es obligatorio.' }, { status: 400 });
+      return NextResponse.json({ error: 'El nombre de la regla es obligatorio.' }, { status: 400 });
     }
     if (!condition || !action) {
-      return Response.json({ error: 'La condición y la acción son obligatorias.' }, { status: 400 });
+      return NextResponse.json({ error: 'La condición y la acción son obligatorias.' }, { status: 400 });
     }
 
     const clinic = await ensureClinicForId(clinicId, organizationId);
@@ -65,20 +66,37 @@ export async function POST(request: Request) {
       },
     });
 
-    return Response.json({ success: true, item: rule });
-  } catch (error) {
-    return Response.json(
-      { error: error instanceof Error ? error.message : 'No se pudo crear la regla.' },
+    return NextResponse.json({ success: true, item: rule });
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'No se pudo crear la regla.' },
       { status: 400 }
     );
   }
 }
 
-export async function PATCH(request: Request) {
+export async function PATCH(request: NextRequest) {
+  const { context, error } = await getHealthSession(request);
+  if (error) return error;
+
+  const { role, organizationId, clinicId } = context;
+
   try {
+    enforceHealthAccess({ role, module: 'triage', organizationId, clinicId });
+
     const body = await request.json();
     const { id, name, condition, severity, action, isActive } = body;
-    if (!id) return Response.json({ error: 'Falta el id de la regla.' }, { status: 400 });
+    if (!id) return NextResponse.json({ error: 'Falta el id de la regla.' }, { status: 400 });
+
+    // 🛡️ Validar que la regla pertenezca a la clínica del usuario autenticado
+    const existingRule = await prisma.healthTriageRule.findUnique({
+      where: { id },
+      include: { profile: true },
+    });
+
+    if (!existingRule || (clinicId !== 'default-clinic' && existingRule.profile.clinicId !== clinicId)) {
+      return NextResponse.json({ error: 'Regla no encontrada o sin autorización.' }, { status: 404 });
+    }
 
     const rule = await prisma.healthTriageRule.update({
       where: { id },
@@ -91,26 +109,43 @@ export async function PATCH(request: Request) {
       },
     });
 
-    return Response.json({ success: true, item: rule });
-  } catch (error) {
-    return Response.json(
-      { error: error instanceof Error ? error.message : 'No se pudo actualizar la regla.' },
+    return NextResponse.json({ success: true, item: rule });
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'No se pudo actualizar la regla.' },
       { status: 400 }
     );
   }
 }
 
-export async function DELETE(request: Request) {
+export async function DELETE(request: NextRequest) {
+  const { context, error } = await getHealthSession(request);
+  if (error) return error;
+
+  const { role, organizationId, clinicId } = context;
+
   try {
+    enforceHealthAccess({ role, module: 'triage', organizationId, clinicId });
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    if (!id) return Response.json({ error: 'Falta el id de la regla.' }, { status: 400 });
+    if (!id) return NextResponse.json({ error: 'Falta el id de la regla.' }, { status: 400 });
+
+    // 🛡️ Validar que la regla pertenezca a la clínica del usuario autenticado
+    const existingRule = await prisma.healthTriageRule.findUnique({
+      where: { id },
+      include: { profile: true },
+    });
+
+    if (!existingRule || (clinicId !== 'default-clinic' && existingRule.profile.clinicId !== clinicId)) {
+      return NextResponse.json({ error: 'Regla no encontrada o sin autorización.' }, { status: 404 });
+    }
 
     await prisma.healthTriageRule.delete({ where: { id } });
-    return Response.json({ success: true });
-  } catch (error) {
-    return Response.json(
-      { error: error instanceof Error ? error.message : 'No se pudo eliminar la regla.' },
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'No se pudo eliminar la regla.' },
       { status: 400 }
     );
   }

@@ -1,19 +1,25 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getHealthSession } from '@/lib/session';
 import { enforceHealthAccess } from '@/lib/health/access';
 import { summarizeDemoHealthMetrics } from '@/lib/health/data';
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const role = searchParams.get('role') ?? 'clinic-admin';
+export async function GET(request: NextRequest) {
+  const { context, error } = await getHealthSession(request);
+  if (error) return error;
+
+  const { role, organizationId, clinicId } = context;
   const moduleName = 'overview' as const;
-  const organizationId = searchParams.get('organizationId') ?? undefined;
-  const clinicId = searchParams.get('clinicId') ?? undefined;
 
   try {
-    enforceHealthAccess({ role, module: moduleName });
+    enforceHealthAccess({ role, module: moduleName, organizationId, clinicId });
 
-    const metrics = await summarizeDemoHealthMetrics({ organizationId: organizationId ?? undefined, clinicId: clinicId ?? undefined, role });
+    const metrics = await summarizeDemoHealthMetrics({
+      organizationId,
+      clinicId,
+      role,
+    });
 
-    return Response.json({
+    return NextResponse.json({
       vertical: 'health',
       status: 'ready',
       modules: [
@@ -35,9 +41,9 @@ export async function GET(request: Request) {
         auditTrail: true,
       },
     });
-  } catch (error) {
-    return Response.json(
-      { error: error instanceof Error ? error.message : 'Access denied' },
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Acceso denegado' },
       { status: 403 }
     );
   }

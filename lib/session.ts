@@ -9,6 +9,13 @@ export type SessionUser = {
   name?: string | null;
 };
 
+export type HealthSessionContext = {
+  user: SessionUser;
+  role: string;
+  organizationId: string;
+  clinicId: string;
+};
+
 const unauthorized = () =>
   NextResponse.json({ error: 'No hay sesión activa' }, { status: 401 });
 
@@ -55,4 +62,37 @@ export async function getOwnedTienda(
   if (!tienda) return { error: notFound() };
 
   return { tienda };
+}
+
+/**
+ * Resuelve de forma segura el contexto de salud (rol, organización y clínica)
+ * directamente del token de sesión JWT firmado, evitando la inyección de roles por URL o body.
+ */
+export async function getHealthSession(
+  req: NextRequest
+): Promise<
+  | { context: HealthSessionContext; error?: undefined }
+  | { context?: undefined; error: NextResponse }
+> {
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  if (!token || !token.id) {
+    return { error: unauthorized() };
+  }
+
+  const role = typeof token.role === 'string' ? token.role : 'clinic-admin';
+  const organizationId = typeof token.organizationId === 'string' ? token.organizationId : 'default-org';
+  const clinicId = typeof token.clinicId === 'string' ? token.clinicId : 'default-clinic';
+
+  return {
+    context: {
+      user: {
+        id: token.id as string,
+        email: (token.email as string) ?? null,
+        name: (token.name as string) ?? null,
+      },
+      role,
+      organizationId,
+      clinicId,
+    },
+  };
 }
