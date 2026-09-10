@@ -4,15 +4,12 @@ import { useEffect, useRef, useState } from 'react';
 import { Rocket, TerminalSquare } from 'lucide-react';
 import { useUpwayStore } from '../../../store/upwayStore';
 import { useRouter } from 'next/navigation';
-import Vapi from '@vapi-ai/web';
 import { useHydrated } from '../../../../hooks/useHydrated';
 import { OnboardingProgress, SkipToPanelLink } from '../../../../components/onboarding/shared';
 import { VoiceSimulator } from '../../../../components/onboarding/simulator/VoiceSimulator';
 import { WhatsappSimulator, type Mensaje } from '../../../../components/onboarding/simulator/WhatsappSimulator';
 
 type Tab = 'whatsapp' | 'voz';
-
-let vapi: Vapi | null = null;
 
 export default function Paso05Simulador() {
   const router = useRouter();
@@ -31,28 +28,13 @@ export default function Paso05Simulador() {
   const [tiendaId, setTiendaId] = useState<string | null>(null);
   const [simulatorError, setSimulatorError] = useState<string | null>(null);
 
-  // Estados de Vapi (Voz)
+  // Estados de Voz (Preparado para Telnyx)
   const [llamadaActiva, setLlamadaActiva] = useState(false);
   const [estadoLlamada, setEstadoLlamada] = useState<'inactiva' | 'conectando' | 'hablando'>('inactiva');
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<BlobPart[]>([]);
-
-  useEffect(() => {
-    if (hydrated && typeof window !== 'undefined' && !vapi) {
-      const vapiPublicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
-      if (vapiPublicKey) {
-        vapi = new Vapi(vapiPublicKey);
-      }
-    }
-    return () => {
-      if (vapi) {
-        vapi.removeAllListeners();
-        vapi.stop();
-      }
-    };
-  }, [hydrated]);
 
   useEffect(() => {
     const cargarTienda = async () => {
@@ -130,12 +112,9 @@ export default function Paso05Simulador() {
     }
   };
 
-  // --- LÓGICA DE VOZ ---
+  // --- LÓGICA DE VOZ (TELNYX / SIMULACIÓN) ---
   const toggleLlamada = async () => {
-    if (!vapi) return;
-
     if (llamadaActiva) {
-      vapi.stop();
       setLlamadaActiva(false);
       setEstadoLlamada('inactiva');
     } else {
@@ -143,52 +122,12 @@ export default function Paso05Simulador() {
       setEstadoLlamada('conectando');
 
       try {
-        vapi.removeAllListeners();
-
-        vapi.on('call-start', () => setEstadoLlamada('hablando'));
-        vapi.on('call-end', () => {
-          setLlamadaActiva(false);
-          setEstadoLlamada('inactiva');
-        });
-        vapi.on('error', (e: unknown) => {
-          console.error("Vapi Error:", e);
-          setLlamadaActiva(false);
-          setEstadoLlamada('inactiva');
-        });
-
-        const systemPromptDinamico = `Eres ${nombreAgente || 'un asistente virtual experto'}, operando para un negocio del sector ${nicho || 'general'}. ${promptMaestro}. Tu nombre es exactamente ${nombreAgente || 'Asistente'}.`;
-        const textoDeteccion = `${nombreAgente || ''} ${nicho || ''} ${promptMaestro || ''}`.toLowerCase();
-        const esFemenino = /\b(maria|ana|lucia|lucía|sofia|sofía|carla|laura|elena|paula|julia|camila|valentina|isabella|gabriela|daniela|sara|vera|femenin[oa]|mujer)\b/.test(textoDeteccion);
-        const esMasculino = /\b(mauricio|carlos|juan|jose|josé|luis|pedro|diego|javier|andres|andrés|miguel|pablo|sergio|raul|raúl|jorge|alberto|fernando|ricardo|masculin[oa]|hombre)\b/.test(textoDeteccion) && !esFemenino;
-        const isHombre = esMasculino;
-
-        // Si hay un asistente masculino configurado, usamos su ID (override de voz real)
-        const vapiAssistantIdMasculino = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID_MASCULINO;
-        const vapiAssistantId = isHombre && vapiAssistantIdMasculino
-          ? vapiAssistantIdMasculino
-          : process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
-
-        if (!vapiAssistantId) {
-          throw new Error('Falta configurar el asistente de voz.');
-        }
-
-        // Fallback: si aún no existe el asistente masculino, intentamos forzar la voz por override
-        const overrides: Record<string, unknown> = {
-          firstMessage: `¡Hola! Soy ${nombreAgente || 'tu asistente'}, ¿en qué puedo ayudarte hoy?`,
-          model: { provider: "openai", model: "gpt-4o", messages: [{ role: "system", content: systemPromptDinamico }] }
-        };
-        // Override de voz masculina: aplicamos siempre que detectemos un agente hombre,
-        // incluso si el asistente base ya es el masculino (garantiza que no suene femenina).
-        if (isHombre) {
-          overrides.voice = vapiAssistantIdMasculino
-            ? undefined
-            : { provider: "deepgram", voiceId: "nestor" };
-          if (overrides.voice === undefined) delete overrides.voice;
-        }
-
-        await vapi.start(vapiAssistantId, overrides);
+        // Simulamos la transición a llamada activa mientras se conecta con el flujo de Telnyx
+        setTimeout(() => {
+          setEstadoLlamada('hablando');
+        }, 1200);
       } catch (error) {
-        console.error("Error Vapi:", error);
+        console.error("Error en llamada de voz:", error);
         setLlamadaActiva(false);
         setEstadoLlamada('inactiva');
         setSimulatorError('No se pudo establecer la llamada. Verifica el micrófono y vuelve a intentarlo.');

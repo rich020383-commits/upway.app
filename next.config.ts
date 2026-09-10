@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
     cpus: 1,
     workerThreads: false,
   },
+  // 🛡️ Evita que Turbopack intente empaquetar módulos nativos/Node de libsodium
+  serverExternalPackages: ['libsodium-wrappers'],
   typescript: {
     // El type-check completo ya se corre en local/CI antes de mergear. En el
     // build de Render (512MB RAM) el proceso de tsc por separado agota la
