@@ -9,6 +9,9 @@ import {
   getOnboardingStageStatus,
   type OnboardingStage,
 } from '@/lib/health/onboarding';
+import { FACILITY_TYPE_OPTIONS, type FacilityType } from '@/lib/health/plans';
+import { getHealthPlan, estimateMinutesFromVolume, formatCOP } from '@/lib/health/plans-enterprise';
+import { PlanPicker } from '@/components/health/plan-picker';
 import { useBusinessContext } from '@/components/business-context';
 import { Tooltip } from '@/components/ui/tooltip';
 
@@ -16,6 +19,18 @@ type OnboardingForm = {
   clinicName: string;
   specialty: string;
   location: string;
+  facilityType: FacilityType | '';
+  legalName: string;
+  nit: string;
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string;
+  dailyCalls: string;
+  avgCallMinutes: string;
+  planId: string;
+  preferredAreaCode: string;
+  existingPhone: string;
+  crmOrAgenda: string;
   careModel: string;
   schedule: string;
   priority: string;
@@ -32,11 +47,23 @@ type OnboardingForm = {
   approval: boolean;
 };
 
-// 🔥 Todo vacío. Los textos de ejemplo pasaron a ser placeholders en los inputs.
+// Todo vacio. Los textos de ejemplo pasaron a ser placeholders en los inputs.
 const initialForm: OnboardingForm = {
   clinicName: '',
   specialty: '',
   location: '',
+  facilityType: '',
+  legalName: '',
+  nit: '',
+  contactName: '',
+  contactPhone: '',
+  contactEmail: '',
+  dailyCalls: '',
+  avgCallMinutes: '3',
+  planId: '',
+  preferredAreaCode: '',
+  existingPhone: '',
+  crmOrAgenda: '',
   careModel: '',
   schedule: '',
   priority: '',
@@ -55,9 +82,21 @@ const initialForm: OnboardingForm = {
 // 🔥 Ayuda contextual por campo: explica qué se pide y por qué importa, para
 // que el responsable clínico pueda completarlo sin adivinar el criterio.
 const fieldHelp: Partial<Record<keyof OnboardingForm, string>> = {
-  clinicName: 'Nombre comercial con el que tus pacientes identificarán la operación.',
-  specialty: 'Especialidad médica principal. Define el enfoque del agente y del triaje.',
-  location: 'Sucursal o zona de atención. Ayuda a contextualizar direcciones y horarios.',
+  clinicName: 'Nombre comercial con el que tus pacientes identificaran la operacion.',
+  specialty: 'Especialidad medica principal. Define el enfoque del agente y del triaje.',
+  location: 'Sucursal o zona de atencion. Ayuda a contextualizar direcciones y horarios.',
+  facilityType: 'Tipo de sede: define el plan recomendado y la capacidad simultanea.',
+  legalName: 'Razon social para facturacion y contrato.',
+  nit: 'NIT de la IPS/clinica. Necesario para activar billing.',
+  contactName: 'Persona operativa que Upway contactara durante la implementacion.',
+  contactPhone: 'Celular con WhatsApp del contacto operativo.',
+  contactEmail: 'Email del contacto para entregables y acceso al panel.',
+  dailyCalls: 'Promedio de llamadas entrantes por dia (estimacion honesta).',
+  avgCallMinutes: 'Duracion media de una llamada en minutos (tipico 2-5).',
+  planId: 'Plan comercial con minutos incluidos y overage transparente.',
+  preferredAreaCode: 'Indicativo preferido del numero dedicado (ej. 601 Bogota).',
+  existingPhone: 'Si quieres portar un numero actual, indicalo aqui.',
+  crmOrAgenda: 'Sistema de citas actual (Google Calendar, Softmedical, etc.).',
   careModel: 'Cómo se atiende al paciente: triaje asistido, atención prioritaria, etc.',
   schedule: 'Horario real de operación. El agente lo usa para coordinar citas y urgencias.',
   priority: 'Niveles de prioridad con los que el agente clasificará cada consulta.',
@@ -69,8 +108,8 @@ const fieldHelp: Partial<Record<keyof OnboardingForm, string>> = {
   cancellationWindow: 'Anticipación mínima para cancelar o reprogramar sin penalización.',
   policy: 'Reglas de escalamiento y seguridad ante riesgo clínico.',
   faq: 'Preguntas frecuentes que el agente responderá de forma automática.',
-  channel: 'Canales por los que atiende el agente (WhatsApp, voz, web…).',
-  webhook: 'Integraciones conectadas para registrar turnos, emisión y CRM.',
+  channel: 'Canales por los que atiende el agente. Upway los conecta (white-glove).',
+  webhook: 'Integraciones a conectar (agenda, CRM). Upway las implementa.',
 };
 function FieldHint({ text }: { text?: string }) {
   if (!text) return null;
@@ -82,15 +121,36 @@ function FieldHint({ text }: { text?: string }) {
   );
 }
 
+const strOf = (v: unknown, fallback = '') => (typeof v === 'string' ? v : fallback);
+
 const parseStoredForm = (input: unknown): Partial<OnboardingForm> => {
   if (!input || typeof input !== 'object') return {};
   const source = input as Record<string, unknown>;
+  const facility = strOf(source.facilityType);
+  const validFacility = FACILITY_TYPE_OPTIONS.some((f) => f.id === facility)
+    ? (facility as FacilityType)
+    : initialForm.facilityType;
+
+  const numStr = (v: unknown, fb: string) =>
+    typeof v === 'string' ? v : typeof v === 'number' && Number.isFinite(v) ? String(v) : fb;
 
   return {
-    clinicName: typeof source.clinicName === 'string' ? source.clinicName : initialForm.clinicName,
-    specialty: typeof source.specialty === 'string' ? source.specialty : initialForm.specialty,
-    location: typeof source.location === 'string' ? source.location : initialForm.location,
-    careModel: typeof source.careModel === 'string' ? source.careModel : initialForm.careModel,
+    clinicName: strOf(source.clinicName, initialForm.clinicName),
+    specialty: strOf(source.specialty, initialForm.specialty),
+    location: strOf(source.location, initialForm.location),
+    facilityType: validFacility,
+    legalName: strOf(source.legalName),
+    nit: strOf(source.nit),
+    contactName: strOf(source.contactName),
+    contactPhone: strOf(source.contactPhone),
+    contactEmail: strOf(source.contactEmail),
+    dailyCalls: numStr(source.dailyCalls, ''),
+    avgCallMinutes: numStr(source.avgCallMinutes, '3'),
+    planId: strOf(source.planId),
+    preferredAreaCode: strOf(source.preferredAreaCode),
+    existingPhone: strOf(source.existingPhone),
+    crmOrAgenda: strOf(source.crmOrAgenda),
+    careModel: strOf(source.careModel, initialForm.careModel),
     schedule: typeof source.schedule === 'string' ? source.schedule : initialForm.schedule,
     priority: typeof source.priority === 'string' ? source.priority : initialForm.priority,
     agentName: typeof source.agentName === 'string' ? source.agentName : initialForm.agentName,
@@ -114,21 +174,56 @@ const stageContent: Record<
   'clinic-setup': (form, onChange) => (
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ display: 'grid', gap: 12 }}>
-        <label style={labelStyle}>Nombre de la clínica</label>
-        <input placeholder="Ej. Mi clínica" value={form.clinicName} onChange={(event) => onChange('clinicName', event.target.value)} style={inputStyle} />
+        <label style={labelStyle}>Nombre comercial</label>
+        <input placeholder="Ej. IPS Norte Salud" value={form.clinicName} onChange={(event) => onChange('clinicName', event.target.value)} style={inputStyle} />
         <FieldHint text={fieldHelp.clinicName} />
+      </div>
+      <div style={{ display: 'grid', gap: 12 }}>
+        <label style={labelStyle}>Razon social</label>
+        <input placeholder="Ej. Norte Salud IPS S.A.S." value={form.legalName} onChange={(event) => onChange('legalName', event.target.value)} style={inputStyle} />
+        <FieldHint text={fieldHelp.legalName} />
+      </div>
+      <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr 1fr' }}>
+        <div style={{ display: 'grid', gap: 8 }}>
+          <label style={labelStyle}>NIT</label>
+          <input placeholder="Ej. 900123456-1" value={form.nit} onChange={(event) => onChange('nit', event.target.value)} style={inputStyle} />
+          <FieldHint text={fieldHelp.nit} />
+        </div>
+        <div style={{ display: 'grid', gap: 8 }}>
+          <label style={labelStyle}>Ubicacion / sucursal</label>
+          <input placeholder="Ej. Chapinero, Bogota" value={form.location} onChange={(event) => onChange('location', event.target.value)} style={inputStyle} />
+          <FieldHint text={fieldHelp.location} />
+        </div>
+      </div>
+      <div style={{ padding: 14, borderRadius: 14, border: '1px solid #dfe9ff', background: '#f4f8ff', display: 'grid', gap: 12 }}>
+        <div style={{ fontWeight: 800, color: '#163557' }}>Contacto de implementacion (white-glove)</div>
+        <div style={{ display: 'grid', gap: 8 }}>
+          <label style={labelStyle}>Nombre del contacto</label>
+          <input placeholder="Ej. Ana Operaciones" value={form.contactName} onChange={(event) => onChange('contactName', event.target.value)} style={inputStyle} />
+          <FieldHint text={fieldHelp.contactName} />
+        </div>
+        <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr 1fr' }}>
+          <div style={{ display: 'grid', gap: 8 }}>
+            <label style={labelStyle}>Celular</label>
+            <input placeholder="Ej. 3001234567" value={form.contactPhone} onChange={(event) => onChange('contactPhone', event.target.value)} style={inputStyle} />
+            <FieldHint text={fieldHelp.contactPhone} />
+          </div>
+          <div style={{ display: 'grid', gap: 8 }}>
+            <label style={labelStyle}>Email</label>
+            <input type="email" placeholder="Ej. ops@ips.com" value={form.contactEmail} onChange={(event) => onChange('contactEmail', event.target.value)} style={inputStyle} />
+            <FieldHint text={fieldHelp.contactEmail} />
+          </div>
+        </div>
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Especialidad principal</label>
         <input placeholder="Ej. Medicina general y urgencias" value={form.specialty} onChange={(event) => onChange('specialty', event.target.value)} style={inputStyle} />
         <FieldHint text={fieldHelp.specialty} />
       </div>
-      <div style={{ display: 'grid', gap: 12 }}>
-        <label style={labelStyle}>Ubicación / sucursal</label>
-        <input placeholder="Ej. Providencia, Santiago" value={form.location} onChange={(event) => onChange('location', event.target.value)} style={inputStyle} />
-        <FieldHint text={fieldHelp.location} />
-      </div>
     </div>
+  ),
+  'plan-and-volume': (form, onChange) => (
+    <PlanPicker form={form} onChange={onChange} hint={(t) => <FieldHint text={t} />} />
   ),
   'specialty-and-care-model': (form, onChange) => (
     <div style={{ display: 'grid', gap: 16 }}>
@@ -209,38 +304,23 @@ const stageContent: Record<
   ),
   'channel-integration': (form, onChange) => (
     <div style={{ display: 'grid', gap: 16 }}>
+      <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 14, padding: 14, fontSize: 13, color: '#14532d' }}>
+        Upway implementa por ti (white-glove): no necesitas tokens ni consolas. Solo indica canales deseados y agenda actual; nosotros conectamos WhatsApp (Meta OAuth), voz dedicada e integraciones.
+      </div>
       <div style={{ display: 'grid', gap: 12 }}>
-        <label style={labelStyle}>Canales activos</label>
-        <input placeholder="Ej. WhatsApp + Telnyx" value={form.channel} onChange={(event) => onChange('channel', event.target.value)} style={inputStyle} />
+        <label style={labelStyle}>Canales deseados</label>
+        <input placeholder="Ej. WhatsApp + voz" value={form.channel} onChange={(event) => onChange('channel', event.target.value)} style={inputStyle} />
         <FieldHint text={fieldHelp.channel} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
-        <label style={labelStyle}>Webhook / integración</label>
-        <input placeholder="Ej. WhatsApp Business + Telnyx API + CRM" value={form.webhook} onChange={(event) => onChange('webhook', event.target.value)} style={inputStyle} />
+        <label style={labelStyle}>Agenda / integracion a conectar</label>
+        <input placeholder="Ej. Google Calendar + Softmedical" value={form.webhook} onChange={(event) => onChange('webhook', event.target.value)} style={inputStyle} />
         <FieldHint text={fieldHelp.webhook} />
       </div>
     </div>
   ),
   'review-and-approve': (form, onChange) => (
-    <div style={{ display: 'grid', gap: 16 }}>
-      <div style={{ display: 'grid', gap: 12, background: '#f4f8ff', border: '1px solid #dfe9ff', borderRadius: 14, padding: 16 }}>
-        <div style={{ fontWeight: 800, color: '#163557' }}>Resumen de configuración</div>
-        <ul style={{ margin: 0, paddingLeft: 18, color: '#36557c', display: 'grid', gap: 8 }}>
-          <li>{form.clinicName || 'Sin nombre definido'}</li>
-          <li>{form.specialty || 'Sin especialidad definida'}</li>
-          <li>{form.agentName || 'Sin nombre de agente'}</li>
-          <li>{form.channel || 'Sin canales configurados'}</li>
-          <li>{form.tone || 'Tono no especificado'}</li>
-        </ul>
-      </div>
-      <div style={{ display: 'grid', gap: 8 }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#1b3558', fontWeight: 700, cursor: 'pointer' }}>
-          <input type="checkbox" checked={form.approval} onChange={(event) => onChange('approval', event.target.checked)} />
-          Aprobación del responsable clínico
-        </label>
-        <FieldHint text="Marca esta casilla solo cuando el responsable clínico haya validado la configuración. Sin aprobación, el sistema no activará el modo go-live." />
-      </div>
-    </div>
+    <ReviewSummary form={form} onChange={onChange} />
   ),
   'go-live': (form) => (
     <div style={{ display: 'grid', gap: 16 }}>
@@ -255,6 +335,50 @@ const stageContent: Record<
     </div>
   ),
 };
+
+function PlanReviewBox({ form }: { form: OnboardingForm }) {
+  const plan = getHealthPlan(form.planId);
+  const mins = estimateMinutesFromVolume(Number(form.dailyCalls) || 0, Number(form.avgCallMinutes) || 0);
+  return (
+    <div style={{ display: 'grid', gap: 8, background: '#0f172a', color: '#e2e8f0', borderRadius: 14, padding: 16 }}>
+      <div style={{ fontWeight: 800 }}>Plan + volumen</div>
+      <div style={{ fontSize: 13, color: '#cbd5e1' }}>
+        {plan ? `${plan.name} · ${formatCOP(plan.monthlyCOP)}/mes · setup ${formatCOP(plan.setupCOP)}` : 'Sin plan elegido (elige en paso Plan y volumen).'}
+      </div>
+      <div style={{ fontSize: 13, color: '#cbd5e1' }}>
+        ~{mins.toLocaleString('es-CO')} min/mes estimados · {form.dailyCalls || '?'} llamadas/dia · NIT {form.nit || 'pendiente'} · contacto {form.contactName || 'pendiente'}
+      </div>
+    </div>
+  );
+}
+
+function ReviewSummary({ form, onChange }: {
+  form: OnboardingForm;
+  onChange: <K extends keyof OnboardingForm>(key: K, value: OnboardingForm[K]) => void;
+}) {
+  return (
+    <div style={{ display: 'grid', gap: 16 }}>
+      <PlanReviewBox form={form} />
+      <div style={{ display: 'grid', gap: 12, background: '#f4f8ff', border: '1px solid #dfe9ff', borderRadius: 14, padding: 16 }}>
+        <div style={{ fontWeight: 800, color: '#163557' }}>Resumen de configuracion</div>
+        <ul style={{ margin: 0, paddingLeft: 18, color: '#36557c', display: 'grid', gap: 8 }}>
+          <li>{form.clinicName || 'Sin nombre definido'}</li>
+          <li>{form.specialty || 'Sin especialidad definida'}</li>
+          <li>{form.agentName || 'Sin nombre de agente'}</li>
+          <li>{form.channel || 'Sin canales configurados'}</li>
+          <li>{form.tone || 'Tono no especificado'}</li>
+        </ul>
+      </div>
+      <div style={{ display: 'grid', gap: 8 }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#1b3558', fontWeight: 700, cursor: 'pointer' }}>
+          <input type="checkbox" checked={form.approval} onChange={(event) => onChange('approval', event.target.checked)} />
+          Aprobacion del responsable clinico
+        </label>
+        <FieldHint text="Marca esta casilla solo cuando el responsable clinico haya validado la configuracion. Sin aprobacion, el sistema no activara el modo go-live." />
+      </div>
+    </div>
+  );
+}
 
 const labelStyle: React.CSSProperties = {
   fontSize: 12,
@@ -280,9 +404,13 @@ const stageHelp: Record<OnboardingStage, { title: string; hint: string }> = {
     title: 'Identifica tu operación',
     hint: 'Define cómo se llama tu clínica, su foco y dónde atiende. Esto personaliza el agente y el triaje.',
   },
+  'plan-and-volume': {
+    title: 'Plan y volumen',
+    hint: 'Estima llamadas, elige plan honesto con minutos incluidos y deja intake listo para que Upway implemente.',
+  },
   'specialty-and-care-model': {
-    title: 'Modelo de atención',
-    hint: 'Explica cómo atiendes (triaje, prioridad) y en qué horario. El agente lo usa para coordinar.',
+    title: 'Modelo de atencion',
+    hint: 'Explica como atiendes (triaje, prioridad) y en que horario. El agente lo usa para coordinar.',
   },
   'agent-profile': {
     title: 'Personalidad del agente',

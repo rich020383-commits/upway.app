@@ -68,7 +68,7 @@ export default function HealthOverviewPage() {
     { label: 'Leads totales', value: dashboard?.summary.totalLeads ?? 0, delta: `${dashboard?.summary.newLeads ?? 0} nuevos` },
     { label: 'Citas próximas', value: dashboard?.summary.appointments ?? 0, delta: `${dashboard?.summary.todayAppointments ?? 0} hoy` },
     { label: 'Recordatorios vencidos', value: dashboard?.summary.dueReminders ?? 0, delta: `${dashboard?.summary.pendingReminders ?? 0} pendientes` },
-    { label: 'Costo voz · Telnyx', value: `$${Number(telnyxCost).toFixed(2)}`, delta: `${consumption?.voiceCalls ?? 0} llamadas` },
+    { label: 'Costo voz', value: `$${Number(telnyxCost).toFixed(2)}`, delta: `${consumption?.voiceCalls ?? 0} llamadas` },
   ];
 
   const conversations = (dashboard?.inbox ?? []).slice(0, 3).map((c) => ({
@@ -86,7 +86,7 @@ export default function HealthOverviewPage() {
   const telnyxPct = channelTotal > 0 ? Math.round((voiceCalls / channelTotal) * 100) : 0;
   const donutSegments = [
     { label: 'WhatsApp', value: whatsappPct, color: '#5cc8a2' },
-    { label: 'Telnyx', value: telnyxPct, color: '#7aa8ff' },
+    { label: 'Voz', value: telnyxPct, color: '#7aa8ff' },
     { label: 'Web', value: 0, color: '#d8d9f7' },
   ];
   const donutValue = channelTotal;
@@ -262,8 +262,8 @@ export default function HealthOverviewPage() {
             {[
               ['Agente clínico', agent ? `${agent.name} · ${agent.status}` : 'Sin agente configurado'],
               ['Políticas y protocolos', `${policiesCount} políticas · ${triageCount} reglas triaje · ${faqsCount} FAQs`],
-              ['Canales reales', `WhatsApp + Telnyx${telnyxOn ? ' (voz activa)' : ' (voz en espera)'} + CRM`],
-              ['Voz del mes', `${consumption?.voiceCalls ?? 0} llamadas · $${Number(telnyxCost).toFixed(2)} Telnyx`],
+              ['Canales reales', `WhatsApp + Voz${telnyxOn ? ' (voz activa)' : ' (voz en espera)'} + CRM`],
+              ['Voz del mes', `${consumption?.voiceCalls ?? 0} llamadas · $${Number(telnyxCost).toFixed(2)} voz`],
             ].map(([label, value]) => (
               <div key={label} className="rounded-[18px] border border-slate-200 bg-slate-50/80 p-3">
                 <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-slate-500">{label}</div>

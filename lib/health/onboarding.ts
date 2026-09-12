@@ -1,5 +1,6 @@
-export const onboardingStages = [
+﻿export const onboardingStages = [
   'clinic-setup',
+  'plan-and-volume',
   'specialty-and-care-model',
   'agent-profile',
   'triage-rules',
@@ -35,6 +36,7 @@ export function getHealthStatusForStage(step: string): HealthOnboardingStatus {
     case 'faq-content':
     case 'policies-and-escalation':
     case 'triage-rules':
+    case 'plan-and-volume':
       return 'IN_PROGRESS';
     default:
       return 'DRAFT';
@@ -46,54 +48,59 @@ export const onboardingStageMeta: Record<
   { label: string; subtitle: string; description: string }
 > = {
   'clinic-setup': {
-    label: 'Clínica',
-    subtitle: 'Perfil y ubicación',
-    description: 'Define la identidad operativa y el contexto de la clínica.',
+    label: 'Clinica',
+    subtitle: 'Perfil y ubicacion',
+    description: 'Define la identidad operativa, razon social y contacto de implementacion.',
+  },
+  'plan-and-volume': {
+    label: 'Plan',
+    subtitle: 'Volumen y tarifa',
+    description: 'Estima llamadas, elige plan honesto y deja listo el intake para Upway.',
   },
   'specialty-and-care-model': {
     label: 'Especialidad',
-    subtitle: 'Modelo clínico',
-    description: 'Configura la especialidad, horarios y flujo de atención.',
+    subtitle: 'Modelo clinico',
+    description: 'Configura la especialidad, horarios y flujo de atencion.',
   },
   'agent-profile': {
     label: 'Agente',
     subtitle: 'Perfil del asistente',
-    description: 'Asigna la voz, la misión y la esfera de responsabilidad del agente.',
+    description: 'Asigna la voz, la mision y la esfera de responsabilidad del agente.',
   },
   'triage-rules': {
     label: 'Triaje',
-    subtitle: 'Reglas de clasificación',
-    description: 'Determina cómo prioriza, redirige y escalará el agente.',
+    subtitle: 'Reglas de clasificacion',
+    description: 'Determina como prioriza, redirige y escalara el agente.',
   },
   'tone-and-voice': {
     label: 'Tono',
     subtitle: 'Voz y marca',
-    description: 'Establece el estilo verbal y la empatía del agente.',
+    description: 'Establece el estilo verbal y la empatia del agente.',
   },
   'policies-and-escalation': {
-    label: 'Políticas',
-    subtitle: 'Cancelación y escalamiento',
-    description: 'Define las reglas de cancelación, escalas y excepciones.',
+    label: 'Politicas',
+    subtitle: 'Cancelacion y escalamiento',
+    description: 'Define las reglas de cancelacion, escalas y excepciones.',
   },
   'faq-content': {
     label: 'FAQ',
     subtitle: 'Preguntas frecuentes',
-    description: 'Carga la base de respuestas para la atención frecuente.',
+    description: 'Carga la base de respuestas para la atencion frecuente.',
   },
   'channel-integration': {
     label: 'Canales',
-    subtitle: 'WhatsApp y Telnyx',
-    description: 'Upway conecta WhatsApp y voz Telnyx con el número dedicado de la clínica.',
+    subtitle: 'WhatsApp y voz',
+    description: 'Upway conecta WhatsApp y voz dedicada con el numero de la clinica.',
   },
   'review-and-approve': {
-    label: 'Revisión',
-    subtitle: 'Aprobación final',
-    description: 'Revisa el setup completo antes de activation.',
+    label: 'Revision',
+    subtitle: 'Aprobacion final',
+    description: 'Revisa plan + setup clinico antes de la implementacion Upway.',
   },
   'go-live': {
     label: 'Go-live',
-    subtitle: 'Activación',
-    description: 'Publica la clínica en producción con control incremental.',
+    subtitle: 'Activacion',
+    description: 'Publica la clinica en produccion cuando el checklist de entrega este verde.',
   },
 };
 
@@ -115,7 +122,7 @@ export function getOnboardingStageMeta(stage: string) {
   const normalized = stage as OnboardingStage;
   return onboardingStageMeta[normalized] ?? {
     label: 'Etapa',
-    subtitle: 'Configuración',
+    subtitle: 'Configuracion',
     description: 'Detalle no definido para la etapa actual.',
   };
 }

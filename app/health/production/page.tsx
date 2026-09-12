@@ -43,7 +43,7 @@ export default function HealthProductionPage() {
       const res = await fetch('/api/health/activate', { method: 'POST' });
       const data = await res.json();
       if (res.ok && data.ok) {
-        setFeedback(`✅ IPS activa · ${data.delivery?.clinicName ?? ''} · ${data.delivery?.telnyxPhoneNumber ?? ''}`);
+        setFeedback(`✅ IPS activa · ${data.delivery?.clinicName ?? ''} · ${data.delivery?.phoneNumber ?? ''}`);
         await load();
       } else {
         setFeedback(data.error ?? 'IPS no lista: completa implementación Upway.');
@@ -82,45 +82,43 @@ export default function HealthProductionPage() {
       </div>
 
       <div className="upway-surface rounded-[28px] p-5">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <div className="text-lg font-black tracking-[-0.04em] text-slate-900">
-              Checklist de entrega IPS · Upway implementa, cliente opera
-            </div>
-            <button
-              onClick={() => void handleActivate()}
-              disabled={!canActivate || activating || loading}
-              className="rounded-xl bg-[#1b5ed6] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#164cae] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {activating ? 'Activando…' : 'Activar IPS'}
-            </button>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="text-lg font-black tracking-[-0.04em] text-slate-900">
+            Checklist de entrega IPS · Upway implementa, cliente opera
           </div>
-          <p className="mb-4 text-sm text-slate-500">
-            Cliente llena onboarding · Upway conecta WhatsApp + voz Telnyx dedicada · se entrega número alineado + panel real.
-          </p>
-          {loading ? (
-            <div className="rounded-[18px] border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-              Cargando checklist…
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {checks.map((check) => (
-                <div key={check.key} className="flex items-start gap-3 rounded-[18px] border border-slate-200 bg-slate-50/80 p-3">
-                  <div className={`mt-0.5 flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-black ${check.ok ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                    {check.ok ? '✓' : '!'}
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-800">{check.label}</p>
-                    <p className="mt-1 text-sm leading-6 text-slate-600">{check.detail}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          {feedback && <div className="mt-4 text-sm font-semibold text-slate-700">{feedback}</div>}
+          <button
+            onClick={() => void handleActivate()}
+            disabled={!canActivate || activating || loading}
+            className="rounded-xl bg-[#1b5ed6] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#164cae] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {activating ? 'Activando…' : 'Activar IPS'}
+          </button>
         </div>
+        <p className="mb-4 text-sm text-slate-500">
+          Cliente llena onboarding · Upway conecta WhatsApp + voz dedicada · se entrega número alineado + panel real.
+        </p>
+        {loading ? (
+          <div className="rounded-[18px] border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+            Cargando checklist…
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {checks.map((check) => (
+              <div key={check.key} className="flex items-start gap-3 rounded-[18px] border border-slate-200 bg-slate-50/80 p-3">
+                <div className={`mt-0.5 flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-black ${check.ok ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                  {check.ok ? '✓' : '!'}
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-800">{check.label}</p>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">{check.detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {feedback && <div className="mt-4 text-sm font-semibold text-slate-700">{feedback}</div>}
       </div>
 
-      {/* Reemplazo del bloque JSON inferior por un indicador de Protocolos */}
       <div className="upway-surface rounded-[28px] p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
         <div>
           <div className="mb-1 text-lg font-black tracking-[-0.04em] text-slate-900">Protocolos de Despliegue</div>
