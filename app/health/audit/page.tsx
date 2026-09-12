@@ -80,7 +80,7 @@ export default function HealthAuditPage() {
                 <div className="mt-2 text-sm text-slate-600">Actor: {entry.actor}</div>
                 <div className="mt-2 text-sm text-slate-600">Clínica: {entry.clinicName}</div>
                 <div className="mt-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
-                  {new Date(entry.createdAt).toLocaleString('es-CL')}
+                  {new Date(entry.createdAt).toLocaleString('es-CO')}
                 </div>
               </div>
             ))}

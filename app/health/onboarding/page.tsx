@@ -211,12 +211,12 @@ const stageContent: Record<
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Canales activos</label>
-        <input placeholder="Ej. WhatsApp + Vapi" value={form.channel} onChange={(event) => onChange('channel', event.target.value)} style={inputStyle} />
+        <input placeholder="Ej. WhatsApp + Telnyx" value={form.channel} onChange={(event) => onChange('channel', event.target.value)} style={inputStyle} />
         <FieldHint text={fieldHelp.channel} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Webhook / integración</label>
-        <input placeholder="Ej. WhatsApp Business + Vapi API + CRM" value={form.webhook} onChange={(event) => onChange('webhook', event.target.value)} style={inputStyle} />
+        <input placeholder="Ej. WhatsApp Business + Telnyx API + CRM" value={form.webhook} onChange={(event) => onChange('webhook', event.target.value)} style={inputStyle} />
         <FieldHint text={fieldHelp.webhook} />
       </div>
     </div>

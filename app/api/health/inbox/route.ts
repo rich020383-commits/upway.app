@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import { getHealthSession } from '@/lib/session';
 import { enforceHealthAccess } from '@/lib/health/access';
 import { withTenantScope } from '@/lib/health/tenant';
@@ -12,29 +13,42 @@ export async function GET(request: NextRequest) {
   try {
     enforceHealthAccess({ role, module: 'inbox', organizationId, clinicId });
 
-    const payload = withTenantScope(
-      {
-        items: [
-          {
-            id: 'conversation-1',
-            patient: 'Laura Mendoza',
-            channel: 'WhatsApp',
-            priority: 'high',
-            summary: 'Solicita reprogramación y confirma horario.',
-            status: 'active',
-          },
-          {
-            id: 'conversation-2',
-            patient: 'María Fernanda',
-            channel: 'Telnyx Voice',
-            priority: 'medium',
-            summary: 'Consulta sobre disponibilidad en medicina general.',
-            status: 'pending',
-          },
-        ],
+    // Tienda real del usuario (vínculo org/clinic creado en register).
+    const tienda =
+      (await prisma.tienda.findFirst({ where: { userId: context.user.id } })) ??
+      (await prisma.tienda.findFirst({
+        where: {
+          ...(organizationId ? { organizationId } : {}),
+          ...(clinicId ? { clinicId } : {}),
+        },
+      }));
+
+    if (!tienda) {
+      return NextResponse.json(withTenantScope({ items: [] }, { organizationId, clinicId, role }));
+    }
+
+    const conversations = await prisma.conversation.findMany({
+      where: { tiendaId: tienda.id },
+      include: {
+        lead: { select: { id: true, nombre: true, estado: true } },
+        messages: { orderBy: { createdAt: 'desc' }, take: 1 },
       },
-      { organizationId, clinicId, role }
-    );
+      orderBy: { updatedAt: 'desc' },
+      take: 12,
+    });
+
+    const items = conversations.map((c) => ({
+      id: c.id,
+      patient: c.clientName || c.lead?.nombre || c.clientPhone,
+      channel: 'WhatsApp',
+      priority: c.lead?.estado ?? 'NEW',
+      summary: (c.messages?.[0]?.content ?? 'Sin mensajes').slice(0, 120),
+      status: c.status,
+      clientPhone: c.clientPhone,
+      updatedAt: c.updatedAt,
+    }));
+
+    const payload = withTenantScope({ items }, { organizationId, clinicId, role });
 
     return NextResponse.json(payload);
   } catch (err) {

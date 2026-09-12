@@ -1,10 +1,6 @@
-import { buildHealthQuery } from '@/lib/health/data';
-
 export default function HealthClinicsPage() {
-  const query = buildHealthQuery({ organizationId: 'org-1', clinicId: 'clinic-1', role: 'clinic-admin' }, 'clinics');
-
-  // 🔥 Eliminamos las clínicas hardcodeadas.
-  // Reemplaza este arreglo vacío con los datos reales que vienen de tu backend/contexto.
+  // Red real: las clínicas viven en Organization/Clinic (ver register + onboarding).
+  // Esta vista muestra vacío honesto hasta conectar el endpoint de red por tenant.
   const clinics: { name: string; status: string; specialty: string; region: string }[] = [];
 
   return (

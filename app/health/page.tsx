@@ -1,41 +1,116 @@
-import { summarizeDemoHealthMetrics } from '@/lib/health/data';
+"use client";
 
-export default async function HealthOverviewPage() {
-  // Derived/demo metrics synthesized from clinic configuration — not real Message/Conversation counts.
-  const metrics = await summarizeDemoHealthMetrics();
+import { useEffect, useState } from 'react';
+
+type DashboardInboxItem = {
+  id: string;
+  clientPhone: string;
+  clientName?: string | null;
+  status: string;
+  updatedAt: string;
+  lead?: { id: string; nombre: string; estado: string } | null;
+  messages: { id: string; senderRole: string; content: string; createdAt: string }[];
+};
+
+type DashboardPayload = {
+  summary: { totalLeads: number; newLeads: number; appointments: number; todayAppointments: number; pendingReminders: number; dueReminders: number };
+  pipeline: Record<string, number>;
+  nextAppointments: { id: string; clienteNombre: string; fechaHora: string; estado: string }[];
+  inbox: DashboardInboxItem[];
+  consumption?: { month: string; messages: number; voiceCalls: number; voiceMinutes: number; telnyxCost: number; vapiCost: number; billedCost: number };
+};
+
+type ComplianceItem = { id: string; title: string; status: string; value: string };
+type AgentPayload = { id: string; name: string; channels: { whatsapp: boolean; telnyx?: boolean; vapi?: boolean }; status: string };
+
+function parseCount(value: string): number {
+  const m = value.match(/(\d+)/);
+  return m ? Number(m[1]) : 0;
+}
+
+export default function HealthOverviewPage() {
+  const [dashboard, setDashboard] = useState<DashboardPayload | null>(null);
+  const [compliance, setCompliance] = useState<ComplianceItem[]>([]);
+  const [agent, setAgent] = useState<AgentPayload | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [dashRes, compRes, agentRes] = await Promise.all([
+          fetch('/api/business/dashboard'),
+          fetch('/api/health/compliance'),
+          fetch('/api/health/agents'),
+        ]);
+        if (dashRes.ok) setDashboard(await dashRes.json());
+        if (compRes.ok) {
+          const comp = await compRes.json();
+          setCompliance(comp.items ?? []);
+        }
+        if (agentRes.ok) {
+          const ag = await agentRes.json();
+          setAgent(ag.items?.[0] ?? null);
+        }
+      } catch (error) {
+        console.error('Error cargando resumen health:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const todayLabel = new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
+  const consumption = dashboard?.consumption;
+  const telnyxCost = consumption?.telnyxCost ?? consumption?.vapiCost ?? 0;
 
   const statCards = [
-    { label: 'Atenciones', value: metrics.conversations, delta: '0%' },
-    { label: 'Resolución', value: `${metrics.resolved}%`, delta: '0%' },
-    { label: 'Escalaciones', value: metrics.escalations, delta: '0%' },
-    { label: 'No-show', value: `${metrics.noShows}%`, delta: '0%' },
+    { label: 'Leads totales', value: dashboard?.summary.totalLeads ?? 0, delta: `${dashboard?.summary.newLeads ?? 0} nuevos` },
+    { label: 'Citas próximas', value: dashboard?.summary.appointments ?? 0, delta: `${dashboard?.summary.todayAppointments ?? 0} hoy` },
+    { label: 'Recordatorios vencidos', value: dashboard?.summary.dueReminders ?? 0, delta: `${dashboard?.summary.pendingReminders ?? 0} pendientes` },
+    { label: 'Costo voz · Telnyx', value: `$${Number(telnyxCost).toFixed(2)}`, delta: `${consumption?.voiceCalls ?? 0} llamadas` },
   ];
 
-  const conversations = [
-    { patient: 'Laura Mendoza', need: 'Información del paciente', channel: 'WhatsApp', time: '09:30', status: 'Activo' },
-    { patient: 'María Fernanda', need: 'Consulta de seguimiento', channel: 'Vapi', time: '09:45', status: 'Pendiente' },
-    { patient: 'Carlos Ramírez', need: 'Escalado a humano', channel: 'WhatsApp', time: '10:02', status: 'Urgente' },
-  ];
+  const conversations = (dashboard?.inbox ?? []).slice(0, 3).map((c) => ({
+    patient: c.clientName || c.lead?.nombre || c.clientPhone,
+    need: c.lead ? `Lead: ${c.lead.nombre} · ${c.lead.estado}` : (c.messages?.[0]?.content ?? 'Sin mensajes').slice(0, 80),
+    channel: 'WhatsApp',
+    time: c.updatedAt ? new Date(c.updatedAt).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : '',
+    status: c.status,
+  }));
 
+  const messages = consumption?.messages ?? 0;
+  const voiceCalls = consumption?.voiceCalls ?? 0;
+  const channelTotal = messages + voiceCalls;
+  const whatsappPct = channelTotal > 0 ? Math.round((messages / channelTotal) * 100) : 0;
+  const telnyxPct = channelTotal > 0 ? Math.round((voiceCalls / channelTotal) * 100) : 0;
   const donutSegments = [
-    { label: 'WhatsApp', value: 0, color: '#5cc8a2' },
-    { label: 'Vapi', value: 0, color: '#7aa8ff' },
+    { label: 'WhatsApp', value: whatsappPct, color: '#5cc8a2' },
+    { label: 'Telnyx', value: telnyxPct, color: '#7aa8ff' },
     { label: 'Web', value: 0, color: '#d8d9f7' },
   ];
-
-  const graphBars = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
-  const agenda = [
-    { name: 'María Fernández', reason: 'Dolor abdominal', priority: 'Alta' },
-    { name: 'Javier Silva', reason: 'Seguimiento postoperatorio', priority: 'Media' },
-    { name: 'Ana López', reason: 'Consulta general', priority: 'Baja' },
-    { name: 'Luis Ortega', reason: 'Alergia / urgencia', priority: 'Crítica' },
-  ];
-
-  const donutValue = donutSegments.reduce((sum, item) => sum + item.value, 0);
+  const donutValue = channelTotal;
   const donutStyle = {
-    background: `conic-gradient(#5cc8a2 0 0%, #7aa8ff 0% 0%, #d8d9f7 0% 100%)`,
+    background: `conic-gradient(#5cc8a2 0 ${whatsappPct}%, #7aa8ff ${whatsappPct}% ${whatsappPct + telnyxPct}%, #d8d9f7 ${whatsappPct + telnyxPct}% 100%)`,
   };
+
+  const pipeline = dashboard?.pipeline ?? {};
+  const pipelineEntries = Object.entries(pipeline);
+  const pipelineMax = Math.max(1, ...pipelineEntries.map(([, v]) => v));
+  const graphBars = pipelineEntries.length > 0
+    ? pipelineEntries.map(([, v]) => Math.round((v / pipelineMax) * 100))
+    : [0, 0, 0, 0, 0, 0];
+
+  const agenda = (dashboard?.nextAppointments ?? []).slice(0, 4).map((a) => ({
+    name: a.clienteNombre,
+    reason: `${new Date(a.fechaHora).toLocaleString('es-CO')} · ${a.estado}`,
+    priority: a.estado === 'PENDING' ? 'Pendiente' : a.estado === 'CONFIRMED' ? 'Confirmada' : a.estado,
+  }));
+
+  const triageCount = parseCount(compliance.find((i) => i.id === 'compliance-triage')?.value ?? '0');
+  const faqsCount = parseCount(compliance.find((i) => i.id === 'compliance-faqs')?.value ?? '0');
+  const policiesCount = parseCount(compliance.find((i) => i.id === 'compliance-policies')?.value ?? '0');
+  const telnyxOn = agent ? Boolean(agent.channels.telnyx ?? agent.channels.vapi) : false;
 
   return (
     <div className="space-y-5">
@@ -48,7 +123,7 @@ export default async function HealthOverviewPage() {
             </div>
             <div className="flex items-center gap-2">
               <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-700">Operación activa</span>
-              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-slate-600">13 mayo 2024</span>
+              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-slate-600">{todayLabel}</span>
             </div>
           </div>
 
@@ -119,8 +194,18 @@ export default async function HealthOverviewPage() {
           </div>
 
           <div className="space-y-3">
+            {loading && (
+              <div className="rounded-[18px] border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+                Cargando conversaciones reales…
+              </div>
+            )}
+            {!loading && conversations.length === 0 && (
+              <div className="rounded-[18px] border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+                Sin conversaciones activas. Los mensajes de WhatsApp aparecerán aquí.
+              </div>
+            )}
             {conversations.map((item) => (
-              <div key={item.patient} className="flex items-center gap-3 rounded-[18px] border border-slate-200 bg-slate-50/90 p-3">
+              <div key={`${item.patient}-${item.time}`} className="flex items-center gap-3 rounded-[18px] border border-slate-200 bg-slate-50/90 p-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[linear-gradient(135deg,#eaf3ff,#dfeeff)] text-sm font-black text-[#1b5ed6]">{item.patient.slice(0, 2).toUpperCase()}</div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
@@ -147,17 +232,20 @@ export default async function HealthOverviewPage() {
           </div>
 
           <div className="space-y-3">
+            {!loading && agenda.length === 0 && (
+              <div className="rounded-[18px] border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+                Sin citas próximas. Agenda desde Operaciones y aparecerán aquí.
+              </div>
+            )}
             {agenda.map((item) => (
-              <div key={item.name} className="flex items-center justify-between rounded-[18px] border border-slate-200 bg-slate-50/90 p-3">
+              <div key={`${item.name}-${item.reason}`} className="flex items-center justify-between rounded-[18px] border border-slate-200 bg-slate-50/90 p-3">
                 <div>
                   <div className="text-sm font-bold text-slate-800">{item.name}</div>
                   <div className="text-xs text-slate-600">{item.reason}</div>
                 </div>
                 <span className={[
                   'rounded-full px-2.5 py-1 text-[10px] font-bold',
-                  item.priority === 'Crítica' ? 'bg-red-50 text-red-700' :
-                  item.priority === 'Alta' ? 'bg-amber-50 text-amber-700' :
-                  item.priority === 'Media' ? 'bg-yellow-50 text-yellow-700' : 'bg-emerald-50 text-emerald-700'
+                  item.priority === 'Pendiente' ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'
                 ].join(' ')}>{item.priority}</span>
               </div>
             ))}
@@ -172,10 +260,10 @@ export default async function HealthOverviewPage() {
 
           <div className="space-y-4">
             {[
-              ['Información general', 'Tu clínica'],
-              ['Políticas y protocolos', 'Triage + cancelación + escalamiento'],
-              ['Usuarios y accesos', '5 perfiles activos'],
-              ['Integraciones', 'WhatsApp + Vapi + CRM'],
+              ['Agente clínico', agent ? `${agent.name} · ${agent.status}` : 'Sin agente configurado'],
+              ['Políticas y protocolos', `${policiesCount} políticas · ${triageCount} reglas triaje · ${faqsCount} FAQs`],
+              ['Canales reales', `WhatsApp + Telnyx${telnyxOn ? ' (voz activa)' : ' (voz en espera)'} + CRM`],
+              ['Voz del mes', `${consumption?.voiceCalls ?? 0} llamadas · $${Number(telnyxCost).toFixed(2)} Telnyx`],
             ].map(([label, value]) => (
               <div key={label} className="rounded-[18px] border border-slate-200 bg-slate-50/80 p-3">
                 <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-slate-500">{label}</div>

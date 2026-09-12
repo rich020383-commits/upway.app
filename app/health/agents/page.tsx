@@ -114,7 +114,7 @@ export default function AgentsPage() {
             </div>
             <div className="mt-1 flex items-center gap-2 text-sm text-slate-600">
               <Phone className="h-4 w-4" />
-              Telnyx (voz): {agent.channels.telnyx ?? agent.channels.vapi ? 'conectado' : 'sin conectar'}
+              Telnyx (voz): {(agent.channels.telnyx ?? agent.channels.vapi) ? 'conectado' : 'sin conectar'}
             </div>
           </div>
 

@@ -21,49 +21,6 @@ type ApprovalItem = {
   entityId: string;
 };
 
-const fallbackApprovals: ApprovalItem[] = [
-  {
-    id: 'demo-approval-1',
-    sessionId: 'demo-session-1',
-    clinicId: 'demo-clinic',
-    title: 'Política de cancelación y reprogramación',
-    summary: 'Se solicita aprobación para soportar reprogramación asistida con ventana de 24 horas y escalamiento manual si el paciente reporta dolor agudo.',
-    status: 'PENDING',
-    reviewer: 'Compliance',
-    requestedBy: 'clinic-admin',
-    createdAt: new Date().toISOString(),
-    entityType: 'onboarding',
-    entityId: 'demo-session-1',
-  },
-  {
-    id: 'demo-approval-2',
-    sessionId: 'demo-session-2',
-    clinicId: 'demo-clinic',
-    title: 'Triage de urgencias y duplicación de casos',
-    summary: 'Validación del escalamiento automático cuando el paciente indica dolor intenso, sangrado o pérdida de conocimiento.',
-    status: 'CHANGES_REQUESTED',
-    reviewer: 'Ops',
-    requestedBy: 'triage-manager',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
-    entityType: 'onboarding',
-    entityId: 'demo-session-2',
-  },
-  {
-    id: 'demo-approval-3',
-    sessionId: 'demo-session-3',
-    clinicId: 'demo-clinic',
-    title: 'FAQ de coordinación y agenda',
-    summary: 'Aprobación del conjunto de respuestas rápidas para agendamiento, no-show, confirmación y cancelación con apoyo humano.',
-    status: 'APPROVED',
-    reviewer: 'Admin',
-    requestedBy: 'clinic-admin',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 7).toISOString(),
-    reviewedAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-    entityType: 'onboarding',
-    entityId: 'demo-session-3',
-  },
-];
-
 function normalizeApprovalStatus(value: string | undefined): ApprovalStatus {
   const normalized = String(value ?? 'PENDING').trim().toUpperCase();
 
@@ -110,7 +67,7 @@ async function loadApprovals(clinicId?: string, organizationId?: string): Promis
   const clinic = await resolveClinic(clinicId, organizationId);
 
   if (!clinic) {
-    return fallbackApprovals;
+    return [];
   }
 
   const sessions = await prisma.healthOnboardingSession.findMany({
@@ -120,7 +77,7 @@ async function loadApprovals(clinicId?: string, organizationId?: string): Promis
   });
 
   if (!sessions.length) {
-    return fallbackApprovals;
+    return [];
   }
 
   const items = sessions.flatMap((session) => {
@@ -160,7 +117,7 @@ async function loadApprovals(clinicId?: string, organizationId?: string): Promis
     }));
   });
 
-  return items.length ? items : fallbackApprovals;
+  return items;
 }
 
 export async function GET(request: NextRequest) {

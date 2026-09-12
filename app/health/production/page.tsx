@@ -1,8 +1,4 @@
-import { buildHealthQuery } from '@/lib/health/data';
-
 export default function HealthProductionPage() {
-  const query = buildHealthQuery({ organizationId: 'org-1', clinicId: 'clinic-1', role: 'clinic-admin' }, 'production');
-
   const states = [
     { label: 'Estado general', value: 'Producción lista', status: 'Healthy' },
     { label: 'Módulo de atención', value: 'Activo', status: 'Live' },

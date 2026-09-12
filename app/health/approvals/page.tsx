@@ -43,7 +43,7 @@ export default function HealthApprovalsPage() {
 
     async function loadApprovals() {
       try {
-        const response = await fetch('/api/health/approvals?role=compliance-reviewer&organizationId=org-1&clinicId=clinic-1', {
+        const response = await fetch('/api/health/approvals', {
           cache: 'no-store',
         });
 
@@ -96,11 +96,7 @@ export default function HealthApprovalsPage() {
         body: JSON.stringify({
           id,
           action,
-          role: 'compliance-reviewer',
-          organizationId: 'org-1',
-          clinicId: 'clinic-1',
-          reviewedBy: 'compliance-reviewer',
-          comments: `Aprobación actualizada mediante review human de ${new Date().toLocaleString('es-CL')}.`,
+          comments: `Aprobación actualizada mediante review human de ${new Date().toLocaleString('es-CO')}.`,
         }),
       });
 
@@ -116,7 +112,7 @@ export default function HealthApprovalsPage() {
             ? {
                 ...item,
                 status: action,
-                reviewer: 'compliance-reviewer',
+                reviewer: payload.item?.reviewer ?? 'Revisor clínico',
                 reviewedAt: payload.item?.reviewedAt ?? new Date().toISOString(),
               }
             : item,
@@ -171,7 +167,7 @@ export default function HealthApprovalsPage() {
               <div className="mt-4 grid gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 md:grid-cols-3">
                 <div>Requester: {item.requestedBy}</div>
                 <div>Reviewer: {item.reviewer}</div>
-                <div>{new Date(item.createdAt).toLocaleString('es-CL')}</div>
+                <div>{new Date(item.createdAt).toLocaleString('es-CO')}</div>
               </div>
 
               <div className="mt-5 flex flex-wrap gap-2">
