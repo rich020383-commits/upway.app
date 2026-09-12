@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
   try {
     const res = await createOutboundCall({
       to: parsed.data.to,
+      from: tienda.telnyxPhoneNumber ?? undefined,
       assistantId: tienda.telnyxAssistantId ?? undefined,
       clientState: tienda.id,
     });

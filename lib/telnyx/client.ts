@@ -59,7 +59,7 @@ async function telnyxFetch(path: string, init: RequestInit = {}) {
 
 export type CreateVoiceCallInput = {
   to: string; // E.164 destino, ej +57312...
-  from?: string; // por defecto TELNYX_DEFAULT_PHONE_NUMBER
+  from?: string; // número dedicado de la IPS (Tienda.telnyxPhoneNumber) o TELNYX_DEFAULT_PHONE_NUMBER
   webhookUrl?: string; // por defecto {base}/api/voice/webhooks
   assistantId?: string; // AI Assistant a enganchar a la llamada
   clientState?: string; // se devuelve en cada webhook (tiendaId, etc.)
@@ -69,13 +69,17 @@ export type CreateVoiceCallInput = {
 /** Crea una llamada saliente (outbound) con Call Control. */
 export async function createOutboundCall(input: CreateVoiceCallInput) {
   const cfg = getTelnyxConfig();
+  // Modelo white-glove IPS: cada Tienda tiene su número dedicado.
+  // `from` explícito > default global. Nunca inventar número.
+  const from = input.from?.trim() || cfg.defaultPhone;
+  if (!from) throw new Error('[telnyx] Falta número origen: asigna Tienda.telnyxPhoneNumber o TELNYX_DEFAULT_PHONE_NUMBER');
   const webhookUrl = input.webhookUrl ?? `${cfg.webhookBase}/api/voice/webhooks`;
   return telnyxFetch('/calls', {
     method: 'POST',
     body: JSON.stringify({
       connection_id: cfg.appId,
       to: input.to,
-      from: input.from ?? cfg.defaultPhone,
+      from,
       webhook_url: webhookUrl,
       webhook_url_method: 'POST',
       timeout_secs: input.timeoutSecs ?? 30,

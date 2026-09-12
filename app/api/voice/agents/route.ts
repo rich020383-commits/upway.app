@@ -12,6 +12,7 @@ const createAgentSchema = z.object({
   reglas: z.string().trim().min(10).max(8000),
   nicho: z.string().trim().max(60).optional().default('general'),
   voz: z.string().trim().max(60).optional().default('Telnyx.female.sofia'),
+  telnyxPhoneNumber: z.string().regex(/^\+\d{7,15}$/, 'telnyxPhoneNumber debe ser E.164 (+573...)').optional(),
 });
 
 // POST /api/voice/agents — crea/actualiza el AI Assistant Telnyx de la tienda del usuario.
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-  const { tiendaId, nombre, reglas, nicho, voz } = parsed.data;
+  const { tiendaId, nombre, reglas, nicho, voz, telnyxPhoneNumber } = parsed.data;
 
   const tienda = await prisma.tienda.findFirst({ where: { id: tiendaId, userId: user.id } });
   if (!tienda) return NextResponse.json({ error: 'Tienda no encontrada' }, { status: 404 });
@@ -60,6 +61,9 @@ export async function POST(req: NextRequest) {
       where: { id: tienda.id },
       data: {
         telnyxAssistantId: assistantId ?? tienda.telnyxAssistantId ?? null,
+        // Modelo white-glove IPS: número dedicado por tienda (entregado por Upway).
+        // Si viene en el request se fija; si no, se conserva el ya asignado.
+        ...(telnyxPhoneNumber ? { telnyxPhoneNumber } : {}),
         agentName: nombre,
         systemPrompt: reglas,
         isTelnyxActive: true,
@@ -70,6 +74,7 @@ export async function POST(req: NextRequest) {
       ok: true,
       provider: 'telnyx',
       assistantId: updated.telnyxAssistantId,
+      telnyxPhoneNumber: updated.telnyxPhoneNumber,
       tiendaId: updated.id,
       status: updated.isTelnyxActive ? 'active' : 'inactive',
     });

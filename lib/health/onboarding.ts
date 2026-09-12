@@ -82,8 +82,8 @@ export const onboardingStageMeta: Record<
   },
   'channel-integration': {
     label: 'Canales',
-    subtitle: 'WhatsApp y Vapi',
-    description: 'Conecta los canales de atención y los registros de emisión.',
+    subtitle: 'WhatsApp y Telnyx',
+    description: 'Upway conecta WhatsApp y voz Telnyx con el número dedicado de la clínica.',
   },
   'review-and-approve': {
     label: 'Revisión',
