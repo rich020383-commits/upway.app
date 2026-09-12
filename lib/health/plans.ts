@@ -67,6 +67,16 @@ export const DEFAULT_OVERAGE_COP = cop(UPWAY_PRICE_PER_MIN_DEFAULT);
 export const COST_PER_NUMBER_COP = cop(TELNYX_NUMBER_MRC_USD_DEFAULT);
 
 /**
+ * IVA Colombia 19%.
+ * Los precios de los planes son expresados SIN IVA (base gravable); el total facturado
+ * al cliente se calcula sobre la base: `withIVA(base) = base + ivaDe(base)`.
+ * El IVA es un traslado a DIAN: no afecta el margen de Upway.
+ */
+export const IVA_RATE = 0.19;
+export const ivaDe = (baseCOP: number) => Math.round(baseCOP * IVA_RATE);
+export const withIVA = (baseCOP: number) => baseCOP + ivaDe(baseCOP);
+
+/**
 * MODELO PREPAGO (RECARGA) - el dinero del cliente paga su propio consumo.
 * El cliente carga la recarga del mes por adelantado. De esa recarga se reserva
 * el costo Telnyx EXACTO (minutos incluidos + numeros dedicados) y el resto es

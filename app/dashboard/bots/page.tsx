@@ -191,7 +191,7 @@ export default function AgentesBotPage() {
       });
 
       const data = await res.json();
-      if (res.ok) alert('🎉 ¡Central Telnyx conectada! Assistant ID: ' + (data.assistantId ?? 'configurado'));
+      if (res.ok) alert('🎉 ¡Central de voz conectada! Assistant ID: ' + (data.assistantId ?? 'configurado'));
       else alert('Error: ' + data.error);
     } catch (error) {
       console.error('Error creando agente de voz', error);

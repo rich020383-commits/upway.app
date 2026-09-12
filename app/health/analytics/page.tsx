@@ -31,7 +31,7 @@ export default function AnalyticsPage() {
   const metrics = [
     { label: 'Leads totales', value: String(summary.totalLeads), delta: `${consumption?.messages ?? 0} mensajes` },
     { label: 'Citas próximas', value: String(summary.appointments), delta: `${summary.todayAppointments} hoy` },
-    { label: 'Costo voz · Telnyx', value: `$${Number(telnyxCost).toFixed(2)}`, delta: `${consumption?.voiceCalls ?? 0} llamadas` },
+    { label: 'Costo voz (real)', value: `${Number(telnyxCost).toFixed(2)}`, delta: `${consumption?.voiceCalls ?? 0} llamadas` },
     { label: 'Minutos voz', value: `${consumption?.voiceMinutes ?? 0}`, delta: `facturado $${Number(consumption?.billedCost ?? 0).toFixed(2)}` },
   ];
 

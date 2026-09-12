@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   onboardingStages,
   getHealthStatusForStage,
@@ -324,13 +323,16 @@ const stageContent: Record<
   ),
   'go-live': (form) => (
     <div style={{ display: 'grid', gap: 16 }}>
-      <div style={{ background: '#ecfff4', border: '1px solid #cfeedd', borderRadius: 14, padding: 18 }}>
-        <div style={{ fontWeight: 800, color: '#16492f', marginBottom: 8 }}>Listo para activación</div>
-        <div style={{ color: '#2d6e52' }}>La clínica puede pasar a producción con revisión final y monitorización del primer día.</div>
+      <div style={{ background: '#edf5ff', border: '1px solid #d3e2ff', borderRadius: 14, padding: 18 }}>
+        <div style={{ fontWeight: 800, color: '#1b5ed6', marginBottom: 8 }}>Caso listo para revisión Upway</div>
+        <div style={{ color: '#36557c' }}>
+          Al enviar, tu caso pasa a revisión de Upway: validamos el caso de uso y definimos el costo de implementación
+          y la recarga para iniciar operación. Nada se activa hasta que Upway lo apruebe y se fondee la recarga.
+        </div>
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
-        <label style={labelStyle}>Modo de activación</label>
-        <input value={form.approval ? 'Go-live gradual con pruebas de 48h' : 'Pendiente de aprobación del responsable'} readOnly style={inputStyle} />
+        <label style={labelStyle}>Estado del caso</label>
+        <input value={form.approval ? 'Checklist completo · pendiente revisión Upway' : 'Checklist incompleto: falta aprobación del responsable'} readOnly style={inputStyle} />
       </div>
     </div>
   ),
@@ -450,9 +452,9 @@ export default function HealthOnboardingPage() {
   const [currentStageIndex, setCurrentStageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState<OnboardingForm>(initialForm);
   const { clinicId, organizationId } = useBusinessContext();
-  const router = useRouter();
 
   const updateField = <K extends keyof OnboardingForm>(key: K, value: OnboardingForm[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -508,7 +510,7 @@ export default function HealthOnboardingPage() {
     const step = onboardingStages[nextIndex] ?? onboardingStages[0];
     const status =
       nextIndex === onboardingStages.length - 1
-        ? 'ACTIVE'
+        ? 'PENDING_REVIEW'
         : nextIndex === onboardingStages.length - 2 && !nextForm.approval
           ? 'NEEDS_CHANGES'
           : getHealthStatusForStage(step);
@@ -562,22 +564,13 @@ export default function HealthOnboardingPage() {
         ...form,
         clinicName: normalizedClinicName,
       });
+      setSubmitted(true);
     } catch (error) {
-      // La persistencia falló: avisar pero intentar navegar de todos modos para
-      // que el usuario nunca quede "atrapado" en el onboarding.
+      // La persistencia falló: mantener al usuario en el onboarding para reintentar.
       console.warn('No se pudo persistir el onboarding de health:', error);
     } finally {
       setIsSubmitting(false);
     }
-    // 🧭 Navegación garantizada: primero router.push, y si tras 1.5s seguimos
-    // en el onboarding (p.ej. por un error silencioso de React Router), cae a
-    // una navegación dura que siempre funciona.
-    router.push('/dashboard/operaciones');
-    window.setTimeout(() => {
-      if (typeof window !== 'undefined' && window.location.pathname.includes('/onboarding')) {
-        window.location.assign('/dashboard/operaciones');
-      }
-    }, 1500);
   };
 
   const handlePrimaryAction = async () => {
@@ -661,34 +654,35 @@ export default function HealthOnboardingPage() {
 
                 <button
                   onClick={handlePrimaryAction}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || submitted}
                   className="min-h-[48px] rounded-full bg-[linear-gradient(135deg,_#1b5ed6_0%,_#4d8bff_100%)] px-5 py-2.5 text-sm font-bold text-white shadow-[0_18px_40px_rgba(27,94,214,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(27,94,214,0.32)] disabled:cursor-not-allowed disabled:opacity-75"
                 >
                   {isSubmitting
-                    ? 'Finalizando…'
+                    ? 'Enviando…'
                     : currentStageIndex === onboardingStages.length - 1
-                      ? 'Finalizar activación'
+                      ? submitted
+                        ? 'Enviado'
+                        : 'Enviar a revisión Upway'
                       : 'Siguiente'}
                 </button>
               </div>
 
-              {currentStageIndex === onboardingStages.length - 1 && (
-                <div className="mt-4 grid gap-3 rounded-[20px] border border-emerald-200/70 bg-emerald-50/60 p-4 sm:grid-cols-2">
-                  <p className="text-sm font-semibold text-emerald-800 sm:col-span-2">
-                    ✅ Activación lista. Accede donde lo necesites:
+              {currentStageIndex === onboardingStages.length - 1 && !submitted && (
+                <div className="mt-4 rounded-[20px] border border-[#d3e2ff] bg-[#edf5ff] p-4 text-sm text-[#36557c]">
+                  Al enviar este checklist, tu caso pasa a revisión de Upway. El equipo validará el caso de uso y te
+                  compartirá el costo de implementación y la recarga para iniciar operación.
+                </div>
+              )}
+
+              {submitted && (
+                <div className="mt-4 grid gap-3 rounded-[20px] border border-emerald-200/70 bg-emerald-50/60 p-4">
+                  <p className="text-sm font-semibold text-emerald-800">
+                    ✅ Checklist enviado a Upway. Tu caso está en revisión.
                   </p>
-                  <a
-                    href="/dashboard"
-                    className="flex min-h-[48px] items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-800 shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300"
-                  >
-                    🏠 Ir al centro de mando
-                  </a>
-                  <a
-                    href="/dashboard/operaciones"
-                    className="flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,_#0f9f6e_0%,_#34d399_100%)] px-5 py-2.5 text-sm font-bold text-white shadow-[0_14px_32px_rgba(15,159,110,0.25)] transition-all hover:-translate-y-0.5"
-                  >
-                    ⚡ Ir a Operaciones
-                  </a>
+                  <p className="text-sm leading-6 text-emerald-700">
+                    Una vez revisado, Upway te contactará con el costo de implementación y las opciones de recarga
+                    para iniciar operación. Nada se activa sin tu aprobación y sin recarga fondeada.
+                  </p>
                 </div>
               )}
             </section>

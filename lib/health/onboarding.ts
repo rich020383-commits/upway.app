@@ -29,7 +29,7 @@ export type HealthOnboardingStatus =
 export function getHealthStatusForStage(step: string): HealthOnboardingStatus {
   switch (step) {
     case 'go-live':
-      return 'ACTIVE';
+      return 'PENDING_REVIEW';
     case 'review-and-approve':
     case 'channel-integration':
       return 'PENDING_REVIEW';

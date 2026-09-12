@@ -1,5 +1,5 @@
 ﻿import type { FacilityType, HealthPlan } from './plans';
-import { HEALTH_PLANS, planMath } from './plans';
+import { HEALTH_PLANS, planMath, IVA_RATE, ivaDe, withIVA } from './plans';
 
 export const HEALTH_PLANS_ENTERPRISE: HealthPlan[] = [
   {
@@ -98,6 +98,10 @@ export function planCommercialSummary(plan: HealthPlan) {
     plan,
     math,
     monthlyLabel: formatCOP(plan.monthlyCOP),
+    ivaCOP: plan.monthlyCOP > 0 ? ivaDe(plan.monthlyCOP) : 0,
+    conIvaCOP: plan.monthlyCOP > 0 ? withIVA(plan.monthlyCOP) : 0,
+    ivaLabel: plan.monthlyCOP > 0 ? "+ IVA " + (IVA_RATE * 100) + "% (" + ivaDe(plan.monthlyCOP).toLocaleString("es-CO") + " COP)" : "",
+    precioConIVALabel: plan.monthlyCOP > 0 ? formatCOP(withIVA(plan.monthlyCOP)) : formatCOP(0),
     setupLabel: formatCOP(plan.setupCOP),
     overageLabel: plan.overageCOP > 0 ? ('$' + plan.overageCOP.toLocaleString('es-CO') + ' COP/min') : 'A cotizar',
     approvalNote: plan.requiresTelnyxApproval

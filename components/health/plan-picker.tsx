@@ -1,6 +1,6 @@
 'use client';
 import { useEffect } from 'react';
-import { FACILITY_TYPE_OPTIONS, type FacilityType } from '@/lib/health/plans';
+import { FACILITY_TYPE_OPTIONS, IVA_RATE, type FacilityType, withIVA } from '@/lib/health/plans';
 import { ALL_HEALTH_PLANS, estimateMinutesFromVolume, formatCOP, getHealthPlan, recommendPlan } from '@/lib/health/plans-enterprise';
 
 export type PlanFormSlice = {
@@ -88,6 +88,7 @@ function PlanList(props: { visible: typeof ALL_HEALTH_PLANS; form: PlanFormSlice
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontWeight: 900, color: '#0f172a' }}>{formatCOP(plan.monthlyCOP)}/mes</div>
+                {plan.monthlyCOP > 0 && (<div style={{ fontSize: 11, color: '#64748b' }}>+{IVA_RATE * 100}% IVA → total {formatCOP(withIVA((plan.monthlyCOP)))}</div>)}
                 <div style={{ fontSize: 12, color: '#64748b' }}>Setup {formatCOP(plan.setupCOP)}</div>
               </div>
             </div>

@@ -582,7 +582,7 @@ export default function OperacionesPage() {
 
           <section className="rounded-2xl border border-slate-200/80 bg-white/85 p-5 shadow-[0_16px_55px_rgba(15,23,42,0.05)] backdrop-blur-sm">
             <div className="mb-4 flex items-center justify-between gap-2">
-              <h2 className="text-lg font-semibold text-slate-900">Consumo del mes · voz real Telnyx</h2>
+              <h2 className="text-lg font-semibold text-slate-900">Consumo del mes · voz real</h2>
               {data?.consumption?.month && (
                 <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-500">
                   {new Date(data.consumption.month).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}
@@ -598,10 +598,10 @@ export default function OperacionesPage() {
               <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-violet-50 to-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
                 <p className="text-[10px] uppercase tracking-[0.16em] text-slate-500">Llamadas voz</p>
                 <p className="mt-2 text-2xl font-semibold text-violet-600">{data?.consumption?.voiceCalls ?? 0}</p>
-                <p className="text-[10px] text-slate-500">{data?.consumption?.voiceMinutes ?? 0} min · Telnyx</p>
+                <p className="text-[10px] text-slate-500">{data?.consumption?.voiceMinutes ?? 0} min · voz</p>
               </div>
               <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-                <p className="text-[10px] uppercase tracking-[0.16em] text-slate-500">Costo voz · Telnyx (real)</p>
+                <p className="text-[10px] uppercase tracking-[0.16em] text-slate-500">Costo voz (real)</p>
                 <p className="mt-2 text-2xl font-semibold text-emerald-600">${((data?.consumption?.telnyxCost ?? data?.consumption?.vapiCost ?? 0) as number).toFixed(2)}</p>
                 <p className="text-[10px] text-slate-500">facturado: ${((data?.consumption?.billedCost ?? 0) as number).toFixed(2)} · LlamadaLog</p>
               </div>
