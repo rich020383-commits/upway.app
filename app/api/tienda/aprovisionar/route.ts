@@ -58,6 +58,12 @@ export async function POST(req: NextRequest) {
 
     if (nuevaTienda) {
       // Si ya existe, actualizamos sus datos de forma independiente
+      // Unificación Health → Telnyx: voz oficial = Telnyx. `isVapiActive` solo
+      // es alias legacy para UI antigua; la activación real llega vía
+      // /api/voice/agents + webhooks (assistant creado + número asignado).
+      const voiceActive = hasVoice
+        ? (nuevaTienda.isTelnyxActive ?? nuevaTienda.isVapiActive ?? false)
+        : false;
       nuevaTienda = await prisma.tienda.update({
         where: { id: nuevaTienda.id },
         data: {
@@ -65,12 +71,14 @@ export async function POST(req: NextRequest) {
           agentName: nombreAgente,
           systemPrompt: promptMaestro,
           isWhatsAppActive: hasWhatsApp,
-          isVapiActive: hasVoice,
+          isTelnyxActive: voiceActive,
+          isVapiActive: voiceActive,
           telefonoAdmin: telefonoAdmin || null,
         }
       });
     } else {
-      // Si no existe, la creamos desde cero con los módulos exactos elegidos
+      // Si no existe, la creamos desde cero con los módulos exactos elegidos.
+      // Voz inicia inactiva hasta crear el AI Assistant Telnyx (pendiente de número).
       nuevaTienda = await prisma.tienda.create({
         data: {
           userId: userExists!.id,
@@ -78,7 +86,8 @@ export async function POST(req: NextRequest) {
           agentName: nombreAgente,
           systemPrompt: promptMaestro,
           isWhatsAppActive: hasWhatsApp,
-          isVapiActive: hasVoice,
+          isTelnyxActive: false,
+          isVapiActive: false,
           telefonoAdmin: telefonoAdmin || null,
         }
       });

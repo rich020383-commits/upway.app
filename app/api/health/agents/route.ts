@@ -1,31 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getOwnedTienda, getSessionUser } from '@/lib/session';
+import { getOwnedTienda, getHealthSession } from '@/lib/session';
 import { enforceHealthAccess } from '@/lib/health/access';
 import { withTenantScope } from '@/lib/health/tenant';
 
-function statusLabel(tienda: { isWhatsAppActive: boolean; isVapiActive: boolean; isAiActive: boolean }) {
+type TiendaVoiceFlags = {
+  isWhatsAppActive: boolean;
+  isAiActive: boolean;
+  isVapiActive?: boolean | null;
+  isTelnyxActive?: boolean | null;
+};
+
+function telnyxActive(tienda: TiendaVoiceFlags): boolean {
+  // Telnyx es el canal de voz oficial. vapi solo es alias legacy para datos históricos.
+  return tienda.isTelnyxActive ?? tienda.isVapiActive ?? false;
+}
+
+function statusLabel(tienda: TiendaVoiceFlags) {
   if (!tienda.isAiActive) return 'paused';
-  if (tienda.isWhatsAppActive || tienda.isVapiActive) return 'active';
+  if (tienda.isWhatsAppActive || telnyxActive(tienda)) return 'active';
   return 'standby';
 }
 
 /**
  * Devuelve los agentes reales del negocio autenticado (modelo Tienda), en el
  * mismo shape que consume el panel Health. Hoy cada Tienda representa un solo
- * agente omnicanal (WhatsApp + Vapi comparten prompt/tono).
+ * agente omnicanal (WhatsApp + Telnyx comparten prompt/tono).
+ * Unificación Health → Telnyx: el canal de voz expuesto es `telnyx`;
+ * `vapi` se mantiene solo como alias legacy para UI antigua.
  */
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const role = searchParams.get('role') ?? 'clinic-admin';
-
-  const user = await getSessionUser(request);
-  if (!user) {
-    return NextResponse.json({ error: 'No hay sesión activa' }, { status: 401 });
-  }
+  const { context, error: sessionError } = await getHealthSession(request);
+  if (sessionError || !context) return sessionError;
 
   try {
-    enforceHealthAccess({ role, module: 'agents', organizationId: 'org-1', clinicId: 'clinic-1' });
+    enforceHealthAccess({
+      role: context.role,
+      module: 'agents',
+      organizationId: context.organizationId,
+      clinicId: context.clinicId,
+    });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Access denied' },
@@ -34,37 +48,62 @@ export async function GET(request: NextRequest) {
   }
 
   const tienda = await prisma.tienda.findFirst({
-    where: { userId: user.id },
+    where: { userId: context.user.id },
     orderBy: { id: 'asc' },
   });
 
+  const scope = {
+    organizationId: context.organizationId,
+    clinicId: context.clinicId,
+    role: context.role,
+  };
+
   if (!tienda) {
-    return NextResponse.json(
-      withTenantScope({ items: [] }, { organizationId: 'org-1', clinicId: 'clinic-1', role })
-    );
+    return NextResponse.json(withTenantScope({ items: [] }, scope));
   }
 
+  const voiceActive = telnyxActive(tienda);
   const agent = {
     id: tienda.id,
     name: tienda.agentName || tienda.nombre,
     prompt: tienda.systemPrompt ?? '',
     channels: {
       whatsapp: tienda.isWhatsAppActive,
-      vapi: tienda.isVapiActive,
+      telnyx: voiceActive,
+      // Alias legacy para UI antigua: vapi refleja telnyx hasta retirar Vapi.
+      vapi: voiceActive,
     },
     isAiActive: tienda.isAiActive,
     status: statusLabel(tienda),
   };
 
-  return NextResponse.json(withTenantScope({ items: [agent] }, { organizationId: 'org-1', clinicId: 'clinic-1', role }));
+  return NextResponse.json(withTenantScope({ items: [agent] }, scope));
 }
 
 /**
  * Actualiza nombre/prompt del agente. Reusa la misma tabla Tienda que ya
  * escribe /api/tienda/config, para que el panel Health y el panel legacy
- * operen sobre el mismo dato.
+ * operen sobre el mismo dato. No toca la lógica de aprovisionamiento de voz:
+ * la activación real de Telnyx llega vía /api/voice/agents + webhooks.
  */
 export async function PATCH(request: NextRequest) {
+  const { context, error: sessionError } = await getHealthSession(request);
+  if (sessionError || !context) return sessionError;
+
+  try {
+    enforceHealthAccess({
+      role: context.role,
+      module: 'agents',
+      organizationId: context.organizationId,
+      clinicId: context.clinicId,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Access denied' },
+      { status: 403 }
+    );
+  }
+
   const body = await request.json();
   const { agentId, name, prompt } = body ?? {};
 
@@ -83,13 +122,19 @@ export async function PATCH(request: NextRequest) {
     data: { agentName: name, systemPrompt: prompt },
   });
 
+  const voiceActive = telnyxActive(updated);
+
   return NextResponse.json({
     success: true,
     agent: {
       id: updated.id,
       name: updated.agentName || updated.nombre,
       prompt: updated.systemPrompt ?? '',
-      channels: { whatsapp: updated.isWhatsAppActive, vapi: updated.isVapiActive },
+      channels: {
+        whatsapp: updated.isWhatsAppActive,
+        telnyx: voiceActive,
+        vapi: voiceActive,
+      },
       isAiActive: updated.isAiActive,
       status: statusLabel(updated),
     },

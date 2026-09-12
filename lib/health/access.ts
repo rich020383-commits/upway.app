@@ -1,4 +1,4 @@
-import { canAccessHealthModule } from './permissions';
+import { canAccessHealthModule, normalizeHealthRole } from './permissions';
 import type { HealthModule, TenantScope } from './types';
 
 export type HealthAccessContext = TenantScope & {
@@ -30,12 +30,13 @@ export function requireTenantScope(scope: TenantScope, module: HealthModule) {
 }
 
 export function enforceHealthAccess({ role, module, organizationId, clinicId }: HealthAccessContext) {
-  if (!role) {
+  const normalized = normalizeHealthRole(role);
+  if (!normalized) {
     throw new Error('Access denied: missing role');
   }
 
-  if (!canAccessHealthModule(role, module)) {
-    throw new Error(`Access denied for role ${role} on module ${module}`);
+  if (!canAccessHealthModule(normalized, module)) {
+    throw new Error(`Access denied for role ${normalized} on module ${module}`);
   }
 
   requireTenantScope({ organizationId, clinicId }, module);
@@ -44,6 +45,7 @@ export function enforceHealthAccess({ role, module, organizationId, clinicId }: 
 }
 
 export function getHealthAccessDecision({ role, module, organizationId, clinicId }: HealthAccessContext) {
+  const normalized = normalizeHealthRole(role);
   const scopeCheck = (() => {
     try {
       requireTenantScope({ organizationId, clinicId }, module);
@@ -54,8 +56,8 @@ export function getHealthAccessDecision({ role, module, organizationId, clinicId
   })();
 
   return {
-    allowed: Boolean(role) && canAccessHealthModule(role ?? '', module) && scopeCheck.valid,
-    role,
+    allowed: Boolean(normalized) && canAccessHealthModule(normalized, module) && scopeCheck.valid,
+    role: normalized,
     module,
     scopeValid: scopeCheck.valid,
     requiresTenantScope: sensitiveModules.includes(module),

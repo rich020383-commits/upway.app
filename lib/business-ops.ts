@@ -392,7 +392,7 @@ export async function createAppointmentFromLead(params: {
       clienteNombre: params.clienteNombre,
       clienteTelefono: normalizedPhone,
       fechaHora: params.fechaHora,
-      estado: AppointmentStatus.CONFIRMED,
+      estado: AppointmentStatus.PENDING,
       durationMinutes: 30,
       location: params.location ?? null,
       notes: params.notes ?? null,
@@ -430,6 +430,69 @@ export async function createAppointmentFromLead(params: {
   });
 
   return { lead, appointment };
+}
+
+/**
+ * Confirma una cita (agenda nativa) con costo/voz Telnyx real.
+ * - Valida que la cita pertenezca a la tienda (multi-tenant estricto).
+ * - Pasa estado → CONFIRMED y mueve el lead → APPOINTMENT_BOOKED.
+ * - Registra APPOINTMENT_CONFIRMED en el timeline + recordatorio WhatsApp
+ *   2h antes (queda PENDING hasta envío real por Meta).
+ * No toca el prompt del asistente.
+ */
+export async function confirmAppointment(params: {
+  tiendaId: string;
+  appointmentId: string;
+  actorUserId?: string | null;
+}) {
+  if (!params.tiendaId) throw new Error('tiendaId is required');
+  if (!params.appointmentId) throw new Error('appointmentId is required');
+
+  const appointment = await prisma.cita.findFirst({
+    where: { id: params.appointmentId, tiendaId: params.tiendaId },
+  });
+  if (!appointment) throw new Error('Cita no encontrada para esta tienda');
+
+  if (appointment.estado === AppointmentStatus.CONFIRMED) {
+    return { appointment, alreadyConfirmed: true as const };
+  }
+
+  const now = new Date();
+  const updated = await prisma.cita.update({
+    where: { id: appointment.id },
+    data: { estado: AppointmentStatus.CONFIRMED },
+  });
+
+  if (appointment.leadId) {
+    await prisma.lead.update({
+      where: { id: appointment.leadId },
+      data: { estado: LeadStatus.APPOINTMENT_BOOKED, lastContactAt: now },
+    }).catch(() => undefined);
+
+    await createLeadPipelineActivity({
+      leadId: appointment.leadId,
+      type: ActivityType.APPOINTMENT_CONFIRMED,
+      summary: `Cita confirmada para ${appointment.fechaHora.toISOString()}`,
+      actorUserId: params.actorUserId ?? null,
+      metadata: { appointmentId: appointment.id, channel: 'dashboard' },
+    }).catch(() => undefined);
+
+    // Recordatorio 2h antes (queda PENDING hasta envío real por WhatsApp/Meta).
+    const remindAt = new Date(appointment.fechaHora.getTime() - 2 * 60 * 60 * 1000);
+    if (remindAt.getTime() > now.getTime()) {
+      await createFollowUpReminder({
+        leadId: appointment.leadId,
+        scheduledFor: remindAt,
+        message: `Hola ${appointment.clienteNombre}, te recordamos tu cita del ${appointment.fechaHora.toLocaleString('es-CO')}. Responde SI para confirmar.`,
+        channel: 'whatsapp',
+        createdByUserId: params.actorUserId ?? null,
+        appointmentId: appointment.id,
+        conversationId: appointment.conversationId ?? null,
+      }).catch(() => undefined);
+    }
+  }
+
+  return { appointment: updated, alreadyConfirmed: false as const };
 }
 
 export async function createLeadReminder(params: {

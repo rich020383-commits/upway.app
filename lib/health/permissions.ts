@@ -8,6 +8,29 @@ export const healthRoles = {
   onboardingManager: 'onboarding-manager',
 } as const;
 
+/**
+ * Unificación Business → Health: el JWT de NextAuth guarda `role='owner'`
+ * para dueños de tienda/organización. Health usa `org-owner`.
+ * Este mapa evita 403 fantasma sin tocar el prompt del asistente ni el login.
+ */
+const ROLE_ALIASES: Record<string, string> = {
+  owner: 'org-owner',
+  admin: 'org-owner',
+  'org_owner': 'org-owner',
+  'clinic_admin': 'clinic-admin',
+  'triage_manager': 'triage-manager',
+  'compliance_reviewer': 'compliance-reviewer',
+  'support_agent': 'support-agent',
+  'onboarding_manager': 'onboarding-manager',
+};
+
+export function normalizeHealthRole(role: string | null | undefined): string {
+  const raw = (role ?? '').trim();
+  if (!raw) return '';
+  const lower = raw.toLowerCase();
+  return ROLE_ALIASES[lower] ?? ROLE_ALIASES[raw] ?? lower;
+}
+
 export const healthPermissions = {
   overview: ['org-owner', 'clinic-admin', 'triage-manager', 'analyst'],
   clinics: ['org-owner', 'clinic-admin'],
@@ -28,6 +51,7 @@ export const healthPermissions = {
 export type HealthRole = (typeof healthRoles)[keyof typeof healthRoles];
 
 export function canAccessHealthModule(role: string, module: keyof typeof healthPermissions) {
+  const normalized = normalizeHealthRole(role);
   const allowedRoles = healthPermissions[module] as readonly string[];
-  return allowedRoles.includes(role);
+  return allowedRoles.includes(normalized);
 }

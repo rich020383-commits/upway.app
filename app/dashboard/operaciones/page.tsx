@@ -72,6 +72,7 @@ type Consumption = {
   messages: number;
   voiceCalls: number;
   voiceMinutes: number;
+  telnyxCost: number;
   vapiCost: number;
   billedCost: number;
 };
@@ -170,6 +171,7 @@ export default function OperacionesPage() {
   const [collapsedStages, setCollapsedStages] = useState<Record<string, boolean>>({});
   const [toast, setToast] = useState<{ kind: 'success' | 'error' | 'info'; text: string } | null>(null);
   const [remindingId, setRemindingId] = useState<string | null>(null);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [mobileStage, setMobileStage] = useState<string | null>(null);
   const [instruction, setInstruction] = useState('');
@@ -452,6 +454,29 @@ export default function OperacionesPage() {
     }
   };
 
+  const handleConfirmAppointment = async (appointmentId: string) => {
+    setConfirmingId(appointmentId);
+    try {
+      const response = await fetch('/api/business/appointments', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (response.ok) {
+        showToast('success', payload.alreadyConfirmed ? 'Cita ya estaba confirmada.' : 'Cita confirmada correctamente.');
+        await loadDashboard();
+      } else {
+        showToast('error', payload.error || 'No se pudo confirmar la cita.');
+      }
+    } catch (error) {
+      console.error('Error confirming appointment:', error);
+      showToast('error', 'Error de red al confirmar la cita.');
+    } finally {
+      setConfirmingId(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-slate-900">
@@ -556,21 +581,29 @@ export default function OperacionesPage() {
           </section>
 
           <section className="rounded-2xl border border-slate-200/80 bg-white/85 p-5 shadow-[0_16px_55px_rgba(15,23,42,0.05)] backdrop-blur-sm">
-            <h2 className="mb-4 text-lg font-semibold text-slate-900">Consumo del mes</h2>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="mb-4 flex items-center justify-between gap-2">
+              <h2 className="text-lg font-semibold text-slate-900">Consumo del mes · voz real Telnyx</h2>
+              {data?.consumption?.month && (
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-500">
+                  {new Date(data.consumption.month).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-sky-50 to-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
                 <p className="text-[10px] uppercase tracking-[0.16em] text-slate-500">Mensajes</p>
                 <p className="mt-2 text-2xl font-semibold text-sky-600">{data?.consumption?.messages ?? 0}</p>
+                <p className="text-[10px] text-slate-500">WhatsApp · Meta</p>
               </div>
               <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-violet-50 to-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
                 <p className="text-[10px] uppercase tracking-[0.16em] text-slate-500">Llamadas voz</p>
                 <p className="mt-2 text-2xl font-semibold text-violet-600">{data?.consumption?.voiceCalls ?? 0}</p>
-                <p className="text-[10px] text-slate-500">{data?.consumption?.voiceMinutes ?? 0} min</p>
+                <p className="text-[10px] text-slate-500">{data?.consumption?.voiceMinutes ?? 0} min · Telnyx</p>
               </div>
               <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-                <p className="text-[10px] uppercase tracking-[0.16em] text-slate-500">Costo voz</p>
-                <p className="mt-2 text-2xl font-semibold text-emerald-600">${data?.consumption?.vapiCost ?? 0}</p>
-                <p className="text-[10px] text-slate-500">facturado: ${data?.consumption?.billedCost ?? 0}</p>
+                <p className="text-[10px] uppercase tracking-[0.16em] text-slate-500">Costo voz · Telnyx (real)</p>
+                <p className="mt-2 text-2xl font-semibold text-emerald-600">${((data?.consumption?.telnyxCost ?? data?.consumption?.vapiCost ?? 0) as number).toFixed(2)}</p>
+                <p className="text-[10px] text-slate-500">facturado: ${((data?.consumption?.billedCost ?? 0) as number).toFixed(2)} · LlamadaLog</p>
               </div>
             </div>
           </section>
@@ -750,9 +783,18 @@ export default function OperacionesPage() {
                 <div className="space-y-2">
                   {actions.unconfirmedAppointments.length === 0 && <p className="text-xs text-slate-500">Todo confirmado.</p>}
                   {actions.unconfirmedAppointments.map((c) => (
-                    <div key={c.id} className="rounded-lg border border-slate-200 bg-white/80 p-2 text-xs">
-                      <span className="font-medium text-slate-900">{c.clienteNombre}</span>
-                      <span className="block text-[10px] text-slate-500">{new Date(c.fechaHora).toLocaleString()}</span>
+                    <div key={c.id} className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white/80 p-2 text-xs">
+                      <div>
+                        <span className="font-medium text-slate-900">{c.clienteNombre}</span>
+                        <span className="block text-[10px] text-slate-500">{new Date(c.fechaHora).toLocaleString()} · {c.estado}</span>
+                      </div>
+                      <button
+                        onClick={() => void handleConfirmAppointment(c.id)}
+                        disabled={confirmingId === c.id}
+                        className="shrink-0 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-700 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {confirmingId === c.id ? 'Confirmando…' : 'Confirmar'}
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -1076,8 +1118,21 @@ export default function OperacionesPage() {
               <div className="space-y-3">
                 {(data?.nextAppointments ?? []).map((appointment) => (
                   <div key={appointment.id} className="rounded-xl border border-slate-200 bg-gradient-to-br from-violet-50 to-white p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
-                    <p className="font-medium text-slate-900">{appointment.clienteNombre}</p>
-                    <p className="mt-1 text-sm text-slate-500">{new Date(appointment.fechaHora).toLocaleString()}</p>
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="font-medium text-slate-900">{appointment.clienteNombre}</p>
+                        <p className="mt-1 text-sm text-slate-500">{new Date(appointment.fechaHora).toLocaleString()}</p>
+                      </div>
+                      {appointment.estado !== 'CONFIRMED' && (
+                        <button
+                          onClick={() => void handleConfirmAppointment(appointment.id)}
+                          disabled={confirmingId === appointment.id}
+                          className="shrink-0 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-700 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {confirmingId === appointment.id ? 'Confirmando…' : 'Confirmar'}
+                        </button>
+                      )}
+                    </div>
                     <span className="mt-2 inline-flex rounded-full border border-violet-500/40 bg-violet-500/10 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-violet-700">
                       {appointment.estado}
                     </span>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { estimateCallCosts } from '@/lib/telnyx/costs';
 
 // POST /api/voice/webhooks — receptor Call Control v2 (API v2 en tu captura).
 // Telnyx firma con Ed25519: cabeceras `telnyx-signature-ed25519` + `telnyx-timestamp`.
@@ -62,16 +63,20 @@ export async function POST(req: NextRequest) {
   const p = event.data?.payload ?? {};
   const tiendaId = (p.client_state ?? '').slice(0, 64) || null;
 
-  // Persistencia mínima en LlamadaLog para telemetría del centro de mando.
+  // Persistencia en LlamadaLog para telemetría y facturación del centro de mando.
+  // Costos reales Telnyx → Upway vía lib/telnyx/costs (persistidos por llamada).
   // Schema real: tiendaId, callSessionId(unique), direction, durationMinutes, costs, status.
   try {
     if (type === 'call.hangup' || type === 'call.hangup.final') {
       if (tiendaId) {
+        const costs = estimateCallCosts((p.call_duration_secs ?? 0) / 60);
         await prisma.llamadaLog.upsert({
           where: { callSessionId: p.call_control_id ?? `hangup-${Date.now()}` },
           update: {
             status: 'completed',
-            durationMinutes: (p.call_duration_secs ?? 0) / 60,
+            durationMinutes: costs.durationMinutes,
+            telnyxCost: costs.telnyxCost,
+            upwayBilledCost: costs.upwayBilledCost,
             callControlId: p.call_control_id ?? null,
           },
           create: {
@@ -79,9 +84,9 @@ export async function POST(req: NextRequest) {
             callSessionId: p.call_control_id ?? `hangup-${Date.now()}`,
             callControlId: p.call_control_id ?? null,
             direction: p.direction ?? 'inbound',
-            durationMinutes: (p.call_duration_secs ?? 0) / 60,
-            telnyxCost: 0,
-            upwayBilledCost: 0,
+            durationMinutes: costs.durationMinutes,
+            telnyxCost: costs.telnyxCost,
+            upwayBilledCost: costs.upwayBilledCost,
             status: 'completed',
           },
         });
