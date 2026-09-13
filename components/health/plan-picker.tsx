@@ -14,7 +14,7 @@ export type PlanFormSlice = {
 };
 
 const lbl: React.CSSProperties = { fontSize: 11, fontWeight: 700, color: '#4c6686', letterSpacing: '0.04em', textTransform: 'uppercase' };
-const inp: React.CSSProperties = { border: '1px solid #dfeaf7', borderRadius: 10, background: '#f8fbff', color: '#17314a', padding: '9px 12px', fontSize: 13, fontWeight: 600, outline: 'none' };
+const inp: React.CSSProperties = { border: '1px solid #dfeaf7', borderRadius: 10, background: '#f8fbff', color: '#17314a', padding: '9px 12px', fontSize: 13, fontWeight: 600, outline: 'none', width: '100%', minWidth: 0, boxSizing: 'border-box' };
 
 function FacilityGrid(props: { form: PlanFormSlice; onChange: (k: keyof PlanFormSlice, v: string) => void; estimated: number }) {
   const { form, onChange, estimated } = props;
@@ -48,8 +48,8 @@ function VolumeBox(props: { form: PlanFormSlice; onChange: (k: keyof PlanFormSli
   const { form, onChange, estimated, recName, approval } = props;
   return (
     <div style={{ display: 'grid', gap: 12 }}>
-      <div style={{ display: 'grid', gap: 10, gridTemplateColumns: '1fr 1fr' }}>
-        <div style={{ display: 'grid', gap: 8 }}>
+      <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))' }}>
+        <div style={{ display: 'grid', gap: 8, minWidth: 0 }}>
           <label style={lbl}>Llamadas / dia (est.)</label>
           <input type="number" min={0} placeholder="Ej. 40" value={form.dailyCalls} onChange={(e) => onChange('dailyCalls', e.target.value)} style={inp} />
         </div>
@@ -108,8 +108,8 @@ function ExtraInputs(props: { form: PlanFormSlice; onChange: (k: keyof PlanFormS
   const { form, onChange } = props;
   return (
     <div style={{ display: 'grid', gap: 12 }}>
-      <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr 1fr' }}>
-        <div style={{ display: 'grid', gap: 8 }}>
+      <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))' }}>
+        <div style={{ display: 'grid', gap: 8, minWidth: 0 }}>
           <label style={lbl}>Indicativo preferido</label>
           <input placeholder="Ej. 601" value={form.preferredAreaCode} onChange={(e) => onChange('preferredAreaCode', e.target.value)} style={inp} />
         </div>

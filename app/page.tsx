@@ -170,11 +170,10 @@ export default function Home() {
         </section>
 
         {/* SECCIÓN SOPHIE V2 + VIDEO EN VIVO */}
-        <section className="bg-[#05080F] py-20 px-5 md:px-[5%] border-y border-slate-800">
+        <section className="bg-[linear-gradient(180deg,#f7fbff_0%,#eef5ff_100%)] py-20 px-5 md:px-[5%] border-y border-[#e2edf5]">
           <div className="max-w-7xl mx-auto">
             {/* VIDEO CINEMATOGRÁFICO DE SOPHIE V2 */}
-            <div className="relative mb-14 overflow-hidden rounded-[24px] border border-white/15 bg-slate-950 shadow-[0_40px_120px_rgba(2,8,18,0.7)] ring-1 ring-cyan-400/25 md:rounded-[32px]">
-              <div className="absolute -inset-px rounded-[24px] bg-gradient-to-r from-cyan-400/40 via-transparent to-[#7dd3fc]/30 opacity-60 blur-sm md:rounded-[32px]" />
+            <div className="relative mb-14 overflow-hidden rounded-[24px] border border-[#e2edf5] bg-white shadow-[0_30px_80px_rgba(15,31,54,0.10)] md:rounded-[32px]">
               <div className="relative aspect-video w-full overflow-hidden rounded-t-[24px] md:aspect-auto md:h-[500px] md:rounded-[32px] lg:h-[560px]">
                 <video
                   ref={heroVideoRef}
@@ -191,23 +190,22 @@ export default function Home() {
                     heroVideoLoaded ? 'opacity-100' : 'opacity-0'
                   }`}
                 />
-                <div className="absolute inset-0 hidden bg-gradient-to-t from-[#050b16] via-[#050b16]/20 to-transparent md:block"></div>
-                <div className="absolute inset-0 hidden bg-gradient-to-r from-[#050b16]/60 via-transparent to-[#050b16]/50 md:block"></div>
+                <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-t from-white/25 via-transparent to-white/5 md:block"></div>
               </div>
 
-              <div className="relative z-10 flex flex-col justify-between gap-4 border-t border-white/10 bg-[#0a1424]/95 p-4 backdrop-blur-md sm:p-6 md:absolute md:bottom-12 md:left-12 md:right-12 md:flex-row md:items-end md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
+              <div className="relative z-10 flex flex-col justify-between gap-4 border-t border-[#e2edf5] bg-white/90 p-4 backdrop-blur-md sm:p-6 md:absolute md:bottom-6 md:left-6 md:right-6 md:flex-row md:items-end md:gap-6 md:rounded-[20px] md:border md:border-white/70 md:bg-white/85 md:p-5 md:shadow-[0_18px_50px_rgba(15,31,54,0.16)]">
                 <div className="max-w-2xl space-y-2 sm:space-y-3">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-400/10 px-3 py-1 text-[11px] font-bold text-cyan-300">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-[11px] font-bold text-cyan-700">
                     <span className="relative flex h-2 w-2">
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75" />
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-500" />
                     </span>
                     Sophie v2 • Empleado Digital Autónomo
                   </div>
-                  <h2 className="text-xl font-black leading-tight tracking-tight text-white sm:text-2xl md:text-5xl">
-                    Triage y atención en vivo <span className="text-shimmer">24/7</span>
+                  <h2 className="text-xl font-black leading-tight tracking-tight text-slate-900 sm:text-2xl md:text-4xl">
+                    Triage y atención en vivo <span className="text-[#0ba9a9]">24/7</span>
                   </h2>
-                  <p className="text-xs leading-relaxed text-blue-100/90 sm:text-sm md:text-base">
+                  <p className="text-xs leading-relaxed text-slate-500 sm:text-sm md:text-base">
                     Escuchando llamadas y WhatsApp con triage clínico, agendamiento inteligente y seguimiento en tiempo real. Diseñado para escalar sin fricción.
                   </p>
                 </div>
@@ -225,15 +223,15 @@ export default function Home() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
               <div className="lg:col-span-6 space-y-6">
-                <div className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-800/50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-cyan-400 shadow-sm">
-                  <Sparkles size={14} className="text-cyan-400" /> Operación Autónoma
+                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-cyan-700 shadow-sm">
+                  <Sparkles size={14} className="text-cyan-600" /> Operación Autónoma
                 </div>
-                <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white leading-[1.1]">
+                <h2 className="text-3xl md:text-5xl font-black tracking-tight text-slate-900 leading-[1.1]">
                   Sophie v2:
                   <br />
                   IA telefónica para tu centro médico.
                 </h2>
-                <p className="text-lg text-slate-400 leading-relaxed max-w-xl">
+                <p className="text-lg text-slate-600 leading-relaxed max-w-xl">
                   Automatiza el alto tráfico de llamadas. Sophie responde, califica urgencias y agenda citas en tiempo real con una voz humana y empática, 24/7 sin descuidar a ningún paciente.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 pt-1">
@@ -241,14 +239,14 @@ export default function Home() {
                     href="https://wa.me/573126427856?text=Hola%20Sophie%2C%20quiero%20hacer%20una%20prueba%20en%20vivo"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="btn-glow-primary inline-flex items-center justify-center gap-2 rounded-full bg-[#0c3775] px-6 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5"
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-[#0c3775] px-6 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#092a5c] shadow-md"
                   >
                     <MessageCircle className="h-4 w-4" /> Probar Sophie por WhatsApp
                   </a>
                   <button
                     type="button"
                     onClick={() => window.dispatchEvent(new Event('abrir-chat'))}
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-6 py-3.5 text-sm font-bold text-cyan-300 transition hover:border-cyan-400/50 hover:bg-cyan-400/20"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-cyan-300 bg-cyan-50 px-6 py-3.5 text-sm font-bold text-cyan-700 transition hover:border-cyan-400 hover:bg-cyan-100"
                   >
                     Hablar por chat <ArrowRight className="h-4 w-4" />
                   </button>
@@ -256,59 +254,59 @@ export default function Home() {
               </div>
 
               <div className="lg:col-span-6">
-                <div className="relative rounded-[32px] border border-slate-800 bg-[#0A0D14] p-6 shadow-[0_30px_70px_rgba(15,23,42,0.2)] text-white">
-                  <div className="flex items-center justify-between pb-6 border-b border-slate-800">
-                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-cyan-400">
-                      <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                <div className="relative rounded-[32px] border border-[#e0edf6] bg-white p-6 shadow-[0_30px_70px_rgba(15,31,54,0.12)] text-slate-900">
+                  <div className="flex items-center justify-between pb-6 border-b border-[#e8f0f8]">
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-cyan-700">
+                      <span className="h-2 w-2 rounded-full bg-cyan-500 animate-pulse"></span>
                       Operación activa
                     </div>
                     <span className="text-xs font-mono text-slate-400">live</span>
                   </div>
 
-                  <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 my-6 p-4 flex items-center gap-5 shadow-inner">
-                    <div className="relative h-20 w-20 shrink-0 rounded-2xl overflow-hidden border border-slate-700 bg-slate-900 shadow-md bg-gradient-to-br from-slate-800 via-slate-900 to-cyan-950 flex items-center justify-center">
-                      <Sparkles size={28} className="text-cyan-300" />
+                  <div className="relative overflow-hidden rounded-2xl border border-[#e0edf6] bg-[#f4f9ff] my-6 p-4 flex items-center gap-5 shadow-inner">
+                    <div className="relative h-20 w-20 shrink-0 rounded-2xl overflow-hidden border border-cyan-100 bg-gradient-to-br from-cyan-100 via-cyan-50 to-white shadow-md flex items-center justify-center">
+                      <Sparkles size={28} className="text-cyan-600" />
                     </div>
                     <div>
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-cyan-400 mb-1">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-cyan-700 mb-1">
                         <Sparkles size={14} /> Upway Health
                       </div>
-                      <p className="text-xs text-slate-300 leading-relaxed">
+                      <p className="text-xs text-slate-600 leading-relaxed">
                         Sincronizando atención, agenda y seguimiento comercial con contexto operativo completo.
                       </p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5">
+                    <div className="rounded-2xl bg-white border border-[#e0edf6] p-5">
                       <p className="text-xs font-semibold text-slate-400 mb-1">ATENCIONES</p>
-                      <p className="text-3xl font-black tracking-tight text-white">+38%</p>
-                      <p className="text-[11px] text-slate-400 mt-1">respuestas más rápidas</p>
+                      <p className="text-3xl font-black tracking-tight text-slate-900">+38%</p>
+                      <p className="text-[11px] text-slate-500 mt-1">respuestas más rápidas</p>
                     </div>
-                    <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5">
+                    <div className="rounded-2xl bg-white border border-[#e0edf6] p-5">
                       <p className="text-xs font-semibold text-slate-400 mb-1">CARGA</p>
-                      <p className="text-3xl font-black tracking-tight text-white">-42%</p>
-                      <p className="text-[11px] text-slate-400 mt-1">manual de atención</p>
+                      <p className="text-3xl font-black tracking-tight text-slate-900">-42%</p>
+                      <p className="text-[11px] text-slate-500 mt-1">manual de atención</p>
                     </div>
                   </div>
 
-                  <div className="rounded-2xl bg-slate-900/50 border border-slate-800 p-4 space-y-2.5">
-                    <div className="flex items-center justify-between text-xs font-bold text-slate-400 mb-2">
+                  <div className="rounded-2xl bg-[#f4f9ff]/60 border border-[#e0edf6] p-4 space-y-2.5">
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-500 mb-2">
                       <span>Trabajo crítico</span>
-                      <span className="text-emerald-400 flex items-center gap-1">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> en vivo
+                      <span className="text-emerald-600 flex items-center gap-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> en vivo
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs font-medium text-slate-300 bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
-                      <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-slate-800 text-[10px] font-bold text-slate-300">1</span>
+                    <div className="flex items-center gap-3 text-xs font-medium text-slate-600 bg-white px-3 py-2 rounded-xl border border-[#e0edf6]">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-[#e9f3ff] text-[10px] font-bold text-[#1b5ed6]">1</span>
                       Calificación y priorización inteligente
                     </div>
-                    <div className="flex items-center gap-3 text-xs font-medium text-slate-300 bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
-                      <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-slate-800 text-[10px] font-bold text-slate-300">2</span>
+                    <div className="flex items-center gap-3 text-xs font-medium text-slate-600 bg-white px-3 py-2 rounded-xl border border-[#e0edf6]">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-[#e9f3ff] text-[10px] font-bold text-[#1b5ed6]">2</span>
                       Agenda y disponibilidad sincronizadas
                     </div>
-                    <div className="flex items-center gap-3 text-xs font-medium text-slate-300 bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
-                      <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-slate-800 text-[10px] font-bold text-slate-300">3</span>
+                    <div className="flex items-center gap-3 text-xs font-medium text-slate-600 bg-white px-3 py-2 rounded-xl border border-[#e0edf6]">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-[#e9f3ff] text-[10px] font-bold text-[#1b5ed6]">3</span>
                       Seguimiento y escalamiento automáticos
                     </div>
                   </div>

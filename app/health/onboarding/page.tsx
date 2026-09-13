@@ -182,8 +182,8 @@ const stageContent: Record<
         <input placeholder="Ej. Norte Salud IPS S.A.S." value={form.legalName} onChange={(event) => onChange('legalName', event.target.value)} style={inputStyle} />
         <FieldHint text={fieldHelp.legalName} />
       </div>
-      <div style={{ display: 'grid', gap: 8, gridTemplateColumns: '1fr 1fr' }}>
-        <div style={{ display: 'grid', gap: 8 }}>
+      <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))' }}>
+        <div style={{ display: 'grid', gap: 8, minWidth: 0 }}>
           <label style={labelStyle}>NIT</label>
           <input placeholder="Ej. 900123456-1" value={form.nit} onChange={(event) => onChange('nit', event.target.value)} style={inputStyle} />
           <FieldHint text={fieldHelp.nit} />
@@ -201,8 +201,8 @@ const stageContent: Record<
           <input placeholder="Ej. Ana Operaciones" value={form.contactName} onChange={(event) => onChange('contactName', event.target.value)} style={inputStyle} />
           <FieldHint text={fieldHelp.contactName} />
         </div>
-        <div style={{ display: 'grid', gap: 8, gridTemplateColumns: '1fr 1fr' }}>
-          <div style={{ display: 'grid', gap: 8 }}>
+        <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))' }}>
+          <div style={{ display: 'grid', gap: 8, minWidth: 0 }}>
             <label style={labelStyle}>Celular</label>
             <input placeholder="Ej. 3001234567" value={form.contactPhone} onChange={(event) => onChange('contactPhone', event.target.value)} style={inputStyle} />
             <FieldHint text={fieldHelp.contactPhone} />
@@ -399,6 +399,9 @@ const inputStyle: React.CSSProperties = {
   fontSize: 13,
   fontWeight: 600,
   outline: 'none',
+  width: '100%',
+  minWidth: 0,
+  boxSizing: 'border-box',
 };
 // 🧭 Explicación de cada etapa para guiar al responsable clínico sin que adivine.
 const stageHelp: Record<OnboardingStage, { title: string; hint: string }> = {
