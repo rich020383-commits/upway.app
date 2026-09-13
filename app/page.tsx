@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, MessageCircle, Sparkles } from 'lucide-react';
+import { ArrowRight, MessageCircle, Phone, Sparkles } from 'lucide-react';
 
 export default function Home() {
   const [showSplash, setShowSplash] = useState(true);
@@ -210,13 +211,12 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="flex shrink-0 gap-2 pt-2 sm:pt-0">
-                  <button
-                    type="button"
-                    onClick={() => window.dispatchEvent(new Event('abrir-chat'))}
+                  <a
+                    href="tel:+573126427856"
                     className="btn-glow-primary inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 sm:w-auto sm:px-7 sm:py-3.5"
                   >
-                    Probar en vivo <ArrowRight className="h-4 w-4" />
-                  </button>
+                    <Phone className="h-4 w-4" /> Probar en vivo
+                  </a>
                 </div>
               </div>
             </div>
@@ -243,13 +243,12 @@ export default function Home() {
                   >
                     <MessageCircle className="h-4 w-4" /> Probar Sophie por WhatsApp
                   </a>
-                  <button
-                    type="button"
-                    onClick={() => window.dispatchEvent(new Event('abrir-chat'))}
+                  <a
+                    href="mailto:contacto@upway.business.com?subject=Quiero%20hablar%20con%20un%20experto%20de%20Upway%20Health"
                     className="inline-flex items-center justify-center gap-2 rounded-full border border-cyan-300 bg-cyan-50 px-6 py-3.5 text-sm font-bold text-cyan-700 transition hover:border-cyan-400 hover:bg-cyan-100"
                   >
-                    Hablar por chat <ArrowRight className="h-4 w-4" />
-                  </button>
+                    Hablar con un experto <ArrowRight className="h-4 w-4" />
+                  </a>
                 </div>
               </div>
 
@@ -403,31 +402,36 @@ export default function Home() {
             Una plataforma flexible para diferentes modelos de atención.
           </p>
           <div className="max-w-[1180px] mx-auto mt-[30px] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-[15px] text-left">
-            <article className="bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1">
+            <Link href="/health/onboarding" className="block bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
               <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">✚</span>
               <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">Clínicas</h3>
               <p className="text-[11px] leading-[1.5] text-[#55718f]">Optimiza la atención hospitalaria y la gestión de pacientes.</p>
-            </article>
-            <article className="bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1">
+              <span className="mt-[14px] inline-flex items-center gap-1 text-[11px] font-bold text-[#0ba9a9]">Comenzar onboarding →</span>
+            </Link>
+            <Link href="/health/onboarding" className="block bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
               <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">♧</span>
               <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">IPS</h3>
               <p className="text-[11px] leading-[1.5] text-[#55718f]">Mejora la operación y comunicación con tu población.</p>
-            </article>
-            <article className="bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1">
+              <span className="mt-[14px] inline-flex items-center gap-1 text-[11px] font-bold text-[#0ba9a9]">Comenzar onboarding →</span>
+            </Link>
+            <Link href="/health/onboarding" className="block bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
               <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">▣</span>
               <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">EPS</h3>
               <p className="text-[11px] leading-[1.5] text-[#55718f]">Fortalece el acceso, seguimiento y trazabilidad.</p>
-            </article>
-            <article className="bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1">
+              <span className="mt-[14px] inline-flex items-center gap-1 text-[11px] font-bold text-[#0ba9a9]">Comenzar onboarding →</span>
+            </Link>
+            <Link href="/health/onboarding" className="block bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
               <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">◫</span>
               <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">Centros de salud</h3>
               <p className="text-[11px] leading-[1.5] text-[#55718f]">Simplifica citas y coordinación.</p>
-            </article>
-            <article className="bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1">
+              <span className="mt-[14px] inline-flex items-center gap-1 text-[11px] font-bold text-[#0ba9a9]">Comenzar onboarding →</span>
+            </Link>
+            <Link href="/health/onboarding" className="block bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
               <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">◉</span>
               <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">Consultorios</h3>
               <p className="text-[11px] leading-[1.5] text-[#55718f]">Lleva tu práctica médica al siguiente nivel.</p>
-            </article>
+              <span className="mt-[14px] inline-flex items-center gap-1 text-[11px] font-bold text-[#0ba9a9]">Comenzar onboarding →</span>
+            </Link>
           </div>
 
           {/* Imagen de Sectores (ruta corregida) */}
@@ -451,7 +455,7 @@ export default function Home() {
             </h2>
           </div>
           <a
-            href="mailto:hola@upway.business"
+            href="mailto:contacto@upway.business.com?subject=Solicitud%20de%20demo%20Upway%20Health"
             className="inline-flex shrink-0 items-center justify-center px-[23px] py-[14px] rounded-full font-bold text-[13px] bg-white text-[#123e77] hover:bg-slate-100 transition"
           >
             Solicita una demo gratuita →
@@ -459,11 +463,21 @@ export default function Home() {
         </section>
 
         {/* FOOTER */}
-        <footer className="flex flex-col sm:flex-row justify-between items-center p-[28px_5%] text-[12px] text-[#55718f] gap-4">
-          <div className="font-extrabold text-[25px] tracking-[-1px] text-[#103a77]">
-            UPW<span className="text-[#11b7b1]">▲</span>Y <small className="text-[10px] tracking-[2px] ml-1 font-bold">HEALTH</small>
+        <footer className="flex flex-col items-center justify-between gap-6 border-t border-[#e2edf5] px-5 py-10 md:flex-row md:px-[5%]">
+          <div className="flex flex-col items-center gap-2 md:items-start">
+            <div className="font-extrabold text-[25px] tracking-[-1px] text-[#103a77]">
+              UPW<span className="text-[#11b7b1]">▲</span>Y <small className="text-[10px] tracking-[2px] ml-1 font-bold">HEALTH</small>
+            </div>
+            <span className="text-center text-[11px] leading-relaxed text-[#55718f] md:text-left">
+              Tecnología que cuida · © {new Date().getFullYear()} <strong className="font-semibold text-[#31547f]">Upway Business Group S.A.S</strong>
+            </span>
           </div>
-          <span className="font-medium">Tecnología que cuida.</span>
+
+          <nav className="flex flex-wrap items-center justify-center gap-x-7 gap-y-3 text-[12px] font-medium text-[#55718f]">
+            <a href="mailto:contacto@upway.business.com" className="transition hover:text-[#103a77]">contacto@upway.business.com</a>
+            <Link href="/privacy" className="transition hover:text-[#103a77]">Privacidad</Link>
+            <Link href="/terminos" className="transition hover:text-[#103a77]">Términos y Condiciones</Link>
+          </nav>
         </footer>
       </main>
     </>
