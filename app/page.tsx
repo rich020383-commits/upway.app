@@ -1,142 +1,8 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
-import {
-  ArrowRight,
-  BriefcaseBusiness,
-  Building2,
-  CalendarClock,
-  CheckCircle2,
-  HeartPulse,
-  Landmark,
-  MessageCircle,
-  MessageSquareText,
-  PhoneCall,
-  ShieldCheck,
-  ShoppingCart,
-  Sparkles,
-  Stethoscope,
-  Store,
-  TrendingUp,
-} from 'lucide-react';
-
-const sectors = [
-  {
-    id: 'health',
-    name: 'Health',
-    description: 'Triage, agenda, FAQ y escalamiento clínico con rigor operativo.',
-    route: '/industries/clinicas',
-    icon: HeartPulse,
-    accent: 'from-[#101d36] via-[#183d75] to-[#2d78ff]',
-  },
-  {
-    id: 'real-estate',
-    name: 'Inmobiliaria',
-    description: 'Leads calificados y coordinación de citas sin fricción.',
-    route: '/industries/inmobiliarias',
-    icon: Landmark,
-    accent: 'from-[#11263c] via-[#1c3e67] to-[#6b8ec9]',
-  },
-  {
-    id: 'retail',
-    name: 'Retail',
-    description: 'Atención comercial más inteligente y consistente.',
-    route: '/industries/tiendas',
-    icon: Store,
-    accent: 'from-[#142b40] via-[#234c77] to-[#2d9bd5]',
-  },
-  {
-    id: 'supermarket',
-    name: 'Supermercado',
-    description: 'Soporte, promociones y ayuda más rápida en cada punto de contacto.',
-    route: '/industries/supermercados',
-    icon: ShoppingCart,
-    accent: 'from-[#0c1f31] via-[#1a3f5e] to-[#48a9ea]',
-  },
-  {
-    id: 'pharmacy',
-    name: 'Droguería',
-    description: 'Pedidos, consulta de productos y coordinación operativa.',
-    route: '/industries/droguerias',
-    icon: ShieldCheck,
-    accent: 'from-[#0f2034] via-[#1f3b5d] to-[#2a8fca]',
-  },
-  {
-    id: 'other',
-    name: 'Otro negocio',
-    description: 'Diseñamos un flujo exacto para tu operación.',
-    route: '/dashboard/onboarding',
-    icon: BriefcaseBusiness,
-    accent: 'from-[#14263d] via-[#1c3556] to-[#607cad]',
-  },
-];
-
-const pains = [
-  {
-    title: 'Atención lenta',
-    text: 'Las consultas se acumulan y la operación se vuelve más costosa.',
-    icon: TrendingUp,
-  },
-  {
-    title: 'Pérdida de oportunidades',
-    text: 'Cada lead sin respuesta clara es un cliente que se va.',
-    icon: ArrowRight,
-  },
-  {
-    title: 'Carga manual',
-    text: 'Tareas repetitivas consumen tiempo valioso del equipo.',
-    icon: Building2,
-  },
-  {
-    title: 'Operación frágil',
-    text: 'Sin estructura, la experiencia cambia según la persona y el turno.',
-    icon: MessageSquareText,
-  },
-];
-
-const pillars = [
-  {
-    title: 'Responde rápido',
-    text: 'Atención inteligente en tiempo real para cada canal crítico.',
-  },
-  {
-    title: 'Agenda y coordina',
-    text: 'Citas, confirmaciones y seguimiento sin depender de tareas repetitivas.',
-  },
-  {
-    title: 'Prioriza y escala',
-    text: 'Reglas de flujo para crecer sin perder control ni calidad.',
-  },
-  {
-    title: 'Mantiene control',
-    text: 'Políticas, escalamiento y seguridad con visión operativa real.',
-  },
-];
-
-const trustTags = ['Atención', 'Ventas', 'Agenda', 'Triage', 'Operación'];
-
-const healthLevels = [
-  {
-    level: 'Nivel 1 · Captura y triage',
-    title: 'Cada consulta entra clasificada, sin esperas',
-    text: 'Sophie evalúa síntomas, urgencia y perfil del paciente en segundos por WhatsApp o llamada, aplicando tus protocolos clínicos y escalando casos críticos de inmediato.',
-    icon: Stethoscope,
-  },
-  {
-    level: 'Nivel 2 · Agenda inteligente',
-    title: 'Agenda llena, cero no-show',
-    text: 'Confirmaciones, recordatorios y reprogramación automática 24/7. La agenda coordinada por IA reduce las ausencias y libera a tu equipo humano para lo que importa.',
-    icon: CalendarClock,
-  },
-  {
-    level: 'Nivel 3 · Operación clínica soportada',
-    title: 'Cumplimiento, auditoría y control total',
-    text: 'Políticas de privacidad, registro de auditoría y escalamiento humano con supervisión. Cumplimiento normativo y trazabilidad de cada decisión clínica.',
-    icon: ShieldCheck,
-  },
-];
+import { ArrowRight, MessageCircle, Sparkles } from 'lucide-react';
 
 export default function Home() {
   const [showSplash, setShowSplash] = useState(true);
@@ -147,7 +13,7 @@ export default function Home() {
   const [splashVideoLoaded, setSplashVideoLoaded] = useState(false);
   const heroVideoRef = useRef<HTMLVideoElement | null>(null);
 
-  // Efecto para cancelar el video en computadora (apaga el splash en pantallas >= 768px)
+  // Apaga el splash en pantallas grandes (>= 768px)
   const shouldSkipSplash = typeof window !== 'undefined' && window.innerWidth >= 768;
 
   useEffect(() => {
@@ -208,7 +74,7 @@ export default function Home() {
 
   return (
     <>
-      {/* PANTALLA DE CARGA (SPLASH SCREEN) - EXCLUSIVA PARA MÓVIL */}
+      {/* PANTALLA DE CARGA (SPLASH SCREEN) - SOLO MÓVIL */}
       {showSplash && (
         <div
           className={`fixed inset-0 z-[9999] flex md:hidden items-center justify-center bg-[#050b16] transition-opacity duration-500 ${
@@ -230,54 +96,85 @@ export default function Home() {
         </div>
       )}
 
-      {/* LANDING PAGE */}
-      <main className="upway-dark-shell relative min-h-screen w-full max-w-full overflow-x-hidden bg-[#050b16] text-slate-100">
-        {/* Resplandor superior */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] overflow-hidden">
-          <div className="absolute left-1/2 top-0 h-[420px] w-[820px] -translate-x-1/2 rounded-full bg-[#2d78ff]/20 blur-[140px]" />
-        </div>
-
-        {/* HEADER */}
-        <header className="relative z-20 mx-auto flex w-full max-w-7xl items-center justify-between px-3.5 py-4 sm:px-6 md:px-10 md:py-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-white/5 shadow-[0_10px_30px_rgba(45,120,255,0.25)] backdrop-blur-md">
-              <Image src="/upway.png" alt="Upway logo" width={36} height={36} className="h-9 w-9 object-contain" />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono uppercase tracking-[0.22em] text-[#7dd3fc]">UPWAY</span>
-              <span className="text-xl font-black tracking-[-0.05em] text-white">Business</span>
-            </div>
-          </div>
-
-          <nav className="hidden items-center gap-8 text-sm font-medium text-slate-300 md:flex">
-            <Link href="#soluciones" className="transition hover:text-white">Soluciones</Link>
-            <Link href="#sectores" className="transition hover:text-white">Sectores</Link>
-            <Link href="#proceso" className="transition hover:text-white">Proceso</Link>
-            <Link href="#contacto" className="transition hover:text-white">Contacto</Link>
+      <main className="min-h-screen overflow-x-hidden bg-white text-[#0d3168] font-sans selection:bg-[#11b7b1] selection:text-white scroll-smooth">
+        {/* NAVBAR SUPERIOR */}
+        <header className="sticky top-0 z-50 flex h-[74px] items-center justify-between px-5 md:px-[5%] border-b border-[#edf3f8] bg-[#fffdfdf2]/90 backdrop-blur-md">
+          <a href="#inicio" className="font-extrabold text-[23px] md:text-[29px] tracking-[-1.5px] text-[#103a77] flex items-center">
+            UPW<span className="text-[#11b7b1]">▲</span>Y
+            <small className="text-[12px] tracking-[2px] ml-2.5 font-bold">HEALTH</small>
+          </a>
+          <nav className="hidden md:flex gap-[34px] text-[13px] font-medium text-[#31547f]">
+            <a href="#solucion" className="hover:text-[#103a77] transition">Solución</a>
+            <a href="#beneficios" className="hover:text-[#103a77] transition">Beneficios</a>
+            <a href="#sectores" className="hover:text-[#103a77] transition">Sectores</a>
+            <a href="#contacto" className="hover:text-[#103a77] transition">Contacto</a>
           </nav>
-
-          <div className="flex items-center gap-2.5">
-            <Link href="/login" className="hidden rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 backdrop-blur-md transition hover:border-white/30 hover:bg-white/10 md:inline-flex">
-              Acceso
-            </Link>
-            <button
-              type="button"
-              onClick={() => window.dispatchEvent(new Event('abrir-chat'))}
-              className="btn-glow-primary inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5 sm:px-5 sm:py-2.5 sm:text-sm"
-            >
-              Ver demo
-              <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            </button>
-          </div>
+          <a
+            href="#contacto"
+            className="hidden sm:inline-flex items-center justify-center rounded-full bg-[#0c3775] px-[23px] py-[10px] md:py-[14px] text-[11px] md:text-[13px] font-bold text-white hover:bg-[#092a5c] transition shadow-md"
+          >
+            Solicita una demo →
+          </a>
         </header>
 
-        {/* CONTENEDOR PRINCIPAL */}
-        <div className="relative z-10 mx-auto max-w-7xl px-3 pb-20 sm:px-6 md:px-10">
-          <section>
-            {/* VIDEO CINEMATOGRÁFICO DE SOPHIE V2 */}
-            <div className="relative mb-10 overflow-hidden rounded-[24px] border border-white/15 bg-slate-950 shadow-[0_40px_120px_rgba(2,8,18,0.7)] ring-1 ring-[#2d78ff]/25 md:mb-14 md:rounded-[32px]">
-              <div className="absolute -inset-px rounded-[24px] bg-gradient-to-r from-[#2d78ff]/40 via-transparent to-[#7dd3fc]/30 opacity-60 blur-sm md:rounded-[32px]" />
+        {/* HERO */}
+        <section className="max-w-[1280px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 pt-[45px] md:pt-[70px] pb-[55px] px-5 md:px-[5%] items-center bg-[radial-gradient(circle_at_80%_30%,_#e8fbfa,_transparent_40%)]">
+          <div className="flex flex-col">
+            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">♥ &nbsp; Software de atención en salud</div>
+            <h1 className="text-[35px] md:text-[52px] leading-[1.06] tracking-[-2px] md:tracking-[-2.6px] m-0 mb-[22px] font-extrabold">
+              Conecta tu centro de salud con tus pacientes.<br />
+              <em className="not-italic text-[#11b4b0]">Más simple, más humano.</em>
+            </h1>
+            <p className="text-[16px] leading-[1.65] text-[#49698f] max-w-[600px]">
+              UPWAY Health unifica la comunicación, la gestión de citas y la atención al paciente en clínicas, IPS, EPS, centros de salud y consultorios.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 my-[26px]">
+              <a
+                href="#contacto"
+                className="inline-flex items-center justify-center rounded-full bg-[#0c3775] px-[23px] py-[14px] text-[13px] font-bold text-white hover:bg-[#092a5c] transition"
+              >
+                Solicita una demo gratuita →
+              </a>
+              <a
+                href="#solucion"
+                className="inline-flex items-center justify-center rounded-full border border-[#b8cce3] bg-white px-[23px] py-[14px] text-[13px] font-bold text-[#0c3775] hover:bg-slate-50 transition"
+              >
+                Descubre cómo funciona
+              </a>
+            </div>
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-[20px] text-[#315982] text-[10px] font-semibold uppercase tracking-wide mt-2">
+              <span className="flex items-center gap-1">▣ Citas y agendamiento</span>
+              <span className="flex items-center gap-1">♧ Recordatorios</span>
+              <span className="flex items-center gap-1">◉ Comunicación multicanal</span>
+              <span className="flex items-center gap-1">▥ Reportes</span>
+            </div>
+          </div>
+          <div className="relative mt-8 md:mt-0">
+            <Image
+              src="/hero-doctora.png"
+              alt="Profesional de salud usando tecnología"
+              width={490}
+              height={390}
+              priority
+              className="w-full rounded-[34px] block shadow-[0_25px_70px_#163f681c] object-cover"
+            />
+            <div className="absolute left-2 md:-left-[35px] top-[40px] md:top-[65px] bg-white border border-[#e2edf5] rounded-[15px] p-[13px_17px] shadow-[0_12px_35px_#173e6820] text-[11px] leading-tight">
+              ◉ <b className="font-bold">Recordatorio de cita</b>
+              <br />
+              <small className="text-gray-500 text-[10px]">Cita confirmada para mañana</small>
+            </div>
+            <div className="absolute -right-2 md:-right-[18px] bottom-[20px] md:bottom-[30px] bg-white border border-[#e2edf5] rounded-[15px] p-[13px_17px] shadow-[0_12px_35px_#173e6820] text-[11px] text-[#087c7d] font-medium">
+              ✓ <b className="font-bold">Pacientes más satisfechos</b>
+            </div>
+          </div>
+        </section>
 
+        {/* SECCIÓN SOPHIE V2 + VIDEO EN VIVO */}
+        <section className="bg-[#05080F] py-20 px-5 md:px-[5%] border-y border-slate-800">
+          <div className="max-w-7xl mx-auto">
+            {/* VIDEO CINEMATOGRÁFICO DE SOPHIE V2 */}
+            <div className="relative mb-14 overflow-hidden rounded-[24px] border border-white/15 bg-slate-950 shadow-[0_40px_120px_rgba(2,8,18,0.7)] ring-1 ring-cyan-400/25 md:rounded-[32px]">
+              <div className="absolute -inset-px rounded-[24px] bg-gradient-to-r from-cyan-400/40 via-transparent to-[#7dd3fc]/30 opacity-60 blur-sm md:rounded-[32px]" />
               <div className="relative aspect-video w-full overflow-hidden rounded-t-[24px] md:aspect-auto md:h-[500px] md:rounded-[32px] lg:h-[560px]">
                 <video
                   ref={heroVideoRef}
@@ -300,21 +197,21 @@ export default function Home() {
 
               <div className="relative z-10 flex flex-col justify-between gap-4 border-t border-white/10 bg-[#0a1424]/95 p-4 backdrop-blur-md sm:p-6 md:absolute md:bottom-12 md:left-12 md:right-12 md:flex-row md:items-end md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
                 <div className="max-w-2xl space-y-2 sm:space-y-3">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-[#7dd3fc]/30 bg-[#7dd3fc]/10 px-3 py-1 text-[11px] font-bold text-[#7dd3fc]">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-400/10 px-3 py-1 text-[11px] font-bold text-cyan-300">
                     <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#7dd3fc] opacity-75" />
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-[#7dd3fc]" />
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400" />
                     </span>
                     Sophie v2 • Empleado Digital Autónomo
                   </div>
                   <h2 className="text-xl font-black leading-tight tracking-tight text-white sm:text-2xl md:text-5xl">
-                    Operación y Triage en Vivo <span className="text-shimmer">24/7</span>
+                    Triage y atención en vivo <span className="text-shimmer">24/7</span>
                   </h2>
                   <p className="text-xs leading-relaxed text-blue-100/90 sm:text-sm md:text-base">
-                    Orquestando llamadas telefónicas, chats de WhatsApp y flujos operativos con contexto de negocio absoluto en tiempo real. Diseñado para escalar sin fricción.
+                    Escuchando llamadas y WhatsApp con triage clínico, agendamiento inteligente y seguimiento en tiempo real. Diseñado para escalar sin fricción.
                   </p>
                 </div>
-                <div className="shrink-0 pt-2 sm:pt-0">
+                <div className="flex shrink-0 gap-2 pt-2 sm:pt-0">
                   <button
                     type="button"
                     onClick={() => window.dispatchEvent(new Event('abrir-chat'))}
@@ -326,310 +223,249 @@ export default function Home() {
               </div>
             </div>
 
-            {/* HERO COPY + DEMO INTERACTIVA EN VIVO */}
-            <div className="grid items-center gap-8 lg:grid-cols-[1.06fr_0.94fr]">
-              <div>
-                <div className="flex flex-wrap items-center gap-2 text-[10px] font-mono uppercase tracking-[0.18em] text-[#7dd3fc]">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-[#7dd3fc]/25 bg-[#7dd3fc]/10 px-3 py-1.5">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    Upway Business
-                  </span>
-                  <span className="text-slate-400">Infraestructura operativa premium</span>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+              <div className="lg:col-span-6 space-y-6">
+                <div className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-800/50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-cyan-400 shadow-sm">
+                  <Sparkles size={14} className="text-cyan-400" /> Operación Autónoma
                 </div>
-
-                <h1 className="mt-5 max-w-xl text-4xl font-black leading-[1.0] tracking-[-0.05em] text-white sm:text-5xl md:text-[5rem]">
-                  Operación <span className="text-shimmer">inteligente</span> para crecer con control.
-                </h1>
-
-                <p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-400 sm:text-base md:text-xl md:leading-8">
-                  Centralizamos atención, ventas, agenda y escalamiento para empresas que quieren crecer con velocidad,
-                  consistencia y disciplina operativa.
+                <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white leading-[1.1]">
+                  Sophie v2:
+                  <br />
+                  IA telefónica para tu centro médico.
+                </h2>
+                <p className="text-lg text-slate-400 leading-relaxed max-w-xl">
+                  Automatiza el alto tráfico de llamadas. Sophie responde, califica urgencias y agenda citas en tiempo real con una voz humana y empática, 24/7 sin descuidar a ningún paciente.
                 </p>
-
-                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                  <a
+                    href="https://wa.me/573126427856?text=Hola%20Sophie%2C%20quiero%20hacer%20una%20prueba%20en%20vivo"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-glow-primary inline-flex items-center justify-center gap-2 rounded-full bg-[#0c3775] px-6 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5"
+                  >
+                    <MessageCircle className="h-4 w-4" /> Probar Sophie por WhatsApp
+                  </a>
                   <button
                     type="button"
                     onClick={() => window.dispatchEvent(new Event('abrir-chat'))}
-                    className="btn-glow-primary inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold text-white transition hover:-translate-y-0.5"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-6 py-3.5 text-sm font-bold text-cyan-300 transition hover:border-cyan-400/50 hover:bg-cyan-400/20"
                   >
-                    Hablar con un especialista
-                    <ArrowRight className="h-4 w-4" />
+                    Hablar por chat <ArrowRight className="h-4 w-4" />
                   </button>
-                  <Link
-                    href="#sectores"
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-3.5 text-sm font-semibold text-slate-200 backdrop-blur-md transition hover:border-white/30 hover:bg-white/10"
-                  >
-                    Ver sectores
-                  </Link>
-                </div>
-
-                <div className="mt-6 flex flex-wrap gap-2 text-[10px] font-medium uppercase tracking-[0.14em] text-slate-400">
-                  {trustTags.map((tag) => (
-                    <span key={tag} className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1">
-                      {tag}
-                    </span>
-                  ))}
                 </div>
               </div>
 
-              {/* DEMO EN VIVO */}
-              <div className="relative">
-                <div className="absolute -inset-2 rounded-[32px] bg-[#2d78ff]/15 blur-2xl md:-inset-6 md:rounded-[40px] md:blur-3xl" />
-                <div className="relative overflow-hidden rounded-[24px] border border-white/15 bg-gradient-to-br from-[#0c1626]/95 via-[#0e1d33]/90 to-[#142d54]/85 p-4 shadow-2xl backdrop-blur-xl sm:p-6 md:rounded-[32px] md:p-8">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                    <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
-                      <span className="relative flex h-2 w-2">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-                      </span>
-                      DEMO ACTIVA 24/7
+              <div className="lg:col-span-6">
+                <div className="relative rounded-[32px] border border-slate-800 bg-[#0A0D14] p-6 shadow-[0_30px_70px_rgba(15,23,42,0.2)] text-white">
+                  <div className="flex items-center justify-between pb-6 border-b border-slate-800">
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-cyan-400">
+                      <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                      Operación activa
                     </div>
-                    <span className="text-[10px] font-mono tracking-wider text-blue-200/70">IA EN VIVO</span>
+                    <span className="text-xs font-mono text-slate-400">live</span>
                   </div>
 
-                  <div className="mt-4">
-                    <h3 className="text-xl font-black tracking-tight text-white sm:text-2xl md:text-3xl">
-                      Comprueba en vivo cómo atenderá a tus clientes
-                    </h3>
-                    <p className="mt-2 text-xs leading-relaxed text-slate-300 sm:text-sm">
-                      Escribe por WhatsApp o llama directamente para interactuar con <strong className="text-white">Sophie v2</strong>. Evalúa su naturalidad de voz, velocidad y capacidad de agendamiento.
-                    </p>
-                  </div>
-
-                  <div className="mt-5 flex flex-col gap-2.5 sm:flex-row">
-                    <a
-                      href="https://wa.me/573126427856?text=Hola%20Sophie,%20quiero%20hacer%20una%20prueba%20en%20vivo"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/20 transition hover:from-emerald-500 hover:to-emerald-400 active:scale-95"
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                      Chatear por WhatsApp
-                    </a>
-
-                    <a
-                      href="tel:+573126427856"
-                      className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-3.5 text-sm font-bold text-white backdrop-blur-md transition hover:border-white/30 hover:bg-white/15 active:scale-95"
-                    >
-                      <PhoneCall className="h-4 w-4 text-[#7dd3fc]" />
-                      Llamar al agente de voz
-                    </a>
-                  </div>
-
-                  <div className="mt-5 space-y-2 rounded-xl border border-white/10 bg-black/20 p-3 text-xs text-slate-300">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#7dd3fc]" />
-                      <span>Sin menús numéricos: conversación natural fluida.</span>
+                  <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 my-6 p-4 flex items-center gap-5 shadow-inner">
+                    <div className="relative h-20 w-20 shrink-0 rounded-2xl overflow-hidden border border-slate-700 bg-slate-900 shadow-md bg-gradient-to-br from-slate-800 via-slate-900 to-cyan-950 flex items-center justify-center">
+                      <Sparkles size={28} className="text-cyan-300" />
                     </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#7dd3fc]" />
-                      <span>Agenda citas, valida disponibilidad y clasifica casos.</span>
-                    </div>
-                  </div>
-
-                  <p className="mt-3 text-center text-[10px] text-slate-400">
-                    * Hazle preguntas complejas para evaluar su criterio operativo.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* SPOTLIGHT HEALTH */}
-          <section id="health" className="relative mt-24 overflow-hidden rounded-[36px] border border-emerald-400/20 bg-gradient-to-br from-[#04120e] via-[#06231c] to-[#0a1626] p-6 md:p-10">
-            <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-emerald-500/15 blur-[90px]" />
-            <div className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-teal-500/10 blur-[90px]" />
-
-            <div className="relative grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-              <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-1.5 text-xs font-bold text-emerald-300">
-                  <HeartPulse className="h-4 w-4" />
-                  Vertical Health · Nuestro segmento más exclusivo
-                </div>
-                <h2 className="mt-6 text-3xl font-black leading-[1.05] tracking-[-0.05em] text-white md:text-[2.9rem]">
-                  Automatización clínica con <span className="bg-gradient-to-r from-emerald-300 to-teal-200 bg-clip-text text-transparent">rigor médico</span> y excelencia operativa.
-                </h2>
-                <p className="mt-5 max-w-lg text-base leading-8 text-slate-400">
-                  Clínicas, consultorios y centros médicos operan 24/7 con Sophie: triage clínico asistido, agenda inteligente, cumplimiento normativo y escalamiento humano supervisado.
-                </p>
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                  <Link href="/industries/clinicas" className="btn-glow-health inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold text-white transition hover:-translate-y-0.5">
-                    Ver Health en detalle
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                  <Link href="/health" className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/5 px-6 py-3.5 text-sm font-semibold text-emerald-200 transition hover:border-emerald-400/40 hover:bg-emerald-400/10">
-                    <Stethoscope className="h-4 w-4" />
-                    Explorar consola Health
-                  </Link>
-                </div>
-                <div className="mt-8 grid grid-cols-3 gap-3">
-                  {[
-                    ['24/7', 'cobertura total'],
-                    ['-42%', 'carga manual'],
-                    ['100%', 'trazabilidad'],
-                  ].map(([value, label]) => (
-                    <div key={label} className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-                      <div className="text-2xl font-black tracking-[-0.05em] text-emerald-300">{value}</div>
-                      <div className="mt-1 text-[11px] leading-4 text-slate-400">{label}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                {healthLevels.map(({ level, title, text, icon: Icon }, index) => (
-                  <div key={level} className="card-lift group relative rounded-[24px] border border-white/10 bg-white/[0.04] p-5 backdrop-blur-md hover:border-emerald-400/30 hover:bg-emerald-400/[0.06]">
-                    <div className="flex items-start gap-4">
-                      <div className="relative shrink-0">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-400/25 bg-emerald-400/10 text-emerald-300">
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        {index < healthLevels.length - 1 && (
-                          <div className="absolute left-1/2 top-14 h-6 w-px -translate-x-1/2 bg-gradient-to-b from-emerald-400/40 to-transparent" />
-                        )}
-                      </div>
-                      <div>
-                        <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-emerald-300/90">{level}</div>
-                        <h3 className="mt-1.5 text-lg font-bold tracking-[-0.03em] text-white">{title}</h3>
-                        <p className="mt-1.5 text-sm leading-6 text-slate-400">{text}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* SECTORES */}
-          <section id="sectores" className="mt-24">
-            <div className="mb-8 max-w-3xl">
-              <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-[#7dd3fc]">Sectores</p>
-              <h2 className="mt-3 text-3xl font-black tracking-[-0.05em] text-white md:text-4xl">
-                Un sistema hecho para operar con cada modelo de negocio.
-              </h2>
-              <p className="mt-4 text-base leading-7 text-slate-400">
-                Health es nuestro vertical insignia. Además, desplegamos la misma infraestructura de automatización para otras industrias con flujos a medida.
-              </p>
-            </div>
-
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-              {sectors.map(({ id, name, description, route, icon: Icon, accent }) => (
-                <Link
-                  key={id}
-                  href={route}
-                  className="card-lift group relative overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.03] p-1 backdrop-blur-md hover:border-[#7dd3fc]/30"
-                >
-                  <div className={`relative flex min-h-[220px] flex-col justify-between rounded-[26px] bg-gradient-to-br ${accent} p-6 text-white`}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/10 backdrop-blur-sm">
-                        <Icon className="h-5 w-5" />
-                      </div>
-                      <ArrowRight className="h-4 w-4 text-white/80 transition-transform group-hover:translate-x-1" />
-                    </div>
-
                     <div>
-                      <h3 className="text-2xl font-black tracking-[-0.05em]">{name}</h3>
-                      <p className="mt-3 max-w-xs text-sm leading-6 text-white/80">{description}</p>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-cyan-400 mb-1">
+                        <Sparkles size={14} /> Upway Health
+                      </div>
+                      <p className="text-xs text-slate-300 leading-relaxed">
+                        Sincronizando atención, agenda y seguimiento comercial con contexto operativo completo.
+                      </p>
                     </div>
                   </div>
-                </Link>
-              ))}
-            </div>
-          </section>
 
-          {/* PROBLEMA */}
-          <section id="soluciones" className="mt-24 rounded-[32px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-md md:p-10">
-            <div className="max-w-2xl">
-              <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-[#7dd3fc]">Problema</p>
-              <h2 className="mt-3 text-3xl font-black tracking-[-0.05em] text-white md:text-4xl">
-                El problema no es la IA. Es operar sin estructura.
-              </h2>
-            </div>
-
-            <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {pains.map(({ title, text, icon: Icon }) => (
-                <div key={title} className="card-lift rounded-[26px] border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm hover:border-[#7dd3fc]/25">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#7dd3fc]/20 bg-[#7dd3fc]/10 text-[#7dd3fc]">
-                    <Icon className="h-5 w-5" />
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5">
+                      <p className="text-xs font-semibold text-slate-400 mb-1">ATENCIONES</p>
+                      <p className="text-3xl font-black tracking-tight text-white">+38%</p>
+                      <p className="text-[11px] text-slate-400 mt-1">respuestas más rápidas</p>
+                    </div>
+                    <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5">
+                      <p className="text-xs font-semibold text-slate-400 mb-1">CARGA</p>
+                      <p className="text-3xl font-black tracking-tight text-white">-42%</p>
+                      <p className="text-[11px] text-slate-400 mt-1">manual de atención</p>
+                    </div>
                   </div>
-                  <h3 className="mt-5 text-lg font-bold tracking-[-0.04em] text-white">{title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-400">{text}</p>
-                </div>
-              ))}
-            </div>
-          </section>
 
-          {/* PROCESO */}
-          <section id="proceso" className="mt-24">
-            <div className="max-w-2xl">
-              <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-[#7dd3fc]">Solución</p>
-              <h2 className="mt-3 text-3xl font-black tracking-[-0.05em] text-white md:text-4xl">
-                Atención, ventas y coordinación inteligente.
-              </h2>
-            </div>
-
-            <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {pillars.map((item, index) => (
-                <div key={item.title} className="card-lift rounded-[28px] border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md hover:border-[#7dd3fc]/25">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#2d78ff] to-[#1447b8] text-sm font-bold text-white shadow-[0_8px_20px_rgba(45,120,255,0.4)]">
-                    {index + 1}
+                  <div className="rounded-2xl bg-slate-900/50 border border-slate-800 p-4 space-y-2.5">
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-400 mb-2">
+                      <span>Trabajo crítico</span>
+                      <span className="text-emerald-400 flex items-center gap-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> en vivo
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs font-medium text-slate-300 bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-slate-800 text-[10px] font-bold text-slate-300">1</span>
+                      Calificación y priorización inteligente
+                    </div>
+                    <div className="flex items-center gap-3 text-xs font-medium text-slate-300 bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-slate-800 text-[10px] font-bold text-slate-300">2</span>
+                      Agenda y disponibilidad sincronizadas
+                    </div>
+                    <div className="flex items-center gap-3 text-xs font-medium text-slate-300 bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-slate-800 text-[10px] font-bold text-slate-300">3</span>
+                      Seguimiento y escalamiento automáticos
+                    </div>
                   </div>
-                  <h3 className="mt-5 text-lg font-bold tracking-[-0.04em] text-white">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-400">{item.text}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* CONTACTO */}
-          <section id="contacto" className="mt-24">
-            <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-gradient-to-br from-[#0d1727] via-[#122841] to-[#1b5ed6] p-8 text-white shadow-[0_40px_100px_rgba(2,8,18,0.6)] md:p-12">
-              <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#7dd3fc]/20 blur-[80px]" />
-              <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                <div className="max-w-2xl">
-                  <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-blue-100/80">Upway</p>
-                  <h2 className="mt-4 text-3xl font-black tracking-[-0.05em] text-white md:text-5xl">
-                    Diseñemos tu flujo ideal.
-                  </h2>
-                  <p className="mt-4 text-base leading-7 text-blue-100/80">
-                    Armaremos la solución, definiremos el modelo operativo y te ayudaremos a convertir cada interacción en una ventaja real.
-                  </p>
-                </div>
-
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <Link href="/login" className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5">
-                    Hablar con un especialista
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                  <Link href="#sectores" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10">
-                    Elegir mi industria
-                  </Link>
                 </div>
               </div>
             </div>
-          </section>
-        </div>
+          </div>
+        </section>
+
+        {/* PANEL / SOLUCIÓN */}
+        <section id="solucion" className="max-w-[1180px] mx-[15px] md:mx-auto my-[30px] md:my-[50px] p-[30px] md:p-[55px] rounded-[30px] bg-[#f5fbff] grid grid-cols-1 lg:grid-cols-[0.8fr_1.2fr] gap-[45px]">
+          <div>
+            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Todo en una sola plataforma</div>
+            <h2 className="text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold">
+              Comunicación y gestión para una mejor atención.
+            </h2>
+            <p className="text-[#55718f] leading-[1.6]">
+              Optimiza la operación de tu institución de salud con tecnología que simplifica procesos, mejora la experiencia del paciente y aumenta la eficiencia de tu equipo.
+            </p>
+            <div className="grid grid-cols-2 gap-[14px] mt-[25px] text-[12px] font-semibold text-[#0d3168]">
+              <span className="flex items-center gap-2 before:content-['✓'] before:text-[#10b7b2]">Automatiza recordatorios</span>
+              <span className="flex items-center gap-2 before:content-['✓'] before:text-[#10b7b2]">Reduce ausencias</span>
+              <span className="flex items-center gap-2 before:content-['✓'] before:text-[#10b7b2]">Integra canales</span>
+              <span className="flex items-center gap-2 before:content-['✓'] before:text-[#10b7b2]">Protege datos</span>
+            </div>
+          </div>
+          <div className="bg-white border border-[#dce9f4] rounded-[18px] p-[17px] shadow-[0_20px_45px_#173e6815]">
+            <div className="font-extrabold mb-[15px] text-[#0d3168]">
+              UPWAY <small className="text-[#10a9aa] tracking-[1px]">HEALTH</small>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-[0.7fr_1fr_1fr] gap-[10px]">
+              <aside className="bg-[#f7fbff] rounded-[12px] p-[14px] text-[10px] leading-[2] text-[#224a76] font-medium">
+                ⌂ Inicio<br />♙ Pacientes<br />▣ Citas<br />◉ Triage<br />◌ Conversaciones<br />▥ Reportes
+              </aside>
+              <div className="bg-[#f7fbff] rounded-[12px] p-[14px] text-[10px] text-[#54718f]">
+                <b className="text-[#0d3168] block mb-1">Hoy · Agenda de citas</b>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">María González · 08:00</p>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">Carlos Ramírez · 09:30</p>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">Laura Torres · 11:00</p>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">Andrés Silva · 14:00</p>
+              </div>
+              <div className="bg-[#f7fbff] rounded-[12px] p-[14px] text-[10px] text-[#54718f]">
+                <b className="text-[#0d3168] block mb-1">Canales de comunicación</b>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">🟢 WhatsApp · Activo</p>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">🔵 Voz · Activo</p>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">🟣 SMS · Activo</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* BENEFICIOS */}
+        <section id="beneficios" className="max-w-[1180px] mx-auto my-[55px] md:my-[80px] grid grid-cols-1 md:grid-cols-[0.7fr_1.3fr] gap-[60px] items-center px-5 md:px-[5%]">
+          <Image
+            src="/atencion-paciente.png"
+            alt="Atención médica centrada en el paciente"
+            width={375}
+            height={285}
+            className="w-full rounded-[35px] object-cover"
+          />
+          <div>
+            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Beneficios reales para tu institución</div>
+            <h2 className="text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold text-[#0d3168]">
+              Una solución pensada en la salud y en las personas.
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[25px]">
+              <article className="py-[15px]">
+                <b className="text-[#0d3168]">Mayor acceso</b>
+                <p className="text-[12px] my-[7px] text-[#55718f]">Facilita la comunicación y el agendamiento.</p>
+              </article>
+              <article className="py-[15px]">
+                <b className="text-[#0d3168]">Mejor adherencia</b>
+                <p className="text-[12px] my-[7px] text-[#55718f]">Recordatorios y seguimiento continuo.</p>
+              </article>
+              <article className="py-[15px]">
+                <b className="text-[#0d3168]">Procesos más eficientes</b>
+                <p className="text-[12px] my-[7px] text-[#55718f]">Reduce carga administrativa.</p>
+              </article>
+              <article className="py-[15px]">
+                <b className="text-[#0d3168]">Seguridad y trazabilidad</b>
+                <p className="text-[12px] my-[7px] text-[#55718f]">Seguimiento de cada interacción.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        {/* SECTORES */}
+        <section id="sectores" className="bg-[#f4faff] py-[65px] px-[5%] text-center">
+          <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Ideal para</div>
+          <h2 className="text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold text-[#0d3168]">
+            Todos los actores del sistema de salud.
+          </h2>
+          <p className="text-[#55718f] leading-[1.6] mb-[30px]">
+            Una plataforma flexible para diferentes modelos de atención.
+          </p>
+          <div className="max-w-[1180px] mx-auto mt-[30px] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-[15px] text-left">
+            <article className="bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1">
+              <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">✚</span>
+              <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">Clínicas</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Optimiza la atención hospitalaria y la gestión de pacientes.</p>
+            </article>
+            <article className="bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1">
+              <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">♧</span>
+              <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">IPS</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Mejora la operación y comunicación con tu población.</p>
+            </article>
+            <article className="bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1">
+              <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">▣</span>
+              <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">EPS</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Fortalece el acceso, seguimiento y trazabilidad.</p>
+            </article>
+            <article className="bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1">
+              <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">◫</span>
+              <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">Centros de salud</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Simplifica citas y coordinación.</p>
+            </article>
+            <article className="bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1">
+              <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">◉</span>
+              <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">Consultorios</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Lleva tu práctica médica al siguiente nivel.</p>
+            </article>
+          </div>
+
+          {/* Imagen de Sectores (ruta corregida) */}
+          <div className="max-w-[1180px] mx-auto mt-12 rounded-[25px] overflow-hidden shadow-[0_20px_50px_#153f6815] border border-[#e0edf6]">
+            <Image
+              src="/sectores-salud.png"
+              alt="Sectores de atención"
+              width={890}
+              height={195}
+              className="w-full h-auto object-cover"
+            />
+          </div>
+        </section>
+
+        {/* CTA CONTACTO */}
+        <section id="contacto" className="py-[48px] px-5 md:px-[8%] flex flex-col md:flex-row items-center justify-between bg-[linear-gradient(110deg,#103d79,#0b858d)] text-white gap-8">
+          <div>
+            <small className="text-[13px] text-[#50e1d5] font-semibold block mb-2">Transforma la atención en salud hoy</small>
+            <h2 className="text-[28px] max-w-[650px] m-0 font-extrabold leading-[1.2]">
+              Tu institución merece una <em className="not-italic text-[#50e1d5]">comunicación más inteligente.</em>
+            </h2>
+          </div>
+          <a
+            href="mailto:hola@upway.business"
+            className="inline-flex shrink-0 items-center justify-center px-[23px] py-[14px] rounded-full font-bold text-[13px] bg-white text-[#123e77] hover:bg-slate-100 transition"
+          >
+            Solicita una demo gratuita →
+          </a>
+        </section>
 
         {/* FOOTER */}
-        <footer className="relative z-10 mx-auto mt-2 w-full max-w-7xl border-t border-white/10 px-6 py-8 text-sm text-slate-400 md:px-10">
-          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-white/15 bg-white/5">
-                <Image src="/upway.png" alt="Upway logo" width={28} height={28} className="h-7 w-7 object-contain" />
-              </div>
-              <span className="font-semibold text-white">Upway Business</span>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400">
-              <Link href="#soluciones" className="transition hover:text-white">Privacidad</Link>
-              <Link href="#sectores" className="transition hover:text-white">Términos</Link>
-              <a href="mailto:contacto@upway.business" className="transition hover:text-white">contacto@upway.business</a>
-            </div>
-
-            <p className="text-xs text-slate-500">
-              © {new Date().getFullYear()} Upway Business. Todos los derechos reservados.
-            </p>
+        <footer className="flex flex-col sm:flex-row justify-between items-center p-[28px_5%] text-[12px] text-[#55718f] gap-4">
+          <div className="font-extrabold text-[25px] tracking-[-1px] text-[#103a77]">
+            UPW<span className="text-[#11b7b1]">▲</span>Y <small className="text-[10px] tracking-[2px] ml-1 font-bold">HEALTH</small>
           </div>
+          <span className="font-medium">Tecnología que cuida.</span>
         </footer>
       </main>
     </>
