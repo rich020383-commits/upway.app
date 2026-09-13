@@ -113,7 +113,7 @@ const fieldHelp: Partial<Record<keyof OnboardingForm, string>> = {
 function FieldHint({ text }: { text?: string }) {
   if (!text) return null;
   return (
-    <p className="mt-1.5 flex items-start gap-1.5 text-[12px] leading-5 text-slate-500">
+    <p className="mt-1 flex items-start gap-1.5 text-[11px] leading-5 text-slate-500">
       <span className="mt-0.5 text-[#1b5ed6]">ℹ️</span>
       <span>{text}</span>
     </p>
@@ -171,18 +171,18 @@ const stageContent: Record<
   (form: OnboardingForm, onChange: <K extends keyof OnboardingForm>(key: K, value: OnboardingForm[K]) => void) => React.ReactNode
 > = {
   'clinic-setup': (form, onChange) => (
-    <div style={{ display: 'grid', gap: 16 }}>
-      <div style={{ display: 'grid', gap: 12 }}>
+    <div style={{ display: 'grid', gap: 12 }}>
+      <div style={{ display: 'grid', gap: 8 }}>
         <label style={labelStyle}>Nombre comercial</label>
         <input placeholder="Ej. IPS Norte Salud" value={form.clinicName} onChange={(event) => onChange('clinicName', event.target.value)} style={inputStyle} />
         <FieldHint text={fieldHelp.clinicName} />
       </div>
-      <div style={{ display: 'grid', gap: 12 }}>
+      <div style={{ display: 'grid', gap: 8 }}>
         <label style={labelStyle}>Razon social</label>
         <input placeholder="Ej. Norte Salud IPS S.A.S." value={form.legalName} onChange={(event) => onChange('legalName', event.target.value)} style={inputStyle} />
         <FieldHint text={fieldHelp.legalName} />
       </div>
-      <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr 1fr' }}>
+      <div style={{ display: 'grid', gap: 8, gridTemplateColumns: '1fr 1fr' }}>
         <div style={{ display: 'grid', gap: 8 }}>
           <label style={labelStyle}>NIT</label>
           <input placeholder="Ej. 900123456-1" value={form.nit} onChange={(event) => onChange('nit', event.target.value)} style={inputStyle} />
@@ -194,14 +194,14 @@ const stageContent: Record<
           <FieldHint text={fieldHelp.location} />
         </div>
       </div>
-      <div style={{ padding: 14, borderRadius: 14, border: '1px solid #dfe9ff', background: '#f4f8ff', display: 'grid', gap: 12 }}>
+      <div style={{ padding: 12, borderRadius: 12, border: '1px solid #dfe9ff', background: '#f4f8ff', display: 'grid', gap: 10 }}>
         <div style={{ fontWeight: 800, color: '#163557' }}>Contacto de implementacion (white-glove)</div>
         <div style={{ display: 'grid', gap: 8 }}>
           <label style={labelStyle}>Nombre del contacto</label>
           <input placeholder="Ej. Ana Operaciones" value={form.contactName} onChange={(event) => onChange('contactName', event.target.value)} style={inputStyle} />
           <FieldHint text={fieldHelp.contactName} />
         </div>
-        <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr 1fr' }}>
+        <div style={{ display: 'grid', gap: 8, gridTemplateColumns: '1fr 1fr' }}>
           <div style={{ display: 'grid', gap: 8 }}>
             <label style={labelStyle}>Celular</label>
             <input placeholder="Ej. 3001234567" value={form.contactPhone} onChange={(event) => onChange('contactPhone', event.target.value)} style={inputStyle} />
@@ -214,7 +214,7 @@ const stageContent: Record<
           </div>
         </div>
       </div>
-      <div style={{ display: 'grid', gap: 12 }}>
+      <div style={{ display: 'grid', gap: 8 }}>
         <label style={labelStyle}>Especialidad principal</label>
         <input placeholder="Ej. Medicina general y urgencias" value={form.specialty} onChange={(event) => onChange('specialty', event.target.value)} style={inputStyle} />
         <FieldHint text={fieldHelp.specialty} />
@@ -383,20 +383,20 @@ function ReviewSummary({ form, onChange }: {
 }
 
 const labelStyle: React.CSSProperties = {
-  fontSize: 12,
+  fontSize: 11,
   fontWeight: 700,
   color: '#4c6686',
-  letterSpacing: '0.05em',
+  letterSpacing: '0.04em',
   textTransform: 'uppercase',
 };
 
 const inputStyle: React.CSSProperties = {
   border: '1px solid #dfeaf7',
-  borderRadius: 12,
+  borderRadius: 10,
   background: '#f8fbff',
   color: '#17314a',
-  padding: '12px 14px',
-  fontSize: 14,
+  padding: '9px 12px',
+  fontSize: 13,
   fontWeight: 600,
   outline: 'none',
 };
@@ -583,9 +583,9 @@ export default function HealthOnboardingPage() {
   };
 
   return (
-    <div className="w-full">
+    <div className="mx-auto w-full max-w-6xl">
       <div className="w-full">
-        <div className="mb-5 flex items-center justify-between gap-3">
+        <div className="mb-4 flex items-center justify-between gap-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.22em] text-slate-600 shadow-[0_10px_30px_rgba(15,23,42,0.04)] backdrop-blur-sm">
             <span className="h-2 w-2 rounded-full bg-[#1b5ed6]" />
             Upway Health
@@ -601,20 +601,20 @@ export default function HealthOnboardingPage() {
               <div className="text-slate-700 font-semibold">Cargando sesión de onboarding…</div>
             </section>
           ) : (
-            <section className="upway-surface rounded-[30px] p-5 md:p-7">
+            <section className="upway-surface rounded-[24px] p-4 md:p-5">
               <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
                   <div className="text-[11px] font-mono uppercase tracking-[0.18em] text-slate-500">
                     Paso {currentStageIndex + 1} de {onboardingStages.length} · Onboarding
                   </div>
-                  <h1 className="mt-2 text-3xl font-black tracking-[-0.05em] text-slate-900 md:text-[2rem]">{stageMeta.label}</h1>
+                  <h1 className="mt-2 text-2xl font-black tracking-[-0.05em] text-slate-900 md:text-[1.7rem]">{stageMeta.label}</h1>
                 </div>
                 <div className="rounded-full border border-[#dfeaff] bg-[#edf4ff] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#1b5ed6]">
                   {stageMeta.subtitle}
                 </div>
               </div>
 
-              <div className="mb-6 rounded-[20px] border border-[#dfeaff] bg-[#f4f9ff] p-4 shadow-[0_8px_18px_rgba(27,94,214,0.03)]">
+              <div className="mb-5 rounded-[18px] border border-[#dfeaff] bg-[#f4f9ff] p-3 shadow-[0_8px_18px_rgba(27,94,214,0.03)]">
                 <div className="flex items-start gap-2.5">
                   <span className="mt-0.5 text-base leading-none" aria-hidden="true">💡</span>
                   <p className="text-sm leading-6 text-slate-700">
@@ -624,7 +624,7 @@ export default function HealthOnboardingPage() {
                 <p className="mt-2 text-sm leading-6 text-slate-500">{stageMeta.description}</p>
               </div>
 
-              <div className="mb-6">
+              <div className="mb-5">
                 <div className="mb-2 flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.16em] text-slate-500">
                   <span>Progreso</span>
                   <span>{Math.round(progress)}%</span>
@@ -639,7 +639,7 @@ export default function HealthOnboardingPage() {
 
               <div className="grid gap-5">{renderStage(form, updateField)}</div>
 
-              <div className="mt-7 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
+              <div className="mt-5 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
                 <button
                   onClick={goPrev}
                   disabled={currentStageIndex === 0}

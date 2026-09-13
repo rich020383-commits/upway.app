@@ -1,0 +1,18 @@
+
+> upway.business@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://172.19.48.1:3000
+- Environments: .env
+✓ Ready in 55s
+⚠ Slow filesystem detected. The benchmark took 29340ms. If c:\Users\ANDRES\Upway\upway-app\.next/dev is a network drive, consider moving it to a local folder.
+See more: https://nextjs.org/docs/app/guides/local-development
+○ Compiling proxy ...
+- Experiments (use with caution):
+  · cpus: 1
+
+○ Compiling / ...
+✓ Finished writing to filesystem cache in 12.4s
+✓ Finished writing to filesystem cache in 13.7s

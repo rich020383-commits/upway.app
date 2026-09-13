@@ -13,8 +13,8 @@ export type PlanFormSlice = {
   crmOrAgenda: string;
 };
 
-const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 700, color: '#4c6686', letterSpacing: '0.05em', textTransform: 'uppercase' };
-const inp: React.CSSProperties = { border: '1px solid #dfeaf7', borderRadius: 12, background: '#f8fbff', color: '#17314a', padding: '12px 14px', fontSize: 14, fontWeight: 600, outline: 'none' };
+const lbl: React.CSSProperties = { fontSize: 11, fontWeight: 700, color: '#4c6686', letterSpacing: '0.04em', textTransform: 'uppercase' };
+const inp: React.CSSProperties = { border: '1px solid #dfeaf7', borderRadius: 10, background: '#f8fbff', color: '#17314a', padding: '9px 12px', fontSize: 13, fontWeight: 600, outline: 'none' };
 
 function FacilityGrid(props: { form: PlanFormSlice; onChange: (k: keyof PlanFormSlice, v: string) => void; estimated: number }) {
   const { form, onChange, estimated } = props;
@@ -48,7 +48,7 @@ function VolumeBox(props: { form: PlanFormSlice; onChange: (k: keyof PlanFormSli
   const { form, onChange, estimated, recName, approval } = props;
   return (
     <div style={{ display: 'grid', gap: 12 }}>
-      <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr 1fr' }}>
+      <div style={{ display: 'grid', gap: 10, gridTemplateColumns: '1fr 1fr' }}>
         <div style={{ display: 'grid', gap: 8 }}>
           <label style={lbl}>Llamadas / dia (est.)</label>
           <input type="number" min={0} placeholder="Ej. 40" value={form.dailyCalls} onChange={(e) => onChange('dailyCalls', e.target.value)} style={inp} />
@@ -58,9 +58,9 @@ function VolumeBox(props: { form: PlanFormSlice; onChange: (k: keyof PlanFormSli
           <input type="number" min={0} step="0.5" placeholder="Ej. 3" value={form.avgCallMinutes} onChange={(e) => onChange('avgCallMinutes', e.target.value)} style={inp} />
         </div>
       </div>
-      <div style={{ background: '#0f172a', color: '#e2e8f0', borderRadius: 14, padding: 14, display: 'grid', gap: 6 }}>
+      <div style={{ background: '#0f172a', color: '#e2e8f0', borderRadius: 12, padding: 12, display: 'grid', gap: 6 }}>
         <div style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#94a3b8' }}>Estimacion honesta</div>
-        <div style={{ fontSize: 22, fontWeight: 900 }}>~{estimated.toLocaleString('es-CO')} min/mes</div>
+        <div style={{ fontSize: 20, fontWeight: 900 }}>~{estimated.toLocaleString('es-CO')} min/mes</div>
         <div style={{ fontSize: 13, color: '#cbd5e1' }}>Recomendado: <strong style={{ color: '#fff' }}>{recName}</strong>{approval ? ' · capacidad ampliada (Upway la tramita)' : ''}</div>
       </div>
     </div>
@@ -147,12 +147,12 @@ export function PlanPicker(props: {
   }, [recommended.id]);
   const selected = getHealthPlan(form.planId);
   return (
-    <div style={{ display: 'grid', gap: 16 }}>
+    <div style={{ display: 'grid', gap: 12 }}>
       <FacilityGrid form={form} onChange={onChange} estimated={estimated} />
       <VolumeBox form={form} onChange={onChange} estimated={estimated} recName={recommended.name} approval={recommended.requiresTelnyxApproval} />
       <PlanList visible={visible} form={form} onChange={onChange} hint={hint} recId={recommended.id} />
       {selected ? (
-        <div style={{ background: '#f4f8ff', border: '1px solid #dfe9ff', borderRadius: 14, padding: 14, fontSize: 13, color: '#334155' }}>
+        <div style={{ background: '#f4f8ff', border: '1px solid #dfe9ff', borderRadius: 12, padding: 12, fontSize: 13, color: '#334155' }}>
           <strong style={{ color: '#163557' }}>{selected.name}</strong>: {selected.bestFor}
         </div>
       ) : null}
