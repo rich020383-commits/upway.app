@@ -150,7 +150,6 @@ export default function Home() {
   // Efecto para cancelar el video en computadora (apaga el splash en pantallas >= 768px)
   const shouldSkipSplash = typeof window !== 'undefined' && window.innerWidth >= 768;
 
-  // Efecto para cancelar el video en computadora (apaga el splash en pantallas >= 768px)
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -171,7 +170,6 @@ export default function Home() {
     return () => mediaQuery.removeListener(updateBreakpoint);
   }, [isMobile]);
 
-  // Apaga el splash en pantallas grandes de forma deferida (evita setState síncrono en efecto)
   useEffect(() => {
     if (!shouldSkipSplash) return;
     const id = requestAnimationFrame(() => setShowSplash(false));
@@ -225,20 +223,21 @@ export default function Home() {
             preload="metadata"
             onLoadedData={() => setSplashVideoLoaded(true)}
             onEnded={handleVideoEnd}
-            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${splashVideoLoaded ? 'opacity-100' : 'opacity-0'}`}
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
+              splashVideoLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
           />
         </div>
       )}
 
-      {/* LANDING PAGE - Con overflow bloqueado y anchos optimizados para móvil */}
+      {/* LANDING PAGE */}
       <main className="upway-dark-shell relative min-h-screen w-full max-w-full overflow-x-hidden bg-[#050b16] text-slate-100">
-
-        {/* Resplandor superior encapsulado para evitar desbordamiento horizontal */}
+        {/* Resplandor superior */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] overflow-hidden">
           <div className="absolute left-1/2 top-0 h-[420px] w-[820px] -translate-x-1/2 rounded-full bg-[#2d78ff]/20 blur-[140px]" />
         </div>
 
-        {/* HEADER: px-3.5 en celular para ganar ancho */}
+        {/* HEADER */}
         <header className="relative z-20 mx-auto flex w-full max-w-7xl items-center justify-between px-3.5 py-4 sm:px-6 md:px-10 md:py-6">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-white/5 shadow-[0_10px_30px_rgba(45,120,255,0.25)] backdrop-blur-md">
@@ -272,15 +271,14 @@ export default function Home() {
           </div>
         </header>
 
-        {/* CONTENEDOR PRINCIPAL: px-3 en móvil aprovecha máximo cada centímetro */}
-        <div className="relative z-10 mx-auto max-w-7xl px-3 sm:px-6 md:px-10 pb-20">
+        {/* CONTENEDOR PRINCIPAL */}
+        <div className="relative z-10 mx-auto max-w-7xl px-3 pb-20 sm:px-6 md:px-10">
           <section>
-
             {/* VIDEO CINEMATOGRÁFICO DE SOPHIE V2 */}
             <div className="relative mb-10 overflow-hidden rounded-[24px] border border-white/15 bg-slate-950 shadow-[0_40px_120px_rgba(2,8,18,0.7)] ring-1 ring-[#2d78ff]/25 md:mb-14 md:rounded-[32px]">
               <div className="absolute -inset-px rounded-[24px] bg-gradient-to-r from-[#2d78ff]/40 via-transparent to-[#7dd3fc]/30 opacity-60 blur-sm md:rounded-[32px]" />
 
-              <div className="relative aspect-video w-full overflow-hidden rounded-t-[24px] md:aspect-auto md:h-[500px] lg:h-[560px] md:rounded-[32px]">
+              <div className="relative aspect-video w-full overflow-hidden rounded-t-[24px] md:aspect-auto md:h-[500px] md:rounded-[32px] lg:h-[560px]">
                 <video
                   ref={heroVideoRef}
                   src={heroVideoReady ? '/sophie-optimizada.webm' : undefined}
@@ -292,13 +290,15 @@ export default function Home() {
                   onLoadedData={() => setHeroVideoLoaded(true)}
                   disablePictureInPicture
                   controlsList="nodownload nofullscreen"
-                  className={`h-full w-full object-cover object-center transition-opacity duration-300 ${heroVideoLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  className={`h-full w-full object-cover object-center transition-opacity duration-300 ${
+                    heroVideoLoaded ? 'opacity-100' : 'opacity-0'
+                  }`}
                 />
                 <div className="absolute inset-0 hidden bg-gradient-to-t from-[#050b16] via-[#050b16]/20 to-transparent md:block"></div>
                 <div className="absolute inset-0 hidden bg-gradient-to-r from-[#050b16]/60 via-transparent to-[#050b16]/50 md:block"></div>
               </div>
 
-              <div className="relative z-10 flex flex-col justify-between gap-4 border-t border-white/10 bg-[#0a1424]/95 p-4 sm:p-6 backdrop-blur-md md:absolute md:bottom-12 md:left-12 md:right-12 md:flex-row md:items-end md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
+              <div className="relative z-10 flex flex-col justify-between gap-4 border-t border-white/10 bg-[#0a1424]/95 p-4 backdrop-blur-md sm:p-6 md:absolute md:bottom-12 md:left-12 md:right-12 md:flex-row md:items-end md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
                 <div className="max-w-2xl space-y-2 sm:space-y-3">
                   <div className="inline-flex items-center gap-2 rounded-full border border-[#7dd3fc]/30 bg-[#7dd3fc]/10 px-3 py-1 text-[11px] font-bold text-[#7dd3fc]">
                     <span className="relative flex h-2 w-2">
@@ -347,21 +347,21 @@ export default function Home() {
                 </p>
 
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-  <button
-    type="button"
-    onClick={() => window.dispatchEvent(new Event('abrir-chat'))}
-    className="btn-glow-primary inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold text-white transition hover:-translate-y-0.5"
-  >
-    Hablar con un especialista
-    <ArrowRight className="h-4 w-4" />
-  </button>
-  <Link
-   href="#sectores"
-   className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-3.5 text-sm font-semibold text-slate-200 backdrop-blur-md transition hover:border-white/30 hover:bg-white/10"
-  >
-   Ver sectores
-  </Link>
-</div>
+                  <button
+                    type="button"
+                    onClick={() => window.dispatchEvent(new Event('abrir-chat'))}
+                    className="btn-glow-primary inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold text-white transition hover:-translate-y-0.5"
+                  >
+                    Hablar con un especialista
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                  <Link
+                    href="#sectores"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-3.5 text-sm font-semibold text-slate-200 backdrop-blur-md transition hover:border-white/30 hover:bg-white/10"
+                  >
+                    Ver sectores
+                  </Link>
+                </div>
 
                 <div className="mt-6 flex flex-wrap gap-2 text-[10px] font-medium uppercase tracking-[0.14em] text-slate-400">
                   {trustTags.map((tag) => (
@@ -375,8 +375,7 @@ export default function Home() {
               {/* DEMO EN VIVO */}
               <div className="relative">
                 <div className="absolute -inset-2 rounded-[32px] bg-[#2d78ff]/15 blur-2xl md:-inset-6 md:rounded-[40px] md:blur-3xl" />
-                <div className="relative overflow-hidden rounded-[24px] border border-white/15 bg-gradient-to-br from-[#0c1626]/95 via-[#0e1d33]/90 to-[#142d54]/85 p-4 sm:p-6 md:p-8 shadow-2xl backdrop-blur-xl md:rounded-[32px]">
-
+                <div className="relative overflow-hidden rounded-[24px] border border-white/15 bg-gradient-to-br from-[#0c1626]/95 via-[#0e1d33]/90 to-[#142d54]/85 p-4 shadow-2xl backdrop-blur-xl sm:p-6 md:rounded-[32px] md:p-8">
                   <div className="flex items-center justify-between border-b border-white/10 pb-3">
                     <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
                       <span className="relative flex h-2 w-2">
@@ -410,7 +409,7 @@ export default function Home() {
 
                     <a
                       href="tel:+573126427856"
-                      className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-3.5 text-sm font-bold text-white backdrop-blur-md transition hover:bg-white/15 hover:border-white/30 active:scale-95"
+                      className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-3.5 text-sm font-bold text-white backdrop-blur-md transition hover:border-white/30 hover:bg-white/15 active:scale-95"
                     >
                       <PhoneCall className="h-4 w-4 text-[#7dd3fc]" />
                       Llamar al agente de voz
@@ -431,10 +430,8 @@ export default function Home() {
                   <p className="mt-3 text-center text-[10px] text-slate-400">
                     * Hazle preguntas complejas para evaluar su criterio operativo.
                   </p>
-
                 </div>
               </div>
-
             </div>
           </section>
 
@@ -503,6 +500,7 @@ export default function Home() {
             </div>
           </section>
 
+          {/* SECTORES */}
           <section id="sectores" className="mt-24">
             <div className="mb-8 max-w-3xl">
               <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-[#7dd3fc]">Sectores</p>
@@ -539,6 +537,7 @@ export default function Home() {
             </div>
           </section>
 
+          {/* PROBLEMA */}
           <section id="soluciones" className="mt-24 rounded-[32px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-md md:p-10">
             <div className="max-w-2xl">
               <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-[#7dd3fc]">Problema</p>
@@ -560,6 +559,7 @@ export default function Home() {
             </div>
           </section>
 
+          {/* PROCESO */}
           <section id="proceso" className="mt-24">
             <div className="max-w-2xl">
               <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-[#7dd3fc]">Solución</p>
@@ -581,6 +581,7 @@ export default function Home() {
             </div>
           </section>
 
+          {/* CONTACTO */}
           <section id="contacto" className="mt-24">
             <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-gradient-to-br from-[#0d1727] via-[#122841] to-[#1b5ed6] p-8 text-white shadow-[0_40px_100px_rgba(2,8,18,0.6)] md:p-12">
               <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#7dd3fc]/20 blur-[80px]" />
@@ -591,7 +592,7 @@ export default function Home() {
                     Diseñemos tu flujo ideal.
                   </h2>
                   <p className="mt-4 text-base leading-7 text-blue-100/80">
-                    Armaramos la solución, definiremos el modelo operativo y te ayudaremos a convertir cada interacción en una ventaja real.
+                    Armaremos la solución, definiremos el modelo operativo y te ayudaremos a convertir cada interacción en una ventaja real.
                   </p>
                 </div>
 
@@ -609,6 +610,7 @@ export default function Home() {
           </section>
         </div>
 
+        {/* FOOTER */}
         <footer className="relative z-10 mx-auto mt-2 w-full max-w-7xl border-t border-white/10 px-6 py-8 text-sm text-slate-400 md:px-10">
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3">
@@ -623,6 +625,10 @@ export default function Home() {
               <Link href="#sectores" className="transition hover:text-white">Términos</Link>
               <a href="mailto:contacto@upway.business" className="transition hover:text-white">contacto@upway.business</a>
             </div>
+
+            <p className="text-xs text-slate-500">
+              © {new Date().getFullYear()} Upway Business. Todos los derechos reservados.
+            </p>
           </div>
         </footer>
       </main>
