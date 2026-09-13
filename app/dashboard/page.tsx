@@ -1,222 +1,280 @@
 import Link from 'next/link';
-import { ArrowRight, Sparkles, ShieldCheck, CalendarRange, MessageCircleMore, Headphones } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-slate-900 selection:text-white">
+    <div className="min-h-screen bg-white text-[#0d3168] font-sans selection:bg-[#11b7b1] selection:text-white scroll-smooth">
 
       {/* Navbar Superior */}
-      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-white font-black text-lg shadow-sm">
-              UP
-            </div>
-            <span className="font-extrabold tracking-tight text-xl text-slate-900">
-              Upway <span className="text-slate-500 font-medium text-sm">Business</span>
-            </span>
-          </div>
-          <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
-            <a href="#soluciones" className="hover:text-slate-900 transition">Soluciones</a>
-            <a href="#proceso" className="hover:text-slate-900 transition">Proceso</a>
-          </nav>
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-sm font-semibold text-slate-700 hover:text-slate-900 transition">
-              Panel
-            </Link>
-            <Link
-              href="/dashboard/onboarding/lienzo?segment=general"
-              className="flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-slate-800 transition"
-            >
-              Reservar demo <ArrowRight size={16} />
-            </Link>
-          </div>
-        </div>
+      <header className="sticky top-0 z-50 flex h-[74px] items-center justify-between px-5 md:px-[5%] border-b border-[#edf3f8] bg-[#fffdfdf2]/90 backdrop-blur-md">
+        <Link href="#" className="font-extrabold text-[23px] md:text-[29px] tracking-[-1.5px] text-[#103a77] flex items-center">
+          UPW<span className="text-[#11b7b1]">▲</span>Y<small className="text-[12px] tracking-[2px] ml-2.5 font-bold">HEALTH</small>
+        </Link>
+        <nav className="hidden md:flex gap-[34px] text-[13px] font-medium text-[#31547f]">
+          <a href="#solucion" className="hover:text-[#103a77] transition">Solución</a>
+          <a href="#beneficios" className="hover:text-[#103a77] transition">Beneficios</a>
+          <a href="#sectores" className="hover:text-[#103a77] transition">Sectores</a>
+          <a href="#contacto" className="hover:text-[#103a77] transition">Contacto</a>
+        </nav>
+        <a href="#contacto" className="hidden sm:inline-flex items-center justify-center rounded-full bg-[#0c3775] px-[23px] py-[10px] md:py-[14px] text-[11px] md:text-[13px] font-bold text-white hover:bg-[#092a5c] transition shadow-md">
+          Solicita una demo →
+        </a>
       </header>
 
-      {/* Hero Section */}
-      <section className="mx-auto max-w-7xl px-4 pt-16 pb-24 sm:px-6 lg:pt-24 lg:pb-32">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-
-          {/* Columna Izquierda: Mensaje Directo al Empresario */}
-          <div className="lg:col-span-6 space-y-8">
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-slate-700 shadow-sm">
-              <Sparkles size={14} className="text-slate-900" /> Operación premium
-            </div>
-
-            <h1 className="text-5xl lg:text-6xl font-black tracking-tight text-slate-900 leading-[1.08]">
-              Control total para hacer crecer tu operación.
+      <main>
+        {/* Hero Section */}
+        <section className="max-w-[1280px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 pt-[45px] md:pt-[70px] pb-[55px] px-5 md:px-[5%] items-center bg-[radial-gradient(circle_at_80%_30%,_#e8fbfa,_transparent_40%)]">
+          <div className="flex flex-col">
+            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">♥ &nbsp; Software de atención en salud</div>
+            <h1 className="text-[35px] md:text-[52px] leading-[1.06] tracking-[-2px] md:tracking-[-2.6px] m-0 mb-[22px] font-extrabold">
+              Conecta tu centro de salud con tus pacientes.<br />
+              <em className="not-italic text-[#11b4b0]">Más simple, más humano.</em>
             </h1>
-
-            <p className="text-lg text-slate-600 leading-relaxed max-w-xl">
-              Centralizamos atención, ventas, agenda y seguimiento para empresas, inmobiliarias, retail y equipos operativos que quieren crecer con orden, velocidad y claridad.
+            <p className="text-[16px] leading-[1.65] text-[#49698f] max-w-[600px]">
+              UPWAY Health unifica la comunicación, la gestión de citas y la atención al paciente en clínicas, IPS, EPS, centros de salud y consultorios.
             </p>
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
-              <Link
-                href="/dashboard/onboarding/lienzo?segment=general"
-                className="flex items-center justify-center gap-2 rounded-full bg-slate-900 px-8 py-4 text-sm font-bold text-white shadow-xl hover:bg-slate-800 transition"
-              >
-                Agendar consultoría <ArrowRight size={18} />
-              </Link>
+            <div className="flex flex-col sm:flex-row gap-3 my-[26px]">
+              <a href="#contacto" className="inline-flex items-center justify-center rounded-full bg-[#0c3775] px-[23px] py-[14px] text-[13px] font-bold text-white hover:bg-[#092a5c] transition">
+                Solicita una demo gratuita →
+              </a>
+              <a href="#solucion" className="inline-flex items-center justify-center rounded-full border border-[#b8cce3] bg-white px-[23px] py-[14px] text-[13px] font-bold text-[#0c3775] hover:bg-slate-50 transition">
+                Descubre cómo funciona
+              </a>
             </div>
-
-            <div className="flex flex-wrap items-center gap-3 pt-4">
-              {['Atención', 'Ventas', 'Agenda', 'Triage', 'Operación'].map((tag, i) => (
-                <span key={i} className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-bold text-slate-600 shadow-sm">
-                  {tag}
-                </span>
-              ))}
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-[20px] text-[#315982] text-[10px] font-semibold uppercase tracking-wide mt-2">
+              <span className="flex items-center gap-1">▣ Citas y agendamiento</span>
+              <span className="flex items-center gap-1">♧ Recordatorios</span>
+              <span className="flex items-center gap-1">◉ Comunicación multicanal</span>
+              <span className="flex items-center gap-1">▥ Reportes</span>
             </div>
           </div>
+          <div className="relative mt-8 md:mt-0">
+            <img src="/hero-doctora.png" alt="Profesional de salud usando tecnología" className="w-full rounded-[34px] block shadow-[0_25px_70px_#163f681c] object-cover" />
+            <div className="absolute left-2 md:-left-[35px] top-[40px] md:top-[65px] bg-white border border-[#e2edf5] rounded-[15px] p-[13px_17px] shadow-[0_12px_35px_#173e6820] text-[11px] leading-tight">
+              ◉ <b className="font-bold">Recordatorio de cita</b><br />
+              <small className="text-gray-500 text-[10px]">Cita confirmada para mañana</small>
+            </div>
+            <div className="absolute -right-2 md:-right-[18px] bottom-[20px] md:bottom-[30px] bg-white border border-[#e2edf5] rounded-[15px] p-[13px_17px] shadow-[0_12px_35px_#173e6820] text-[11px] text-[#087c7d] font-medium">
+              ✓ <b className="font-bold">Pacientes más satisfechos</b>
+            </div>
+          </div>
+        </section>
 
-          {/* Columna Derecha: El Command Center con Sophie v2 (Video Animado Prominente) */}
-          <div className="lg:col-span-6">
-            <div className="relative rounded-[32px] border border-slate-800 bg-[#0A0D14] p-6 shadow-[0_30px_70px_rgba(15,23,42,0.2)] text-white">
-
-              {/* Barra de Estado Superior */}
-              <div className="flex items-center justify-between pb-6 border-b border-slate-800">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-cyan-400">
-                  <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                  Operación activa
-                </div>
-                <span className="text-xs font-mono text-slate-400">live</span>
+        {/* Sección Sophie v2 (Rescatada intacta) */}
+        <section className="bg-[#05080F] py-20 px-5 md:px-[5%] border-y border-slate-800">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <div className="lg:col-span-6 space-y-6">
+              <div className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-800/50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-cyan-400 shadow-sm">
+                <Sparkles size={14} className="text-cyan-400" /> Operación Autónoma
               </div>
-
-              <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 my-6 p-4 flex items-center gap-5 shadow-inner">
-                <div className="relative h-20 w-20 shrink-0 rounded-2xl overflow-hidden border border-slate-700 bg-slate-900 shadow-md bg-gradient-to-br from-slate-800 via-slate-900 to-cyan-950 flex items-center justify-center">
-                  <Sparkles size={28} className="text-cyan-300" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-cyan-400 mb-1">
-                    <Sparkles size={14} /> Upway Business
+              <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white leading-[1.1]">
+                Sophie v2:<br/>IA telefónica para tu centro médico.
+              </h2>
+              <p className="text-lg text-slate-400 leading-relaxed max-w-xl">
+                Automatiza el alto tráfico de llamadas. Sophie responde, califica urgencias y agenda citas en tiempo real con una voz humana y empática, 24/7 sin descuidar a ningún paciente.
+              </p>
+            </div>
+            
+            {/* El Command Center original de tu código */}
+            <div className="lg:col-span-6">
+              <div className="relative rounded-[32px] border border-slate-800 bg-[#0A0D14] p-6 shadow-[0_30px_70px_rgba(15,23,42,0.2)] text-white">
+                {/* Barra de Estado Superior */}
+                <div className="flex items-center justify-between pb-6 border-b border-slate-800">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-cyan-400">
+                    <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                    Operación activa
                   </div>
-                  <p className="text-xs text-slate-300 leading-relaxed">
-                    Sincronizando atención, agenda y seguimiento comercial con contexto operativo completo.
-                  </p>
+                  <span className="text-xs font-mono text-slate-400">live</span>
+                </div>
+
+                <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 my-6 p-4 flex items-center gap-5 shadow-inner">
+                  <div className="relative h-20 w-20 shrink-0 rounded-2xl overflow-hidden border border-slate-700 bg-slate-900 shadow-md bg-gradient-to-br from-slate-800 via-slate-900 to-cyan-950 flex items-center justify-center">
+                    <Sparkles size={28} className="text-cyan-300" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-cyan-400 mb-1">
+                      <Sparkles size={14} /> Upway Health
+                    </div>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      Sincronizando atención, agenda y seguimiento comercial con contexto operativo completo.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Estadísticas en vivo */}
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5">
+                    <p className="text-xs font-semibold text-slate-400 mb-1">ATENCIONES</p>
+                    <p className="text-3xl font-black tracking-tight text-white">+38%</p>
+                    <p className="text-[11px] text-slate-400 mt-1">respuestas más rápidas</p>
+                  </div>
+                  <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5">
+                    <p className="text-xs font-semibold text-slate-400 mb-1">CARGA</p>
+                    <p className="text-3xl font-black tracking-tight text-white">-42%</p>
+                    <p className="text-[11px] text-slate-400 mt-1">manual de atención</p>
+                  </div>
+                </div>
+
+                {/* Lista de Trabajo Crítico */}
+                <div className="rounded-2xl bg-slate-900/50 border border-slate-800 p-4 space-y-2.5">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-400 mb-2">
+                    <span>Trabajo crítico</span>
+                    <span className="text-emerald-400 flex items-center gap-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> en vivo
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs font-medium text-slate-300 bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-slate-800 text-[10px] font-bold text-slate-300">1</span>
+                    Calificación y priorización inteligente
+                  </div>
+                  <div className="flex items-center gap-3 text-xs font-medium text-slate-300 bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-slate-800 text-[10px] font-bold text-slate-300">2</span>
+                    Agenda y disponibilidad sincronizadas
+                  </div>
+                  <div className="flex items-center gap-3 text-xs font-medium text-slate-300 bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-slate-800 text-[10px] font-bold text-slate-300">3</span>
+                    Seguimiento y escalamiento automáticos
+                  </div>
                 </div>
               </div>
-
-              {/* Estadísticas en vivo */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5">
-                  <p className="text-xs font-semibold text-slate-400 mb-1">ATENCIONES</p>
-                  <p className="text-3xl font-black tracking-tight text-white">+38%</p>
-                  <p className="text-[11px] text-slate-400 mt-1">respuestas más rápidas</p>
-                </div>
-                <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5">
-                  <p className="text-xs font-semibold text-slate-400 mb-1">CARGA</p>
-                  <p className="text-3xl font-black tracking-tight text-white">-42%</p>
-                  <p className="text-[11px] text-slate-400 mt-1">manual de atención</p>
-                </div>
-              </div>
-
-              {/* Lista de Trabajo Crítico */}
-              <div className="rounded-2xl bg-slate-900/50 border border-slate-800 p-4 space-y-2.5">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-400 mb-2">
-                  <span>Trabajo crítico</span>
-                  <span className="text-emerald-400 flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> en vivo
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 text-xs font-medium text-slate-300 bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-slate-800 text-[10px] font-bold text-slate-300">1</span>
-                  Calificación y priorización inteligente
-                </div>
-                <div className="flex items-center gap-3 text-xs font-medium text-slate-300 bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-slate-800 text-[10px] font-bold text-slate-300">2</span>
-                  Agenda y disponibilidad sincronizadas
-                </div>
-                <div className="flex items-center gap-3 text-xs font-medium text-slate-300 bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-slate-800 text-[10px] font-bold text-slate-300">3</span>
-                  Seguimiento y escalamiento automáticos
-                </div>
-              </div>
-
             </div>
           </div>
+        </section>
 
-        </div>
-      </section>
-
-      {/* Sección de Soluciones / Pilares */}
-      <section id="soluciones" className="bg-white py-24 border-t border-slate-200">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-slate-900 mb-4">
-              Infraestructura unificada para escalar
+        {/* Panel (Solución) */}
+        <section id="solucion" className="max-w-[1180px] mx-[15px] md:mx-auto my-[30px] md:my-[50px] p-[30px] md:p-[55px] rounded-[30px] bg-[#f5fbff] grid grid-cols-1 lg:grid-cols-[0.8fr_1.2fr] gap-[45px]">
+          <div>
+            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Todo en una sola plataforma</div>
+            <h2 className="text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold">
+              Comunicación y gestión para una mejor atención.
             </h2>
-            <p className="text-slate-600 text-lg">
-              Todo lo que tu operación necesita para coordinar equipos, oportunidades y atención con precisión.
+            <p className="text-[#55718f] leading-[1.6]">
+              Optimiza la operación de tu institución de salud con tecnología que simplifica procesos, mejora la experiencia del paciente y aumenta la eficiencia de tu equipo.
             </p>
+            <div className="grid grid-cols-2 gap-[14px] mt-[25px] text-[12px] font-semibold text-[#0d3168]">
+              <span className="flex items-center gap-2 before:content-['✓'] before:text-[#10b7b2]">Automatiza recordatorios</span>
+              <span className="flex items-center gap-2 before:content-['✓'] before:text-[#10b7b2]">Reduce ausencias</span>
+              <span className="flex items-center gap-2 before:content-['✓'] before:text-[#10b7b2]">Integra canales</span>
+              <span className="flex items-center gap-2 before:content-['✓'] before:text-[#10b7b2]">Protege datos</span>
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="rounded-3xl border border-slate-200 p-8 bg-[#F8FAFC] flex flex-col justify-between transition hover:shadow-md">
-              <div>
-                <div className="h-12 w-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-900 mb-6 shadow-sm">
-                  <ShieldCheck size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">Centro de Control</h3>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  Inbox multicanal y tableros visuales para coordinar a todo tu equipo con trazabilidad total.
-                </p>
-              </div>
+          <div className="bg-white border border-[#dce9f4] rounded-[18px] p-[17px] shadow-[0_20px_45px_#173e6815]">
+            <div className="font-extrabold mb-[15px] text-[#0d3168]">
+              UPWAY <small className="text-[#10a9aa] tracking-[1px]">HEALTH</small>
             </div>
-
-            <div className="rounded-3xl border border-slate-200 p-8 bg-[#F8FAFC] flex flex-col justify-between transition hover:shadow-md">
-              <div>
-                <div className="h-12 w-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-900 mb-6 shadow-sm">
-                  <CalendarRange size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">Agenda Inteligente</h3>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  Gestión impecable de turnos, especialistas y disponibilidad sin cruces de horarios.
-                </p>
+            <div className="grid grid-cols-1 sm:grid-cols-[0.7fr_1fr_1fr] gap-[10px]">
+              <aside className="bg-[#f7fbff] rounded-[12px] p-[14px] text-[10px] leading-[2] text-[#224a76] font-medium">
+                ⌂ Inicio<br/>♙ Pacientes<br/>▣ Citas<br/>◉ Triage<br/>◌ Conversaciones<br/>▥ Reportes
+              </aside>
+              <div className="bg-[#f7fbff] rounded-[12px] p-[14px] text-[10px] text-[#54718f]">
+                <b className="text-[#0d3168] block mb-1">Hoy · Agenda de citas</b>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">María González · 08:00</p>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">Carlos Ramírez · 09:30</p>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">Laura Torres · 11:00</p>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">Andrés Silva · 14:00</p>
               </div>
-            </div>
-
-            <div className="rounded-3xl border border-slate-200 p-8 bg-[#F8FAFC] flex flex-col justify-between transition hover:shadow-md">
-              <div>
-                <div className="h-12 w-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-900 mb-6 shadow-sm">
-                  <MessageCircleMore size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">WhatsApp IA</h3>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  Captura, calificación y recordatorios automáticos operando 24/7 sin descuidar ningún lead.
-                </p>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-slate-200 p-8 bg-[#F8FAFC] flex flex-col justify-between transition hover:shadow-md">
-              <div>
-                <div className="h-12 w-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-900 mb-6 shadow-sm">
-                  <Headphones size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">Voz IA (Sophie v2)</h3>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  Recepcionista telefónica autónoma con voz humana natural para manejar alto tráfico de llamadas.
-                </p>
+              <div className="bg-[#f7fbff] rounded-[12px] p-[14px] text-[10px] text-[#54718f]">
+                <b className="text-[#0d3168] block mb-1">Canales de comunicación</b>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">🟢 WhatsApp · Activo</p>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">🔵 Voz · Activo</p>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">🟣 SMS · Activo</p>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* Benefits Section */}
+        <section id="beneficios" className="max-w-[1180px] mx-auto my-[55px] md:my-[80px] grid grid-cols-1 md:grid-cols-[0.7fr_1.3fr] gap-[60px] items-center px-5 md:px-[5%]">
+          <img src="/atencion-paciente.png" alt="Atención médica centrada en el paciente" className="w-full rounded-[35px] object-cover" />
+          <div>
+            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Beneficios reales para tu institución</div>
+            <h2 className="text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold text-[#0d3168]">
+              Una solución pensada en la salud y en las personas.
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[25px]">
+              <article className="py-[15px]">
+                <b className="text-[#0d3168]">Mayor acceso</b>
+                <p className="text-[12px] my-[7px] text-[#55718f]">Facilita la comunicación y el agendamiento.</p>
+              </article>
+              <article className="py-[15px]">
+                <b className="text-[#0d3168]">Mejor adherencia</b>
+                <p className="text-[12px] my-[7px] text-[#55718f]">Recordatorios y seguimiento continuo.</p>
+              </article>
+              <article className="py-[15px]">
+                <b className="text-[#0d3168]">Procesos más eficientes</b>
+                <p className="text-[12px] my-[7px] text-[#55718f]">Reduce carga administrativa.</p>
+              </article>
+              <article className="py-[15px]">
+                <b className="text-[#0d3168]">Seguridad y trazabilidad</b>
+                <p className="text-[12px] my-[7px] text-[#55718f]">Seguimiento de cada interacción.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        {/* Sectores Section */}
+        <section id="sectores" className="bg-[#f4faff] py-[65px] px-[5%] text-center">
+          <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Ideal para</div>
+          <h2 className="text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold text-[#0d3168]">
+            Todos los actores del sistema de salud.
+          </h2>
+          <p className="text-[#55718f] leading-[1.6] mb-[30px]">
+            Una plataforma flexible para diferentes modelos de atención.
+          </p>
+          <div className="max-w-[1180px] mx-auto mt-[30px] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-[15px] text-left">
+            <article className="bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1">
+              <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">✚</span>
+              <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">Clínicas</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Optimiza la atención hospitalaria y la gestión de pacientes.</p>
+            </article>
+            <article className="bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1">
+              <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">♧</span>
+              <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">IPS</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Mejora la operación y comunicación con tu población.</p>
+            </article>
+            <article className="bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1">
+              <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">▣</span>
+              <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">EPS</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Fortalece el acceso, seguimiento y trazabilidad.</p>
+            </article>
+            <article className="bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1">
+              <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">◫</span>
+              <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">Centros de salud</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Simplifica citas y coordinación.</p>
+            </article>
+            <article className="bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1">
+              <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">◉</span>
+              <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">Consultorios</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Lleva tu práctica médica al siguiente nivel.</p>
+            </article>
+          </div>
+          
+          {/* Imagen de Sectores solicitada */}
+          <div className="max-w-[1180px] mx-auto mt-12 rounded-[25px] overflow-hidden shadow-[0_20px_50px_#153f6815] border border-[#e0edf6]">
+            <img src="/sectores-sañud.png" alt="Sectores de atención" className="w-full h-auto object-cover" />
+          </div>
+        </section>
+
+        {/* CTA Contacto */}
+        <section id="contacto" className="py-[48px] px-5 md:px-[8%] flex flex-col md:flex-row items-center justify-between bg-[linear-gradient(110deg,#103d79,#0b858d)] text-white gap-8">
+          <div>
+            <small className="text-[13px] text-[#50e1d5] font-semibold block mb-2">Transforma la atención en salud hoy</small>
+            <h2 className="text-[28px] max-w-[650px] m-0 font-extrabold leading-[1.2]">
+              Tu institución merece una <em className="not-italic text-[#50e1d5]">comunicación más inteligente.</em>
+            </h2>
+          </div>
+          <a href="mailto:hola@upway.business" className="inline-flex shrink-0 items-center justify-center px-[23px] py-[14px] rounded-full font-bold text-[13px] bg-white text-[#123e77] hover:bg-slate-100 transition">
+            Solicita una demo gratuita →
+          </a>
+        </section>
+      </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-[#F8FAFC] py-12">
-        <div className="mx-auto max-w-7xl px-6 flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-slate-500">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white font-bold text-xs">
-              UP
-            </div>
-            <span className="font-bold text-slate-900">Upway Business</span>
-          </div>
-          <p>© 2026 Upway. Todos los derechos reservados.</p>
-          <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="hover:text-slate-900 transition">Panel</Link>
-            <Link href="/dashboard/onboarding/lienzo" className="hover:text-slate-900 transition">Configuración</Link>
-          </div>
+      <footer className="flex flex-col sm:flex-row justify-between items-center p-[28px_5%] text-[12px] text-[#55718f] gap-4">
+        <div className="font-extrabold text-[25px] tracking-[-1px] text-[#103a77]">
+          UPW<span className="text-[#11b7b1]">▲</span>Y <small className="text-[10px] tracking-[2px] ml-1 font-bold">HEALTH</small>
         </div>
+        <span className="font-medium">Tecnología que cuida.</span>
       </footer>
 
     </div>
