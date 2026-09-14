@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ShieldCheck, Lock, FileText, CheckCircle2, Activity } from 'lucide-react';
+import { LEGAL_ENTITY } from '@/lib/legal';
 
 export default function PrivacyPolicyPage() {
   return (
@@ -31,7 +32,7 @@ export default function PrivacyPolicyPage() {
                 Política de Privacidad Integral
               </h1>
               <p className="text-sm text-slate-400">
-                Upway (BARAKAH TECH HUB S.A.S.) — Última actualización: 31 de agosto de 2026
+                Upway ({LEGAL_ENTITY}) — Última actualización: 31 de agosto de 2026
               </p>
             </div>
           </div>
@@ -58,14 +59,14 @@ export default function PrivacyPolicyPage() {
             <section className="space-y-3 bg-emerald-950/20 p-6 rounded-2xl border border-emerald-500/20">
               <h2 className="text-xl font-semibold text-white flex items-center gap-2">
                 <Activity className="h-5 w-5 text-emerald-400" />
-                2. Upway Health y Privacidad de Datos Médicos (HIPAA)
+                2. Upway Health y Privacidad de Datos Medicos (Ley 1581 y normativa colombiana)
               </h2>
               <p className="text-slate-300 mt-2">
                 En nuestra vertical de salud (<strong>Upway Health</strong>), procesamos información de pacientes (chats, notas de voz, agendas) <strong>estrictamente en calidad de Encargados del Tratamiento</strong>.
               </p>
               <ul className="list-disc pl-6 space-y-2 text-slate-400 mt-3">
                 <li><strong>Aislamiento de Infraestructura:</strong> Los datos de pacientes se almacenan en arquitecturas de bases de datos compartimentadas (Multi-tenant lógicos mediante identificadores únicos de clínica) o contenedores dedicados.</li>
-                <li><strong>Cero Entrenamiento Externo:</strong> Upway garantiza que la información clínica y personal recolectada por nuestros clientes <strong>NO</strong> se utiliza para entrenar inteligencias artificiales públicas ni se comparte con corporaciones de terceros sin acuerdos de confidencialidad médica (BAA).</li>
+                <li><strong>Cero Entrenamiento Externo:</strong> Upway garantiza que la información clínica y personal recolectada por nuestros clientes <strong>NO</strong> se utiliza para entrenar inteligencias artificiales públicas ni se comparte con corporaciones de terceros sin acuerdos de confidencialidad médica (BAA) cuando aplique.</li>
                 <li><strong>Seguridad Sensible:</strong> Aplicamos cifrado en tránsito (HTTPS/WSS) y medidas de protección avanzadas exigidas por las regulaciones locales (Ley 1581) e internacionales.</li>
               </ul>
             </section>
@@ -84,9 +85,9 @@ export default function PrivacyPolicyPage() {
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-xl font-semibold text-white">4. Integración con Meta y Voz (Vapi)</h2>
+              <h2 className="text-xl font-semibold text-white">4. Integración con Meta y Voz (Telnyx)</h2>
               <p>
-                Upway utiliza canales de comunicación avalados por Meta y procesadores de voz en la nube. Prohibimos a nuestros clientes el uso de técnicas de extracción de datos (scraping). La clínica cliente se compromete a notificar a sus pacientes que las interacciones de voz y texto serán procesadas por sistemas automatizados.
+                Upway utiliza canales de comunicación avalados por Meta y procesadores de voz (Telnyx), modelos de lenguaje (Google Gemini y Groq), cobros (Bold) y envío de correo (Zoho), siempre bajo contratos de encargo del tratamiento. Prohibimos a nuestros clientes el uso de técnicas de extracción de datos (scraping). La clínica cliente se compromete a notificar a sus pacientes que las interacciones de voz y texto serán procesadas por sistemas automatizados.
               </p>
             </section>
 
@@ -105,7 +106,7 @@ export default function PrivacyPolicyPage() {
               <CheckCircle2 className="h-4 w-4" />
               Soberanía de Datos y Cumplimiento Ley 1581 de 2012
             </span>
-            <span>© 2026 BARAKAH TECH HUB S.A.S. Todos los derechos reservados.</span>
+            <span>© 2026 {LEGAL_ENTITY} Todos los derechos reservados.</span>
           </div>
 
         </div>

@@ -3,6 +3,7 @@
 import React from 'react';
 import { ShieldCheck, ArrowLeft, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
+import { LEGAL_ENTITY } from '@/lib/legal';
 
 export default function TerminosPage() {
   return (
@@ -31,7 +32,7 @@ export default function TerminosPage() {
           <div className="prose prose-invert max-w-none prose-slate relative z-10 font-body">
 
             <p className="lead text-lg text-slate-300 mb-8 font-medium">
-              Bienvenido a Upway (incluyendo sus verticales <strong className="text-white">Upway Business</strong> y <strong className="text-[#00D1FF]">Upway Health</strong>). Los presentes Términos regulan el acceso a la infraestructura SaaS operada por <strong className="text-white">BARAKAH TECH HUB S.A.S.</strong>
+              Bienvenido a Upway (incluyendo sus verticales <strong className="text-white">Upway Business</strong> y <strong className="text-[#00D1FF]">Upway Health</strong>). Los presentes Términos regulan el acceso a la infraestructura SaaS operada por <strong className="text-white">{LEGAL_ENTITY}</strong>
             </p>
             <p className="mb-8 leading-relaxed">
               Al registrarse o utilizar nuestra plataforma de inteligencia artificial y automatización omnicanal, el usuario (en adelante, &quot;el Cliente&quot; o &quot;la Clínica&quot;) acepta someterse a estos términos.
@@ -57,7 +58,7 @@ export default function TerminosPage() {
               <span className="text-[#00D1FF]">03.</span> Inteligencia Artificial (Alucinaciones y Límites)
             </h3>
             <p className="mb-4 leading-relaxed">
-              El Cliente comprende que la IA puede generar respuestas imprecisas (&quot;alucinaciones&quot;). BARAKAH TECH HUB S.A.S. no asume responsabilidad civil ni médica por interacciones autónomas de la IA con los pacientes. El Cliente debe utilizar el mecanismo de <em>Human Handoff</em> (intervención humana) para gestionar consultas críticas o que excedan la capacidad administrativa del bot.
+              El Cliente comprende que la IA puede generar respuestas imprecisas (&quot;alucinaciones&quot;). {LEGAL_ENTITY} no asume responsabilidad civil ni médica por interacciones autónomas de la IA con los pacientes. El Cliente debe utilizar el mecanismo de <em>Human Handoff</em> (intervención humana) para gestionar consultas críticas o que excedan la capacidad administrativa del bot.
             </p>
 
             <h3 className="text-xl font-bold text-white mt-10 mb-4 flex items-center gap-2">
@@ -65,7 +66,7 @@ export default function TerminosPage() {
             </h3>
             <p className="mb-4 leading-relaxed">Queda expresamente prohibido:</p>
             <ul className="list-none space-y-3 mb-6">
-              <li className="flex gap-3"><span className="text-[#00D1FF]">✦</span> <span>Violar políticas de Meta Platforms (WhatsApp), Vapi, Google o AWS.</span></li>
+              <li className="flex gap-3"><span className="text-[#00D1FF]">✦</span> <span>Violar políticas de Meta Platforms (WhatsApp), Telnyx, Google, Groq o Bold.</span></li>
               <li className="flex gap-3"><span className="text-[#00D1FF]">✦</span> <span>Extraer código, realizar ingeniería inversa o clonar la arquitectura multi-tenant de Upway.</span></li>
               <li className="flex gap-3"><span className="text-[#00D1FF]">✦</span> <span>Procesar o solicitar mediante el bot información bancaria explícita (como CVV de tarjetas) que viole estándares PCI-DSS.</span></li>
             </ul>

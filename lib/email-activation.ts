@@ -5,6 +5,8 @@
  * Solo construyen HTML/texto; el envío lo hace sendEmail() de lib/email.ts.
  */
 
+import { LEGAL_ENTITY } from '@/lib/legal';
+
 type ShellData = { title: string; preheader?: string; bodyHtml: string };
 
 function buildShell({ title, preheader, bodyHtml }: ShellData): string {
@@ -24,7 +26,7 @@ function buildShell({ title, preheader, bodyHtml }: ShellData): string {
   ${preheader ? `<p style="margin:0 0 20px;font-size:14px;color:#64748b;">${preheader}</p>` : ''}
   ${bodyHtml}
 </td></tr>
-<tr><td style="padding-top:16px;text-align:center;font-size:11px;color:#94a3b8;">Upway Business Group S.A.S · upway.business</td></tr>
+<tr><td style="padding-top:16px;text-align:center;font-size:11px;color:#94a3b8;">${LEGAL_ENTITY} · upway.business</td></tr>
 </table></body></html>`;
 }
 

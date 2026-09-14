@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { LEGAL_ENTITY } from '@/lib/legal';
 
 const SMTP_HOST = process.env.SMTP_HOST ?? '';
 const SMTP_PORT = Number(process.env.SMTP_PORT ?? 587);
@@ -108,7 +109,7 @@ function buildHealthOnboardingEmailHtml(data: HealthOnboardingEmailData): string
     </ol>
   </div>
 </td></tr>
-<tr><td style="padding-top:16px;text-align:center;font-size:11px;color:#94a3b8;">Upway Business Group S.A.S \u00b7 Correo generado autom\u00e1ticamente</td></tr>
+<tr><td style="padding-top:16px;text-align:center;font-size:11px;color:#94a3b8;">${LEGAL_ENTITY} \u00b7 Correo generado autom\u00e1ticamente</td></tr>
 </table></body></html>`;
 }
 

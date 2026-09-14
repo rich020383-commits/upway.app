@@ -4,10 +4,11 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, MessageCircle, Phone, Sparkles } from 'lucide-react';
+import { LEGAL_ENTITY } from '@/lib/legal';
 
 const UpwayLogo = ({ className = '' }: { className?: string }) => (
-  <div className={`inline-flex items-center px-4 py-2 rounded-2xl bg-gradient-to-r from-[#0f172a] to-[#1b3a5f] shadow-lg overflow-hidden ${className}`}>
-    <Image src="/upway.png" alt="Upway" width={100} height={28} className="h-6 md:h-7 w-auto object-contain" priority />
+  <div className={`inline-flex items-center px-4 py-2 rounded-2xl bg-black shadow-lg overflow-hidden ${className}`}>
+    <Image src="/upway.png" alt="Upway" width={1000} height={667} className="h-7 md:h-8 w-auto object-contain" priority />
   </div>
 );
 
@@ -479,7 +480,7 @@ export default function Home() {
               UPW<span className="text-[#11b7b1]">▲</span>Y <small className="text-[10px] tracking-[2px] ml-1 font-bold">HEALTH</small>
             </div>
             <span className="text-center text-[11px] leading-relaxed text-[#55718f] md:text-left">
-              Tecnología que cuida · © {new Date().getFullYear()} <strong className="font-semibold text-[#31547f]">Upway Business Group S.A.S</strong>
+              Tecnología que cuida · © {new Date().getFullYear()} <strong className="font-semibold text-[#31547f]">{LEGAL_ENTITY}</strong>
             </span>
           </div>
 

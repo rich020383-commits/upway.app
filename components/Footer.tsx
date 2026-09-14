@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { LEGAL_ENTITY } from '@/lib/legal';
 
 export default function Footer() {
   return (
@@ -69,7 +70,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
-          <p>© {new Date().getFullYear()} Upway Business Group S.A.S. Todos los derechos reservados.</p>
+          <p>© {new Date().getFullYear()} {LEGAL_ENTITY} Todos los derechos reservados.</p>
           <p className="text-slate-500">Hecho en Bogotá, Colombia 🇨🇴</p>
         </div>
       </div>
