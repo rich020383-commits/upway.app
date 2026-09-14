@@ -401,7 +401,12 @@ export default function Home() {
           <p className="text-[#55718f] leading-[1.6] mb-[30px]">
             Una plataforma flexible para diferentes modelos de atención.
           </p>
-          <div className="max-w-[1180px] mx-auto mt-[30px] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-[15px] text-left">
+          <div className="max-w-[1180px] mx-auto mb-[20px] flex justify-center">
+            <Link href="/precios" className="inline-flex items-center gap-2 rounded-full border border-[#1b5ed6] bg-[#edf5ff] px-5 py-2 text-[12px] font-bold text-[#1b5ed6] transition hover:bg-[#1b5ed6] hover:text-white">
+              💰 Ver planes y precios →
+            </Link>
+          </div>
+          <div className="max-w-[1180px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-[15px] text-left">
             <Link href="/login?segment=health" className="block bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
               <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">✚</span>
               <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">Clínicas</h3>

@@ -1,5 +1,6 @@
 'use client';
 import { useEffect } from 'react';
+import Link from 'next/link';
 import { FACILITY_TYPE_OPTIONS, IVA_RATE, type FacilityType, withIVA } from '@/lib/health/plans';
 import { ALL_HEALTH_PLANS, estimateMinutesFromVolume, formatCOP, getHealthPlan, recommendPlan } from '@/lib/health/plans-enterprise';
 
@@ -96,6 +97,7 @@ function PlanList(props: { visible: typeof ALL_HEALTH_PLANS; form: PlanFormSlice
               <div>{plan.includedMinutes.toLocaleString('es-CO')} min · {plan.includedNumbers} numero(s) · hasta {plan.concurrentCalls} simultaneas</div>
               <div>Overage: {plan.overageCOP > 0 ? `$${plan.overageCOP.toLocaleString('es-CO')} COP/min` : 'A cotizar'}{!plan.autoActivatable ? ' · No auto-activar (deal desk)' : ''}</div>
             </div>
+            <Link href={`/precios#${plan.id}`} style={{ marginTop: 8, fontSize: 12, color: '#1b5ed6', fontWeight: 600 }} onClick={(e) => e.stopPropagation()}>Ver detalles →</Link>
           </button>
         );
       })}
