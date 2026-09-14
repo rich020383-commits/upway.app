@@ -3,45 +3,75 @@ import Image from 'next/image';
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-950 text-slate-400 py-16">
-      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
-        <div className="space-y-4">
-          <Image src="/upway.png" alt="Upway Business" width={140} height={38} className="h-9 w-auto object-contain brightness-0 invert" />
-          <p className="text-sm">Potenciando empresas mediante Inteligencia Artificial estratégica.</p>
-        </div>
-        
-        <div>
-          <h4 className="text-white font-semibold mb-6">Plataforma</h4>
-          <ul className="space-y-3 text-sm">
-            <li><a href="/login" className="hover:text-blue-500 transition-colors">Iniciar Sesión</a></li>
-            <li><a href="/registro" className="hover:text-blue-500 transition-colors">Crear Cuenta</a></li>
-            <li><a href="#precios" className="hover:text-blue-500 transition-colors">Planes y Precios</a></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="text-white font-semibold mb-6">Empresa</h4>
-          <ul className="space-y-3 text-sm">
-            <li>Nosotros</li>
-            <li>Casos de Éxito</li>
-            <li>Contacto</li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="text-white font-semibold mb-6">Legal</h4>
-          <ul className="space-y-3 text-sm">
-            <li>
-              <Link href="/privacy" className="hover:text-blue-500 transition-colors">
-                Privacidad
-              </Link>
-            </li>
-            <li><a href="#terminos" className="hover:text-blue-500 transition-colors">Términos de servicio</a></li>
-          </ul>
-        </div>
+    <footer className="bg-gradient-to-br from-[#0f172a] via-[#132642] to-[#0d1727] text-slate-400 overflow-hidden">
+      {/* Curved top divider */}
+      <div className="relative">
+        <svg className="w-full h-12 text-white" viewBox="0 0 1200 120" preserveAspectRatio="none">
+          <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" fill="currentColor" />
+        </svg>
       </div>
-      <div className="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-slate-800 text-sm text-center md:text-left">
-        © {new Date().getFullYear()} Upway Business. Todos los derechos reservados.
+
+      <div className="max-w-7xl mx-auto px-6 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10">
+              <Image src="/upway.png" alt="Upway Business" width={100} height={28} className="h-6 w-auto object-contain brightness-0 invert" />
+            </div>
+            <p className="text-sm leading-relaxed">Potenciando empresas mediante Inteligencia Artificial estratégica.</p>
+            <div className="flex gap-3 pt-2">
+              <a href="#" className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#1b5ed6] flex items-center justify-center transition-all hover:-translate-y-0.5">
+                <span className="text-xs font-bold">Li</span>
+              </a>
+              <a href="#" className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#1b5ed6] flex items-center justify-center transition-all hover:-translate-y-0.5">
+                <span className="text-xs font-bold">Tw</span>
+              </a>
+            </div>
+          </div>
+          
+          <div>
+            <h4 className="text-white font-semibold mb-6 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#1b5ed6]" />
+              Plataforma
+            </h4>
+            <ul className="space-y-3 text-sm">
+              <li><Link href="/login" className="hover:text-blue-400 transition-colors">Iniciar Sesión</Link></li>
+              <li><Link href="/register" className="hover:text-blue-400 transition-colors">Crear Cuenta</Link></li>
+              <li><Link href="/precios" className="hover:text-blue-400 transition-colors">Planes y Precios</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-white font-semibold mb-6 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              Industrias
+            </h4>
+            <ul className="space-y-3 text-sm">
+              <li><Link href="/industries/clinicas" className="hover:text-blue-400 transition-colors">Clínicas y Salud</Link></li>
+              <li><a href="#" className="hover:text-blue-400 transition-colors">Industria</a></li>
+              <li><a href="#" className="hover:text-blue-400 transition-colors">Gobierno</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-white font-semibold mb-6 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-500" />
+              Legal
+            </h4>
+            <ul className="space-y-3 text-sm">
+              <li>
+                <Link href="/privacy" className="hover:text-blue-400 transition-colors">
+                  Privacidad
+                </Link>
+              </li>
+              <li><a href="#" className="hover:text-blue-400 transition-colors">Términos de servicio</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
+          <p>© {new Date().getFullYear()} Upway Business Group S.A.S. Todos los derechos reservados.</p>
+          <p className="text-slate-500">Hecho en Bogotá, Colombia 🇨🇴</p>
+        </div>
       </div>
     </footer>
   );

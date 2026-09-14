@@ -44,7 +44,7 @@ export default function Header({ onOpenModal }: { onOpenModal: () => void }) {
           </a>
           <button 
             onClick={onOpenModal}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md flex items-center space-x-2 group"
+            className="bg-gradient-to-r from-[#1b5ed6] to-[#0d47a1] hover:from-[#1548a8] hover:to-[#0a3d8f] text-white text-sm font-semibold px-6 py-2.5 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center space-x-2 group"
           >
             <span>Agenda una demostración</span>
             <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
