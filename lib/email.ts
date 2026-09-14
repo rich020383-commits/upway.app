@@ -4,8 +4,8 @@ const SMTP_HOST = process.env.SMTP_HOST ?? '';
 const SMTP_PORT = Number(process.env.SMTP_PORT ?? 587);
 const SMTP_USER = process.env.SMTP_USER ?? '';
 const SMTP_PASS = process.env.SMTP_PASS ?? '';
-const SMTP_FROM = process.env.SMTP_FROM ?? 'Upway Health <onboarding@upway.business>';
-const UPWAY_REVIEW_EMAIL = process.env.UPWAY_REVIEW_EMAIL ?? 'cto@upway.business';
+const SMTP_FROM = process.env.SMTP_FROM ?? 'Upway Health <activacionplan@upway.business>';
+const UPWAY_REVIEW_EMAIL = process.env.UPWAY_REVIEW_EMAIL ?? 'activacionplan@upway.business';
 
 export interface HealthOnboardingEmailData {
   clinicName: string;
