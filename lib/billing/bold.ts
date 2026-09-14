@@ -3,6 +3,29 @@
  *
  * Documentación: https://developers.bold.co (API Link de pagos / Webhook API).
  *
+ * ¿Por qué LINK DE PAGOS y NO "API de Pagos en Línea"?
+ * ---------------------------------------------------
+ * Bold tiene productos distintos y el T&C pesado (v1.1.1, vigente 2025-11-28)
+ * aplica ÚNICAMENTE a la "API de Pagos en Línea", donde el comercio captura los
+ * datos de tarjeta en su propio sitio. Ese régimen exige:
+ *   - PCI DSS SAQ D, revalidado cada año;
+ *   - proceso de certificación previo de la implementación;
+ *   - auditorías aleatorias SIN notificación previa;
+ *   - notificación de incidentes en máximo 24 h, indemnidad a Bold y reembolso
+ *     de costos correctivos a cargo del comercio.
+ *
+ * Con LINK DE PAGOS el checkout lo hospeda Bold (pay.bold.co), los datos de
+ * tarjeta NUNCA pasan por Upway y ese T&C no aplica: nos rigen los T&C Generales
+ * y los T&C de Procesamiento de pagos.
+ *
+ * El "botón" del correo es un simple `<a href>` hacia esa URL (ver buttonHtml en
+ * lib/email-activation.ts). El producto "Botón de pago" de Bold es un plugin/SDK
+ * embebible en un sitio web, así que NO sirve para correo: los clientes de correo
+ * bloquean JavaScript y scripts externos.
+ *
+ * ️ NO migrar a la "API de Pagos en Línea" sin asumir formalmente esas
+ * obligaciones (PCI DSS SAQ D + certificación + auditorías).
+ *
  * ⚠️ Contratos que conviene re-verificar contra el panel de Bold al activar:
  * - Endpoint: POST https://integrations.api.bold.co/online/link/v1
  *   Header de autenticación: "Authorization: x-api-key <BOLD_API_KEY>".
