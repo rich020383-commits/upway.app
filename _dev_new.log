@@ -107,3 +107,81 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
     at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)
     at TLSWrap.callbackTrampoline (node:internal/async_hooks:130:17)
 🔁 Reintentando conexión del Listener en 1s...
+✓ Finished filesystem cache database compaction in 3.4min
+❌ Error conectando el Listener a Neon: Error: read ECONNRESET
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)
+    at TLSWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+🔁 Reintentando conexión del Listener en 1s...
+✓ Finished filesystem cache database compaction in 3.1min
+✓ Finished writing to filesystem cache in 20.1s
+❌ Error conectando el Listener a Neon: Error: read ECONNRESET
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)
+    at TLSWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+🔁 Reintentando conexión del Listener en 1s...
+❌ Error conectando el Listener a Neon: Error: read ECONNRESET
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)
+    at TLSWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+🔁 Reintentando conexión del Listener en 1s...
+❌ Error conectando el Listener a Neon: Error: read ECONNRESET
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)
+    at TLSWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+🔁 Reintentando conexión del Listener en 1s...
+❌ Error conectando el Listener a Neon: Error: read ECONNRESET
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)
+    at TLSWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+🔁 Reintentando conexión del Listener en 1s...
+❌ Error conectando el Listener a Neon: Error: read ECONNRESET
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)
+    at TLSWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+🔁 Reintentando conexión del Listener en 1s...
+❌ Error conectando el Listener a Neon: Error: read ECONNRESET
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)
+    at TLSWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+🔁 Reintentando conexión del Listener en 1s...
+❌ Error conectando el Listener a Neon: Error: read ECONNRESET
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)
+    at TLSWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+🔁 Reintentando conexión del Listener en 1s...
+✓ Finished writing to filesystem cache in 19.6s
+❌ Error conectando el Listener a Neon: Error: read ECONNRESET
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)
+    at TLSWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+🔁 Reintentando conexión del Listener en 1s...
+❌ Error conectando el Listener a Neon: Error: read ECONNRESET
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)
+    at TLSWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+🔁 Reintentando conexión del Listener en 1s...
+✓ Finished filesystem cache database compaction in 69s
+❌ Error conectando el Listener a Neon: Error: read ECONNRESET
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)
+    at TLSWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+🔁 Reintentando conexión del Listener en 1s...
+❌ Error conectando el Listener a Neon: Error: read ECONNRESET
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)
+    at TLSWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+🔁 Reintentando conexión del Listener en 1s...
+❌ Error conectando el Listener a Neon: Error: read ECONNRESET
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)
+    at TLSWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+🔁 Reintentando conexión del Listener en 1s...
+
+<--- Last few GCs --->
+
+[3364:0000025046421000] 29733707 ms: Scavenge (interleaved) 6080.5 (6098.2) -> 6079.7 (6102.2) MB, pooled: 0 MB, 32.21 / 0.00 ms  (average mu = 0.277, current mu = 0.304) allocation failure; 
+[3364:0000025046421000] 29741136 ms: Mark-Compact (reduce) 6084.6 (6103.6) -> 6077.7 (6093.8) MB, pooled: 0 MB, 5260.22 / 6.44 ms  (+ 176.7 ms in 30 steps since start of marking, biggest step 8.8 ms, walltime since start of marking 5524 ms) (average mu = 
+FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64E653D9F node::OnFatalError+1343
+ 2: 00007FF64D29DCB7 v8::Function::NewInstance+423
+ 3: 00007FF64D09E4F7 uv_udp_get_send_queue_count+54423
+ 4: 00007FF64D0A2204 uv_udp_get_send_queue_count+70052
+ 5: 00007FF64D0B116C v8::internal::StrongRootAllocatorBase::deallocate_impl+16604
+ 6: 00007FF64D0B09AB v8::internal::StrongRootAllocatorBase::deallocate_impl+14619
+ 7: 00007FF64E9824AD node::AsyncResource::CallbackScope::CallbackScope+2184429
+ 8: 00007FF64D09BFC0 uv_udp_get_send_queue_count+44896
+ 9: 00007FF64D0B681A X509_STORE_set_cleanup+5098
+10: 00007FF64D0C2CB6 uv_timer_set_repeat+20694
+11: 00007FF64CC93907 v8::CodeEvent::GetFunctionName+131959
+12: 000002507EA775FA 
+[?25h

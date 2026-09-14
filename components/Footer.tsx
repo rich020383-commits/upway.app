@@ -1,11 +1,12 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Footer() {
   return (
     <footer className="bg-slate-950 text-slate-400 py-16">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
         <div className="space-y-4">
-          <div className="text-white font-bold text-xl tracking-tight">UPWAY BUSINESS</div>
+          <Image src="/upway.png" alt="Upway Business" width={140} height={38} className="h-9 w-auto object-contain brightness-0 invert" />
           <p className="text-sm">Potenciando empresas mediante Inteligencia Artificial estratégica.</p>
         </div>
         

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Menu, ArrowRight } from "lucide-react";
+import Image from "next/image";
 
 export default function Header({ onOpenModal }: { onOpenModal: () => void }) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -24,13 +25,8 @@ export default function Header({ onOpenModal }: { onOpenModal: () => void }) {
     }`}>
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
         {/* LOGO */}
-        <div className="flex items-center space-x-2 cursor-pointer">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-md">
-            <span className="text-white font-bold text-lg">↑</span>
-          </div>
-          <span className="text-slate-900 font-bold text-xl tracking-tight">
-            UPWAY <span className="text-blue-600">BUSINESS</span>
-          </span>
+        <div className="flex items-center cursor-pointer">
+          <Image src="/upway.png" alt="Upway Business" width={120} height={32} className="h-8 w-auto object-contain" priority />
         </div>
 
         {/* MENÚ CENTRAL */}
