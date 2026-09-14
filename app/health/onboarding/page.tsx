@@ -593,17 +593,27 @@ export default function HealthOnboardingPage() {
 
       // Notificar al equipo de Upway por correo
       try {
-        await fetch('/api/health/notify', {
+        const notifyPayload = {
+          formData: { ...form, clinicName: normalizedClinicName },
+          clinicName: normalizedClinicName,
+          nit: form.nit,
+        };
+        console.log('[onboarding] Enviando notificación:', notifyPayload);
+        
+        const notifyResponse = await fetch('/api/health/notify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            formData: { ...form, clinicName: normalizedClinicName },
-            clinicName: normalizedClinicName,
-            nit: form.nit,
-          }),
+          body: JSON.stringify(notifyPayload),
         });
+        
+        const notifyResult = await notifyResponse.json();
+        console.log('[onboarding] Respuesta de notificación:', notifyResult);
+        
+        if (!notifyResult.ok) {
+          console.warn('[onboarding] Notificación falló:', notifyResult.warning || notifyResult.error);
+        }
       } catch (notifyError) {
-        console.warn('No se pudo enviar notificación al equipo:', notifyError);
+        console.error('[onboarding] Error enviando notificación:', notifyError);
       }
 
       setSubmitted(true);
