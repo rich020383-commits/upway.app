@@ -172,9 +172,12 @@ const stageContent: Record<
 > = {
   'clinic-setup': (form, onChange) => (
     <div style={{ display: 'grid', gap: 12 }}>
+      <div style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #fde68a', background: '#fffbeb', fontSize: 12, color: '#92400e' }}>
+        <span style={{ fontWeight: 700 }}>Campos obligatorios (*)</span> — Son necesarios para procesar tu solicitud.
+      </div>
       <div style={{ display: 'grid', gap: 8 }}>
-        <label style={labelStyle}>Nombre comercial</label>
-        <input placeholder="Ej. IPS Norte Salud" value={form.clinicName} onChange={(event) => onChange('clinicName', event.target.value)} style={inputStyle} />
+        <label style={labelStyle}>Nombre comercial <span style={{ color: '#dc2626' }}>*</span></label>
+        <input placeholder="Ej. IPS Norte Salud" value={form.clinicName} onChange={(event) => onChange('clinicName', event.target.value)} style={{ ...inputStyle, borderColor: form.clinicName.trim() ? undefined : '#fca5a5' }} />
         <FieldHint text={fieldHelp.clinicName} />
       </div>
       <div style={{ display: 'grid', gap: 8 }}>
@@ -184,8 +187,8 @@ const stageContent: Record<
       </div>
       <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))' }}>
         <div style={{ display: 'grid', gap: 8, minWidth: 0 }}>
-          <label style={labelStyle}>NIT</label>
-          <input placeholder="Ej. 900123456-1" value={form.nit} onChange={(event) => onChange('nit', event.target.value)} style={inputStyle} />
+          <label style={labelStyle}>NIT <span style={{ color: '#dc2626' }}>*</span></label>
+          <input placeholder="Ej. 900123456-1" value={form.nit} onChange={(event) => onChange('nit', event.target.value)} style={{ ...inputStyle, borderColor: form.nit.trim() ? undefined : '#fca5a5' }} />
           <FieldHint text={fieldHelp.nit} />
         </div>
         <div style={{ display: 'grid', gap: 8 }}>
@@ -197,19 +200,19 @@ const stageContent: Record<
       <div style={{ padding: 12, borderRadius: 12, border: '1px solid #dfe9ff', background: '#f4f8ff', display: 'grid', gap: 10 }}>
         <div style={{ fontWeight: 800, color: '#163557' }}>Contacto de implementacion (white-glove)</div>
         <div style={{ display: 'grid', gap: 8 }}>
-          <label style={labelStyle}>Nombre del contacto</label>
-          <input placeholder="Ej. Ana Operaciones" value={form.contactName} onChange={(event) => onChange('contactName', event.target.value)} style={inputStyle} />
+          <label style={labelStyle}>Nombre del contacto <span style={{ color: '#dc2626' }}>*</span></label>
+          <input placeholder="Ej. Ana Operaciones" value={form.contactName} onChange={(event) => onChange('contactName', event.target.value)} style={{ ...inputStyle, borderColor: form.contactName.trim() ? undefined : '#fca5a5' }} />
           <FieldHint text={fieldHelp.contactName} />
         </div>
         <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))' }}>
           <div style={{ display: 'grid', gap: 8, minWidth: 0 }}>
-            <label style={labelStyle}>Celular</label>
-            <input placeholder="Ej. 3001234567" value={form.contactPhone} onChange={(event) => onChange('contactPhone', event.target.value)} style={inputStyle} />
+            <label style={labelStyle}>Celular <span style={{ color: '#dc2626' }}>*</span></label>
+            <input placeholder="Ej. 3001234567" value={form.contactPhone} onChange={(event) => onChange('contactPhone', event.target.value)} style={{ ...inputStyle, borderColor: form.contactPhone.trim() ? undefined : '#fca5a5' }} />
             <FieldHint text={fieldHelp.contactPhone} />
           </div>
           <div style={{ display: 'grid', gap: 8 }}>
-            <label style={labelStyle}>Email</label>
-            <input type="email" placeholder="Ej. ops@ips.com" value={form.contactEmail} onChange={(event) => onChange('contactEmail', event.target.value)} style={inputStyle} />
+            <label style={labelStyle}>Email <span style={{ color: '#dc2626' }}>*</span></label>
+            <input type="email" placeholder="Ej. ops@ips.com" value={form.contactEmail} onChange={(event) => onChange('contactEmail', event.target.value)} style={{ ...inputStyle, borderColor: form.contactEmail.trim() ? undefined : '#fca5a5' }} />
             <FieldHint text={fieldHelp.contactEmail} />
           </div>
         </div>
@@ -462,6 +465,18 @@ export default function HealthOnboardingPage() {
   const updateField = <K extends keyof OnboardingForm>(key: K, value: OnboardingForm[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
   };
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
+  const validateRequiredFields = (): string[] => {
+    const errors: string[] = [];
+    if (!form.clinicName.trim()) errors.push('El nombre de la clínica es obligatorio');
+    if (!form.nit.trim()) errors.push('El NIT es obligatorio');
+    if (!form.contactName.trim()) errors.push('El nombre de contacto es obligatorio');
+    if (!form.contactPhone.trim()) errors.push('El teléfono de contacto es obligatorio');
+    if (!form.contactEmail.trim()) errors.push('El email de contacto es obligatorio');
+    return errors;
+  };
+
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -554,6 +569,14 @@ export default function HealthOnboardingPage() {
   };
 
   const finalizeOnboarding = async () => {
+    setValidationErrors([]);
+    const errors = validateRequiredFields();
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      setIsSubmitting(false);
+      return;
+    }
+
     setIsSubmitting(true);
     const normalizedClinicName = form.clinicName.trim() || 'Nueva Clínica';
 
@@ -567,10 +590,26 @@ export default function HealthOnboardingPage() {
         ...form,
         clinicName: normalizedClinicName,
       });
+
+      // Notificar al equipo de Upway por correo
+      try {
+        await fetch('/api/health/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            formData: { ...form, clinicName: normalizedClinicName },
+            clinicName: normalizedClinicName,
+            nit: form.nit,
+          }),
+        });
+      } catch (notifyError) {
+        console.warn('No se pudo enviar notificación al equipo:', notifyError);
+      }
+
       setSubmitted(true);
     } catch (error) {
-      // La persistencia falló: mantener al usuario en el onboarding para reintentar.
       console.warn('No se pudo persistir el onboarding de health:', error);
+      setValidationErrors(['Error al guardar el onboarding. Por favor intenta de nuevo.']);
     } finally {
       setIsSubmitting(false);
     }
@@ -670,7 +709,19 @@ export default function HealthOnboardingPage() {
                 </button>
               </div>
 
-              {currentStageIndex === onboardingStages.length - 1 && !submitted && (
+              {validationErrors.length > 0 && (
+                <div className="mt-4 rounded-[20px] border border-rose-200 bg-rose-50/80 p-4">
+                  <p className="text-sm font-semibold text-rose-700">⚠️ Faltan campos obligatorios:</p>
+                  <ul className="mt-2 list-disc pl-5 text-sm text-rose-600 space-y-1">
+                    {validationErrors.map((err, i) => (
+                      <li key={i}>{err}</li>
+                    ))}
+                  </ul>
+                  <p className="mt-2 text-xs text-rose-500">Completa estos campos en el paso 1 (Identifica tu operación) antes de enviar.</p>
+                </div>
+              )}
+
+              {currentStageIndex === onboardingStages.length - 1 && !submitted && validationErrors.length === 0 && (
                 <div className="mt-4 rounded-[20px] border border-[#d3e2ff] bg-[#edf5ff] p-4 text-sm text-[#36557c]">
                   Al enviar este checklist, tu caso pasa a revisión de Upway. El equipo validará el caso de uso y te
                   compartirá el costo de implementación y la recarga para iniciar operación.

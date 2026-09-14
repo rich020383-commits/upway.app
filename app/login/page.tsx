@@ -209,7 +209,7 @@ function LoginPage() {
 
             <div className="mt-8 text-center text-sm text-slate-500">
               ¿No tienes una cuenta?{' '}
-              <Link href="/register" className="font-semibold text-[#1b5ed6] hover:text-[#0e3ca2]">
+              <Link href={`/register?segment=${encodeURIComponent(segment ?? 'general')}`} className="font-semibold text-[#1b5ed6] hover:text-[#0e3ca2]">
                 Solicitar acceso
               </Link>
             </div>

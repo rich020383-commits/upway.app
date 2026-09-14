@@ -174,7 +174,7 @@ function RegisterPage() {
 
             <div className="mt-8 text-center text-sm text-slate-500">
               ¿Ya tienes cuenta?{' '}
-              <Link href="/login" className="font-semibold text-[#1b5ed6] hover:text-[#0e3ca2]">
+              <Link href={`/login?segment=${encodeURIComponent(segment)}`} className="font-semibold text-[#1b5ed6] hover:text-[#0e3ca2]">
                 Iniciar sesión
               </Link>
             </div>
