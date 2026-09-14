@@ -150,7 +150,7 @@ export default function Home() {
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-[20px] text-[#315982] text-[10px] font-semibold uppercase tracking-wide mt-2">
               <span className="flex items-center gap-1.5 text-cyan-500"><Bell className="h-3.5 w-3.5" /> Recordatorios</span>
               <span className="flex items-center gap-1.5 text-cyan-500"><Calendar className="h-3.5 w-3.5" /> Citas y agendamiento</span>
-              <span className="flex items-center gap-1.5 text-cyan-500"><Phone className="h-3.5 w-3.5" /> Comunicación multicanal</span>
+              <span className="flex items-center gap-1.5 text-cyan-500"><Phone className="h-3.5 w-3.5" /> ComunicaciÃ³n multicanal</span>
               <span className="flex items-center gap-1.5 text-cyan-500"><BarChart2 className="h-3.5 w-3.5" /> Reportes</span>
             </div>
           </div>
@@ -485,7 +485,7 @@ export default function Home() {
           <nav className="flex flex-wrap items-center justify-center gap-x-7 gap-y-4 text-[12px] font-medium text-[#55718f]">
             <a href="mailto:contacto@upway.business" className="transition hover:text-[#103a77]">contacto@upway.business</a>
             <Link href="/privacy" className="transition hover:text-[#103a77]">Privacidad</Link>
-            <Link href="/terminos" className="transition hover:text-[#103a77]">Términos y Condiciones</Link>
+            <Link href="/terminos" className="transition hover:text-[#103a77]">Tï¿½rminos y Condiciones</Link>
             {/* Social links */}
             <a href="https://www.linkedin.com/company/upwayhealth" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn de Upway Health" className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-[#0d3168]/10 text-[#0a66c2] hover:bg-[#0d3168]/20 hover:text-white transition shadow-[0_4px_14px_rgba(10,102,194,0.15)]">
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.05-.28-3.5-.15-.25-.35-.45-.59-.61-.36-.25-.8-.4-1.23-.45-.42-.05-.84-.03-1.27.08-.3.08-.59.21-.85.4-.33.22-.63.52-.83.87a5.4 5.4 0 0 0-.52 1.57c-.02.1-.04.2-.04.3v6.82h-3.56V9h3.42v1.21h.05a3.78 3.78 0 0 1 2.96-1.31c1.72 0 2.98 1.11 3.43 2.64a6.5 6.5 0 0 1-.4 4.5c-.39.83-1 1.53-1.82 2.03-.42.28-.9.48-1.4.57a5 5 0 0 1-1.03.08c-1.31-.12-2.42-.74-3.3-1.66v4.58h-3.56v10h10.96v-8.79Zm-12.12-11.16v-.01a.96.96 0 0 1 0 1.92.96.96 0 0 1 0-1.91Z"/></svg>
