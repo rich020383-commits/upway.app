@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getHealthStatusForStage, onboardingStages } from '@/lib/health/onboarding';
-import { getHealthSession } from '@/lib/session';
+import { getSessionUser } from '@/lib/session';
 
 const DEFAULT_CLINIC_ID = 'demo-clinic';
 const DEFAULT_ORGANIZATION_SLUG = 'demo-health-organization';
@@ -82,11 +82,13 @@ async function ensureClinicForId(clinicId: string, organizationId?: string) {
 }
 
 export async function GET(request: NextRequest) {
-  const { context, error } = await getHealthSession(request);
-  if (error) return error;
+  const user = await getSessionUser(request);
+  if (!user) {
+    return NextResponse.json({ error: 'No hay sesión activa' }, { status: 401 });
+  }
 
-  const clinicId = context.clinicId && context.clinicId !== 'default-clinic' ? context.clinicId : DEFAULT_CLINIC_ID;
-  const organizationId = context.organizationId && context.organizationId !== 'default-org' ? context.organizationId : undefined;
+  const clinicId = DEFAULT_CLINIC_ID;
+  const organizationId = undefined;
 
   try {
     const clinic = await ensureClinicForId(clinicId, organizationId);

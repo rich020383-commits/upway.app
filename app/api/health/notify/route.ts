@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendHealthOnboardingEmail } from '@/lib/email';
-import { getHealthSession } from '@/lib/session';
+import { getSessionUser } from '@/lib/session';
 
 export async function POST(request: NextRequest) {
   console.log('[notify] ===== INICIO NOTIFICACIÓN =====');
@@ -13,11 +13,12 @@ export async function POST(request: NextRequest) {
     review: process.env.UPWAY_REVIEW_EMAIL,
   });
 
-  const { context, error } = await getHealthSession(request);
-  if (error) {
-    console.log('[notify] Error de sesión:', error.status);
-    return error;
+  const user = await getSessionUser(request);
+  if (!user) {
+    console.log('[notify] No hay sesión activa - usuario no autenticado');
+    return NextResponse.json({ error: 'No hay sesión activa' }, { status: 401 });
   }
+  console.log('[notify] Usuario autenticado:', user.email);
 
   try {
     const body = await request.json();
