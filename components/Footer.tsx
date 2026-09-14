@@ -63,7 +63,7 @@ export default function Footer() {
                   Privacidad
                 </Link>
               </li>
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Términos de servicio</a></li>
+              <li><Link href="/terminos" className="hover:text-blue-400 transition-colors">Términos de servicio</Link></li>
             </ul>
           </div>
         </div>

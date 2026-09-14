@@ -249,7 +249,7 @@ export default function Home() {
                     <MessageCircle className="h-4 w-4" /> Probar Sophie por WhatsApp
                   </a>
                   <a
-                    href="mailto:contacto@upway.business.com?subject=Quiero%20hablar%20con%20un%20experto%20de%20Upway%20Health"
+                    href="mailto:contacto@upway.business?subject=Quiero%20hablar%20con%20un%20experto%20de%20Upway%20Health"
                     className="inline-flex items-center justify-center gap-2 rounded-full border border-cyan-300 bg-cyan-50 px-6 py-3.5 text-sm font-bold text-cyan-700 transition hover:border-cyan-400 hover:bg-cyan-100"
                   >
                     Hablar con un experto <ArrowRight className="h-4 w-4" />
@@ -465,7 +465,7 @@ export default function Home() {
             </h2>
           </div>
           <a
-            href="mailto:contacto@upway.business.com?subject=Solicitud%20de%20demo%20Upway%20Health"
+            href="mailto:contacto@upway.business?subject=Solicitud%20de%20demo%20Upway%20Health"
             className="inline-flex shrink-0 items-center justify-center px-[23px] py-[14px] rounded-full font-bold text-[13px] bg-white text-[#123e77] hover:bg-slate-100 transition"
           >
             Solicita una demo gratuita →
@@ -484,7 +484,7 @@ export default function Home() {
           </div>
 
           <nav className="flex flex-wrap items-center justify-center gap-x-7 gap-y-3 text-[12px] font-medium text-[#55718f]">
-            <a href="mailto:contacto@upway.business.com" className="transition hover:text-[#103a77]">contacto@upway.business.com</a>
+            <a href="mailto:contacto@upway.business" className="transition hover:text-[#103a77]">contacto@upway.business</a>
             <Link href="/privacy" className="transition hover:text-[#103a77]">Privacidad</Link>
             <Link href="/terminos" className="transition hover:text-[#103a77]">Términos y Condiciones</Link>
           </nav>
