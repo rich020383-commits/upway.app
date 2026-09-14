@@ -6,7 +6,9 @@ import Image from 'next/image';
 import { ArrowRight, MessageCircle, Phone, Sparkles } from 'lucide-react';
 
 const UpwayLogo = ({ className = '' }: { className?: string }) => (
-  <Image src="/upway.png" alt="Upway" width={140} height={36} className={`h-7 md:h-9 w-auto object-contain ${className}`} priority />
+  <div className={`inline-flex items-center px-4 py-2 rounded-2xl bg-gradient-to-r from-[#0f172a] to-[#1b3a5f] shadow-lg ${className}`}>
+    <Image src="/upway.png" alt="Upway" width={100} height={28} className="h-6 md:h-7 w-auto object-contain brightness-0 invert" priority />
+  </div>
 );
 
 export default function Home() {

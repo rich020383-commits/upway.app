@@ -14,8 +14,8 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10">
-              <Image src="/upway.png" alt="Upway Business" width={100} height={28} className="h-6 w-auto object-contain brightness-0 invert" />
+            <div className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-[#0f172a] to-[#1b3a5f] shadow-lg border border-white/10">
+              <Image src="/upway.png" alt="Upway Business" width={100} height={28} className="h-7 w-auto object-contain brightness-0 invert" />
             </div>
             <p className="text-sm leading-relaxed">Potenciando empresas mediante Inteligencia Artificial estratégica.</p>
             <div className="flex gap-3 pt-2">

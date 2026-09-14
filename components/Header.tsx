@@ -26,7 +26,9 @@ export default function Header({ onOpenModal }: { onOpenModal: () => void }) {
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
         {/* LOGO */}
         <div className="flex items-center cursor-pointer">
-          <Image src="/upway.png" alt="Upway Business" width={120} height={32} className="h-8 w-auto object-contain" priority />
+          <div className="flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-gradient-to-r from-[#0f172a] to-[#1b3a5f] shadow-lg">
+            <Image src="/upway.png" alt="Upway Business" width={90} height={24} className="h-6 w-auto object-contain brightness-0 invert" priority />
+          </div>
         </div>
 
         {/* MENÚ CENTRAL */}
