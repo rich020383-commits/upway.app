@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { ALL_HEALTH_PLANS, formatCOP, planCommercialSummary, withIVA } from '@/lib/health/plans-enterprise';
-import { FACILITY_TYPE_OPTIONS } from '@/lib/health/plans';
+import { ALL_HEALTH_PLANS, formatCOP, planCommercialSummary } from '@/lib/health/plans-enterprise';
+import { withIVA, FACILITY_TYPE_OPTIONS } from '@/lib/health/plans';
 
 export const metadata = {
   title: 'Planes Upway Health - Clinicas, IPS y EPS | Upway',
@@ -73,6 +73,7 @@ function PlanCard({ plan, featured = false }: { plan: typeof ALL_HEALTH_PLANS[nu
     </div>
   );
 }
+
 
 export default function PreciosPage() {
   const standardPlans = ALL_HEALTH_PLANS.filter((p) => p.monthlyCOP > 0);
