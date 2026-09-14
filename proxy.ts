@@ -10,12 +10,19 @@ export default withAuth(
     const { pathname } = request.nextUrl;
 
     // 🛡️ Redirección explícita para rutas de health sin sesión
+    // NOTA: Excluir /api/health/* para que las APIs funcionen sin depender de cookies
     const token = request.nextauth.token;
-    if (!token && pathname.startsWith('/health/')) {
+    const isApiRoute = pathname.startsWith('/api/health/');
+    if (!token && pathname.startsWith('/health/') && !isApiRoute) {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('segment', 'health');
       loginUrl.searchParams.set('callbackUrl', pathname);
       return NextResponse.redirect(loginUrl);
+    }
+
+    // Permitir rutas API de health sin sesión (las APIs validan datos server-side)
+    if (isApiRoute) {
+      return NextResponse.next();
     }
 
     // 🛡️ Control de facturación (Billing Gate)
