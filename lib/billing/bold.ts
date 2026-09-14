@@ -26,6 +26,8 @@ export type CreateBoldLinkInput = {
   callbackUrl?: string | null;
   afterUrl?: string | null;
   tags?: string[];
+  /** Vencimiento del link (campo `expiration_date` de Bold). Si falta, no se envía. */
+  expiresAt?: Date | null;
 };
 
 export type CreateBoldLinkResult =
@@ -84,6 +86,42 @@ export function toBoldAmount(amountCOP: number): number {
   return Math.round(Number(amountCOP) || 0);
 }
 
+// ---------------------------------------------------------------------------
+// Vigencia del link de pago
+// ---------------------------------------------------------------------------
+
+const DEFAULT_LINK_TTL_DAYS = 7;
+const MAX_LINK_TTL_DAYS = 90;
+
+/**
+ * Días que vive un link de pago antes de vencer (configurable por entorno).
+ *
+ * Default 7 días: cubre el ciclo real de compra B2B en salud (orden de compra +
+ * aprobación de gerencia/contabilidad) sin obligar a reemitir el link — algo
+ * costoso hoy, porque regenerarlo requiere intervención manual del equipo.
+ * Se ajusta sin deploy con `BOLD_LINK_TTL_DAYS` (p. ej. 5 para más urgencia).
+ */
+export function resolveBoldLinkTtlDays(): number {
+  const raw = Number(process.env.BOLD_LINK_TTL_DAYS);
+  if (!Number.isFinite(raw) || raw <= 0) return DEFAULT_LINK_TTL_DAYS;
+  return Math.min(Math.floor(raw), MAX_LINK_TTL_DAYS);
+}
+
+/** Fecha de vencimiento del link a partir de una base (por defecto, ahora). */
+export function computeBoldLinkExpiry(from: Date = new Date()): Date {
+  const expires = new Date(from.getTime());
+  expires.setDate(expires.getDate() + resolveBoldLinkTtlDays());
+  return expires;
+}
+
+/** Bold espera `expiration_date` en formato `YYYY-MM-DD`. */
+export function formatBoldExpirationDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export async function createBoldPaymentLink(input: CreateBoldLinkInput): Promise<CreateBoldLinkResult> {
   const apiKey = process.env.BOLD_API_KEY;
   if (!apiKey) {
@@ -101,19 +139,36 @@ export async function createBoldPaymentLink(input: CreateBoldLinkInput): Promise
   if (input.afterUrl) body.after_url = input.afterUrl;
   if (input.customerEmail) body.customer_email = input.customerEmail;
   if (input.tags?.length) body.tags = input.tags;
+  if (input.expiresAt) body.expiration_date = formatBoldExpirationDate(input.expiresAt);
 
-  try {
-    const response = await fetch(BOLD_LINK_ENDPOINT, {
+  const send = (payload: Record<string, unknown>) =>
+    fetch(BOLD_LINK_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `x-api-key ${apiKey}`,
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(payload),
       cache: 'no-store',
     });
 
-    const raw: unknown = await response.json().catch(() => null);
+  try {
+    let response = await send(body);
+    let raw: unknown = await response.json().catch(() => null);
+
+    // Si Bold rechaza `expiration_date` (campo o formato no soportado por la cuenta),
+    // reintenta SIN el vencimiento para no bloquear la venta. La vigencia se sigue
+    // controlando en nuestra DB (ActivationPayment.expiresAt), así que el cobro
+    // no se pierde por un campo opcional.
+    if (!response.ok && 'expiration_date' in body) {
+      console.warn(
+        `[bold] ${response.status} al enviar expiration_date; reintentando sin vencimiento.`
+      );
+      const withoutExpiry: Record<string, unknown> = { ...body };
+      delete withoutExpiry.expiration_date;
+      response = await send(withoutExpiry);
+      raw = await response.json().catch(() => null);
+    }
 
     if (!response.ok) {
       const message =

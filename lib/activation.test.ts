@@ -17,6 +17,7 @@ vi.mock('@/lib/email', () => ({
 vi.mock('@/lib/billing/bold', () => ({
   isBoldConfigured: vi.fn().mockReturnValue(true),
   toBoldAmount: (cop: number) => cop,
+  computeBoldLinkExpiry: vi.fn(() => new Date('2026-09-21T10:00:00Z')),
   createBoldPaymentLink: vi.fn().mockResolvedValue({
     ok: true,
     url: 'https://pay.bold.co/test-link',
@@ -84,6 +85,24 @@ describe('createActivationPaymentLink', () => {
         amountCOP: expected,
         callbackUrl: expect.stringContaining('/api/webhooks/bold'),
       }),
+    );
+  });
+
+  it('persiste y envia a Bold la vigencia del link (expiresAt)', async () => {
+    await createActivationPaymentLink({
+      planId: 'consultorio-600',
+      customerEmail: 'ips@test.co',
+    });
+
+    // Se guarda en la DB para poder reportar el vencimiento sin depender de Bold.
+    expect(mockedCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ expiresAt: expect.any(Date) }),
+      }),
+    );
+    // Y viaja a Bold como expiration_date.
+    expect(mockedBold).toHaveBeenCalledWith(
+      expect.objectContaining({ expiresAt: expect.any(Date) }),
     );
   });
 
@@ -175,5 +194,38 @@ describe('getActivationStatus', () => {
     expect(mockedFindUnique).toHaveBeenCalledWith(
       expect.objectContaining({ where: { reference: 'UPW-REF' } }),
     );
+  });
+
+  it('marca expired cuando la vigencia paso y el intento sigue PENDING', async () => {
+    mockedFindUnique.mockResolvedValueOnce({
+      reference: 'UPW-REF',
+      status: 'PENDING',
+      expiresAt: new Date(Date.now() - 86400000),
+    });
+    const status = await getActivationStatus('UPW-REF');
+    expect(status?.expired).toBe(true);
+  });
+
+  it('no marca expired si la vigencia sigue vigente o el pago ya se realizo', async () => {
+    mockedFindUnique.mockResolvedValueOnce({
+      reference: 'UPW-REF',
+      status: 'PENDING',
+      expiresAt: new Date(Date.now() + 86400000),
+    });
+    const vigente = await getActivationStatus('UPW-REF');
+    expect(vigente?.expired).toBe(false);
+
+    mockedFindUnique.mockResolvedValueOnce({
+      reference: 'UPW-REF',
+      status: 'PAID',
+      expiresAt: new Date(Date.now() - 86400000),
+    });
+    const pagado = await getActivationStatus('UPW-REF');
+    expect(pagado?.expired).toBe(false);
+  });
+
+  it('devuelve null si la referencia no existe', async () => {
+    mockedFindUnique.mockResolvedValueOnce(null);
+    expect(await getActivationStatus('NO-EXISTE')).toBeNull();
   });
 });

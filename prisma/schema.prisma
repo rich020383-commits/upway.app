@@ -706,6 +706,7 @@ model ActivationPayment {
   paymentUrl    String?                 @db.Text
   boldPaymentId String?
   paidAt        DateTime?
+  expiresAt     DateTime? // Vencimiento del link de pago (BOLD_LINK_TTL_DAYS, default 7 dias)
   statusMessage String? // Último evento reportado por Bold (trazabilidad)
 
   customerEmail String?

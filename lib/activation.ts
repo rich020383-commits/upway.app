@@ -15,7 +15,7 @@
 import { randomBytes } from 'crypto';
 import { prisma } from '@/lib/prisma';
 import { sendEmail } from '@/lib/email';
-import { createBoldPaymentLink } from '@/lib/billing/bold';
+import { createBoldPaymentLink, computeBoldLinkExpiry } from '@/lib/billing/bold';
 import { getHealthPlan, planCommercialSummary } from '@/lib/health/plans-enterprise';
 import { withIVA } from '@/lib/health/plans';
 import {
@@ -95,6 +95,8 @@ export async function createActivationPaymentLink(
   // Base mensual + setup, ambos con IVA 19% (traslado a DIAN).
   const amountCOP = pricing.conIvaCOP + withIVA(plan.setupCOP);
   const reference = buildActivationReference(plan.id);
+  // Vigencia del link (default 7 dias, ajustable con BOLD_LINK_TTL_DAYS).
+  const expiresAt = computeBoldLinkExpiry();
 
   const payment = await activationPaymentRepo.create({
     data: {
@@ -110,6 +112,7 @@ export async function createActivationPaymentLink(
       organizationId: input.organizationId ?? null,
       clinicId: input.clinicId ?? null,
       sessionId: input.sessionId ?? null,
+      expiresAt,
       statusMessage: 'Link de pago solicitado a Bold',
     },
   });
@@ -122,6 +125,7 @@ export async function createActivationPaymentLink(
     callbackUrl: `${getAppBaseUrl()}/api/webhooks/bold`,
     afterUrl: `${getAppBaseUrl()}/activation/pago-confirmado?ref=${encodeURIComponent(reference)}`,
     tags: ['upway', 'activacion', plan.id],
+    expiresAt,
   });
 
   if (!bold.ok) {
@@ -213,7 +217,7 @@ export async function processBoldEvent(input: ProcessBoldEventInput): Promise<Pr
 
 /** Datos consolidados para la pantalla de estado de pago (GET /api/checkout?ref=...). */
 export async function getActivationStatus(reference: string) {
-  return activationPaymentRepo.findUnique({
+  const payment = await activationPaymentRepo.findUnique({
     where: { reference },
     select: {
       reference: true,
@@ -225,10 +229,25 @@ export async function getActivationStatus(reference: string) {
       paymentUrl: true,
       statusMessage: true,
       paidAt: true,
+      expiresAt: true,
       createdAt: true,
       updatedAt: true,
     },
   });
+
+  if (!payment) return null;
+
+  // `expired` se calcula en cada lectura (no requiere cron): un intento PENDING
+  // cuya vigencia ya paso se reporta vencido sin alterar el status almacenado,
+  // que sigue siendo la fuente de verdad de la conciliacion con Bold.
+  const expiresAtTime = payment.expiresAt ? new Date(payment.expiresAt).getTime() : null;
+  const expired =
+    payment.status === 'PENDING' &&
+    expiresAtTime !== null &&
+    Number.isFinite(expiresAtTime) &&
+    expiresAtTime < Date.now();
+
+  return { ...payment, expired };
 }
 
 // ---------------------------------------------------------------------------
