@@ -56,6 +56,17 @@ body {
   color: var(--upway-navy);
 }
 
+/* Animación de “breathing” para glows sutiles */
+@keyframes upway-breathing {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.6; }
+}
+
+/* Glow de salud que late suavemente */
+.health-glow-breath {
+  animation: upway-breathing 3s ease-in-out infinite;
+}
+
 /* Utilidades Premium personalizadas */
 .text-gradient {
   background: linear-gradient(135deg, #0a1525 0%, #183b7e 28%, #4a83ff 58%, #7ec3ff 100%);
