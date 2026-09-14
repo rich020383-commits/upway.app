@@ -150,7 +150,17 @@ function buildHealthOnboardingEmailText(data: HealthOnboardingEmailData): string
 }
 
 function createTransporter() {
+  console.log('[email] SMTP Config:', {
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    user: SMTP_USER,
+    hasPassword: !!SMTP_PASS,
+    from: SMTP_FROM,
+    reviewEmail: UPWAY_REVIEW_EMAIL,
+  });
+
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
+    console.warn('[email] SMTP incompleto. Host:', !!SMTP_HOST, 'User:', !!SMTP_USER, 'Pass:', !!SMTP_PASS);
     return null;
   }
 

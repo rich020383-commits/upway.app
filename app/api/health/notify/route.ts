@@ -3,12 +3,31 @@ import { sendHealthOnboardingEmail } from '@/lib/email';
 import { getHealthSession } from '@/lib/session';
 
 export async function POST(request: NextRequest) {
+  console.log('[notify] ===== INICIO NOTIFICACIÓN =====');
+  console.log('[notify] Variables SMTP:', {
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    user: process.env.SMTP_USER,
+    hasPass: !!process.env.SMTP_PASS,
+    from: process.env.SMTP_FROM,
+    review: process.env.UPWAY_REVIEW_EMAIL,
+  });
+
   const { context, error } = await getHealthSession(request);
-  if (error) return error;
+  if (error) {
+    console.log('[notify] Error de sesión:', error.status);
+    return error;
+  }
 
   try {
     const body = await request.json();
     const { formData, clinicName, nit } = body;
+
+    console.log('[notify] Datos recibidos:', {
+      clinicName: formData?.clinicName,
+      hasFormData: !!formData,
+      nit: formData?.nit || nit,
+    });
 
     if (!formData || typeof formData !== 'object') {
       return NextResponse.json({ error: 'Datos de onboarding inválidos' }, { status: 400 });
@@ -52,6 +71,8 @@ export async function POST(request: NextRequest) {
       submittedAt,
     });
 
+    console.log('[notify] Resultado envío:', emailResult);
+
     if (!emailResult.ok && emailResult.error === 'SMTP_NOT_CONFIGURED') {
       return NextResponse.json({
         ok: false,
@@ -67,9 +88,10 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    console.log('[notify] ===== NOTIFICACIÓN EXITOSA =====');
     return NextResponse.json({ ok: true, message: 'Notificación enviada al equipo de Upway' });
   } catch (err) {
     console.error('[notify] Error procesando notificación:', err);
-    return NextResponse.json({ error: 'Error procesando la notificación' }, { status: 500 });
+    return NextResponse.json({ error: 'Error procesando la notificación', detail: String(err) }, { status: 500 });
   }
 }
