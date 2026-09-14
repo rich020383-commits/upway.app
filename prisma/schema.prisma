@@ -682,3 +682,44 @@ model Cita {
   @@index([leadId])
   @@index([conversationId])
 }
+
+// ==========================================
+// 7. FLUJO DE ACTIVACIÓN (ONBOARDING → APROBACIÓN → PAGO BOLD → ENTREGA)
+// ==========================================
+
+enum ActivationPaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+  CANCELLED
+}
+
+model ActivationPayment {
+  id            String                  @id @default(cuid())
+  reference     String                  @unique // merchant_reference enviado a Bold
+  planId        String
+  planName      String
+  amountCOP     Int
+  currency      String                  @default("COP")
+  status        ActivationPaymentStatus @default(PENDING)
+  paymentUrl    String?                 @db.Text
+  boldPaymentId String?
+  paidAt        DateTime?
+  statusMessage String? // Último evento reportado por Bold (trazabilidad)
+
+  customerEmail String?
+  customerName  String?
+  userId        String?
+  organizationId String?
+  clinicId      String?
+  sessionId     String? // HealthOnboardingSession relacionada (flujo health)
+
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+
+  @@index([status])
+  @@index([customerEmail])
+  @@index([sessionId])
+  @@index([clinicId])
+}

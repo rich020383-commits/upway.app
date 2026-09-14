@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse, after } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getHealthSession } from '@/lib/session';
 import { enforceHealthAccess } from '@/lib/health/access';
@@ -7,6 +7,12 @@ import { ensureClinicForId, ensureHealthProfile } from '@/lib/health/clinic-cont
 import { buildActivationChecks } from '@/lib/health/activation';
 import { isImplementationIntakeReady } from '@/lib/health/plans';
 import { getHealthPlan } from '@/lib/health/plans-enterprise';
+import {
+  sendServiceActiveEmail,
+  sendInternalActivationAlert,
+  UPWAY_INTERNAL_REVIEW_EMAIL,
+  getAppBaseUrl,
+} from '@/lib/activation';
 
 function parseSessionForm(notes: string | null | undefined): Record<string, unknown> {
   if (!notes) return {};
@@ -162,6 +168,44 @@ export async function POST(request: NextRequest) {
       where: { id: state.session.id },
       data: { status: 'ACTIVE', completedAt: new Date(), progressPercent: 100, currentStep: 'go-live' },
     });
+
+    // ── Entrega: correo al cliente con accesos + alerta interna de go-live ──
+    const deliveryData = parseSessionForm(state.session.notes);
+    const deliveryEmail = String(deliveryData.contactEmail ?? '').trim();
+
+    if (deliveryEmail) {
+      const dashboardUrl = `${getAppBaseUrl()}/health`;
+      const planName = state.plan?.name ?? 'Upway Health';
+      const planMinutes = state.plan ? state.plan.includedMinutes.toLocaleString('es-CO') : '—';
+      const planNumbers = state.plan ? String(state.plan.includedNumbers) : '—';
+      const planConcurrent = state.plan ? String(state.plan.concurrentCalls) : '—';
+      const agentName = state.tienda.agentName ?? state.tienda.nombre;
+
+      after(async () => {
+        const clientMail = await sendServiceActiveEmail(deliveryEmail, {
+          contactName: String(deliveryData.contactName ?? ''),
+          clinicName: state.clinic.name,
+          planName,
+          dashboardUrl,
+          includedMinutes: planMinutes,
+          includedNumbers: planNumbers,
+          concurrentCalls: planConcurrent,
+        });
+
+        await sendInternalActivationAlert(
+          UPWAY_INTERNAL_REVIEW_EMAIL,
+          'SERVICIO_ACTIVADO',
+          `Servicio activo: ${state.clinic.name}`,
+          [
+            ['Clínica', state.clinic.name],
+            ['Agente', agentName],
+            ['Plan', planName],
+            ['Correo al cliente', clientMail.ok ? 'enviado' : `falló: ${clientMail.error ?? 'N/A'}`],
+            ['Siguiente paso', 'Seguimiento post-activación y monitoreo de operación'],
+          ]
+        );
+      });
+    }
 
     return NextResponse.json(
       withTenantScope(

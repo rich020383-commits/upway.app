@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getHealthStatusForStage, onboardingStages } from '@/lib/health/onboarding';
-import { getSessionUser } from '@/lib/session';
+import { getHealthSession, getHealthSessionForOnboarding } from '@/lib/session';
 
 const DEFAULT_CLINIC_ID = 'demo-clinic';
 const DEFAULT_ORGANIZATION_SLUG = 'demo-health-organization';

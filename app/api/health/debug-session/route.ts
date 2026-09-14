@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     hasToken: !!token,
     hasSessionCookie: !!sessionCookie,
     cookieName: sessionCookie?.name ?? null,
-    cookieValue: sessionCookie?.value?.substring(0, 20) + '...' ?? null,
+    cookieValue: sessionCookie?.value ? sessionCookie.value.substring(0, 20) + '...' : null,
     tokenId: token?.id ?? null,
     tokenEmail: token?.email ?? null,
     tokenRole: token?.role ?? null,

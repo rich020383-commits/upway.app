@@ -203,3 +203,39 @@ export async function sendHealthOnboardingEmail(
     return { ok: false, error: error instanceof Error ? error.message : 'UNKNOWN_ERROR' };
   }
 }
+
+/**
+ * Envío genérico de correo transaccional (flujo de activación y otros).
+ * Devuelve ok=false (no lanza) si SMTP no está configurado o falla el envío:
+ * el flujo de negocio nunca debe romperse por un correo.
+ */
+export async function sendEmail(input: {
+  to: string;
+  subject: string;
+  html: string;
+  text?: string;
+  replyTo?: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const transporter = createTransporter();
+
+  if (!transporter) {
+    console.warn('[email] SMTP no configurado. Saltando envío a:', input.to);
+    return { ok: false, error: 'SMTP_NOT_CONFIGURED' };
+  }
+
+  try {
+    await transporter.sendMail({
+      from: SMTP_FROM,
+      to: input.to,
+      subject: input.subject,
+      html: input.html,
+      text: input.text ?? input.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
+      replyTo: input.replyTo || undefined,
+    });
+    return { ok: true };
+  } catch (error) {
+    console.error('[email] Error enviando correo a', input.to, ':', error);
+    return { ok: false, error: error instanceof Error ? error.message : 'UNKNOWN_ERROR' };
+  }
+}
+

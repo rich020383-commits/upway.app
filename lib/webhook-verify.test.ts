@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import crypto from 'crypto';
-import { verifyMetaSignature, verifyVapiSignature, verifySharedSecret } from './webhook-verify';
+import { verifyMetaSignature, verifyVapiSignature, verifyBoldSignature, verifySharedSecret } from './webhook-verify';
 
 const SECRET = 'test-secret';
 const BODY = JSON.stringify({ object: 'whatsapp_business_account', entry: [] });
@@ -77,5 +77,39 @@ describe('verifySharedSecret', () => {
 
   it('rejects wrong-length secrets without throwing', () => {
     expect(verifySharedSecret('short', SECRET)).toBe(false);
+  });
+});
+describe('verifyBoldSignature', () => {
+  const signBoldHash = (body: string, secret: string) =>
+    crypto.createHash('sha256').update(`${body}X${secret}`, 'utf8').digest('hex');
+
+  const signBoldHmac = (body: string, secret: string) =>
+    crypto.createHmac('sha256', secret).update(body, 'utf8').digest('hex');
+
+  it('accepts the documented hash scheme SHA256(body + "X" + secret)', () => {
+    expect(verifyBoldSignature(BODY, signBoldHash(BODY, SECRET), SECRET)).toBe(true);
+  });
+
+  it('accepts the hmac fallback scheme', () => {
+    expect(verifyBoldSignature(BODY, signBoldHmac(BODY, SECRET), SECRET)).toBe(true);
+  });
+
+  it('rejects a signature signed with the wrong secret', () => {
+    expect(verifyBoldSignature(BODY, signBoldHash(BODY, 'other-secret'), SECRET)).toBe(false);
+    expect(verifyBoldSignature(BODY, signBoldHmac(BODY, 'other-secret'), SECRET)).toBe(false);
+  });
+
+  it('rejects a tampered body', () => {
+    const sig = signBoldHash(BODY, SECRET);
+    expect(verifyBoldSignature(BODY + ' ', sig, SECRET)).toBe(false);
+  });
+
+  it('rejects a missing header or secret', () => {
+    expect(verifyBoldSignature(BODY, null, SECRET)).toBe(false);
+    expect(verifyBoldSignature(BODY, signBoldHash(BODY, SECRET), '')).toBe(false);
+  });
+
+  it('rejects a wrong-length hex digest without throwing', () => {
+    expect(verifyBoldSignature(BODY, 'abcd', SECRET)).toBe(false);
   });
 });
