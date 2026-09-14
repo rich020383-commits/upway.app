@@ -5,6 +5,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, MessageCircle, Phone, Sparkles } from 'lucide-react';
 
+const UpwayLogo = ({ className = '' }: { className?: string }) => (
+  <Image src="/upway.png" alt="Upway" width={140} height={36} className={`h-7 md:h-9 w-auto object-contain ${className}`} priority />
+);
+
 export default function Home() {
   const [showSplash, setShowSplash] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
@@ -100,9 +104,8 @@ export default function Home() {
       <main className="min-h-screen overflow-x-hidden bg-white text-[#0d3168] font-sans selection:bg-[#11b7b1] selection:text-white scroll-smooth">
         {/* NAVBAR SUPERIOR */}
         <header className="sticky top-0 z-50 flex h-[74px] items-center justify-between px-5 md:px-[5%] border-b border-[#edf3f8] bg-[#fffdfdf2]/90 backdrop-blur-md">
-          <a href="#inicio" className="font-extrabold text-[23px] md:text-[29px] tracking-[-1.5px] text-[#103a77] flex items-center">
-            UPW<span className="text-[#11b7b1]">▲</span>Y
-            <small className="text-[12px] tracking-[2px] ml-2.5 font-bold">HEALTH</small>
+          <a href="#inicio" className="flex items-center">
+            <UpwayLogo />
           </a>
           <nav className="hidden md:flex gap-[34px] text-[13px] font-medium text-[#31547f]">
             <a href="#solucion" className="hover:text-[#103a77] transition">Solución</a>
