@@ -490,7 +490,7 @@ export default function HealthOnboardingPage() {
   useEffect(() => {
     async function loadExistingSession() {
       try {
-        const response = await fetch(`/api/health/onboarding?clinicId=${encodeURIComponent(clinicId)}&organizationId=${encodeURIComponent(organizationId)}`);
+        const response = await fetch(`/api/health/onboarding?clinicId=${encodeURIComponent(clinicId)}&organizationId=${encodeURIComponent(organizationId)}`, { credentials: 'include' });
         const data = await response.json();
         const nextIndex = onboardingStages.indexOf(data.currentStep ?? onboardingStages[0]);
 
@@ -536,6 +536,7 @@ export default function HealthOnboardingPage() {
     try {
       await fetch('/api/health/onboarding', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           organizationId,
@@ -602,6 +603,7 @@ export default function HealthOnboardingPage() {
         
         const notifyResponse = await fetch('/api/health/notify', {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(notifyPayload),
         });
