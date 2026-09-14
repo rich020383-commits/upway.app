@@ -8,9 +8,15 @@ const billingGatePages = ['/dashboard/billing'];
 export default withAuth(
   function proxy(request: NextRequestWithAuth) {
     const { pathname } = request.nextUrl;
-    
-    // withAuth inyecta automáticamente el JWT descifrado en request.nextauth.token
-    const token = request.nextauth.token; 
+
+    // 🛡️ Redirección explícita para rutas de health sin sesión
+    const token = request.nextauth.token;
+    if (!token && pathname.startsWith('/health/')) {
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('segment', 'health');
+      loginUrl.searchParams.set('callbackUrl', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
 
     // 🛡️ Control de facturación (Billing Gate)
     if (billingGatePages.includes(pathname)) {
