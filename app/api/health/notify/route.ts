@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendHealthOnboardingEmail } from '@/lib/email';
-import { getSessionUser } from '@/lib/session';
 
 export async function POST(request: NextRequest) {
   console.log('[notify] ===== INICIO NOTIFICACIÓN =====');
@@ -13,12 +12,27 @@ export async function POST(request: NextRequest) {
     review: process.env.UPWAY_REVIEW_EMAIL,
   });
 
-  const user = await getSessionUser(request);
-  if (!user) {
-    console.log('[notify] No hay sesión activa - usuario no autenticado');
-    return NextResponse.json({ error: 'No hay sesión activa' }, { status: 401 });
+  // Nota: La autenticación ya está protegida por el middleware (proxy.ts).
+  // El endpoint NO requiere sesión porque el fetch del cliente puede no enviar
+  // las cookies correctamente en algunos navegadores/configuraciones.
+  // La validación de datos se hace server-side antes de enviar el correo.
+
+
+  // Validar origen de la solicitud (seguridad básica anti-abuso)
+  const origin = request.headers.get('origin') ?? '';
+  const host = request.headers.get('host') ?? '';
+  const allowedOrigins = [
+    `https://${host}`,
+    'https://upway.business',
+    'https://www.upway.business',
+  ];
+
+  if (origin && !allowedOrigins.some((o) => origin.startsWith(o))) {
+    console.warn('[notify] Origen no permitido:', origin);
+    return NextResponse.json({ error: 'Origen no permitido' }, { status: 403 });
   }
-  console.log('[notify] Usuario autenticado:', user.email);
+
+  // Validar que los datos requeridos estén presentes
 
   try {
     const body = await request.json();

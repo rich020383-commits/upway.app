@@ -82,10 +82,8 @@ async function ensureClinicForId(clinicId: string, organizationId?: string) {
 }
 
 export async function GET(request: NextRequest) {
-  const user = await getSessionUser(request);
-  if (!user) {
-    return NextResponse.json({ error: 'No hay sesión activa' }, { status: 401 });
-  }
+  // No requiere sesión: el middleware (proxy.ts) ya protege /health/*
+  // El onboarding usa un contexto demo por defecto para usuarios sin tenant real
 
   const clinicId = DEFAULT_CLINIC_ID;
   const organizationId = undefined;

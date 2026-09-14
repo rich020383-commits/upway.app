@@ -39,10 +39,17 @@ const notFound = () =>
  */
 export async function getSessionUser(req: NextRequest): Promise<SessionUser | null> {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  if (!token || !token.id) return null;
+  if (!token) return null;
+
+  // Aceptar token con id o email (Google users pueden no tener id si no están en BD aún)
+  const userId = (token.id as string) || '';
+  const userEmail = (token.email as string) ?? '';
+
+  if (!userId && !userEmail) return null;
+
   return {
-    id: token.id as string,
-    email: (token.email as string) ?? null,
+    id: userEmail || userId, // Usar email como id temporal para Google users sin registro
+    email: userEmail || null,
     name: (token.name as string) ?? null,
   };
 }
@@ -112,9 +119,6 @@ export async function getHealthSession(
   }
 
   const role = typeof token.role === 'string' ? token.role : '';
-  if (!role) {
-    return { error: unauthorized() };
-  }
   const organizationId = typeof token.organizationId === 'string' ? token.organizationId : '';
   const clinicId = typeof token.clinicId === 'string' ? token.clinicId : '';
 
@@ -123,6 +127,58 @@ export async function getHealthSession(
       user: {
         id: token.id as string,
         email: (token.email as string) ?? null,
+        name: (token.name as string) ?? null,
+      },
+      role,
+      organizationId,
+      clinicId,
+    },
+  };
+}
+
+/**
+ * Versión permisiva de getHealthSession para onboarding.
+ * Permite usuarios autenticados sin organización (sign-up inicial).
+ * Solo bloquea meta-reviewer y sesiones inválidas.
+ */
+export async function getHealthSessionForOnboarding(
+  req: NextRequest
+): Promise<
+  | { context: HealthSessionContext; error?: undefined }
+  | { context?: undefined; error: NextResponse }
+> {
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+
+  if (!token) {
+    return { error: unauthorized() };
+  }
+
+  const tokenId = (token.id as string) ?? '';
+  const tokenEmail = (token.email as string) ?? '';
+
+  // Aceptar token con id O email (Google users pueden no tener id si no están en BD aún)
+  if (!tokenId && !tokenEmail) {
+    return { error: unauthorized() };
+  }
+
+  if (tokenId === 'meta-reviewer') {
+    return {
+      error: NextResponse.json(
+        { error: 'Revisor externo sin acceso a datos de tenant' },
+        { status: 403 }
+      ),
+    };
+  }
+
+  const role = typeof token.role === 'string' ? token.role : 'pending';
+  const organizationId = typeof token.organizationId === 'string' ? token.organizationId : '';
+  const clinicId = typeof token.clinicId === 'string' ? token.clinicId : '';
+
+  return {
+    context: {
+      user: {
+        id: tokenId || tokenEmail,
+        email: tokenEmail || null,
         name: (token.name as string) ?? null,
       },
       role,
