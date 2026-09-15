@@ -15,6 +15,12 @@ const nextConfig: NextConfig = {
   },
   // 🛡️ Evita que Turbopack intente empaquetar módulos nativos/Node de libsodium
   serverExternalPackages: ['libsodium-wrappers'],
+  images: {
+    // Next 16 exige declarar la allowlist de calidades (default: [75]).
+    // 90 se usa en hero e imágenes de sección para más fidelidad visual
+    // en pantallas retina/4K sin disparar demasiado el peso.
+    qualities: [75, 90],
+  },
   typescript: {
     // El type-check completo ya se corre en local/CI antes de mergear. En el
     // build de Render (512MB RAM) el proceso de tsc por separado agota la

@@ -1,5 +1,42 @@
 @import "tailwindcss";
 
+/* ==========================================================
+   SISTEMA DE DISEÑO — tokens reales de Tailwind v4
+   Antes NO existía un @theme: `font-display` y `font-body` se
+   usaban en /terminos, /privacy y Chatbot pero eran clases
+   MUERTAS (no generaban CSS). Aquí quedan activadas.
+   ========================================================== */
+@theme {
+  /* Tipografía: una sola familia como fuente de verdad (Geist,
+     ya cargada con next/font) + display premium para titulares.
+     Elimina el fallback fantasma a "Inter" (que nunca se cargaba)
+     y a "Segoe UI"/DejaVu. */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-body: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-jakarta), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+
+  /* Paleta Upway Health (mismos colores actuales, ahora tokenizados) */
+  --color-upway-navy: #0d3168;
+  --color-upway-navy-deep: #103a77;
+  --color-upway-blue: #0c3775;
+  --color-upway-blue-strong: #092a5c;
+  --color-upway-button: #1b5ed6;
+  --color-upway-teal: #0ba9a9;
+  --color-upway-teal-bright: #11b4b0;
+  --color-upway-teal-soft: #e7fbfa;
+  --color-upway-ink: #55718f;
+  --color-upway-ink-strong: #31547f;
+  --color-upway-mist: #f5fbff;
+  --color-upway-mist-deep: #f4faff;
+  --color-upway-line: #e2edf5;
+
+  /* Sombras consistentes (evita sombras ad-hoc dispares) */
+  --shadow-card: 0 8px 25px rgba(21, 63, 104, 0.06);
+  --shadow-card-hover: 0 16px 40px rgba(21, 63, 104, 0.12);
+  --shadow-float: 0 30px 80px rgba(15, 31, 54, 0.12);
+}
+
 :root {
   --color-brand-electric: #2563eb;
   --color-brand-dark: #0f172a;
@@ -39,7 +76,10 @@ body {
   /* Fondo oscuro nativo para empalmar con la estética de Upway */
   background-color: #050b16;
   color: #e8f0fb;
-  font-family: "Inter", "Segoe UI", sans-serif;
+  /* Apuntamos a la fuente REAL cargada con next/font.
+     Antes decía "Inter" (que nunca se cargaba) y caía a Segoe UI
+     en Windows o DejaVu Sans en Linux/Render. */
+  font-family: var(--font-sans);
   
   width: 100%;
   max-width: 100%;
@@ -282,6 +322,37 @@ body {
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
   animation: upway-scanline 4.5s ease-in-out infinite;
   pointer-events: none;
+}
+
+/* ==========================================================
+   DETALLES PREMIUM
+   ========================================================== */
+
+/* Scroll reveal: lo activa el JS añadiendo .reveal-pending y luego
+   .reveal-in. Si el JS no corre, el contenido queda visible (fail-open). */
+.reveal-pending {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+.reveal-in {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Balance tipográfico: evita titulares con líneas desbalanceadas
+   y párrafos con palabras huérfanas al final. */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
 }
 
 @media (max-width: 767px) {

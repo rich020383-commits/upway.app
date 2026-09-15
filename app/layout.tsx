@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Chatbot from "@/components/Chatbot"; 
 import PwaRegister from "@/components/PwaRegister";
@@ -24,6 +24,17 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+/**
+ * Fuente display premium para titulares (h1/h2/h3 con `font-display`).
+ * Activa la clase `font-display` que antes era MUERTA en /terminos,
+ * /privacy y Chatbot. Variable font: sin `weight` para no forzar pesos.
+ */
+const plusJakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 const gtmId = process.env.NEXT_PUBLIC_GTM_ID;
@@ -53,7 +64,7 @@ export default function RootLayout({
   return (
     <html
       lang="es" 
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${plusJakarta.variable} h-full antialiased`}
     >
       <head>
         {gtmId ? (

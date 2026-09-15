@@ -8,7 +8,7 @@ import { LEGAL_ENTITY } from '@/lib/legal';
 
 const UpwayLogo = ({ className = '' }: { className?: string }) => (
   <div className={`inline-flex items-center px-4 py-2 rounded-2xl bg-black shadow-lg overflow-hidden ${className}`}>
-    <Image src="/upway.png" alt="Upway" width={1000} height={667} className="h-7 md:h-8 w-auto object-contain" priority />
+    <Image src="/upway.png" alt="Upway" width={1000} height={667} quality={90} sizes="160px" preload className="h-7 md:h-8 w-auto object-contain" />
   </div>
 );
 
@@ -73,6 +73,43 @@ export default function Home() {
     return () => observer.disconnect();
   }, []);
 
+  /**
+   * Scroll reveal premium: anima cada sección al entrar en viewport.
+   * - Fail-open: si no hay IntersectionObserver o el usuario prefiere menos
+   *   movimiento, el contenido queda visible sin tocar nada.
+   * - Se salta la primera sección (el hero = elemento LCP): animarlo
+   *   retrasaría la pintura principal.
+   */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!('IntersectionObserver' in window)) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const targets = Array.from(
+      document.querySelectorAll<HTMLElement>('main > section, main > footer')
+    ).slice(1);
+    if (targets.length === 0) return;
+
+    // El estado oculto se aplica SOLO aquí, cuando ya sabemos que podemos animar.
+    targets.forEach((el) => el.classList.add('reveal-pending'));
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const element = entry.target as HTMLElement;
+          element.classList.remove('reveal-pending');
+          element.classList.add('reveal-in');
+          observer.unobserve(element);
+        });
+      },
+      { rootMargin: '0px 0px -8% 0px', threshold: 0.08 }
+    );
+
+    targets.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
   const handleVideoEnd = () => {
     setFadeOut(true);
     setTimeout(() => {
@@ -106,7 +143,7 @@ export default function Home() {
 
       <main className="min-h-screen overflow-x-hidden bg-white text-[#0d3168] font-sans selection:bg-[#11b7b1] selection:text-white scroll-smooth">
         {/* NAVBAR SUPERIOR */}
-        <header className="sticky top-0 z-50 flex h-[74px] items-center justify-between px-5 md:px-[5%] border-b border-[#edf3f8] bg-[#fffdfdf2]/90 backdrop-blur-md">
+        <header className="sticky top-0 z-50 flex h-[74px] items-center justify-between px-5 md:px-[5%] border-b border-[#edf3f8] bg-white/90 backdrop-blur-md">
           <a href="#inicio" className="flex items-center">
             <UpwayLogo />
           </a>
@@ -128,7 +165,7 @@ export default function Home() {
         <section className="max-w-[1280px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 pt-[45px] md:pt-[70px] pb-[55px] px-5 md:px-[5%] items-center bg-[radial-gradient(circle_at_80%_30%,_#e8fbfa,_transparent_40%)]">
           <div className="flex flex-col">
             <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">♥ &nbsp; Software de atención en salud</div>
-            <h1 className="text-[35px] md:text-[52px] leading-[1.06] tracking-[-2px] md:tracking-[-2.6px] m-0 mb-[22px] font-extrabold">
+            <h1 className="font-display text-[35px] md:text-[52px] leading-[1.06] tracking-[-2px] md:tracking-[-2.6px] m-0 mb-[22px] font-extrabold">
               Conecta tu centro de salud con tus pacientes.<br />
               <em className="not-italic text-[#11b4b0]">Más simple, más humano.</em>
             </h1>
@@ -156,11 +193,13 @@ export default function Home() {
           </div>
           <div className="relative mt-8 md:mt-0">
             <Image
-              src="/hero-doctora.png" 
+              src="/hero-doctora.png"
               alt="Profesional de salud usando tecnología"
               width={490}
               height={390}
-              priority
+              preload
+              quality={90}
+              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 46vw, 600px"
               className="w-full rounded-[34px] block shadow-[0_0_0_2px_rgba(11,169,169,0.12),0_30px_90px_rgba(11,169,169,0.30)] health-glow-breath object-cover"
             />
             <div className="absolute left-2 md:-left-[35px] top-[40px] md:top-[65px] bg-white border border-[#e2edf5] rounded-[15px] p-[13px_17px] shadow-[0_12px_35px_#173e6820] text-[11px] leading-tight">
@@ -207,7 +246,7 @@ export default function Home() {
                     </span>
                     Sophie v2 • Empleado Digital Autónomo
                   </div>
-                  <h2 className="text-xl font-black leading-tight tracking-tight text-slate-900 sm:text-2xl md:text-4xl">
+                  <h2 className="font-display text-xl font-black leading-tight tracking-tight text-slate-900 sm:text-2xl md:text-4xl">
                     Triage y atención en vivo <span className="text-[#0ba9a9]">24/7</span>
                   </h2>
                   <p className="text-xs leading-relaxed text-slate-500 sm:text-sm md:text-base">
@@ -230,7 +269,7 @@ export default function Home() {
                 <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-cyan-700 shadow-sm">
                   <Sparkles size={14} className="text-cyan-600" /> Operación Autónoma
                 </div>
-                <h2 className="text-3xl md:text-5xl font-black tracking-tight text-slate-900 leading-[1.1]">
+                <h2 className="font-display text-3xl md:text-5xl font-black tracking-tight text-slate-900 leading-[1.1]">
                   Sophie v2:
                   <br />
                   IA telefónica para tu centro médico.
@@ -323,7 +362,7 @@ export default function Home() {
         <section id="solucion" className="max-w-[1180px] mx-[15px] md:mx-auto my-[30px] md:my-[50px] p-[30px] md:p-[55px] rounded-[30px] bg-[#f5fbff] grid grid-cols-1 lg:grid-cols-[0.8fr_1.2fr] gap-[45px]">
           <div>
             <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Todo en una sola plataforma</div>
-            <h2 className="text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold">
+            <h2 className="font-display text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold">
               Comunicación y gestión para una mejor atención.
             </h2>
             <p className="text-[#55718f] leading-[1.6]">
@@ -368,11 +407,13 @@ export default function Home() {
             alt="Atención médica centrada en el paciente"
             width={375}
             height={285}
+            quality={90}
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 45vw, 470px"
             className="w-full rounded-[35px] object-cover"
           />
           <div>
             <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Beneficios reales para tu institución</div>
-            <h2 className="text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold text-[#0d3168]">
+            <h2 className="font-display text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold text-[#0d3168]">
               Una solución pensada en la salud y en las personas.
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-[25px]">
@@ -399,7 +440,7 @@ export default function Home() {
         {/* SECTORES */}
         <section id="sectores" className="bg-[#f4faff] py-[65px] px-[5%] text-center">
           <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Ideal para</div>
-          <h2 className="text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold text-[#0d3168]">
+          <h2 className="font-display text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold text-[#0d3168]">
             Todos los actores del sistema de salud.
           </h2>
           <p className="text-[#55718f] leading-[1.6] mb-[30px]">
@@ -450,6 +491,8 @@ export default function Home() {
               alt="Sectores de atención"
               width={890}
               height={195}
+              quality={90}
+              sizes="(max-width: 1180px) 100vw, 1180px"
               className="w-full h-auto object-cover"
             />
           </div>
@@ -459,7 +502,7 @@ export default function Home() {
         <section id="contacto" className="py-[48px] px-5 md:px-[8%] flex flex-col md:flex-row items-center justify-between bg-[linear-gradient(110deg,#103d79,#0b858d)] text-white gap-8">
           <div>
             <small className="text-[13px] text-[#50e1d5] font-semibold block mb-2">Transforma la atención en salud hoy</small>
-            <h2 className="text-[28px] max-w-[650px] m-0 font-extrabold leading-[1.2]">
+            <h2 className="font-display text-[28px] max-w-[650px] m-0 font-extrabold leading-[1.2]">
               Tu institución merece una <em className="not-italic text-[#50e1d5]">comunicación más inteligente.</em>
             </h2>
           </div>
