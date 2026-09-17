@@ -46,4 +46,6 @@ next-env.d.ts
 
 /app/generated/prisma
 .vscode/
-build-audit.log
+
+# logs de desarrollo y diagnósticos (nunca versionar)
+*.log
