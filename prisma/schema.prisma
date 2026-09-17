@@ -59,6 +59,11 @@ model User {
   appointmentAssignments  Cita[]               @relation("AppointmentAssignee")
   createdLeads            Lead[]               @relation("LeadCreator")
   assignedLeads           Lead[]               @relation("LeadAssignee")
+  scheduleResources           ScheduleResource[]    @relation("ScheduleResourceUser")
+  agendaHoldCreations         AppointmentHold[]     @relation("AgendaHoldCreator")
+  agendaAppointmentsCreated   AgendaAppointment[]   @relation("AgendaAppointmentCreator")
+  agendaAppointmentsAssigned  AgendaAppointment[]   @relation("AgendaAppointmentAssignee")
+  agendaAuditEvents           AgendaAuditEvent[]    @relation("AgendaEventActor")
 }
 
 enum VerticalType {
@@ -204,6 +209,10 @@ model Organization {
   tiendas   Tienda[]
   createdAt DateTime             @default(now())
   updatedAt DateTime             @updatedAt
+  scheduleResources  ScheduleResource[]
+  serviceOfferings   ServiceOffering[]
+  agendaAppointments AgendaAppointment[]
+  waitlistEntries    WaitlistEntry[]
 }
 
 model OrganizationMember {
@@ -234,6 +243,10 @@ model Clinic {
   healthProfile      HealthProfile?
   onboardingSessions HealthOnboardingSession[]
   auditLogs          HealthAuditLog[]
+  scheduleResources  ScheduleResource[]
+  serviceOfferings   ServiceOffering[]
+  agendaAppointments AgendaAppointment[]
+  waitlistEntries    WaitlistEntry[]
 }
 
 model HealthProfile {
@@ -548,6 +561,7 @@ model Lead {
   @@index([tiendaId, estado])
   @@index([tiendaId, prioridad])
   @@index([assignedToUserId])
+  agendaAppointments AgendaAppointment[] @relation("AgendaAppointmentLead")
 }
 
 model LeadAssignment {
@@ -630,6 +644,7 @@ model Conversation {
   // Un cliente solo debería tener una conversación activa por tienda a la vez
   @@unique([tiendaId, clientPhone])
   @@index([leadId])
+  agendaAppointments AgendaAppointment[] @relation("AgendaAppointmentConversation")
 }
 
 model Message {
@@ -723,4 +738,299 @@ model ActivationPayment {
   @@index([customerEmail])
   @@index([sessionId])
   @@index([clinicId])
+}
+
+// ==========================================
+// 8. AGENDA PREMIUM UPWAY (nativa, sin terceros)
+// Propia: disponibilidad, holds para voz, lista de espera y auditoría.
+// ==========================================
+
+enum ScheduleResourceKind {
+  PROFESSIONAL
+  ROOM
+  EQUIPMENT
+}
+
+enum AgendaAppointmentStatus {
+  PENDING
+  CONFIRMED
+  CHECKED_IN
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+  REBOOKED
+}
+
+enum AgendaChannel {
+  VOICE
+  DASHBOARD
+  EMAIL
+  API
+  WALK_IN
+}
+
+enum AvailabilityExceptionKind {
+  TIME_OFF
+  HOLIDAY
+  EXTRA_OPENING
+}
+
+enum WaitlistStatus {
+  WAITING
+  OFFERED
+  BOOKED
+  EXPIRED
+  CANCELLED
+}
+
+enum AgendaEventType {
+  APPOINTMENT_CREATED
+  APPOINTMENT_RESCHEDULED
+  APPOINTMENT_CONFIRMED
+  APPOINTMENT_CANCELLED
+  APPOINTMENT_CHECKED_IN
+  APPOINTMENT_COMPLETED
+  APPOINTMENT_NO_SHOW
+  REMINDER_SENT
+  HOLD_CREATED
+  HOLD_RELEASED
+  HOLD_EXPIRED
+  WAITLIST_ADDED
+  WAITLIST_OFFERED
+  WAITLIST_CONVERTED
+}
+
+model ScheduleResource {
+  id             String               @id @default(cuid())
+  organizationId String
+  clinicId       String?
+  userId         String?
+  name           String
+  kind           ScheduleResourceKind @default(PROFESSIONAL)
+  email          String?
+  phone          String?
+  timezone       String               @default("America/Bogota")
+  locationLabel  String?
+  isActive       Boolean              @default(true)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clinic       Clinic?      @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  user         User?        @relation("ScheduleResourceUser", fields: [userId], references: [id], onDelete: SetNull)
+
+  services     ResourceService[]
+  rules        AvailabilityRule[]
+  exceptions   AvailabilityException[]
+  appointments AgendaAppointment[]
+  holds        AppointmentHold[]
+  waitlist     WaitlistEntry[]
+
+  @@index([organizationId, isActive])
+  @@index([clinicId, isActive])
+}
+
+model ServiceOffering {
+  id                   String  @id @default(cuid())
+  organizationId       String
+  clinicId             String?
+  name                 String
+  code                 String?
+  durationMinutes      Int     @default(30)
+  bufferBeforeMinutes  Int     @default(0)
+  bufferAfterMinutes   Int     @default(0)
+  slotStepMinutes      Int     @default(15)
+  capacity             Int     @default(1)
+  requiresDocuments    Boolean @default(false)
+  requiredDocumentType String?
+  prepInstructions     String? @db.Text
+  color                String  @default("#0EA5E9")
+  isActive             Boolean @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clinic       Clinic?      @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  resources    ResourceService[]
+  rules        AvailabilityRule[]
+  appointments AgendaAppointment[]
+  holds        AppointmentHold[]
+  waitlist     WaitlistEntry[]
+
+  @@unique([clinicId, name])
+  @@index([organizationId, isActive])
+}
+
+model ResourceService {
+  id                      String   @id @default(cuid())
+  resourceId              String
+  serviceId               String
+  durationOverrideMinutes Int?
+  isActive                Boolean  @default(true)
+  createdAt               DateTime @default(now())
+
+  resource ScheduleResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  service  ServiceOffering  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([resourceId, serviceId])
+  @@index([serviceId, isActive])
+}
+
+model AvailabilityRule {
+  id              String   @id @default(cuid())
+  resourceId      String
+  serviceId       String?
+  dayOfWeek       Int // 0 = domingo ... 6 = sábado (hora local del recurso)
+  startMinute     Int // minutos desde medianoche local
+  endMinute       Int
+  slotStepMinutes Int      @default(15)
+  validFrom       DateTime?
+  validTo         DateTime?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  resource ScheduleResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  service  ServiceOffering? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([resourceId, dayOfWeek, isActive])
+}
+
+model AvailabilityException {
+  id          String                    @id @default(cuid())
+  resourceId  String
+  date        DateTime                  @db.Date
+  kind        AvailabilityExceptionKind @default(TIME_OFF)
+  allDay      Boolean                   @default(true)
+  startMinute Int?
+  endMinute   Int?
+  reason      String?
+  createdAt   DateTime                  @default(now())
+  updatedAt   DateTime                  @updatedAt
+
+  resource ScheduleResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@index([resourceId, date])
+}
+
+model AppointmentHold {
+  id              String        @id @default(cuid())
+  holdToken       String        @unique
+  resourceId      String
+  serviceId       String
+  slotStart       DateTime
+  slotEnd         DateTime
+  channel         AgendaChannel @default(VOICE)
+  callId          String?
+  createdByUserId String?
+  expiresAt       DateTime
+  consumedAt      DateTime?
+  releasedAt      DateTime?
+  createdAt       DateTime      @default(now())
+
+  resource  ScheduleResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  service   ServiceOffering  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  createdBy User?            @relation("AgendaHoldCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([resourceId, slotStart])
+  @@index([expiresAt])
+}
+
+model AgendaAppointment {
+  id                String                  @id @default(cuid())
+  organizationId    String
+  clinicId          String?
+  resourceId        String
+  serviceId         String
+  patientName       String
+  patientPhone      String?
+  patientEmail      String?
+  patientDocument   String?
+  slotStart         DateTime
+  slotEnd           DateTime
+  status            AgendaAppointmentStatus @default(PENDING)
+  source            AgendaChannel           @default(DASHBOARD)
+  leadId            String?
+  conversationId    String?
+  notes             String?                 @db.Text
+  cancelReason      String?                 @db.Text
+  rescheduledFromId String?
+  confirmedAt       DateTime?
+  reminderSentAt    DateTime?
+  checkedInAt       DateTime?
+  completedAt       DateTime?
+  createdByUserId   String?
+  assignedToUserId  String?
+  callId            String?
+  calendarUid       String?                 @unique
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  organization    Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clinic          Clinic?             @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  resource        ScheduleResource    @relation(fields: [resourceId], references: [id])
+  service         ServiceOffering     @relation(fields: [serviceId], references: [id])
+  lead            Lead?               @relation("AgendaAppointmentLead", fields: [leadId], references: [id], onDelete: SetNull)
+  conversation    Conversation?       @relation("AgendaAppointmentConversation", fields: [conversationId], references: [id], onDelete: SetNull)
+  rescheduledFrom AgendaAppointment?  @relation("AppointmentReschedule", fields: [rescheduledFromId], references: [id], onDelete: SetNull)
+  rescheduledTo   AgendaAppointment[] @relation("AppointmentReschedule")
+  createdBy       User?               @relation("AgendaAppointmentCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  assignedTo      User?               @relation("AgendaAppointmentAssignee", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+
+  events AgendaAuditEvent[]
+
+  @@unique([resourceId, slotStart])
+  @@index([clinicId, slotStart, status])
+  @@index([organizationId, slotStart])
+  @@index([patientPhone])
+  @@index([status, reminderSentAt])
+}
+
+model WaitlistEntry {
+  id             String         @id @default(cuid())
+  organizationId String
+  clinicId       String?
+  serviceId      String
+  resourceId     String?
+  patientName    String
+  patientPhone   String?
+  patientEmail   String?
+  priority       Int            @default(5) // menor = más prioritario
+  desiredFrom    DateTime?
+  desiredTo      DateTime?
+  status         WaitlistStatus @default(WAITING)
+  offeredSlot    DateTime?
+  offeredAt      DateTime?
+  expiresAt      DateTime?
+  notes          String?        @db.Text
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clinic       Clinic?           @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  service      ServiceOffering   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  resource     ScheduleResource? @relation(fields: [resourceId], references: [id], onDelete: SetNull)
+
+  @@index([serviceId, status, priority, createdAt])
+  @@index([organizationId, status])
+}
+
+model AgendaAuditEvent {
+  id            String          @id @default(cuid())
+  appointmentId String?
+  resourceId    String?
+  type          AgendaEventType
+  channel       AgendaChannel   @default(DASHBOARD)
+  actorUserId   String?
+  actorLabel    String?
+  message       String?         @db.Text
+  metadata      Json?
+  createdAt     DateTime        @default(now())
+
+  appointment AgendaAppointment? @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  actor       User?              @relation("AgendaEventActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([appointmentId, createdAt])
+  @@index([type, createdAt])
 }

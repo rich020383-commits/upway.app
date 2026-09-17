@@ -5,6 +5,7 @@ import {
   Activity,
   BarChart3,
   BriefcaseMedical,
+  CalendarCheck2,
   FileText,
   House,
   MessageSquareText,
@@ -29,6 +30,7 @@ const navItems = [
   { href: '/health/approvals', label: 'Aprobaciones', icon: ShieldCheck, module: 'approvals' },
   { href: '/health/audit', label: 'Auditoría', icon: FileText, module: 'audit' },
   { href: '/health/production', label: 'Producción', icon: ShieldCheck, module: 'production' },
+  { href: '/health/agenda', label: 'Agenda', icon: CalendarCheck2, module: 'production' },
   { href: '/health/settings', label: 'Configuración', icon: Settings, module: 'settings' },
   { href: '/health/onboarding', label: 'Onboarding', icon: Activity, module: 'onboarding' },
 ] as const;
