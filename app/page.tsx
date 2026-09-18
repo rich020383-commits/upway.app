@@ -516,49 +516,91 @@ export default function Home() {
             </Link>
           </div>
           <div className="max-w-[1180px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-[15px] text-left">
-            <Link href="/login?segment=health" className="block bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+            <Link href="/login?segment=health" className="block overflow-hidden bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+              <div className="relative -mx-[20px] -mt-[20px] mb-[16px] aspect-[220/140] overflow-hidden bg-[#eaf4fb]">
+                <Image
+                  src="/sectores/clinicas.jpg"
+                  alt="Clínicas atendidas por Upway Health"
+                  width={220}
+                  height={140}
+                  quality={90}
+                  sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 224px"
+                  className="h-full w-full object-cover"
+                />
+              </div>
               <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">✚</span>
               <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">Clínicas</h3>
               <p className="text-[11px] leading-[1.5] text-[#55718f]">Optimiza la atención hospitalaria y la gestión de pacientes.</p>
               <span className="mt-[14px] inline-flex items-center gap-1 text-[11px] font-bold text-[#0ba9a9]">Comenzar onboarding →</span>
             </Link>
-            <Link href="/login?segment=health" className="block bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+            <Link href="/login?segment=health" className="block overflow-hidden bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+              <div className="relative -mx-[20px] -mt-[20px] mb-[16px] aspect-[220/140] overflow-hidden bg-[#eaf4fb]">
+                <Image
+                  src="/sectores/ips.jpg"
+                  alt="IPS atendidas por Upway Health"
+                  width={220}
+                  height={140}
+                  quality={90}
+                  sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 224px"
+                  className="h-full w-full object-cover"
+                />
+              </div>
               <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">♧</span>
               <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">IPS</h3>
               <p className="text-[11px] leading-[1.5] text-[#55718f]">Mejora la operación y comunicación con tu población.</p>
               <span className="mt-[14px] inline-flex items-center gap-1 text-[11px] font-bold text-[#0ba9a9]">Comenzar onboarding →</span>
             </Link>
-            <Link href="/login?segment=health" className="block bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+            <Link href="/login?segment=health" className="block overflow-hidden bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+              <div className="relative -mx-[20px] -mt-[20px] mb-[16px] aspect-[220/140] overflow-hidden bg-[#eaf4fb]">
+                <Image
+                  src="/sectores/eps.jpg"
+                  alt="EPS atendidas por Upway Health"
+                  width={220}
+                  height={140}
+                  quality={90}
+                  sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 224px"
+                  className="h-full w-full object-cover"
+                />
+              </div>
               <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">▣</span>
               <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">EPS</h3>
               <p className="text-[11px] leading-[1.5] text-[#55718f]">Fortalece el acceso, seguimiento y trazabilidad.</p>
               <span className="mt-[14px] inline-flex items-center gap-1 text-[11px] font-bold text-[#0ba9a9]">Comenzar onboarding →</span>
             </Link>
-            <Link href="/login?segment=health" className="block bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+            <Link href="/login?segment=health" className="block overflow-hidden bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+              <div className="relative -mx-[20px] -mt-[20px] mb-[16px] aspect-[220/140] overflow-hidden bg-[#eaf4fb]">
+                <Image
+                  src="/sectores/centros-de-salud.jpg"
+                  alt="Centros de salud atendidos por Upway Health"
+                  width={220}
+                  height={140}
+                  quality={90}
+                  sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 224px"
+                  className="h-full w-full object-cover"
+                />
+              </div>
               <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">◫</span>
               <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">Centros de salud</h3>
               <p className="text-[11px] leading-[1.5] text-[#55718f]">Simplifica citas y coordinación.</p>
               <span className="mt-[14px] inline-flex items-center gap-1 text-[11px] font-bold text-[#0ba9a9]">Comenzar onboarding →</span>
             </Link>
-            <Link href="/login?segment=health" className="block bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+            <Link href="/login?segment=health" className="block overflow-hidden bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+              <div className="relative -mx-[20px] -mt-[20px] mb-[16px] aspect-[220/140] overflow-hidden bg-[#eaf4fb]">
+                <Image
+                  src="/sectores/consultorios.jpg"
+                  alt="Consultorios atendidos por Upway Health"
+                  width={220}
+                  height={140}
+                  quality={90}
+                  sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 224px"
+                  className="h-full w-full object-cover"
+                />
+              </div>
               <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">◉</span>
               <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">Consultorios</h3>
               <p className="text-[11px] leading-[1.5] text-[#55718f]">Lleva tu práctica médica al siguiente nivel.</p>
               <span className="mt-[14px] inline-flex items-center gap-1 text-[11px] font-bold text-[#0ba9a9]">Comenzar onboarding →</span>
             </Link>
-          </div>
-
-          {/* Banner de actores del sector salud */}
-          <div className="max-w-[1180px] mx-auto mt-12 rounded-[25px] overflow-hidden shadow-[0_20px_50px_#153f6815] border border-[#e0edf6]">
-            <Image
-              src="/actores-salud.jpg"
-              alt="Clínicas, IPS, EPS, centros de salud y consultorios atendidos por Upway Health"
-              width={1261}
-              height={288}
-              quality={90}
-              sizes="(max-width: 1180px) 100vw, 1180px"
-              className="w-full h-auto object-cover"
-            />
           </div>
         </section>
 
