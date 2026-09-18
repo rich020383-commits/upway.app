@@ -6,7 +6,7 @@
    usaban en /terminos, /privacy y Chatbot pero eran clases
    MUERTAS (no generaban CSS). Aquí quedan activadas.
    ========================================================== */
-@theme {
+@theme inline {
   /* Tipografía: una sola familia como fuente de verdad (Geist,
      ya cargada con next/font) + display premium para titulares.
      Elimina el fallback fantasma a "Inter" (que nunca se cargaba)
@@ -73,9 +73,9 @@ html {
 }
 
 body {
-  /* Fondo oscuro nativo para empalmar con la estética de Upway */
-  background-color: #050b16;
-  color: #e8f0fb;
+  /* Fondo claro nativo para empalmar con la estética de Upway Health */
+  background-color: #ffffff;
+  color: #0d3168;
   /* Apuntamos a la fuente REAL cargada con next/font.
      Antes decía "Inter" (que nunca se cargaba) y caía a Segoe UI
      en Windows o DejaVu Sans en Linux/Render. */

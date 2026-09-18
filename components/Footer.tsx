@@ -20,11 +20,8 @@ export default function Footer() {
             </div>
             <p className="text-sm leading-relaxed">Potenciando empresas mediante Inteligencia Artificial estratégica.</p>
             <div className="flex gap-3 pt-2">
-              <a href="#" className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#1b5ed6] flex items-center justify-center transition-all hover:-translate-y-0.5">
+              <a href="https://www.linkedin.com/in/sophia-de-belfort-990164431" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn de Upway Health" className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#1b5ed6] flex items-center justify-center transition-all hover:-translate-y-0.5">
                 <span className="text-xs font-bold">Li</span>
-              </a>
-              <a href="#" className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#1b5ed6] flex items-center justify-center transition-all hover:-translate-y-0.5">
-                <span className="text-xs font-bold">Tw</span>
               </a>
             </div>
           </div>
