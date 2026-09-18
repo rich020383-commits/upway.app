@@ -46,7 +46,7 @@ function PlanCard({ plan, featured = false }: { plan: typeof ALL_HEALTH_PLANS[nu
         )}
       </div>
       <div className={`mb-5 space-y-2 text-sm ${featured ? 'text-slate-200' : 'text-slate-600'}`}>
-        <div className="flex items-center gap-2"><span>{plan.includedNumbers} numero{plan.includedNumbers > 1 ? 'es' : ''}</span></div>
+        <div className="flex items-center gap-2"><span>{plan.includedNumbers} número{plan.includedNumbers > 1 ? 's' : ''}</span></div>
         <div className="flex items-center gap-2"><span>{plan.includedMinutes.toLocaleString('es-CO')} min/mes</span></div>
         <div className="flex items-center gap-2"><span>Hasta {plan.concurrentCalls} simultaneas</span></div>
         {plan.overageCOP > 0 && <div className="flex items-center gap-2"><span>Overage: ${plan.overageCOP.toLocaleString('es-CO')} COP/min</span></div>}
