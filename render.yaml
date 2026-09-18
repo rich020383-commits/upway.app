@@ -3,9 +3,15 @@ services:
     name: upway-app
     env: node
     plan: free
-    buildCommand: npm install --include=dev && npx prisma migrate deploy && NODE_OPTIONS=--max_old_space_size=450 npm run build
+    # El esquema ya NO se aplica aquí: un `prisma db push` dentro del build
+    # obligaba a despertar la base de datos en cada deploy (cuota de compute)
+    # y podía alterar el esquema de producción como efecto colateral.
+    # Para aplicar cambios de esquema, ejecutar a propósito: npm run db:push
+    buildCommand: npm install --include=dev && npm run build
     startCommand: npm run start
-    healthCheckPath: /api/voice/webhooks
+    # El health check debe ser una ruta ligera que NO consulte la base de datos:
+    # si la consulta, impide que el compute llegue a suspenderse por inactividad.
+    healthCheckPath: /
     envVars:
       - key: NODE_ENV
         value: production

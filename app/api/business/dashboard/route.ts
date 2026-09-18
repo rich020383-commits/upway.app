@@ -146,6 +146,7 @@ export async function GET(request: NextRequest) {
       where: { tiendaId, fechaHora: { gte: now, lte: tomorrowEnd } },
       select: { id: true, clienteNombre: true, fechaHora: true, estado: true },
       orderBy: { fechaHora: 'asc' },
+      take: 200, // Ventana de 48 h: acotada por tiempo, pero también por tamaño
     });
     const unconfirmedAppointments = upcomingAppointmentsAll.filter((c) => c.estado !== 'CONFIRMED');
 

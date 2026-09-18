@@ -99,6 +99,7 @@ async function loadApprovals(clinicId?: string, organizationId?: string): Promis
     where: { clinicId: clinic.id },
     include: { approvals: { orderBy: { createdAt: 'desc' } } },
     orderBy: { updatedAt: 'desc' },
+    take: 50, // Solo interesan las sesiones recientes para la bandeja de aprobaciones
   });
 
   if (!sessions.length) {

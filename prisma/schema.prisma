@@ -4,7 +4,11 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  // La app (Prisma Client) se conecta por el endpoint pooler de Neon.
   url      = env("DATABASE_URL")
+  // Las tareas de esquema (prisma db push) usan el endpoint directo:
+  // el pooler no soporta las sentencias DDL que requiere un cambio de esquema.
+  directUrl = env("DIRECT_URL")
 }
 
 // ==========================================

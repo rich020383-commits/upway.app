@@ -12,10 +12,9 @@ const INBOX_POLL_INTERVAL_MS = 15_000;
 
 interface ConversationSummary {
   id: string;
-  name: string;
-  lastMessage: string;
-  unread: number;
-  status: string;
+  clientName?: string | null;
+  clientPhone: string;
+  messages: InboxMessage[];
 }
 
 interface TiendaData {
@@ -233,7 +232,7 @@ export default function InboxPage() {
                   <div className="flex justify-between items-center mb-1">
                     <span className="font-semibold">{chat.clientName || chat.clientPhone}</span>
                     <span className="text-[10px] text-[#8994A6]">
-                      {ultimoMensaje ? new Date(ultimoMensaje.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
+                      {ultimoMensaje ? new Date(ultimoMensaje.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                     </span>
                   </div>
                   <p className="text-xs text-[#8994A6] truncate">

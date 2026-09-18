@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
         ],
       },
       select: { id: true },
+      take: 50, // Acota el payload: evita respuestas sin límite frente a muchos workspaces
     });
 
     const orgIds = organizations.map((o) => o.id);

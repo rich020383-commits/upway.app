@@ -1,7 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { sendHealthOnboardingEmail } from '@/lib/email';
+import { requireAdmin } from '@/lib/admin-guard';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   console.log('[test-notify] Iniciando prueba de notificación...');
 
   const testData = {

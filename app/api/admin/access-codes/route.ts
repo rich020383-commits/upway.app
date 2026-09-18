@@ -66,6 +66,7 @@ export async function GET(req: NextRequest) {
         },
       },
     },
+    take: 100, // Acota el listado de administración
   });
 
   return NextResponse.json({

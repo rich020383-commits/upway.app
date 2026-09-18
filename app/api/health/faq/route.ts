@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
     const faqs = await prisma.healthFAQ.findMany({
       where: { profileId: profile.id },
       orderBy: { createdAt: 'asc' },
+      take: 500, // Tope de seguridad: acota la respuesta sin truncar un catálogo normal
     });
 
     const payload = withTenantScope({ items: faqs }, { organizationId, clinicId: clinic.id, role });
