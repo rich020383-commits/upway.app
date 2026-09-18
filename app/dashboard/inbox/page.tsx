@@ -5,6 +5,11 @@ import { useSession } from 'next-auth/react';
 import { Bot, User, Send, Check, CheckCheck, Loader2, ArrowLeft, Power } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+// Intervalo de refresco de la bandeja. Antes eran 3 s (28.800 peticiones/día por
+// pestaña abierta). Con este valor y el pausado en segundo plano, la base de datos
+// puede volver a inactivarse y deja de consumir cómputo de forma continua.
+const INBOX_POLL_INTERVAL_MS = 15_000;
+
 interface ConversationSummary {
   id: string;
   name: string;
@@ -59,11 +64,22 @@ export default function InboxPage() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 🔄 POLLING INTELIGENTE: Consulta la DB cada 3 segundos
+  // 🔄 POLLING EFICIENTE DE LA BANDEJA
+  // - Intervalo amplio: la bandeja no necesita latir cada 3 segundos.
+  // - Se detiene cuando la pestaña está oculta (nadie está leyendo) y reanuda
+  //   con carga inmediata al volver, para no mostrar datos viejos.
+  // - Evita peticiones solapadas si una respuesta tarda más que el intervalo.
+  // El latido anterior de 3 s impedía que la base de datos llegara a inactivarse,
+  // quemando cómputo durante las 24 horas.
   useEffect(() => {
     if (!userEmail) return;
 
+    let interval: ReturnType<typeof setInterval> | undefined;
+    let inFlight = false;
+
     const fetchInbox = async () => {
+      if (inFlight) return;
+      inFlight = true;
       try {
         const res = await fetch(`/api/inbox?email=${userEmail}`);
         if (res.ok) {
@@ -79,12 +95,39 @@ export default function InboxPage() {
         }
       } catch (error) {
         console.error("Error en polling:", error);
+      } finally {
+        inFlight = false;
       }
     };
 
+    const startPolling = () => {
+      if (interval !== undefined) return;
+      interval = setInterval(fetchInbox, INBOX_POLL_INTERVAL_MS);
+    };
+
+    const stopPolling = () => {
+      if (interval === undefined) return;
+      clearInterval(interval);
+      interval = undefined;
+    };
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        stopPolling();
+        return;
+      }
+      fetchInbox(); // Al volver a la pestaña, refrescamos de inmediato
+      startPolling();
+    };
+
     fetchInbox(); // Primera carga
-    const interval = setInterval(fetchInbox, 3000); // Latido cada 3 segundos
-    return () => clearInterval(interval); // Limpiamos al salir
+    if (!document.hidden) startPolling();
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
   }, [userEmail]);
 
   // Auto-scroll al final cuando se abre un chat o llegan mensajes
