@@ -174,10 +174,10 @@ export default function LandingPage() {
                 <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">Andrés Silva · 14:00</p>
               </div>
               <div className="bg-[#f7fbff] rounded-[12px] p-[14px] text-[10px] text-[#54718f]">
-                <b className="text-[#0d3168] block mb-1">Canales de comunicación</b>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">🟢 WhatsApp · Activo</p>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">🔵 Voz · Activo</p>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">🟣 SMS · Activo</p>
+                <b className="text-[#0d3168] block mb-1">Canales y agenda</b>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">● Voz IA · triage y agenda</p>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">● Agenda nativa · sin terceros</p>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">○ WhatsApp Business · al conectarlo tú</p>
               </div>
             </div>
           </div>
