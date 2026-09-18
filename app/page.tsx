@@ -548,13 +548,13 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* Imagen de Sectores (ruta corregida) */}
+          {/* Banner de actores del sector salud */}
           <div className="max-w-[1180px] mx-auto mt-12 rounded-[25px] overflow-hidden shadow-[0_20px_50px_#153f6815] border border-[#e0edf6]">
             <Image
-              src="/sectores-salud.png"
-              alt="Sectores de atención"
-              width={890}
-              height={195}
+              src="/actores-salud.jpg"
+              alt="Clínicas, IPS, EPS, centros de salud y consultorios atendidos por Upway Health"
+              width={1261}
+              height={288}
               quality={90}
               sizes="(max-width: 1180px) 100vw, 1180px"
               className="w-full h-auto object-cover"
