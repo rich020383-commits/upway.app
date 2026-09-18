@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/session';
 
+// Cuántos mensajes por conversación devuelve la bandeja. Antes se enviaba el
+// historial completo en cada refresco: como la bandeja se consulta de forma
+// periódica, eso multiplicaba el tráfico contra la base de datos.
+const INBOX_MESSAGES_PER_CONVERSATION = 40;
+
 // 1. OBTENER TODOS LOS CHATS Y MENSAJES (GET)
 export async function GET(req: NextRequest) {
   try {
@@ -17,19 +22,41 @@ export async function GET(req: NextRequest) {
     const tienda = await prisma.tienda.findFirst({ where: { userId: user.id } });
     if (!tienda) return NextResponse.json({ error: 'Tienda no encontrada' }, { status: 404 });
 
-    // Traemos las conversaciones con sus mensajes, ordenadas por la más reciente
+    // 📦 Payload acotado: la bandeja se refresca periódicamente, así que devolver
+    // el historial completo de cada conversación multiplicaba el peso de cada
+    // respuesta y la transferencia de red de la base de datos. Traemos solo los
+    // últimos mensajes y únicamente los campos que la UI necesita.
     const conversations = await prisma.conversation.findMany({
       where: { tiendaId: tienda.id },
-      include: {
+      select: {
+        id: true,
+        clientName: true,
+        clientPhone: true,
+        updatedAt: true,
         messages: {
-          orderBy: { createdAt: 'asc' } // Los mensajes más viejos arriba, los nuevos abajo
+          orderBy: { createdAt: 'desc' }, // Los más recientes primero (para poder cortar)
+          take: INBOX_MESSAGES_PER_CONVERSATION,
+          select: {
+            id: true,
+            senderRole: true,
+            content: true,
+            status: true,
+            createdAt: true
+          }
         }
       },
       orderBy: { updatedAt: 'desc' } // Los chats con mensajes más recientes arriba
     });
 
+    // La UI espera el historial en orden ascendente (el último elemento es el
+    // mensaje más reciente), así que invertimos la página que acabamos de traer.
+    const conversationsAsc = conversations.map((conversation) => ({
+      ...conversation,
+      messages: [...conversation.messages].reverse()
+    }));
+
     return NextResponse.json({
-      conversations,
+      conversations: conversationsAsc,
       tiendaId: tienda.id,
       metaAccessToken: tienda.metaAccessToken,
       metaPhoneNumberId: tienda.metaPhoneNumberId,

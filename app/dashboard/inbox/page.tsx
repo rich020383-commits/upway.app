@@ -63,6 +63,9 @@ export default function InboxPage() {
   const [tiendaData, setTiendaData] = useState<TiendaData | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Permite refrescar la bandeja de inmediato tras enviar un mensaje, sin
+  // esperar al siguiente ciclo del polling.
+  const fetchInboxRef = useRef<null | (() => Promise<void>)>(null);
 
   // 🔄 POLLING EFICIENTE DE LA BANDEJA
   // - Intervalo amplio: la bandeja no necesita latir cada 3 segundos.
@@ -120,11 +123,13 @@ export default function InboxPage() {
       startPolling();
     };
 
+    fetchInboxRef.current = fetchInbox;
     fetchInbox(); // Primera carga
     if (!document.hidden) startPolling();
     document.addEventListener('visibilitychange', onVisibilityChange);
 
     return () => {
+      fetchInboxRef.current = null;
       stopPolling();
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
@@ -156,7 +161,9 @@ export default function InboxPage() {
           metaPhoneNumberId: tiendaData.phoneId
         })
       });
-      // El polling actualizará la vista en los próximos 3 segundos
+      // Refrescamos de inmediato para que el mensaje enviado aparezca sin
+      // esperar al siguiente ciclo del polling.
+      await fetchInboxRef.current?.();
     } catch (error) {
       console.error("Fallo al enviar:", error);
     } finally {
