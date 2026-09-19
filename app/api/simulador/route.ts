@@ -39,6 +39,60 @@ async function crearEventoCalendario(asunto: string, fechaInicio: string, fechaF
     throw new Error("No pude conectar con el calendario.");
   }
 }
+// ==========================================
+//  EXTRACCIÓN SEGURA DE TOOL CALLS (OpenAI-compatible)
+// ==========================================
+// El SDK tipa `tool_calls` como unión (`function | custom`), por eso `.function`
+// no se puede leer sin discriminar. Este helper aísla esa lógica una sola vez
+// para los 6 motores de la cascada y evita confiar en JSON.parse sin try/catch.
+type AgendarArgs = {
+  asunto?: string;
+  fechaInicio?: string;
+  fecha_inicio?: string;
+  fechaFin?: string;
+  fecha_fin?: string;
+};
+
+const extraerToolCallFunction = (
+  message: unknown
+): { name?: string; arguments?: string } | undefined => {
+  const toolCalls = (message as { tool_calls?: unknown[] } | null | undefined)?.tool_calls;
+  if (!Array.isArray(toolCalls) || toolCalls.length === 0) return undefined;
+  const primero = toolCalls[0] as { function?: { name?: string; arguments?: string } } | undefined;
+  return primero?.function;
+};
+
+const parsearArgsAgendamiento = (raw?: string): AgendarArgs => {
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    return parsed && typeof parsed === 'object' ? (parsed as AgendarArgs) : {};
+  } catch {
+    return {};
+  }
+};
+
+/**
+ * Ejecuta el agendamiento si el modelo pidió la herramienta.
+ * Devuelve el texto de confirmación, o `null` si no hubo tool call utilizable
+ * (en ese caso el llamador responde con el texto normal del modelo).
+ */
+const agendarSiElModeloLoTiene = async (message: unknown): Promise<string | null> => {
+  const fn = extraerToolCallFunction(message);
+  if (!fn) return null;
+
+  const args = parsearArgsAgendamiento(fn.arguments);
+  const asunto = args.asunto;
+  const inicio = args.fechaInicio || args.fecha_inicio;
+  const fin = args.fechaFin || args.fecha_fin;
+
+  // Sin los tres datos no agendamos: es preferible pedir el dato que crear un
+  // evento incompleto (misma regla de oro que la captura conforme de identidad).
+  if (!asunto || !inicio || !fin) return null;
+
+  await crearEventoCalendario(asunto, inicio, fin);
+  return `¡Listo! Acabo de agendar tu cita "${asunto}". Todo quedó confirmado en la agenda.`;
+};
 
 // ==========================================
 // 🧠 INICIALIZACIÓN DE MOTORES DE CASCADA
@@ -340,14 +394,7 @@ export async function POST(req: NextRequest) {
           const message = completion.choices[0]?.message;
           const textoRespuesta = message?.content || '';
 
-          if (message?.tool_calls && message.tool_calls.length > 0) {
-            const args = JSON.parse(message.tool_calls[0].function.arguments);
-            const inicio = args.fechaInicio || args.fecha_inicio;
-            const fin = args.fechaFin || args.fecha_fin;
-            await crearEventoCalendario(args.asunto, inicio, fin);
-            return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
-          }
-          return textoRespuesta;
+          return (await agendarSiElModeloLoTiene(message)) ?? textoRespuesta;
         }
       },
       {
@@ -364,14 +411,7 @@ export async function POST(req: NextRequest) {
           const message = completion.choices[0]?.message;
           const textoRespuesta = message?.content || '';
 
-          if (message?.tool_calls && message.tool_calls.length > 0) {
-            const args = JSON.parse(message.tool_calls[0].function.arguments);
-            const inicio = args.fechaInicio || args.fecha_inicio;
-            const fin = args.fechaFin || args.fecha_fin;
-            await crearEventoCalendario(args.asunto, inicio, fin);
-            return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
-          }
-          return textoRespuesta;
+          return (await agendarSiElModeloLoTiene(message)) ?? textoRespuesta;
         }
       },
       {
@@ -388,14 +428,7 @@ export async function POST(req: NextRequest) {
           const message = completion.choices[0]?.message;
           const textoRespuesta = message?.content || '';
 
-          if (message?.tool_calls && message.tool_calls.length > 0) {
-            const args = JSON.parse(message.tool_calls[0].function.arguments);
-            const inicio = args.fechaInicio || args.fecha_inicio;
-            const fin = args.fechaFin || args.fecha_fin;
-            await crearEventoCalendario(args.asunto, inicio, fin);
-            return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
-          }
-          return textoRespuesta;
+          return (await agendarSiElModeloLoTiene(message)) ?? textoRespuesta;
         }
       },
       {
@@ -412,14 +445,7 @@ export async function POST(req: NextRequest) {
           const message = completion.choices[0]?.message;
           const textoRespuesta = message?.content || '';
 
-          if (message?.tool_calls && message.tool_calls.length > 0) {
-            const args = JSON.parse(message.tool_calls[0].function.arguments);
-            const inicio = args.fechaInicio || args.fecha_inicio;
-            const fin = args.fechaFin || args.fecha_fin;
-            await crearEventoCalendario(args.asunto, inicio, fin);
-            return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
-          }
-          return textoRespuesta;
+          return (await agendarSiElModeloLoTiene(message)) ?? textoRespuesta;
         }
       },
       {
@@ -436,14 +462,7 @@ export async function POST(req: NextRequest) {
           const message = completion.choices[0]?.message;
           const textoRespuesta = message?.content || '';
 
-          if (message?.tool_calls && message.tool_calls.length > 0) {
-            const args = JSON.parse(message.tool_calls[0].function.arguments);
-            const inicio = args.fechaInicio || args.fecha_inicio;
-            const fin = args.fechaFin || args.fecha_fin;
-            await crearEventoCalendario(args.asunto, inicio, fin);
-            return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
-          }
-          return textoRespuesta;
+          return (await agendarSiElModeloLoTiene(message)) ?? textoRespuesta;
         }
       },
       {
@@ -460,14 +479,7 @@ export async function POST(req: NextRequest) {
           const message = completion.choices[0]?.message;
           const textoRespuesta = message?.content || '';
 
-          if (message?.tool_calls && message.tool_calls.length > 0) {
-            const args = JSON.parse(message.tool_calls[0].function.arguments);
-            const inicio = args.fechaInicio || args.fecha_inicio;
-            const fin = args.fechaFin || args.fecha_fin;
-            await crearEventoCalendario(args.asunto, inicio, fin);
-            return `¡Listo! Acabo de agendar tu cita "${args.asunto}". Todo quedó confirmado en la agenda.`;
-          }
-          return textoRespuesta;
+          return (await agendarSiElModeloLoTiene(message)) ?? textoRespuesta;
         }
       },
       {

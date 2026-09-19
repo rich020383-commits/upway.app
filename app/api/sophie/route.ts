@@ -1,6 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { checkRateLimit, getClientIp, rateLimitHeaders } from '@/lib/rate-limit';
+
+/**
+ * Limite de peticiones por IP.
+ *
+ * FIX AUDITORIA A12: este endpoint no tenia limite. Cualquiera podia hacer loop
+ * sobre el y agotar la cuota pagada de los proveedores de LLM (Gemini, Groq,
+ * OpenRouter, Cerebras...), dejando sin servicio a los usuarios reales.
+ *
+ * 30 peticiones/minuto es holgado para un chat humano real (incluida la
+ * transcripcion de notas de voz) y corta el abuso trivial por script.
+ * Ajustable por entorno para no recompilar en cada cambio de operacion.
+ */
+const SOPHIE_RATE_LIMIT = {
+  limit: Number(process.env.SOPHIE_RATE_LIMIT ?? 30),
+  windowMs: Number(process.env.SOPHIE_RATE_WINDOW_MS ?? 60_000),
+};
 
 // 💎 SOPHIE acepta la llave premium o la llave estándar de Gemini
 const geminiApiKey = process.env.GEMINI_PREMIUM_API_KEY || process.env.GEMINI_API_KEY;
@@ -237,6 +254,18 @@ const buildLocalFallback = (messages: SophieMessage[]): string => {  const lastU
 };
 
 export async function POST(req: NextRequest) {
+  // FIX AUDITORIA A12: freno de cuota antes de tocar cualquier proveedor de LLM.
+  const rate = checkRateLimit(`sophie:${getClientIp(req)}`, SOPHIE_RATE_LIMIT);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      {
+        reply:
+          'Estamos recibiendo muchas solicitudes desde tu conexión. Espera unos segundos e inténtalo de nuevo, por favor.',
+      },
+      { status: 429, headers: rateLimitHeaders(rate) }
+    );
+  }
+
   try {
     const body = await req.json();
 

@@ -62,9 +62,12 @@ export function verifyBoldSignature(rawBody: string, signatureHeader: string | n
 }
 
 /**
- * Valida un secreto compartido simple por header (Neon / n8n):
- *   X-Webhook-Secret: <NEON_WEBHOOK_SECRET>
+ * Valida un secreto compartido simple por header (bitácora de eventos / n8n):
+ *   X-Webhook-Secret: <WEBHOOK_EVENTS_SECRET>
  * Comparación en tiempo constante para evitar oráculos de timing.
+ *
+ * (El nombre anterior del secreto era NEON_WEBHOOK_SECRET, del proveedor de
+ * base de datos que ya no se usa. La variable vigente es WEBHOOK_EVENTS_SECRET.)
  */
 export function verifySharedSecret(receivedSecret: string | null, expectedSecret: string): boolean {
   if (!receivedSecret || !expectedSecret) return false;
