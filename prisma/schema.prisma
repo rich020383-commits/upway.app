@@ -230,6 +230,7 @@ model Organization {
   serviceOfferings   ServiceOffering[]
   agendaAppointments AgendaAppointment[]
   waitlistEntries    WaitlistEntry[]
+  patientIdentities  PatientIdentity[]
 }
 
 model OrganizationMember {
@@ -264,6 +265,7 @@ model Clinic {
   serviceOfferings   ServiceOffering[]
   agendaAppointments AgendaAppointment[]
   waitlistEntries    WaitlistEntry[]
+  patientIdentities  PatientIdentity[]
 }
 
 model HealthProfile {
@@ -1050,4 +1052,121 @@ model AgendaAuditEvent {
 
   @@index([appointmentId, createdAt])
   @@index([type, createdAt])
+}
+// ============================================================================
+// IDENTIDAD CONFORME (Upway Health) - Fase 1
+// ----------------------------------------------------------------------------
+// Upway NO transmite el RDA ni el RIPS: eso es del prestador.
+// Upway certifica que la identidad y la demografia entren conformes,
+// confirmadas por el paciente y con trazabilidad.
+// Ver REPORTES/NOTA-INTEGRACION-SALUD-2026-09.md §4.2 y §5.
+// ============================================================================
+
+/// Transitorio = Upway no retiene la identidad para uso propio.
+/// Custodia = retencion contratada con DPA (clinicas sin HIS propio).
+enum IdentityRetentionMode {
+  TRANSIENT
+  CUSTODY
+}
+
+enum IdentityChannel {
+  VOICE
+  WHATSAPP
+  DASHBOARD
+}
+
+enum IdentityHandoffStatus {
+  PENDING
+  DELIVERED
+  FAILED
+  SKIPPED
+}
+
+/// Identidad certificada. NO contiene ningun dato clinico, por diseno.
+/// Es el prerequisito del centro de datos: sin esto no hay nada que servir
+/// al HIS del cliente. La clave de match es documentType + documentNumber,
+/// la misma que usa el MPI nacional.
+model PatientIdentity {
+  id             String  @id @default(cuid())
+  organizationId String
+  clinicId       String?
+
+  // --- Identidad: catalogos cerrados, nunca texto libre ---
+  documentType     String
+  documentNumber   String
+  givenNames       String[]
+  familyNames      String[]
+  birthDate        DateTime @db.Date
+  sexCode          String
+  municipalityCode String
+  departmentCode   String
+
+  // --- Contacto: clave del canal, no campo del RDA ---
+  phoneE164 String?
+  email     String?
+
+  // --- Conformidad certificada: es la evidencia del SLA ---
+  conforming      Boolean  @default(false)
+  completenessPct Int      @default(0)
+  issuesJson      Json?
+  /// sha256 del payload canonico. Permite probar que el dato no se altero.
+  recordHash      String
+  confirmedAt     DateTime?
+  retentionMode   IdentityRetentionMode @default(TRANSIENT)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization  Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clinic        Clinic?                @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  confirmations IdentityConfirmation[]
+  handoffs      IdentityHandoff[]
+
+  @@unique([organizationId, documentType, documentNumber])
+  @@index([organizationId, documentNumber])
+  @@index([clinicId, createdAt])
+  @@index([conforming, createdAt])
+}
+
+/// Evidencia de que el paciente confirmo su identidad releyendo el dato.
+/// Es lo que convierte el SLA en algo contractual y verificable.
+model IdentityConfirmation {
+  id             String          @id @default(cuid())
+  identityId     String
+  channel        IdentityChannel @default(VOICE)
+  method         String          @default("DIGIT_BY_DIGIT_READBACK")
+  scriptText     String          @db.Text
+  patientReply   String?         @db.Text
+  callId         String?
+  conversationId String?
+  confirmedAt    DateTime        @default(now())
+
+  identity PatientIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+
+  @@index([identityId, confirmedAt])
+  @@index([callId])
+}
+
+/// Entrega del registro conforme al HIS/HCE del cliente.
+/// match-or-create: Upway entrega la clave de match y NO crea pacientes
+/// por su cuenta; el HIS busca y decide si actualiza o crea.
+model IdentityHandoff {
+  id             String                @id @default(cuid())
+  identityId     String
+  targetSystem   String
+  /// Id del paciente en el sistema destino, devuelto por el HIS.
+  targetRef      String?
+  status         IdentityHandoffStatus @default(PENDING)
+  /// Evita duplicar la entrega si el HIS reintenta el mismo payload.
+  idempotencyKey String                @unique
+  attempts       Int                   @default(0)
+  lastError      String?               @db.Text
+  deliveredAt    DateTime?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  identity PatientIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+
+  @@index([identityId, status])
+  @@index([status, createdAt])
 }

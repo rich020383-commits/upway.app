@@ -14,7 +14,13 @@ export default function HeroSphere() {
     let width = canvas.width = canvas.offsetWidth;
     let height = canvas.height = canvas.offsetHeight;
 
-    type Particle = { x: number; y: number; z: number; baseX: number; baseY: number; baseZ: number };
+    type Particle = {
+      x: number; y: number; z: number;
+      baseX: number; baseY: number; baseZ: number;
+      // Proyección 2D del frame actual: se escribe en animate() y se lee en el
+      // bucle de conexiones del mismo frame, por eso deben estar en el tipo.
+      currentX: number; currentY: number; scale: number;
+    };
     const particles: Particle[] = [];
     const particleCount = 400; // Densidad de la red neuronal
     const sphereRadius = width < 768 ? 150 : 250;
@@ -31,6 +37,9 @@ export default function HeroSphere() {
         baseX: sphereRadius * Math.cos(theta) * Math.sin(phi),
         baseY: sphereRadius * Math.sin(theta) * Math.sin(phi),
         baseZ: sphereRadius * Math.cos(phi),
+        currentX: 0,
+        currentY: 0,
+        scale: 1,
       });
     }
 
