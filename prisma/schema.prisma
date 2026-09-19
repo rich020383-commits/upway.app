@@ -4,11 +4,24 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // La app (Prisma Client) se conecta por el endpoint pooler de Neon.
+  // Base de datos: Aiven PostgreSQL (migrado desde Neon, que agoto su capa
+  // gratuita). Aiven entrega un unico endpoint directo: no hay endpoint de
+  // pooler separado, asi que `url` sirve tanto para la app como para las tareas
+  // de esquema (prisma migrate / db push).
+  //
+  // Antes existia `directUrl = env("DIRECT_URL")` porque Neon separaba pooler y
+  // endpoint directo. Se elimino para no dejar un puntero que, si queda viejo en
+  // el entorno, intentaria migrar contra una base de datos que ya no existe.
+  //
+  // Los alias tolerados en tiempo de ejecucion (AIVEN_DATABASE_URL, POSTGRES_URL,
+  // DIRECT_URL) los resuelve lib/database-url.ts.
+  //
+  // Pooling: Aiven no ofrece endpoint de pooler y esta instancia tiene
+  // max_connections=20 (17 usables). Como Prisma abre (cpus * 2 + 1) conexiones
+  // por instancia y lib/listener.ts retiene 1 conexion permanente para
+  // LISTEN/NOTIFY, conviene acotar el pool en la URL:
+  //   ?sslmode=require&connection_limit=5&pool_timeout=20
   url      = env("DATABASE_URL")
-  // Las tareas de esquema (prisma db push) usan el endpoint directo:
-  // el pooler no soporta las sentencias DDL que requiere un cambio de esquema.
-  directUrl = env("DIRECT_URL")
 }
 
 // ==========================================

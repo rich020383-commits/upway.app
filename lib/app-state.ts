@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma';
 import type { Prisma, Producto as ProductoModel } from '@prisma/client';
 
 /**
- * Capa de acceso a datos de INVENTARIO sobre Prisma/Neon.
+ * Capa de acceso a datos de INVENTARIO sobre Prisma/PostgreSQL (Aiven).
  * Reemplaza el estado en memoria (los datos ya no se pierden al reiniciar).
  *
  * Multi-tenant: todas las operaciones reciben `tiendaId`, y los endpoints

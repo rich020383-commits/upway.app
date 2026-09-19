@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Configuración interna del servidor incompleta.' }, { status: 500 });
     }
 
-    // 2. BUSCAMOS LA TIENDA DEL USUARIO AUTENTICADO EN NEON DB (ownership garantizado)
+    // 2. BUSCAMOS LA TIENDA DEL USUARIO AUTENTICADO EN LA BASE DE DATOS (ownership garantizado)
     const { tienda, error } = await getOwnedTienda(request, prisma);
     if (error) return error;
 

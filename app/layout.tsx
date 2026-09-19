@@ -3,12 +3,14 @@ import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Chatbot from "@/components/Chatbot"; 
 import PwaRegister from "@/components/PwaRegister";
-import { iniciarOidoNeon } from '@/lib/listener';
+import { iniciarOidoBaseDatos } from '@/lib/listener';
+import { hasDatabaseUrl } from '@/lib/database-url';
 import Script from 'next/script'; // Importación correcta del componente Script de Next.js
 
 // Iniciamos el oído en segundo plano solo cuando exista la conexión configurada
-if (typeof window === 'undefined' && process.env.DIRECT_URL) {
-  iniciarOidoNeon();
+// (DATABASE_URL de Aiven, o cualquiera de sus alias). Ver lib/database-url.ts.
+if (typeof window === 'undefined' && hasDatabaseUrl()) {
+  iniciarOidoBaseDatos();
 }
 // 🔥 1. IMPORTAMOS EL CEREBRO DEL IDIOMA
 import { LanguageProvider } from "@/context/LanguageContext";

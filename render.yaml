@@ -25,9 +25,15 @@ services:
         sync: false
       - key: NEXTAUTH_SECRET
         sync: false
+      # Base de datos unica: Aiven PostgreSQL. Antes habia un DIRECT_URL porque el
+      # proveedor anterior separaba pooler y endpoint directo; Aiven entrega un
+      # solo endpoint, asi que el puntero quedo obsoleto y se retiro para no
+      # dejar una variable que, si queda vieja, apunte a una base inexistente.
       - key: DATABASE_URL
         sync: false
-      - key: DIRECT_URL
+      # (Opcional) CA de Aiven para verificacion estricta del certificado en el
+      # listener LISTEN/NOTIFY. Ver lib/listener.ts.
+      - key: DATABASE_CA_CERT
         sync: false
       - key: META_VERIFY_TOKEN
         sync: false

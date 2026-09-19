@@ -1,34 +1,57 @@
-import { Client } from 'pg';
+import { Client, type ClientConfig } from 'pg';
+import { resolveDatabaseUrl } from '@/lib/database-url';
 
 // Patrón para evitar conexiones duplicadas cuando guardas cambios en VS Code
 let isListening = false;
 
-export function iniciarOidoNeon() {
+/**
+ * Configuración de la conexión LISTEN contra Aiven.
+ *
+ * Aiven publica su propia CA, así que `sslmode=require` necesita la semántica de
+ * libpq para que node-postgres no rechace la cadena (error típico:
+ * "self-signed certificate in certificate chain").
+ *
+ * Si el operador quiere verificación estricta, basta definir DATABASE_CA_CERT
+ * con la CA que Aiven entrega en el panel: en ese caso se valida el certificado
+ * y no se relaja nada.
+ */
+function buildClientConfig(connectionString: string): ClientConfig {
+  const ca = process.env.DATABASE_CA_CERT?.replace(/\\n/g, '\n');
+  if (ca) {
+    return { connectionString, ssl: { ca, rejectUnauthorized: true } };
+  }
+  if (connectionString.includes('uselibpqcompat=')) {
+    return { connectionString };
+  }
+  const separator = connectionString.includes('?') ? '&' : '?';
+  return { connectionString: `${connectionString}${separator}uselibpqcompat=true` };
+}
+
+export function iniciarOidoBaseDatos() {
   if (typeof window !== 'undefined') return;
-  if (!process.env.DIRECT_URL) {
+  const connectionString = resolveDatabaseUrl();
+  if (!connectionString) {
     return;
   }
   if (isListening) return;
 
   isListening = true;
 
-  const client = new Client({
-    connectionString: process.env.DIRECT_URL,
-  });
+  const client = new Client(buildClientConfig(connectionString));
 
   client.connect((err: Error | null) => {
     if (err) {
-      console.error('❌ Error conectando el Listener a Neon:', err.stack);
+      console.error('❌ Error conectando el Listener a la base de datos:', err.stack);
       scheduleReconnect();
       return;
     }
 
     client.query('LISTEN alerta_upway');
-    console.log('👂 Servidor Upway conectado y escuchando eventos de Neon...');
+    console.log('👂 Servidor Upway conectado y escuchando eventos de la base de datos...');
   });
 
   client.on('error', (err: Error) => {
-    console.error('❌ Error en la conexión del Listener a Neon:', err.message);
+    console.error('❌ Error en la conexión del Listener a la base de datos:', err.message);
     scheduleReconnect();
   });
 
@@ -55,7 +78,7 @@ export function iniciarOidoNeon() {
     console.log(`🔁 Reintentando conexión del Listener en ${delayMs / 1000}s...`);
     setTimeout(() => {
       try {
-        iniciarOidoNeon();
+        iniciarOidoBaseDatos();
       } catch (e) {
         console.error('❌ Error reintentando conexión del Listener:', e);
       }

@@ -89,7 +89,7 @@ export default function Paso07Activacion() {
             });
 
             if (res.ok) {
-              console.log('¡Éxito! Meta vinculado y guardado en Neon DB');
+              console.log('¡Éxito! Meta vinculado y guardado en la base de datos');
               setEstadowhatsapp('PENDING');
             } else {
               const errData = await res.json();
