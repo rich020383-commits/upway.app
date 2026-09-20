@@ -97,8 +97,14 @@ export function assertDatabaseUrlWellFormed(url: string): void {
     if (!parsed.hostname || parsed.hostname.length < 3) {
       throw new Error('hostname invalido');
     }
-    if (parsed.port && /^\d+$/.test(parsed.port)) {
+    if (parsed.port && !/^\d+$/.test(parsed.port)) {
       throw new Error(`puerto invalido: ${parsed.port}`);
+    }
+    if (parsed.port) {
+      const portNum = Number.parseInt(parsed.port, 10);
+      if (portNum < 1 || portNum > 65535) {
+        throw new Error(`puerto fuera de rango: ${parsed.port}`);
+      }
     }
   } catch (e) {
     throw new Error(
