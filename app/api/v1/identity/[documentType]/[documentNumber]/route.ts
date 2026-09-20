@@ -43,7 +43,7 @@ export async function GET(
   const apiClient = (prisma as any).apiClient;
   const client = await apiClient.findUnique({
     where: { keyHash: hashApiKey(providedKey as string) },
-    select: { id: true, organizationId: true, isActive: true, revokedAt: true },
+    select: { id: true, organizationId: true, name: true, isActive: true, revokedAt: true },
   });
 
   if (!client || !client.isActive || client.revokedAt) {
@@ -104,6 +104,30 @@ export async function GET(
     },
     identity.recordHash
   );
+
+  // Registro de entrega (best-effort): cada lectura exitosa del HIS deja
+  // evidencia en IdentityHandoff para el tablero de conformidad. La clave de
+  // idempotencia evita duplicar la fila si el HIS reintenta. No bloquea la
+  // respuesta: la entrega es evidencia, no prerrequisito.
+  prisma.identityHandoff
+    .upsert({
+      where: { idempotencyKey: `v1:${client.id}:${identity.id}` },
+      create: {
+        identityId: identity.id,
+        targetSystem: client.name,
+        status: 'DELIVERED',
+        idempotencyKey: `v1:${client.id}:${identity.id}`,
+        attempts: 1,
+        deliveredAt: new Date(),
+      },
+      update: {
+        status: 'DELIVERED',
+        attempts: { increment: 1 },
+        lastError: null,
+        deliveredAt: new Date(),
+      },
+    })
+    .catch(() => null);
 
   return NextResponse.json({
     conforming: identity.conforming && integrityVerified,
