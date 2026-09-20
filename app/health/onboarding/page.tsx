@@ -30,6 +30,8 @@ type OnboardingForm = {
   preferredAreaCode: string;
   existingPhone: string;
   crmOrAgenda: string;
+  integrationMode: string;
+  hisSystem: string;
   careModel: string;
   schedule: string;
   priority: string;
@@ -63,6 +65,8 @@ const initialForm: OnboardingForm = {
   preferredAreaCode: '',
   existingPhone: '',
   crmOrAgenda: '',
+  integrationMode: '',
+  hisSystem: '',
   careModel: '',
   schedule: '',
   priority: '',
@@ -96,6 +100,8 @@ const fieldHelp: Partial<Record<keyof OnboardingForm, string>> = {
   preferredAreaCode: 'Indicativo preferido del numero dedicado (ej. 601 Bogota).',
   existingPhone: 'Si quieres portar un numero actual, indicalo aqui.',
   crmOrAgenda: 'Sistema de citas actual (Google Calendar, Softmedical, etc.).',
+  integrationMode: 'Como va a consumir su sistema el dato del paciente. Define el trabajo de implementacion.',
+  hisSystem: 'Historia clinica o sistema del cliente que recibira el dato conforme.',
   careModel: 'Cómo se atiende al paciente: triaje asistido, atención prioritaria, etc.',
   schedule: 'Horario real de operación. El agente lo usa para coordinar citas y urgencias.',
   priority: 'Niveles de prioridad con los que el agente clasificará cada consulta.',
@@ -149,6 +155,8 @@ const parseStoredForm = (input: unknown): Partial<OnboardingForm> => {
     preferredAreaCode: strOf(source.preferredAreaCode),
     existingPhone: strOf(source.existingPhone),
     crmOrAgenda: strOf(source.crmOrAgenda),
+    integrationMode: strOf(source.integrationMode),
+    hisSystem: strOf(source.hisSystem),
     careModel: strOf(source.careModel, initialForm.careModel),
     schedule: typeof source.schedule === 'string' ? source.schedule : initialForm.schedule,
     priority: typeof source.priority === 'string' ? source.priority : initialForm.priority,

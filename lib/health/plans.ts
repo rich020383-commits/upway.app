@@ -269,7 +269,22 @@ export const IMPLEMENTATION_INTAKE_FIELDS = [
   { key: 'preferredAreaCode', label: 'Indicativo preferido (opcional)', required: false },
   { key: 'existingPhone', label: 'Numero actual a portar (opcional)', required: false },
   { key: 'crmOrAgenda', label: 'Agenda/CRM actual', required: false },
+  { key: 'integrationMode', label: 'Como consumira el dato (API/webhook/manual)', required: false },
+  { key: 'hisSystem', label: 'HIS/HCE actual', required: false },
 ] as const;
+
+/**
+ * Como consumira el HIS/HCE del cliente el dato conforme. Catalogo cerrado:
+ * define el trabajo de implementacion antes de firmar, no despues.
+ */
+export const INTEGRATION_MODE_OPTIONS = [
+  { id: 'api-pull', label: 'API (su sistema consulta a Upway)' },
+  { id: 'webhook-push', label: 'Webhook (Upway empuja a su sistema)' },
+  { id: 'csv-manual', label: 'Export manual (sin integracion tecnica)' },
+  { id: 'no-definido', label: 'Aun no lo definimos' },
+] as const;
+
+export type IntegrationMode = (typeof INTEGRATION_MODE_OPTIONS)[number]['id'];
 
 export function isImplementationIntakeReady(data: Record<string, unknown>): boolean {
   const required = IMPLEMENTATION_INTAKE_FIELDS.filter((f) => f.required);

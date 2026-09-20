@@ -1,7 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { FACILITY_TYPE_OPTIONS, IVA_RATE, type FacilityType, withIVA } from '@/lib/health/plans';
+import { FACILITY_TYPE_OPTIONS, INTEGRATION_MODE_OPTIONS, IVA_RATE, type FacilityType, withIVA } from '@/lib/health/plans';
 import { ALL_HEALTH_PLANS, estimateMinutesFromVolume, formatCOP, getHealthPlan, planCommercialSummary, recommendPlan } from '@/lib/health/plans-enterprise';
 
 export type PlanFormSlice = {
@@ -12,6 +12,8 @@ export type PlanFormSlice = {
   preferredAreaCode: string;
   existingPhone: string;
   crmOrAgenda: string;
+  integrationMode: string;
+  hisSystem: string;
 };
 
 const lbl: React.CSSProperties = { fontSize: 11, fontWeight: 700, color: '#4c6686', letterSpacing: '0.04em', textTransform: 'uppercase' };
@@ -123,6 +125,19 @@ function ExtraInputs(props: { form: PlanFormSlice; onChange: (k: keyof PlanFormS
       <div style={{ display: 'grid', gap: 8 }}>
         <label style={lbl}>Agenda / CRM actual</label>
         <input placeholder="Ej. Google Calendar + Softmedical" value={form.crmOrAgenda} onChange={(e) => onChange('crmOrAgenda', e.target.value)} style={inp} />
+        <div style={{ display: 'grid', gap: 8 }}>
+          <label style={lbl}>Como consumira su sistema el dato del paciente</label>
+          <select value={form.integrationMode} onChange={(e) => onChange('integrationMode', e.target.value)} style={inp}>
+            <option value="">Sin definir</option>
+            {INTEGRATION_MODE_OPTIONS.map((option) => (
+              <option key={option.id} value={option.id}>{option.label}</option>
+            ))}
+          </select>
+        </div>
+        <div style={{ display: 'grid', gap: 8 }}>
+          <label style={lbl}>HIS / HCE actual (si aplica)</label>
+          <input placeholder="Ej. Saludtools, Softmedical, historia propia" value={form.hisSystem} onChange={(e) => onChange('hisSystem', e.target.value)} style={inp} />
+        </div>
       </div>
     </div>
   );
