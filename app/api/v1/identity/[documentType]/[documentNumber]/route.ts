@@ -40,7 +40,8 @@ export async function GET(
     );
   }
 
-  const client = await prisma.apiClient.findUnique({
+  const apiClient = (prisma as any).apiClient;
+  const client = await apiClient.findUnique({
     where: { keyHash: hashApiKey(providedKey as string) },
     select: { id: true, organizationId: true, isActive: true, revokedAt: true },
   });
@@ -74,7 +75,7 @@ export async function GET(
 
   // Marca de uso (best-effort): soporte y deteccion de llaves muertas.
   // No debe bloquear la respuesta.
-  prisma.apiClient
+  apiClient
     .update({ where: { id: client.id }, data: { lastUsedAt: new Date() } })
     .catch(() => null);
 

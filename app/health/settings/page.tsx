@@ -1,3 +1,6 @@
+import { ApiKeysPanel } from '@/components/health/api-keys-panel';
+
+
 export default function SettingsPage() {
   const settings = [
     { label: 'Horario clínico', value: 'Lun - Vie / 08:00 - 20:00' },
@@ -35,6 +38,8 @@ export default function SettingsPage() {
           Sistema sincronizado
         </div>
       </div>
+      <ApiKeysPanel />
+
     </div>
   );
 }
