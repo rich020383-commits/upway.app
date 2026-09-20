@@ -87,6 +87,13 @@ export const withIVA = (baseCOP: number) => baseCOP + ivaDe(baseCOP);
 // Se cobra por sede y mes, sin IVA, como adicional al plan base.
 // ─────────────────────────────────────────────────────────────────────────────
 export const IDENTITY_MODULE_COP = 290000;
+/**
+ * Precio de adopcion temprana (piloto). Valor real objetivo: $350.000–450.000
+ * por sede/mes una vez existan 3-5 pilotos con tablero de conformidad.
+ * No anunciarlo como descuento: es precio de adopcion temprana, para poder
+ * subirlo sin romper promesas. KPI comercial: % de cuentas con modulo activo.
+ */
+export const IDENTITY_MODULE_TARGET_COP = 350000;
 export const IDENTITY_MODULE_ID = 'identidad-conforme';
 export const IDENTITY_MODULE_LABEL = 'Identidad conforme (Res. 866/2021)';
 export const IDENTITY_MODULE_DESCRIPTION =
@@ -212,7 +219,7 @@ export const HEALTH_PLANS: HealthPlan[] = [
     target: ['clinica', 'centro-medico'],
     tagline: 'El caballo de batalla 24/7.',
     monthlyCOP: 1914000,
-    setupCOP: 890000,
+    setupCOP: 1200000, // white-glove = hasta 4h de configuracion asistida; el resto va por hora
     includedMinutes: 1800,
     includedNumbers: 2,
     overageCOP: 750,
@@ -225,7 +232,7 @@ export const HEALTH_PLANS: HealthPlan[] = [
       'Triaje + escalamiento + FAQs',
       'Grabacion 1 año',
       'Minuto adicional $750 COP',
-      'Implementacion white-glove Upway',
+      'Implementacion white-glove Upway (hasta 4h asistidas)',
     ],
     bestFor: 'Clinicas que quieren dejar de perder picos.',
     autoActivatable: true,
