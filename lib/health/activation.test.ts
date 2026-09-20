@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { buildActivationChecks, type ActivationInput } from './activation';
 
 const base: ActivationInput = {
@@ -23,7 +23,7 @@ describe('buildActivationChecks — modelo white-glove IPS', () => {
   it('permite go-live cuando Upway completo implementacion + plan', () => {
     const { checks, canActivate } = buildActivationChecks(base);
     expect(canActivate).toBe(true);
-    expect(checks).toHaveLength(6);
+    expect(checks).toHaveLength(7);
     expect(checks.every((c) => c.ok)).toBe(true);
   });
 
@@ -77,5 +77,61 @@ describe('buildActivationChecks — modelo white-glove IPS', () => {
     });
     expect(canActivate).toBe(false);
     expect(checks.find((c) => c.key === 'plan')?.ok).toBe(false);
+  });
+});
+
+describe('buildActivationChecks — modelo voz-first + identidad conforme', () => {
+  it('no gatea WhatsApp cuando el cliente no contrato ese canal', () => {
+    const { checks, canActivate } = buildActivationChecks({
+      ...base,
+      whatsappActive: false,
+      whatsappRequired: false,
+    });
+    expect(canActivate).toBe(true);
+    const whatsapp = checks.find((c) => c.key === 'whatsapp');
+    expect(whatsapp?.ok).toBe(true);
+    expect(whatsapp?.detail).toMatch(/voz-first/i);
+  });
+
+  it('sigue exigiendo WhatsApp si el canal esta contratado (sin regresion)', () => {
+    const { checks, canActivate } = buildActivationChecks({
+      ...base,
+      whatsappActive: false,
+      whatsappRequired: true,
+    });
+    expect(canActivate).toBe(false);
+    expect(checks.find((c) => c.key === 'whatsapp')?.ok).toBe(false);
+  });
+
+  it('bloquea el go-live si un servicio exige documento sin tipo del catalogo', () => {
+    const { checks, canActivate } = buildActivationChecks({
+      ...base,
+      identityServicesRequiringDocs: 2,
+      identityServicesWithCatalogType: 1,
+    });
+    expect(canActivate).toBe(false);
+    const identity = checks.find((c) => c.key === 'identity');
+    expect(identity?.ok).toBe(false);
+    expect(identity?.detail).toMatch(/no conforme/i);
+  });
+
+  it('permite go-live cuando todos los servicios con documento usan el catalogo', () => {
+    const { checks, canActivate } = buildActivationChecks({
+      ...base,
+      identityServicesRequiringDocs: 3,
+      identityServicesWithCatalogType: 3,
+    });
+    expect(canActivate).toBe(true);
+    expect(checks.find((c) => c.key === 'identity')?.detail).toMatch(/3 de 3/);
+  });
+
+  it('sin servicios que exijan documento la identidad no bloquea', () => {
+    const { checks, canActivate } = buildActivationChecks({
+      ...base,
+      identityServicesRequiringDocs: 0,
+      identityServicesWithCatalogType: 0,
+    });
+    expect(canActivate).toBe(true);
+    expect(checks.find((c) => c.key === 'identity')?.ok).toBe(true);
   });
 });

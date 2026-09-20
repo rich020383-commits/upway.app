@@ -5,6 +5,7 @@ import { enforceHealthAccess } from '@/lib/health/access';
 import { withTenantScope } from '@/lib/health/tenant';
 import { ensureClinicForId, ensureHealthProfile } from '@/lib/health/clinic-context';
 import { buildActivationChecks } from '@/lib/health/activation';
+import { isValidDocumentTypeCode } from '@/lib/health/identity/catalogs';
 import { isImplementationIntakeReady } from '@/lib/health/plans';
 import { getHealthPlan } from '@/lib/health/plans-enterprise';
 import {
@@ -40,7 +41,7 @@ async function resolveActivationState(organizationId: string, clinicId: string, 
 
   const profile = await ensureHealthProfile(clinic.id);
 
-  const [organization, tienda, triageCount, policiesCount, faqsCount, session] = await Promise.all([
+  const [organization, tienda, triageCount, policiesCount, faqsCount, documentServices, session] = await Promise.all([
     organizationId ? prisma.organization.findUnique({ where: { id: organizationId } }) : null,
     (await prisma.tienda.findFirst({ where: { userId } })) ??
       (await prisma.tienda.findFirst({
@@ -52,6 +53,15 @@ async function resolveActivationState(organizationId: string, clinicId: string, 
     prisma.healthTriageRule.count({ where: { profileId: profile.id, isActive: true } }),
     prisma.healthCompliancePolicy.count({ where: { profileId: profile.id, isRequired: true } }),
     prisma.healthFAQ.count({ where: { profileId: profile.id, isPublished: true } }),
+    // Servicios que exigen documento: base del check de identidad conforme.
+    // Solo lee dos columnas: no toca datos de pacientes.
+    prisma.serviceOffering.findMany({
+      where: {
+        organizationId,
+        OR: [{ clinicId: clinic.id }, { clinicId: null }],
+      },
+      select: { requiresDocuments: true, requiredDocumentType: true },
+    }),
     prisma.healthOnboardingSession.findFirst({
       where: { clinicId: clinic.id },
       orderBy: { updatedAt: 'desc' },
@@ -73,6 +83,19 @@ async function resolveActivationState(organizationId: string, clinicId: string, 
   const plan = getHealthPlan(planId);
   const implementationIntakeReady = isImplementationIntakeReady(formData);
 
+  // ── Identidad conforme: servicios que exigen documento con tipo del catalogo ──
+  const servicesRequiringDocs = documentServices.filter((s) => s.requiresDocuments);
+  const servicesWithCatalogType = servicesRequiringDocs.filter((s) =>
+    isValidDocumentTypeCode(s.requiredDocumentType)
+  );
+
+  // ── Canal contratado: WhatsApp solo gatea si el cliente lo pidio ──
+  // `channel` es texto libre hoy; mientras se convierta en seleccion cerrada se
+  // interpreta conservador: vacio = comportamiento anterior (requerido).
+  const channelText = typeof formData.channel === 'string' ? formData.channel.trim() : '';
+  const whatsappRequired =
+    channelText.length === 0 ? true : /whatsapp|wasap|meta/i.test(channelText);
+
   const input = {
     hasOrganization: Boolean(organization ?? organizationId),
     hasClinic: Boolean(clinic),
@@ -89,6 +112,9 @@ async function resolveActivationState(organizationId: string, clinicId: string, 
     planId,
     planAutoActivatable: plan ? plan.autoActivatable : false,
     implementationIntakeReady,
+    whatsappRequired,
+    identityServicesRequiringDocs: servicesRequiringDocs.length,
+    identityServicesWithCatalogType: servicesWithCatalogType.length,
   };
 
   const { checks, canActivate } = buildActivationChecks(input);

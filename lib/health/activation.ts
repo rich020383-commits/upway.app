@@ -24,6 +24,12 @@ export type ActivationInput = {
   planAutoActivatable?: boolean;
   /** Intake de implementacion completo (NIT, contacto, volumen). */
   implementationIntakeReady?: boolean;
+  /** WhatsApp solo gatea el go-live si el cliente contrato ese canal (voz-first). */
+  whatsappRequired?: boolean;
+  /** Servicios de la IPS que exigen documento del paciente (denominador). */
+  identityServicesRequiringDocs?: number;
+  /** Cuantos de esos ya tienen tipo de documento del catalogo cerrado. */
+  identityServicesWithCatalogType?: number;
 };
 
 export function buildActivationChecks(input: ActivationInput): { checks: ActivationCheck[]; canActivate: boolean } {
@@ -31,6 +37,16 @@ export function buildActivationChecks(input: ActivationInput): { checks: Activat
     Boolean(input.planId) &&
     input.planAutoActivatable !== false &&
     input.implementationIntakeReady !== false;
+
+  // Voz-first (nuestro modelo): WhatsApp solo gatea si el cliente contrato ese canal.
+  const whatsappRequired = input.whatsappRequired !== false;
+
+  // Identidad conforme: si un servicio exige documento, debe tener tipo del
+  // catalogo cerrado (Res. 866/2021). Sin eso el agente de voz no sabe que pedir
+  // y el registro que sale hacia el prestador no es conforme.
+  const servicesRequiringDocs = input.identityServicesRequiringDocs ?? 0;
+  const servicesWithCatalogType = input.identityServicesWithCatalogType ?? 0;
+  const identityOk = servicesRequiringDocs === 0 || servicesWithCatalogType >= servicesRequiringDocs;
 
   const checks: ActivationCheck[] = [
     {
@@ -62,8 +78,12 @@ export function buildActivationChecks(input: ActivationInput): { checks: Activat
     {
       key: 'whatsapp',
       label: 'WhatsApp conectado (Meta)',
-      ok: input.whatsappActive,
-      detail: input.whatsappActive ? 'Linea Meta activa.' : 'Upway debe conectar OAuth Meta y guardar metaPhoneNumberId.',
+      ok: !whatsappRequired || input.whatsappActive,
+      detail: !whatsappRequired
+        ? 'Canal no contratado: no aplica para este go-live (despliegue voz-first).'
+        : input.whatsappActive
+          ? 'Linea Meta activa.'
+          : 'Upway debe conectar OAuth Meta y guardar metaPhoneNumberId.',
     },
     {
       key: 'voice',
@@ -81,6 +101,20 @@ export function buildActivationChecks(input: ActivationInput): { checks: Activat
       detail: 'Onboarding: ' + (input.onboardingStatus ?? 'sin sesion') + ' · aprobacion: ' + (input.clinicallyApproved ? 'si' : 'pendiente'),
     },
   ];
+
+  // Identidad conforme: es el nucleo de lo que vende Upway (voz + dato conforme),
+  // por eso gatea el go-live igual que los canales o la aprobacion clinica.
+  checks.push({
+    key: 'identity',
+    label: 'Identidad conforme (tipo de documento de catalogo cerrado)',
+    ok: identityOk,
+    detail:
+      servicesRequiringDocs === 0
+        ? 'Sin servicios que exijan documento: no hay captura conforme pendiente.'
+        : identityOk
+          ? servicesWithCatalogType + ' de ' + servicesRequiringDocs + ' servicios con documento ya exigen un tipo del catalogo (Res. 866/2021).'
+          : 'Hay servicios que exigen documento sin tipo del catalogo: el agente no sabria que pedir y el registro saldria no conforme.',
+  });
 
   return { checks, canActivate: checks.every((c) => c.ok) };
 }
