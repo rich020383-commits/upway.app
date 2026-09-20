@@ -76,6 +76,51 @@ export const IVA_RATE = 0.19;
 export const ivaDe = (baseCOP: number) => Math.round(baseCOP * IVA_RATE);
 export const withIVA = (baseCOP: number) => baseCOP + ivaDe(baseCOP);
 
+// ─────────────────────────────────────────────────────────────────────────────
+// MODULO IDENTIDAD CONFORME (Res. 866 de 2021)
+//
+// Captura guiada por voz con catalogo cerrado, confirmacion digito a digito y
+// evidencia de integridad (hash) del registro. Es software puro: no escala con
+// los minutos, por eso es la linea que sostiene el margen cuando el cliente
+// crece (el margen de voz cae de ~64% a ~38% al subir de plan).
+//
+// Se cobra por sede y mes, sin IVA, como adicional al plan base.
+// ─────────────────────────────────────────────────────────────────────────────
+export const IDENTITY_MODULE_COP = 290000;
+export const IDENTITY_MODULE_ID = 'identidad-conforme';
+export const IDENTITY_MODULE_LABEL = 'Identidad conforme (Res. 866/2021)';
+export const IDENTITY_MODULE_DESCRIPTION =
+  'El agente pide el documento con catalogo cerrado, lo confirma digito a digito con el paciente y entrega el registro con evidencia de integridad.';
+
+export type PlanQuote = {
+  baseCOP: number;
+  identityModuleCOP: number;
+  totalCOP: number;
+  ivaCOP: number;
+  totalConIvaCOP: number;
+};
+
+/**
+ * Cotizacion de un plan, con o sin el modulo de identidad conforme.
+ * Punto unico de calculo: las pantallas y los contratos usan esto en vez de
+ * sumar precios a mano.
+ */
+export function planQuote(
+  monthlyBaseCOP: number,
+  options?: { withIdentityModule?: boolean }
+): PlanQuote {
+  const baseCOP = Math.max(0, Math.round(monthlyBaseCOP));
+  const identityModuleCOP = options?.withIdentityModule ? IDENTITY_MODULE_COP : 0;
+  const totalCOP = baseCOP + identityModuleCOP;
+  return {
+    baseCOP,
+    identityModuleCOP,
+    totalCOP,
+    ivaCOP: ivaDe(totalCOP),
+    totalConIvaCOP: withIVA(totalCOP),
+  };
+}
+
 /**
 * MODELO PREPAGO (RECARGA) - el dinero del cliente paga su propio consumo.
 * El cliente carga la recarga del mes por adelantado. De esa recarga se reserva

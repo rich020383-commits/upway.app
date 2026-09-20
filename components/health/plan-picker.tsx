@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { FACILITY_TYPE_OPTIONS, IVA_RATE, type FacilityType, withIVA } from '@/lib/health/plans';
-import { ALL_HEALTH_PLANS, estimateMinutesFromVolume, formatCOP, getHealthPlan, recommendPlan } from '@/lib/health/plans-enterprise';
+import { ALL_HEALTH_PLANS, estimateMinutesFromVolume, formatCOP, getHealthPlan, planCommercialSummary, recommendPlan } from '@/lib/health/plans-enterprise';
 
 export type PlanFormSlice = {
   facilityType: FacilityType | '';
@@ -156,6 +156,20 @@ export function PlanPicker(props: {
       {selected ? (
         <div style={{ background: '#f4f8ff', border: '1px solid #dfe9ff', borderRadius: 12, padding: 12, fontSize: 13, color: '#334155' }}>
           <strong style={{ color: '#163557' }}>{selected.name}</strong>: {selected.bestFor}
+          {(() => {
+            const s = planCommercialSummary(selected);
+            if (!s.quoteWithoutIdentity || !s.quoteWithIdentity) return null;
+            return (
+              <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #dfe9ff', display: 'grid', gap: 4 }}>
+                <div>Plan con voz: <strong>{formatCOP(s.quoteWithoutIdentity.totalCOP)}</strong>/mes</div>
+                <div>
+                  + {s.identityModuleLabel}: <strong>{formatCOP(s.identityModuleCOP)}</strong>
+                  {' → '}<strong>{formatCOP(s.quoteWithIdentity.totalCOP)}</strong>/mes + IVA
+                </div>
+                <div style={{ fontSize: 11, color: '#64748b' }}>{s.identityModuleDescription}</div>
+              </div>
+            );
+          })()}
         </div>
       ) : null}
       <ExtraInputs form={form} onChange={onChange} />

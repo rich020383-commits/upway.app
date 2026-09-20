@@ -1,5 +1,5 @@
 ﻿import type { FacilityType, HealthPlan } from './plans';
-import { HEALTH_PLANS, planMath, IVA_RATE, ivaDe, withIVA } from './plans';
+import { HEALTH_PLANS, planMath, planQuote, IVA_RATE, ivaDe, withIVA, IDENTITY_MODULE_COP, IDENTITY_MODULE_LABEL, IDENTITY_MODULE_DESCRIPTION } from './plans';
 
 export const HEALTH_PLANS_ENTERPRISE: HealthPlan[] = [
   {
@@ -107,5 +107,12 @@ export function planCommercialSummary(plan: HealthPlan) {
     approvalNote: plan.requiresTelnyxApproval
       ? 'Requiere ampliar la capacidad de simultaneidad (lo tramita Upway).'
       : 'Sin approval extra: capacidad estandar.',
+    // Modulo Identidad Conforme: adicional por sede/mes sobre el plan elegido.
+    identityModuleCOP: IDENTITY_MODULE_COP,
+    identityModuleLabel: IDENTITY_MODULE_LABEL,
+    identityModuleDescription: IDENTITY_MODULE_DESCRIPTION,
+    quoteWithoutIdentity: plan.monthlyCOP > 0 ? planQuote(plan.monthlyCOP) : null,
+    quoteWithIdentity:
+      plan.monthlyCOP > 0 ? planQuote(plan.monthlyCOP, { withIdentityModule: true }) : null,
   };
 }

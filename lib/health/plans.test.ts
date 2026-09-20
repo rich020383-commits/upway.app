@@ -7,6 +7,8 @@ import {
   recargaBreakdown,
   simulateRecarga,
   COST_PER_NUMBER_COP,
+  planQuote,
+  IDENTITY_MODULE_COP,
 } from './plans';
 import {
   ALL_HEALTH_PLANS,
@@ -144,3 +146,53 @@ describe('MODELO RECARGA (prepago) — el cliente paga su propio consumo', () =>
     expect(r.telnyxReserveCOP + r.marginCOP).toBe(r.recargaCOP);
   });
 });
+
+describe('MODULO IDENTIDAD CONFORME — no escala con los minutos', () => {
+  it('la cotizacion sin modulo es solo el plan base', () => {
+    const q = planQuote(769_000);
+    expect(q.baseCOP).toBe(769_000);
+    expect(q.identityModuleCOP).toBe(0);
+    expect(q.totalCOP).toBe(769_000);
+  });
+
+  it('con modulo suma identidad + IVA sobre el total', () => {
+    const q = planQuote(769_000, { withIdentityModule: true });
+    expect(q.identityModuleCOP).toBe(IDENTITY_MODULE_COP);
+    expect(q.totalCOP).toBe(769_000 + IDENTITY_MODULE_COP);
+    expect(q.ivaCOP).toBe(Math.round(q.totalCOP * 0.19));
+    expect(q.totalConIvaCOP).toBe(q.totalCOP + q.ivaCOP);
+  });
+
+  it('el modulo es fijo: no depende de los minutos del plan', () => {
+    const consultorio = planQuote(769_000, { withIdentityModule: true });
+    const enterprise = planQuote(19_617_000, { withIdentityModule: true });
+    expect(consultorio.identityModuleCOP).toBe(enterprise.identityModuleCOP);
+  });
+
+  it('sube el margen del plan grande (donde la voz sola cae a ~38%)', () => {
+    const plan = ALL_HEALTH_PLANS.find((p) => p.id === 'ips-enterprise-25000')!;
+    const soloVoz = planMath(plan.monthlyCOP, plan.includedMinutes, plan.includedNumbers);
+    const conModulo = planQuote(plan.monthlyCOP, { withIdentityModule: true });
+    const margenConModulo = Math.round(
+      ((conModulo.totalCOP - soloVoz.totalCostCOP) / conModulo.totalCOP) * 100
+    );
+    expect(margenConModulo).toBeGreaterThan(soloVoz.marginPct);
+    expect(margenConModulo).toBeGreaterThanOrEqual(38);
+  });
+
+  it('summary comercial expone ambas cotizaciones', () => {
+    const p = getHealthPlan('consultorio-600')!;
+    const s = planCommercialSummary(p);
+    expect(s.identityModuleCOP).toBe(IDENTITY_MODULE_COP);
+    expect(s.quoteWithoutIdentity?.totalCOP).toBe(769_000);
+    expect(s.quoteWithIdentity?.totalCOP).toBe(769_000 + IDENTITY_MODULE_COP);
+  });
+
+  it('plan custom (a cotizar) no expone cotizacion de modulo', () => {
+    const p = getHealthPlan('eps-custom')!;
+    const s = planCommercialSummary(p);
+    expect(s.quoteWithIdentity).toBeNull();
+    expect(s.quoteWithoutIdentity).toBeNull();
+  });
+});
+
