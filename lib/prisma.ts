@@ -43,18 +43,23 @@ function createClient(): PrismaClient {
       },
     });
   }
-      // Validación de integridad de la URL ANTES de crear el cliente.
+        // Validación de integridad de la URL ANTES de crear el cliente.
   // En producción: si DATABASE_URL está corrupta (query string dentro del
   // hostname, pool_timeout absurdo), Prisma lanza un error oscuro
   // ("Can't reach database server"). Aquí fallamos fast con un mensaje
   // diagnóstico. Ver REPORTES/NOTA-INTEGRACION-SALUD-2026-09.md.
   //
-  // IMPORTANTE: Next.js setea NODE_ENV=production también DURANTE el build
-  // ('next build'), pero el build no necesita DB. NEXT_BUILD_ID se define
-  // sólo durante el build; en 'next start' (runtime) no existe. Por eso
-  // excluimos el build: el fail-fast protege el arranque real, no el proceso
-  // de compilacion.
-  const isNextBuild = typeof process.env.NEXT_BUILD_ID !== 'undefined';
+  // IMPORTANTE: Next.js setea NODE_ENV=production en 'next build' Y 'next start'.
+  // Durante el build NO necesitamos DB (Prisma Client se crea lazy, sin
+  // conectar): validar aqui forzaria el build a fallar con una URL, aun no
+  // corregida por el operador. Por eso excluimos el build con dos indicadores:
+  //   - npm_lifecycle_event === 'build'  (npm run build, usado por Render)
+  //   - NEXT_BUILD_ID definida          (fase interna de build de Next.js)
+  // En 'next start' (runtime) ninguno se cumple → validamos → fail-fast con
+  // diagnostico si la URL esta corrupta.
+  const isNextBuild =
+    process.env.npm_lifecycle_event === 'build' ||
+    typeof process.env.NEXT_BUILD_ID !== 'undefined';
   if (process.env.NODE_ENV === 'production' && !isNextBuild) {
     assertDatabaseUrlWellFormed(databaseUrl);
   }
