@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { verifySharedSecret } from '@/lib/webhook-verify';
 import {
   isValidDocumentTypeCode,
@@ -11,6 +12,11 @@ import {
   type ConformingIdentity,
   type ConformingIdentityInput,
 } from '@/lib/health/identity/conformingRecord';
+import {
+  buildPatientIdentityData,
+  type IdentityRetentionMode,
+} from '@/lib/health/identity/persistence';
+import { prisma } from '@/lib/prisma';
 import {
   addToWaitlist,
   bookAppointment,
@@ -392,6 +398,99 @@ export async function POST(request: NextRequest) {
       }
 
       const { appointment } = result;
+
+      // --- Ruta de escritura: persistir la identidad certificada (Fase 1) ---
+      // Aislamiento de fallos: si la BD falla, la cita NO se toca. La identidad
+      // es un activo del cliente; la cita ya es un hecho del negocio.
+      let identityPersisted = false;
+      if (identityConforming && identityReport) {
+        try {
+          const identityData = buildPatientIdentityData({
+            scope: { organizationId: scope.organizationId, clinicId: scope.clinicId ?? null },
+            identity: identityConforming,
+            report: identityReport,
+            // El paciente NO ha confirmado todavia: el guion se devuelve al
+            // agente. confirmedAt solo se llena cuando el paciente relee el
+            // dato y el agente reporta la confirmacion (identityConfirmed).
+            retentionMode: 'CUSTODY',
+          });
+
+          const { organizationId, documentType, documentNumber } = identityData;
+          // Prisma exige entrada Json tipada: IdentityIssue[] se serializa y el
+          // caso null se representa con DbNull (no con null de JS).
+          const issuesJsonInput =
+            identityData.issuesJson === null
+              ? Prisma.DbNull
+              : (JSON.parse(JSON.stringify(identityData.issuesJson)) as Prisma.InputJsonValue);
+          await prisma.patientIdentity.upsert({
+            where: {
+              organizationId_documentType_documentNumber: {
+                organizationId,
+                documentType,
+                documentNumber,
+              },
+            },
+            create: { ...identityData, issuesJson: issuesJsonInput },
+            update: {
+              clinicId: identityData.clinicId,
+              givenNames: identityData.givenNames,
+              familyNames: identityData.familyNames,
+              birthDate: identityData.birthDate,
+              sexCode: identityData.sexCode,
+              municipalityCode: identityData.municipalityCode,
+              departmentCode: identityData.departmentCode,
+              phoneE164: identityData.phoneE164,
+              email: identityData.email,
+              conforming: identityData.conforming,
+              completenessPct: identityData.completenessPct,
+              issuesJson: issuesJsonInput,
+              recordHash: identityData.recordHash,
+              retentionMode: identityData.retentionMode,
+            },
+          });
+
+          const persisted = await prisma.patientIdentity.findUnique({
+            where: {
+              organizationId_documentType_documentNumber: {
+                organizationId,
+                documentType,
+                documentNumber,
+              },
+            },
+            select: { id: true },
+          });
+
+          // Evidencia de confirmacion: solo cuando el agente reporta que el
+          // paciente releyo el guion y confirmo. method por defecto es
+          // DIGIT_BY_DIGIT_READBACK; una fila por confirmacion.
+          if (persisted && body.identityConfirmed === true) {
+            await prisma.identityConfirmation.create({
+              data: {
+                identityId: persisted.id,
+                channel: 'VOICE',
+                method: text(body, 'confirmationMethod') ?? 'DIGIT_BY_DIGIT_READBACK',
+                scriptText: identityConfirmationScript(identityConforming),
+                patientReply: text(body, 'confirmationReply'),
+                callId: text(body, 'callId'),
+                conversationId: text(body, 'conversationId'),
+              },
+            });
+            await prisma.patientIdentity.update({
+              where: { id: persisted.id },
+              data: { confirmedAt: new Date() },
+            });
+          }
+
+          identityPersisted = true;
+        } catch (identityError) {
+          // Nunca bloquea la cita. Se registra para el tablero de conformidad.
+          console.error(
+            '[tools:agenda] fallo persistiendo identidad conforme (la cita queda agendada):',
+            identityError
+          );
+        }
+      }
+
       return NextResponse.json({
         ok: true,
         speak: bookingConfirmedSpoken({
@@ -415,6 +514,10 @@ export async function POST(request: NextRequest) {
               // El agente DEBE leer este guion y confirmar digito a digito antes
               // de dar por buena la identidad certificada.
               confirmationScript: identityConfirmationScript(identityConforming),
+              // Evidencia de que el registro conforme quedo persistido (hash de
+              // integridad incluido). Si es false, la cita vive pero la
+              // certificacion debe reintentarse.
+              identityPersisted,
             }
           : {}),
       });
