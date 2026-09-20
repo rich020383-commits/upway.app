@@ -231,6 +231,7 @@ model Organization {
   agendaAppointments AgendaAppointment[]
   waitlistEntries    WaitlistEntry[]
   patientIdentities  PatientIdentity[]
+  apiClients         ApiClient[]
 }
 
 model OrganizationMember {
@@ -266,6 +267,7 @@ model Clinic {
   agendaAppointments AgendaAppointment[]
   waitlistEntries    WaitlistEntry[]
   patientIdentities  PatientIdentity[]
+  apiClients         ApiClient[]
 }
 
 model HealthProfile {
@@ -1170,3 +1172,29 @@ model IdentityHandoff {
   @@index([identityId, status])
   @@index([status, createdAt])
 }
+
+/// Cliente maquina-a-maquina: el HIS/HCE del cliente que consume el registro
+/// conforme por API. La llave se guarda hasheada: el texto en claro se muestra
+/// una sola vez, al momento de crearla.
+model ApiClient {
+  id              String    @id @default(cuid())
+  organizationId  String
+  clinicId        String?
+  name            String
+  /// sha256 de la llave. La llave en claro nunca se persiste.
+  keyHash         String    @unique
+  /// Prefijo publico para identificar la llave en logs y soporte.
+  keyPrefix       String
+  isActive        Boolean   @default(true)
+  lastUsedAt      DateTime?
+  revokedAt       DateTime?
+  createdByUserId String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clinic       Clinic?      @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, isActive])
+}
+
