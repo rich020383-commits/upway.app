@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { verifySharedSecret } from '@/lib/webhook-verify';
 import {
+  getDepartment,
   isValidDocumentTypeCode,
   normalizeDocumentNumber,
 } from '@/lib/health/identity/catalogs';
@@ -521,6 +522,77 @@ export async function POST(request: NextRequest) {
             }
           : {}),
       });
+    }
+
+    case 'confirm_identity': {
+      // El agente la llama DESPUES de leer el guion dígito a dígito y obtener
+      // la respuesta del paciente. Registra la evidencia de confirmación.
+      const documentType = text(body, 'documentType');
+      if (!documentType || !isValidDocumentTypeCode(documentType)) {
+        return speakOnly('Necesito el tipo de documento del catálogo para confirmar la identidad.');
+      }
+      const documentNumber = normalizeDocumentNumber(text(body, 'patientDocument'));
+      if (!documentNumber) {
+        return speakOnly('Necesito el número de documento para confirmar la identidad.');
+      }
+
+      const stored = await prisma.patientIdentity.findUnique({
+        where: {
+          organizationId_documentType_documentNumber: {
+            organizationId: scope.organizationId,
+            documentType,
+            documentNumber,
+          },
+        },
+      });
+      if (!stored) {
+        return speakOnly(
+          'No encuentro un registro de identidad certificado para ese documento. Confirma primero los datos en la cita.'
+        );
+      }
+
+      try {
+        const department = getDepartment(stored.departmentCode);
+        const script = identityConfirmationScript({
+          documentType: documentType,
+          documentNumber: stored.documentNumber,
+          givenNames: stored.givenNames,
+          familyNames: stored.familyNames,
+          birthDate: stored.birthDate.toISOString().slice(0, 10),
+          ageYears: 0,
+          sexCode: stored.sexCode as ConformingIdentity['sexCode'],
+          municipalityCode: stored.municipalityCode,
+          departmentCode: stored.departmentCode,
+          departmentName: department?.name ?? stored.departmentCode,
+          phoneE164: stored.phoneE164,
+          email: stored.email,
+        });
+        await prisma.identityConfirmation.create({
+          data: {
+            identityId: stored.id,
+            channel: 'VOICE',
+            method: text(body, 'confirmationMethod') ?? 'DIGIT_BY_DIGIT_READBACK',
+            scriptText: script,
+            patientReply: text(body, 'confirmationReply'),
+            callId: text(body, 'callId'),
+            conversationId: text(body, 'conversationId'),
+          },
+        });
+        await prisma.patientIdentity.update({
+          where: { id: stored.id },
+          data: { confirmedAt: new Date() },
+        });
+        return NextResponse.json({
+          ok: true,
+          speak: 'Listo. Quedó registrada la confirmación de sus datos. ¿En qué más le puedo ayudar?',
+          identityConfirmed: true,
+        });
+      } catch (confirmError) {
+        console.error('[tools:agenda] fallo registrando confirmación de identidad:', confirmError);
+        return speakOnly(
+          'No pude registrar la confirmación en este momento. Los datos de la cita siguen intactos; inténtalo de nuevo.'
+        );
+      }
     }
 
     case 'reschedule': {
