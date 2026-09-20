@@ -5,6 +5,13 @@ import {
   normalizeDocumentNumber,
 } from '@/lib/health/identity/catalogs';
 import {
+  buildConformingIdentity,
+  identityConfirmationScript,
+  type ConformanceReport,
+  type ConformingIdentity,
+  type ConformingIdentityInput,
+} from '@/lib/health/identity/conformingRecord';
+import {
   addToWaitlist,
   bookAppointment,
   cancelAppointment,
@@ -296,6 +303,61 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Captura guiada de demografia (Paso 3, identidad conforme): si el agente
+      // envia datos demograficos, TODOS pasan por el validador determinista.
+      // Si alguno no cuadra, se le indica volver a preguntar con captura guiada
+      // (fecha dia/mes/anio dígito a dígito, sexo con catalogo cerrado, municipio
+      // con codigo DIVIPOLA). Nunca se infiere del audio.
+      const givenNamesRaw = text(body, 'givenNames');
+      const familyNamesRaw = text(body, 'familyNames');
+      const sexCode = text(body, 'sexCode');
+      const municipalityCode = text(body, 'municipalityCode');
+      const birthDateRaw = text(body, 'birthDate'); // formato esperado: YYYY-MM-DD
+
+      const documentNumberNormalized = normalizeDocumentNumber(text(body, 'patientDocument')) || null;
+      const hasDemographics =
+        Boolean(documentType || documentNumberNormalized || givenNamesRaw || familyNamesRaw) ||
+        Boolean(sexCode || municipalityCode || birthDateRaw);
+      let identityConforming: ConformingIdentity | null = null;
+      let identityReport: ConformanceReport | null = null;
+
+      if (hasDemographics) {
+        const birth = birthDateRaw ? birthDateRaw.split('-').map((p) => Number.parseInt(p, 10)) : [];
+        const identityInput: ConformingIdentityInput = {
+          documentType,
+          documentNumber: documentNumberNormalized,
+          givenNames: givenNamesRaw
+            ? givenNamesRaw.split(',').map((s) => s.trim()).filter(Boolean)
+            : null,
+          familyNames: familyNamesRaw
+            ? familyNamesRaw.split(',').map((s) => s.trim()).filter(Boolean)
+            : null,
+          birthDay: birth.length === 3 && Number.isFinite(birth[2]) ? birth[2] : null,
+          birthMonth: birth.length === 3 && Number.isFinite(birth[1]) ? birth[1] : null,
+          birthYear: birth.length === 3 && Number.isFinite(birth[0]) ? birth[0] : null,
+          sexCode,
+          municipalityCode,
+          phoneE164: patientPhone,
+          email: patientEmail,
+        };
+
+        const identityResult = buildConformingIdentity(identityInput);
+        if (!identityResult.ok) {
+          const guidance = identityResult.report.issues
+            .map((i) => `${i.field}: ${i.message}`)
+            .join(' | ');
+          return speakOnly(
+            'Los datos de identidad no pasaron la validacion. Vuelva a preguntar con captura guiada ' +
+              'y confirme digito a digito con el paciente. Detalle: ' + guidance
+          );
+        }
+
+        // Identidad conforme: se devuelve al agente junto con el guion de
+        // confirmacion. La cita se agenda; la identidad se certifica aparte.
+        identityConforming = identityResult.identity;
+        identityReport = identityResult.report;
+      }
+
       if (!holdToken && (!serviceId || !slotStart)) {
         return speakOnly('Necesito el servicio y el horario para dejar la cita.');
       }
@@ -342,6 +404,19 @@ export async function POST(request: NextRequest) {
         appointment,
         requiresDocuments: appointment.requiresDocuments,
         prepInstructions: appointment.prepInstructions,
+        ...(identityConforming && identityReport
+          ? {
+              conformingIdentity: identityConforming,
+              conformance: {
+                conforming: identityReport.conforming,
+                completenessPct: identityReport.completenessPct,
+                requiresPatientConfirmation: identityReport.requiresPatientConfirmation,
+              },
+              // El agente DEBE leer este guion y confirmar digito a digito antes
+              // de dar por buena la identidad certificada.
+              confirmationScript: identityConfirmationScript(identityConforming),
+            }
+          : {}),
       });
     }
 
