@@ -23,13 +23,15 @@ export type DocumentTypeCode =
   | 'CE' // Cedula de extranjeria
   | 'TI' // Tarjeta de identidad
   | 'RC' // Registro civil
-  | 'NU' // NUIP - Numero unico de identificacion personal
+  | 'CN' // Certificado de nacido vivo
   | 'PA' // Pasaporte
   | 'CD' // Carne diplomatico
   | 'SC' // Salvoconducto
   | 'PE' // Permiso especial de permanencia
   | 'PT' // Permiso por proteccion temporal
-  | 'DE' // Documento extranjero
+  | 'PPT' // Permiso proteccion temporal (PPT nominal)
+  | 'RUT' // Registro unico tributario (extranjeros con actividad)
+  | 'SI' // Codigo SI del anexo (verificar etiqueta contra Anexo Tecnico)
   | 'MS' // Menor sin identificacion (asignado por la IPS)
   | 'AS'; // Adulto sin identificacion (asignado por la IPS)
 
@@ -87,13 +89,13 @@ export const DOCUMENT_RULES: readonly DocumentRule[] = [
     hint: 'Registro civil. Si el acudiente no lo tiene a mano, ofrezca MS.',
   },
   {
-    code: 'NU',
-    label: 'NUIP',
-    pattern: /^\d{8,12}$/,
-    minLength: 8,
-    maxLength: 12,
+    code: 'CN',
+    label: 'Certificado de nacido vivo',
+    pattern: /^\d{6,15}$/,
+    minLength: 6,
+    maxLength: 15,
     ipsAssigned: false,
-    hint: 'NUIP impreso en el registro civil. Confirme digito a digito.',
+    hint: 'Certificado de nacido vivo. Confirme el numero digito a digito.',
   },
   {
     code: 'PA',
@@ -141,13 +143,31 @@ export const DOCUMENT_RULES: readonly DocumentRule[] = [
     hint: 'Deletree el permiso y confirme la relectura.',
   },
   {
-    code: 'DE',
-    label: 'Documento extranjero',
+    code: 'PPT',
+    label: 'Permiso proteccion temporal',
     pattern: /^[A-Z0-9]{4,20}$/,
     minLength: 4,
     maxLength: 20,
     ipsAssigned: false,
-    hint: 'Documento del pais de origen. Deletree y confirme.',
+    hint: 'Deletree el permiso y confirme la relectura.',
+  },
+  {
+    code: 'RUT',
+    label: 'Registro unico tributario',
+    pattern: /^\d{6,15}$/,
+    minLength: 6,
+    maxLength: 15,
+    ipsAssigned: false,
+    hint: 'RUT. Confirme el numero digito a digito.',
+  },
+  {
+    code: 'SI',
+    label: 'Documento codigo SI',
+    pattern: /^[A-Z0-9-]{4,20}$/,
+    minLength: 4,
+    maxLength: 20,
+    ipsAssigned: false,
+    hint: 'Deletree el documento y confirme la relectura.',
   },
   {
     code: 'MS',
