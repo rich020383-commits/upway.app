@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { resolveDatabaseUrl } from '@/lib/database-url';
+import { resolveDatabaseUrl, assertDatabaseUrlWellFormed } from '@/lib/database-url';
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
@@ -42,6 +42,14 @@ function createClient(): PrismaClient {
         return safeModel();
       },
     });
+  }
+    // Validación de integridad de la URL ANTES de crear el cliente.
+  // En producción: si DATABASE_URL está corrupta (query string dentro del
+  // hostname, pool_timeout absurdo), Prisma lanza un error oscuro
+  // ("Can't reach database server"). Aquí fallamos fast con un mensaje
+  // diagnóstico. Ver REPORTES/NOTA-INTEGRACION-SALUD-2026-09.md.
+  if (process.env.NODE_ENV === 'production') {
+    assertDatabaseUrlWellFormed(databaseUrl);
   }
   // Datasource explícito: Prisma Client sólo lee `DATABASE_URL` del schema, así
   // que inyectamos la URL resuelta para que los alias (AIVEN_DATABASE_URL,
