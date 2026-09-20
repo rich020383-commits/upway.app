@@ -147,11 +147,12 @@ export default function Home() {
           <a href="#inicio" className="flex items-center">
             <UpwayLogo />
           </a>
-          <nav className="hidden md:flex gap-[34px] text-[13px] font-medium text-[#31547f]">
+          <nav className="hidden md:flex gap-[30px] text-[13px] font-medium text-[#31547f]">
             <a href="#solucion" className="hover:text-[#103a77] transition">Solución</a>
             <a href="#agenda" className="hover:text-[#103a77] transition">Agenda</a>
             <a href="#beneficios" className="hover:text-[#103a77] transition">Beneficios</a>
             <a href="#sectores" className="hover:text-[#103a77] transition">Sectores</a>
+            <Link href="/precios" className="hover:text-[#103a77] transition">Precios</Link>
             <a href="#contacto" className="hover:text-[#103a77] transition">Contacto</a>
           </nav>
           <a
@@ -165,13 +166,13 @@ export default function Home() {
         {/* HERO */}
         <section id="inicio" className="max-w-[1280px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 pt-[45px] md:pt-[70px] pb-[55px] px-5 md:px-[5%] items-center bg-[radial-gradient(circle_at_80%_30%,_#e8fbfa,_transparent_40%)]">
           <div className="flex flex-col">
-            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">♥ &nbsp; Software de atención en salud</div>
+            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">♥ &nbsp; Recepcionista con IA para salud</div>
             <h1 className="font-display text-[35px] md:text-[52px] leading-[1.06] tracking-[-2px] md:tracking-[-2.6px] m-0 mb-[22px] font-extrabold">
-              Conecta tu centro de salud con tus pacientes.<br />
-              <em className="not-italic text-[#11b4b0]">Más simple, más humano.</em>
+              Atiende, agenda y confirma con tus pacientes.<br />
+              <em className="not-italic text-[#11b4b0]">Las 24 horas, sin perder un dato.</em>
             </h1>
             <p className="text-[16px] leading-[1.65] text-[#49698f] max-w-[600px]">
-              Un asistente de voz para tu clínica, consultorio o IPS, conectado a la Agenda Upway y a tu panel operativo. Atención telefónica, gestión de solicitudes y seguimiento por correo en una misma plataforma, para clínicas, IPS, EPS, centros de salud y consultorios.
+              Una recepcionista con voz que responde tu línea 24/7: agenda citas en la Agenda Upway, confirma con el paciente y captura sus datos de forma correcta la primera vez, para que lleguen ordenados a tu operación y a tu software de salud.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 my-[26px]">
               <a
@@ -188,8 +189,8 @@ export default function Home() {
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-[20px] text-[#315982] text-[10px] font-semibold uppercase tracking-wide mt-2">
               <span className="flex items-center gap-1.5 text-cyan-500"><Phone className="h-3.5 w-3.5" /> Voz IA 24/7</span>
               <span className="flex items-center gap-1.5 text-cyan-500"><Calendar className="h-3.5 w-3.5" /> Agenda propia</span>
-              <span className="flex items-center gap-1.5 text-cyan-500"><Bell className="h-3.5 w-3.5" /> Confirmaciones por correo</span>
-              <span className="flex items-center gap-1.5 text-cyan-500"><Shield className="h-3.5 w-3.5" /> Datos y trazabilidad</span>
+              <span className="flex items-center gap-1.5 text-cyan-500"><Shield className="h-3.5 w-3.5" /> Datos correctos la primera vez</span>
+              <span className="flex items-center gap-1.5 text-cyan-500"><Users className="h-3.5 w-3.5" /> Trazabilidad completa</span>
             </div>
           </div>
           <div className="relative mt-8 md:mt-0">
@@ -362,12 +363,12 @@ export default function Home() {
         {/* PANEL / SOLUCIÓN */}
         <section id="solucion" className="max-w-[1180px] mx-[15px] md:mx-auto my-[30px] md:my-[50px] p-[30px] md:p-[55px] rounded-[30px] bg-[#f5fbff] grid grid-cols-1 lg:grid-cols-[0.8fr_1.2fr] gap-[45px]">
           <div>
-            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Todo en una sola plataforma</div>
+            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Se integra a tu operación, no la reemplaza</div>
             <h2 className="font-display text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold">
               Comunicación y gestión para una mejor atención.
             </h2>
             <p className="text-[#55718f] leading-[1.6]">
-              Optimiza la operación de tu institución de salud con tecnología que simplifica procesos, mejora la experiencia del paciente y aumenta la eficiencia de tu equipo.
+              Upway trabaja sobre tu operación actual: tu línea telefónica, tu agenda y tu software de salud. Tu equipo conserva el control; nosotros atendemos, coordinamos y entregamos la información ordenada.
             </p>
             <div className="grid grid-cols-2 gap-[14px] mt-[25px] text-[12px] font-semibold text-[#0d3168]">
               <span className="flex items-center gap-2 before:content-['✓'] before:text-[#10b7b2]">Automatiza recordatorios</span>
@@ -402,6 +403,38 @@ export default function Home() {
                 <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">● Agenda nativa · sin terceros</p>
                 <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">○ WhatsApp Business · al conectarlo tú</p>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* DATOS CONFORMES */}
+        <section id="datos" className="max-w-[1180px] mx-[15px] md:mx-auto my-[30px] md:my-[50px] p-[30px] md:p-[55px] rounded-[30px] bg-[linear-gradient(120deg,#0d3168,#0b6a72)] text-white">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-[45px] items-start">
+            <div>
+              <div className="text-[#50e1d5] font-bold text-[13px] mb-[17px]">Captura de identidad conforme</div>
+              <h2 className="font-display text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold">
+                El dato correcto desde el primer contacto.
+              </h2>
+              <p className="leading-[1.6] text-white/85">
+                La mayoría de los rechazos de registros en salud nacen de datos mal tomados: un documento mal digitado, un nombre incompleto, una fecha de nacimiento dudosa. Nuestra recepcionista captura el dato con catálogos oficiales de Colombia (tipo de documento, sexo, municipio), confirma cada dato con el paciente, dígito a dígito cuando es necesario, y deja evidencia trazable de cada corrección.
+              </p>
+              <p className="leading-[1.6] text-white/70 text-[13px] mt-[14px]">
+                Tu institución conserva la responsabilidad de su registro clínico y sus transmisiones; Upway garantiza que el dato capturado en la atención inicial llegue estructurado, validado y auditable.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-[14px]">
+              <article className="rounded-[17px] border border-white/15 bg-white/10 p-[18px]">
+                <h3 className="text-[14px] font-bold mb-[6px]">Catálogos oficiales, nunca texto libre</h3>
+                <p className="text-[12px] leading-[1.55] text-white/75">Tipo de documento, sexo y municipio se validan contra catálogos cerrados. Si un dato no es claro, se vuelve a preguntar: no se adivina.</p>
+              </article>
+              <article className="rounded-[17px] border border-white/15 bg-white/10 p-[18px]">
+                <h3 className="text-[14px] font-bold mb-[6px]">Doble confirmación con el paciente</h3>
+                <p className="text-[12px] leading-[1.55] text-white/75">El documento se relee y se confirma dígito a dígito en la llamada. La corrección queda registrada con evidencia.</p>
+              </article>
+              <article className="rounded-[17px] border border-white/15 bg-white/10 p-[18px]">
+                <h3 className="text-[14px] font-bold mb-[6px]">Auditoría con usuario, rol, fecha y hora</h3>
+                <p className="text-[12px] leading-[1.55] text-white/75">Cada acceso y cada corrección quedan trazados, con tratamiento de datos bajo la Ley 1581 y encargo registrado.</p>
+              </article>
             </div>
           </div>
         </section>
@@ -604,6 +637,32 @@ export default function Home() {
           </div>
         </section>
 
+        {/* CONFIANZA REGULATORIA */}
+        <section className="max-w-[1180px] mx-[15px] md:mx-auto my-[30px] md:my-[50px] p-[26px] md:p-[36px] rounded-[24px] border border-[#e0edf6] bg-[#f7fbff]">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-[18px] text-[#0d3168]">
+            <div>
+              <span className="block text-[18px] mb-1 text-[#079fa0]">◈</span>
+              <h3 className="text-[13px] font-bold mb-[4px]">Ley 1581 de 2012</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Tratamiento de datos personales con política pública y registro ante la SIC.</p>
+            </div>
+            <div>
+              <span className="block text-[18px] mb-1 text-[#079fa0]">▣</span>
+              <h3 className="text-[13px] font-bold mb-[4px]">Contrato de encargo</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Cada institución firma un encargo de tratamiento antes de activar la captura de datos.</p>
+            </div>
+            <div>
+              <span className="block text-[18px] mb-1 text-[#079fa0]">◉</span>
+              <h3 className="text-[13px] font-bold mb-[4px]">Auditoría de accesos</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Usuario, rol, fecha y hora registrados en cada acceso a información de pacientes.</p>
+            </div>
+            <div>
+              <span className="block text-[18px] mb-1 text-[#079fa0]">◇</span>
+              <h3 className="text-[13px] font-bold mb-[4px]">Frontera clínica clara</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Asistencia administrativa según los protocolos de la institución. No sustituimos la valoración médica.</p>
+            </div>
+          </div>
+        </section>
+
         {/* CTA CONTACTO */}
         <section id="contacto" className="py-[48px] px-5 md:px-[8%] flex flex-col md:flex-row items-center justify-between bg-[linear-gradient(110deg,#103d79,#0b858d)] text-white gap-8">
           <div>
@@ -612,12 +671,35 @@ export default function Home() {
               Tu institución merece una <em className="not-italic text-[#50e1d5]">comunicación más inteligente.</em>
             </h2>
           </div>
-          <a
-            href="mailto:contacto@upway.business?subject=Solicitud%20de%20demo%20Upway%20Health"
-            className="inline-flex shrink-0 items-center justify-center px-[23px] py-[14px] rounded-full font-bold text-[13px] bg-white text-[#123e77] hover:bg-slate-100 transition"
+          <form
+            className="shrink-0 w-full max-w-[340px] flex flex-col gap-2"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const data = new FormData(event.currentTarget);
+              const nombre = String(data.get('nombre') ?? '').trim();
+              const institucion = String(data.get('institucion') ?? '').trim();
+              const telefono = String(data.get('telefono') ?? '').trim();
+              const subject = `Solicitud de demo Upway Health — ${institucion || nombre || 'Nueva solicitud'}`;
+              const body = [
+                `Nombre: ${nombre}`,
+                `Institución: ${institucion}`,
+                `Teléfono: ${telefono}`,
+                '',
+                'Solicito una demo de Upway Health.',
+              ].join('\n');
+              window.location.href = `mailto:contacto@upway.business?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            }}
           >
-            Solicita una demo gratuita →
-          </a>
+            <input name="nombre" required placeholder="Tu nombre" className="rounded-full px-4 py-2.5 text-[13px] text-[#0d3168] bg-white/95 border border-white/40 placeholder:text-[#7b93ab] outline-none focus:ring-2 focus:ring-[#50e1d5]" />
+            <input name="institucion" placeholder="Institución o consultorio" className="rounded-full px-4 py-2.5 text-[13px] text-[#0d3168] bg-white/95 border border-white/40 placeholder:text-[#7b93ab] outline-none focus:ring-2 focus:ring-[#50e1d5]" />
+            <input name="telefono" required inputMode="tel" placeholder="Teléfono de contacto" className="rounded-full px-4 py-2.5 text-[13px] text-[#0d3168] bg-white/95 border border-white/40 placeholder:text-[#7b93ab] outline-none focus:ring-2 focus:ring-[#50e1d5]" />
+            <button type="submit" className="rounded-full font-bold text-[13px] bg-white text-[#123e77] hover:bg-slate-100 transition px-[23px] py-[14px]">
+              Solicita una demo gratuita →
+            </button>
+            <a href="tel:+573126427856" className="text-center text-[11px] text-[#50e1d5] hover:underline">
+              o llámanos: +57 312 642 7856
+            </a>
+          </form>
         </section>
 
         {/* FOOTER */}
