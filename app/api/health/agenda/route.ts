@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getHealthSession } from '@/lib/session';
 import { enforceHealthAccess } from '@/lib/health/access';
 import { withTenantScope } from '@/lib/health/tenant';
+import { isValidDocumentTypeCode } from '@/lib/health/identity/catalogs';
 import {
   addAvailabilityException,
   addToWaitlist,
@@ -374,6 +375,19 @@ export async function POST(request: NextRequest) {
       }
 
       case 'service_create': {
+        // El tipo de documento exigible solo puede venir del catalogo cerrado
+        // (Res. 866 de 2021). Texto libre se rechaza: undefined = "sin requisito".
+        const rawRequiredDocumentType = str(body, 'requiredDocumentType');
+        let requiredDocumentType: string | undefined;
+        if (rawRequiredDocumentType && rawRequiredDocumentType.trim()) {
+          if (!isValidDocumentTypeCode(rawRequiredDocumentType)) {
+            return NextResponse.json(
+              { error: 'requiredDocumentType debe ser un tipo de documento del catalogo (CC, CE, TI, RC, ...)' },
+              { status: 400 }
+            );
+          }
+          requiredDocumentType = rawRequiredDocumentType;
+        }
         const result = await createServiceOffering(scope, {
           name: str(body, 'name') ?? '',
           durationMinutes: num(body, 'durationMinutes') ?? undefined,
@@ -381,7 +395,7 @@ export async function POST(request: NextRequest) {
           bufferBeforeMinutes: num(body, 'bufferBeforeMinutes') ?? undefined,
           bufferAfterMinutes: num(body, 'bufferAfterMinutes') ?? undefined,
           requiresDocuments: body.requiresDocuments === true,
-          requiredDocumentType: str(body, 'requiredDocumentType'),
+          requiredDocumentType,
           prepInstructions: str(body, 'prepInstructions'),
           color: str(body, 'color') ?? undefined,
           resourceIds: Array.isArray(body.resourceIds) ? (body.resourceIds as string[]) : [],
