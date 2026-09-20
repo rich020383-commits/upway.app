@@ -205,7 +205,7 @@ export const HEALTH_PLANS: HealthPlan[] = [
     features: [
       '1 numero dedicado CO',
       '600 min/mes voz full AI',
-      'WhatsApp + agenda + recordatorios',
+      'Agenda + recordatorios automaticos',
       'Panel /health real',
       'Minuto adicional $750 COP',
       'Implementacion white-glove Upway',

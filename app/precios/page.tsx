@@ -1,10 +1,16 @@
 import Link from 'next/link';
 import { ALL_HEALTH_PLANS, formatCOP, planCommercialSummary } from '@/lib/health/plans-enterprise';
-import { withIVA, FACILITY_TYPE_OPTIONS } from '@/lib/health/plans';
+import {
+  withIVA,
+  FACILITY_TYPE_OPTIONS,
+  IDENTITY_MODULE_COP,
+  IDENTITY_MODULE_LABEL,
+  IDENTITY_MODULE_DESCRIPTION,
+} from '@/lib/health/plans';
 
 export const metadata = {
   title: 'Planes Upway Health - Clinicas, IPS y EPS | Upway',
-  description: 'Planes de voz AI para salud. Desde consultorios hasta EPS. Compara minutos, numeros simultaneos y precios transparentes.',
+  description: 'Planes de voz AI para salud. Desde consultorios hasta EPS. Minutos, numeros simultaneos y el modulo de identidad conforme por sede, con precios transparentes.',
 };
 
 function FacilityBadge({ type }: { type: string }) {
@@ -59,6 +65,13 @@ function PlanCard({ plan, featured = false }: { plan: typeof ALL_HEALTH_PLANS[nu
           </li>
         ))}
       </ul>
+      {!isCustom && (
+        <div className={`mb-6 rounded-xl border p-3 text-xs ${featured ? 'border-white/20 bg-white/10' : 'border-emerald-200 bg-emerald-50/60'}`}>
+          <p className={`font-bold ${featured ? 'text-white' : 'text-emerald-900'}`}>Adicional por sede: {IDENTITY_MODULE_LABEL}</p>
+          <p className={`mt-1 ${featured ? 'text-slate-300' : 'text-slate-600'}`}>{IDENTITY_MODULE_DESCRIPTION}</p>
+          <p className={`mt-2 font-bold ${featured ? 'text-emerald-300' : 'text-emerald-700'}`}>+ {formatCOP(IDENTITY_MODULE_COP)}/sede/mes + IVA</p>
+        </div>
+      )}
       <div className="mt-auto space-y-3">
         <Link href="/login?segment=health" className={`block rounded-full py-3 text-center text-sm font-bold transition-all ${featured ? 'bg-white text-[#0f172a] hover:bg-slate-100' : 'bg-[#1b5ed6] text-white hover:bg-[#1548a8]'}`}>
           {isCustom ? 'Contactar ventas' : 'Empezar ahora'}
@@ -86,11 +99,27 @@ export default function PreciosPage() {
           Upway Health
         </div>
         <h1 className="mx-auto max-w-3xl text-4xl font-black tracking-[-0.04em] text-slate-900 md:text-5xl">Planes para cada tipo de atencion en salud</h1>
-        <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-500">Desde un consultorio hasta una red de EPS. Voz AI con WhatsApp, agenda, triaje y escalamiento.</p>
+        <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-500">Recepcionista de voz AI 24/7 que atiende cada llamada y agenda por ti. Precios transparentes: minutos, numeros y un modulo de identidad conforme que se paga por sede.</p>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-[11px] font-semibold text-slate-500">
+          <span className="rounded-full border border-slate-200 bg-white px-3 py-1">Ley 1581 de 2012</span>
+          <span className="rounded-full border border-slate-200 bg-white px-3 py-1">Catalogos oficiales IHCE</span>
+          <span className="rounded-full border border-slate-200 bg-white px-3 py-1">Trazabilidad y evidencia</span>
+        </div>
       </section>
       <section className="mx-auto max-w-6xl px-4 pb-16">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {standardPlans.map((plan) => (<PlanCard key={plan.id} plan={plan} featured={plan.id === 'clinica-pro-1800'} />))}
+        </div>
+        <div className="mt-8 rounded-[24px] border border-emerald-200 bg-emerald-50/70 p-6 md:flex md:items-center md:gap-6">
+          <div className="flex-1">
+            <h2 className="text-lg font-black text-emerald-900">Adicional por sede: {IDENTITY_MODULE_LABEL}</h2>
+            <p className="mt-1 text-sm text-slate-600">{IDENTITY_MODULE_DESCRIPTION}</p>
+            <p className="mt-2 text-xs text-slate-500">Disponible sobre cualquier plan. Se activa con contrato de encargo de datos (DPA) firmado: asi de serios somos con la Ley 1581.</p>
+          </div>
+          <div className="mt-4 text-center md:mt-0">
+            <p className="text-2xl font-black text-emerald-700">{formatCOP(IDENTITY_MODULE_COP)}</p>
+            <p className="text-xs text-slate-500">por sede/mes + IVA</p>
+          </div>
         </div>
         {customPlans.length > 0 && (
           <div className="mt-12">
@@ -105,8 +134,11 @@ export default function PreciosPage() {
       <section className="bg-gradient-to-br from-[#0f172a] to-[#132642] py-16">
         <div className="mx-auto max-w-3xl px-4 text-center">
           <h2 className="text-3xl font-black text-white">Listo para dejar de perder llamadas?</h2>
-          <p className="mt-3 text-slate-300">Empieza hoy. Sin contratos largos.</p>
-          <Link href="/login?segment=health" className="mt-8 inline-block rounded-full bg-white px-8 py-4 text-sm font-bold text-[#0f172a] transition-all hover:-translate-y-0.5 hover:shadow-xl">Comenzar ahora</Link>
+          <p className="mt-3 text-slate-300">Empieza con un piloto medido. Sin contratos largos; con DPA cuando se activa identidad conforme.</p>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link href="/login?segment=health" className="w-full rounded-full bg-white px-8 py-4 text-sm font-bold text-[#0f172a] transition-all hover:-translate-y-0.5 hover:shadow-xl sm:w-auto">Comenzar ahora</Link>
+            <a href="mailto:contacto@upway.business?subject=Quiero%20cotizar%20Upway%20Health" className="w-full rounded-full border border-white/30 px-8 py-4 text-sm font-bold text-white transition-all hover:bg-white/10 sm:w-auto">Hablar con ventas</a>
+          </div>
         </div>
       </section>
       <footer className="border-t border-slate-200 py-8 text-center text-xs text-slate-400">Upway Business Group S.A.S - Bogota, Colombia</footer>
