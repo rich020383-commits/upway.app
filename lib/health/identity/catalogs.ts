@@ -461,3 +461,32 @@ export function validateMunicipalityCode(code: string | null | undefined): Munic
 
   return { valid: true, code: normalized, departmentCode, departmentName: department.name };
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Paso 3 (identidad conforme): el tipo de documento que un servicio exige
+// (requiredDocumentType) tambien es catalogo cerrado. Nunca texto libre:
+// el dato que llega aqui se usara como llave de match en el RDA.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type RequiredDocumentTypeResult =
+  | { ok: true; code: DocumentTypeCode | null }
+  | { ok: false; message: string };
+
+/**
+ * Valida y normaliza el tipo de documento exigido por un servicio.
+ * Vacio u omitido = el servicio no exige tipo (ok con code null).
+ * Cualquier otro valor DEBE pertenecer al catalogo cerrado; si no, se rechaza.
+ */
+export function validateRequiredDocumentType(
+  value: string | null | undefined
+): RequiredDocumentTypeResult {
+  const normalized = (value ?? '').trim().toUpperCase();
+  if (!normalized) return { ok: true, code: null };
+  if (isValidDocumentTypeCode(normalized)) return { ok: true, code: normalized };
+  return {
+    ok: false,
+    message:
+      `El tipo de documento "${normalized}" no pertenece al catalogo cerrado de la ` +
+      'Resolucion 866 de 2021. Codigos validos: CC, CE, TI, RC, NU, PA, CD, SC, PE, PT, DE, MS, AS.',
+  };
+}

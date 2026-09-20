@@ -21,6 +21,10 @@ import {
   type BusyBlock,
 } from './availability';
 import { formatDateKeyLabel, formatMinutesRange } from './format';
+import {
+  validateRequiredDocumentType,
+  normalizeDocumentNumber,
+} from '../health/identity/catalogs';
 
 export type AgendaScope = {
   organizationId: string;
@@ -952,7 +956,7 @@ export async function bookAppointment(
         patientName,
         patientPhone,
         patientEmail,
-        patientDocument: (input.patientDocument ?? '').trim() || null,
+        patientDocument: normalizeDocumentNumber(input.patientDocument) || null,
         slotStart: start,
         slotEnd: end,
         status,
@@ -1731,6 +1735,12 @@ export async function createServiceOffering(
   const name = (input.name ?? '').trim();
   if (name.length < 2) return fail('INVALID_INPUT', 'El servicio necesita un nombre de 2+ caracteres.');
 
+  // Paso 3 (identidad conforme): el tipo de documento que el servicio exige es
+  // catalogo cerrado (Res. 866/2021). Texto libre se rechaza aqui, en el unico
+  // punto de escritura, antes de tocar la base de datos.
+  const requiredDocumentType = validateRequiredDocumentType(input.requiredDocumentType);
+  if (!requiredDocumentType.ok) return fail('INVALID_INPUT', requiredDocumentType.message);
+
   const durationMinutes = Math.min(Math.max(input.durationMinutes ?? 30, 5), 480);
 
   const created = await serviceOffering.create({
@@ -1743,7 +1753,7 @@ export async function createServiceOffering(
       bufferBeforeMinutes: Math.min(Math.max(input.bufferBeforeMinutes ?? 0, 0), 120),
       bufferAfterMinutes: Math.min(Math.max(input.bufferAfterMinutes ?? 0, 0), 120),
       requiresDocuments: Boolean(input.requiresDocuments),
-      requiredDocumentType: (input.requiredDocumentType ?? '').trim() || null,
+      requiredDocumentType: requiredDocumentType.code,
       prepInstructions: (input.prepInstructions ?? '').trim() || null,
       color: /^#[0-9a-fA-F]{6}$/.test(input.color ?? '') ? (input.color as string) : '#0EA5E9',
     },

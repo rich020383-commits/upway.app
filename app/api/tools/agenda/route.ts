@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifySharedSecret } from '@/lib/webhook-verify';
 import {
+  isValidDocumentTypeCode,
+  normalizeDocumentNumber,
+} from '@/lib/health/identity/catalogs';
+import {
   addToWaitlist,
   bookAppointment,
   cancelAppointment,
@@ -279,6 +283,19 @@ export async function POST(request: NextRequest) {
       const patientPhone = text(body, 'patientPhone');
       const patientEmail = text(body, 'patientEmail');
 
+      // Captura guiada (Paso 3, identidad conforme): si el agente envia el tipo
+      // de documento, DEBE ser un codigo del catalogo cerrado (Res. 866/2021).
+      // Nunca se infiere del audio: si no cuadra, el agente vuelve a preguntar
+      // con opciones cerradas.
+      const documentType = text(body, 'documentType');
+      if (documentType && !isValidDocumentTypeCode(documentType)) {
+        return speakOnly(
+          'El tipo de documento no es valido. Pregunte al paciente con opciones cerradas: ' +
+            'cedula de ciudadania, cedula de extranjeria, tarjeta de identidad, registro civil ' +
+            'o pasaporte, y envie el codigo correspondiente (CC, CE, TI, RC o PA).'
+        );
+      }
+
       if (!holdToken && (!serviceId || !slotStart)) {
         return speakOnly('Necesito el servicio y el horario para dejar la cita.');
       }
@@ -292,7 +309,9 @@ export async function POST(request: NextRequest) {
         patientName,
         patientPhone,
         patientEmail,
-        patientDocument: text(body, 'patientDocument'),
+        // Normalizacion determinista: quita espacios, puntos y guiones del
+        // dictado. NO corrige ni adivina digitos: eso es del paciente al confirmar.
+        patientDocument: normalizeDocumentNumber(text(body, 'patientDocument')) || null,
         notes: text(body, 'notes'),
         channel: 'VOICE',
         callId: text(body, 'callId'),
