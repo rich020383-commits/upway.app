@@ -85,8 +85,15 @@ export async function GET(request: NextRequest) {
   // No requiere sesión: el middleware (proxy.ts) ya protege /health/*
   // El onboarding usa un contexto demo por defecto para usuarios sin tenant real
 
-  const clinicId = DEFAULT_CLINIC_ID;
-  const organizationId = undefined;
+  // El onboarding pertenece al tenant autenticado. El contexto demo queda solo
+  // para desarrollo sin sesion: nunca para un cliente real (auditoria 2026-09).
+  const { context } = await getHealthSession(request);
+  const hasRealTenant = Boolean(context?.clinicId) && context?.clinicId !== 'default-clinic';
+  if (!hasRealTenant && process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Sesion de clinica requerida.' }, { status: 401 });
+  }
+  const clinicId = hasRealTenant ? String(context?.clinicId) : DEFAULT_CLINIC_ID;
+  const organizationId = hasRealTenant ? context?.organizationId : undefined;
 
   try {
     const clinic = await ensureClinicForId(clinicId, organizationId);
@@ -137,8 +144,14 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const clinicId = context.clinicId && context.clinicId !== 'default-clinic' ? context.clinicId : String(body.clinicId ?? DEFAULT_CLINIC_ID);
-    const organizationId = context.organizationId && context.organizationId !== 'default-org' ? context.organizationId : (body.organizationId ? String(body.organizationId) : undefined);
+    // El clinic/org SIEMPRE salen del contexto autenticado: nunca del body, que
+    // es controlable por el cliente (auditoria 2026-09).
+    const hasRealTenant = Boolean(context.clinicId) && context.clinicId !== 'default-clinic';
+    if (!hasRealTenant && process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ error: 'Sesion de clinica requerida.' }, { status: 401 });
+    }
+    const clinicId = hasRealTenant ? String(context.clinicId) : DEFAULT_CLINIC_ID;
+    const organizationId = hasRealTenant ? context.organizationId : undefined;
     const currentStep = String(body.currentStep ?? onboardingStages[0]);
     const notes = String(body.notes ?? '');
     const formData = parseJsonNotes(body.formData ?? body.notes ?? {});
