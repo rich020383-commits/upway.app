@@ -89,8 +89,8 @@ export const onboardingStageMeta: Record<
   },
   'channel-integration': {
     label: 'Canales',
-    subtitle: 'WhatsApp y voz',
-    description: 'Upway conecta WhatsApp y voz dedicada con el numero de la clinica.',
+    subtitle: 'Voz 24/7 (+ WhatsApp propio)',
+    description: 'Voz dedicada incluida. WhatsApp no es parte del paquete: se adapta solo si el cliente trae su token de Meta Developer.',
   },
   'review-and-approve': {
     label: 'Revision',

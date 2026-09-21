@@ -33,10 +33,18 @@ describe('buildActivationChecks — modelo white-glove IPS', () => {
     expect(checks.find((c) => c.key === 'voice')?.ok).toBe(false);
   });
 
-  it('bloquea sin WhatsApp Meta conectado', () => {
-    const { canActivate, checks } = buildActivationChecks({ ...base, whatsappActive: false });
+  it('bloquea sin WhatsApp Meta conectado cuando el cliente lo contrato', () => {
+    const { canActivate, checks } = buildActivationChecks({ ...base, whatsappActive: false, whatsappRequired: true });
     expect(canActivate).toBe(false);
     expect(checks.find((c) => c.key === 'whatsapp')?.ok).toBe(false);
+  });
+
+  it('WhatsApp no gatea por defecto: no es parte del paquete (solo voz)', () => {
+    const { checks, canActivate } = buildActivationChecks({ ...base, whatsappActive: false });
+    expect(canActivate).toBe(true);
+    const whatsapp = checks.find((c) => c.key === 'whatsapp');
+    expect(whatsapp?.ok).toBe(true);
+    expect(whatsapp?.detail).toMatch(/solo voz/i);
   });
 
   it('bloquea sin aprobacion clinica aunque todo lo tecnico este verde', () => {
@@ -90,7 +98,7 @@ describe('buildActivationChecks — modelo voz-first + identidad conforme', () =
     expect(canActivate).toBe(true);
     const whatsapp = checks.find((c) => c.key === 'whatsapp');
     expect(whatsapp?.ok).toBe(true);
-    expect(whatsapp?.detail).toMatch(/voz-first/i);
+    expect(whatsapp?.detail).toMatch(/solo voz/i);
   });
 
   it('sigue exigiendo WhatsApp si el canal esta contratado (sin regresion)', () => {

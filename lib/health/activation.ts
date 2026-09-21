@@ -24,7 +24,7 @@ export type ActivationInput = {
   planAutoActivatable?: boolean;
   /** Intake de implementacion completo (NIT, contacto, volumen). */
   implementationIntakeReady?: boolean;
-  /** WhatsApp solo gatea el go-live si el cliente contrato ese canal (voz-first). */
+  /** WhatsApp no es parte del paquete: gatea solo si el cliente trae token Meta. */
   whatsappRequired?: boolean;
   /** Servicios de la IPS que exigen documento del paciente (denominador). */
   identityServicesRequiringDocs?: number;
@@ -38,8 +38,10 @@ export function buildActivationChecks(input: ActivationInput): { checks: Activat
     input.planAutoActivatable !== false &&
     input.implementationIntakeReady !== false;
 
-  // Voz-first (nuestro modelo): WhatsApp solo gatea si el cliente contrato ese canal.
-  const whatsappRequired = input.whatsappRequired !== false;
+  // WhatsApp no es parte del paquete de servicio: solo gatea el go-live si el
+  // cliente contrato ese canal (token propio de Meta Developer). Sin marca
+  // explicita = despliegue solo voz.
+  const whatsappRequired = input.whatsappRequired === true;
 
   // Identidad conforme: si un servicio exige documento, debe tener tipo del
   // catalogo cerrado (Res. 866/2021). Sin eso el agente de voz no sabe que pedir
@@ -77,13 +79,13 @@ export function buildActivationChecks(input: ActivationInput): { checks: Activat
     },
     {
       key: 'whatsapp',
-      label: 'WhatsApp conectado (Meta)',
+      label: 'WhatsApp (token propio del cliente)',
       ok: !whatsappRequired || input.whatsappActive,
       detail: !whatsappRequired
-        ? 'Canal no contratado: no aplica para este go-live (despliegue voz-first).'
+        ? 'WhatsApp no contratado: no aplica para este go-live (despliegue solo voz).'
         : input.whatsappActive
-          ? 'Linea Meta activa.'
-          : 'Upway debe conectar OAuth Meta y guardar metaPhoneNumberId.',
+          ? 'Linea Meta del cliente activa (adaptada por Upway).'
+          : 'WhatsApp no esta incluido: el cliente debe aportar su token de Meta Developer para que Upway lo adapte.',
     },
     {
       key: 'voice',

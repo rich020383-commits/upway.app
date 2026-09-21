@@ -28,7 +28,8 @@ function parseSessionForm(notes: string | null | undefined): Record<string, unkn
 /**
  * Modelo white-glove IPS:
  * - Cliente llena onboarding (clinico + plan + intake implementacion).
- * - Upway hace implementacion total (WhatsApp Meta + voz dedicada).
+ * - Upway hace implementacion total de la voz dedicada. WhatsApp no es parte
+ *   del paquete: solo se adapta si el cliente aporta su token de Meta Developer.
  * - Este endpoint es el checklist interno de entrega: bloquea ACTIVE
  *   hasta que tenant + plan + datos clinicos + canales + aprobacion esten verdes.
  *
@@ -89,12 +90,14 @@ async function resolveActivationState(organizationId: string, clinicId: string, 
     isValidDocumentTypeCode(s.requiredDocumentType)
   );
 
-  // ── Canal contratado: WhatsApp solo gatea si el cliente lo pidio ──
-  // `channel` es texto libre hoy; mientras se convierta en seleccion cerrada se
-  // interpreta conservador: vacio = comportamiento anterior (requerido).
+  // ── WhatsApp no es parte del paquete: solo gatea si el cliente declaro
+  // token propio de Meta Developer (whatsappOwn === 'si') o si su texto de
+  // canales menciona WhatsApp/Meta de forma explicita. Vacio = solo voz.
+  const whatsappOwn = typeof formData.whatsappOwn === 'string' ? formData.whatsappOwn.trim() : '';
   const channelText = typeof formData.channel === 'string' ? formData.channel.trim() : '';
   const whatsappRequired =
-    channelText.length === 0 ? true : /whatsapp|wasap|meta/i.test(channelText);
+    whatsappOwn === 'si' ||
+    (whatsappOwn !== 'no' && channelText.length > 0 && /whatsapp|wasap|meta/i.test(channelText));
 
   const input = {
     hasOrganization: Boolean(organization ?? organizationId),

@@ -8,7 +8,7 @@ import {
   getOnboardingStageStatus,
   type OnboardingStage,
 } from '@/lib/health/onboarding';
-import { FACILITY_TYPE_OPTIONS, type FacilityType } from '@/lib/health/plans';
+import { FACILITY_TYPE_OPTIONS, IDENTITY_MODULE_COP, IDENTITY_MODULE_LABEL, type FacilityType } from '@/lib/health/plans';
 import { getHealthPlan, estimateMinutesFromVolume, formatCOP } from '@/lib/health/plans-enterprise';
 import { PlanPicker } from '@/components/health/plan-picker';
 import { useBusinessContext } from '@/components/business-context';
@@ -44,7 +44,11 @@ type OnboardingForm = {
   cancellationWindow: string;
   faq: string;
   channel: string;
+  /** WhatsApp propio del cliente: 'si' = trae token Meta Developer; '' / 'no' = solo voz. */
+  whatsappOwn: string;
   webhook: string;
+  /** Add-on modulo de identidad conforme (Res. 866/2021) elegido por el cliente. */
+  withIdentityModule: boolean;
   approval: boolean;
 };
 
@@ -79,7 +83,9 @@ const initialForm: OnboardingForm = {
   cancellationWindow: '',
   faq: '',
   channel: '',
+  whatsappOwn: '',
   webhook: '',
+  withIdentityModule: false,
   approval: false, // Debe empezar desmarcado
 };
 // 🔥 Ayuda contextual por campo: explica qué se pide y por qué importa, para
@@ -113,7 +119,9 @@ const fieldHelp: Partial<Record<keyof OnboardingForm, string>> = {
   cancellationWindow: 'Anticipación mínima para cancelar o reprogramar sin penalización.',
   policy: 'Reglas de escalamiento y seguridad ante riesgo clínico.',
   faq: 'Preguntas frecuentes que el agente responderá de forma automática.',
-  channel: 'Canales por los que atiende el agente. Upway los conecta (white-glove).',
+  channel: 'Voz dedicada 24/7 incluida. WhatsApp no esta incluido: solo lo adaptamos si tu clinica trae su propio token de Meta Developer.',
+  whatsappOwn: 'El paquete base es voz. WhatsApp se adapta solo si tu clinica ya tiene su propio token de Meta Developer (WhatsApp Business API).',
+  withIdentityModule: 'Add-on por sede/mes: el agente pide el documento con catalogo cerrado (Res. 866/2021), lo confirma digito a digito y entrega el registro con evidencia.',
   webhook: 'Integraciones a conectar (agenda, CRM). Upway las implementa.',
 };
 function FieldHint({ text }: { text?: string }) {
@@ -169,7 +177,9 @@ const parseStoredForm = (input: unknown): Partial<OnboardingForm> => {
     cancellationWindow: typeof source.cancellationWindow === 'string' ? source.cancellationWindow : initialForm.cancellationWindow,
     faq: typeof source.faq === 'string' ? source.faq : initialForm.faq,
     channel: typeof source.channel === 'string' ? source.channel : initialForm.channel,
+    whatsappOwn: strOf(source.whatsappOwn),
     webhook: typeof source.webhook === 'string' ? source.webhook : initialForm.webhook,
+    withIdentityModule: typeof source.withIdentityModule === 'boolean' ? source.withIdentityModule : initialForm.withIdentityModule,
     approval: typeof source.approval === 'boolean' ? source.approval : initialForm.approval,
   };
 };
@@ -315,11 +325,20 @@ const stageContent: Record<
   'channel-integration': (form, onChange) => (
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 14, padding: 14, fontSize: 13, color: '#14532d' }}>
-        Upway implementa por ti (white-glove): no necesitas tokens ni consolas. Solo indica canales deseados y agenda actual; nosotros conectamos WhatsApp (Meta OAuth), voz dedicada e integraciones.
+        Upway implementa por ti (white-glove): voz dedicada 24/7 e integraciones con tu agenda, sin tokens ni consolas.
+        WhatsApp no esta incluido en el paquete: si tu clinica ya tiene su propio token de Meta Developer (WhatsApp Business API), lo adaptamos a nuestro flujo; si no, el despliegue es solo voz.
+      </div>
+      <div style={{ display: 'grid', gap: 12 }}>
+        <label style={labelStyle}>WhatsApp Business propio</label>
+        <select value={form.whatsappOwn} onChange={(event) => onChange('whatsappOwn', event.target.value)} style={inputStyle}>
+          <option value="no">No — despliegue solo voz (recomendado para arrancar)</option>
+          <option value="si">Sí — tengo token de Meta Developer y quiero que Upway lo adapte</option>
+        </select>
+        <FieldHint text={fieldHelp.whatsappOwn} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Canales deseados</label>
-        <input placeholder="Ej. WhatsApp + voz" value={form.channel} onChange={(event) => onChange('channel', event.target.value)} style={inputStyle} />
+        <input placeholder="Ej. Voz dedicada 24/7 (+ WhatsApp propio si aplica)" value={form.channel} onChange={(event) => onChange('channel', event.target.value)} style={inputStyle} />
         <FieldHint text={fieldHelp.channel} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
@@ -357,6 +376,7 @@ function PlanReviewBox({ form }: { form: OnboardingForm }) {
       <div style={{ fontWeight: 800 }}>Plan + volumen</div>
       <div style={{ fontSize: 13, color: '#cbd5e1' }}>
         {plan ? `${plan.name} · ${formatCOP(plan.monthlyCOP)}/mes · setup ${formatCOP(plan.setupCOP)}` : 'Sin plan elegido (elige en paso Plan y volumen).'}
+        {form.withIdentityModule && plan ? ` + ${formatCOP(IDENTITY_MODULE_COP)} identidad` : ''}
       </div>
       <div style={{ fontSize: 13, color: '#cbd5e1' }}>
         ~{mins.toLocaleString('es-CO')} min/mes estimados · {form.dailyCalls || '?'} llamadas/dia · NIT {form.nit || 'pendiente'} · contacto {form.contactName || 'pendiente'}
@@ -381,6 +401,15 @@ function ReviewSummary({ form, onChange }: {
           <li>{form.channel || 'Sin canales configurados'}</li>
           <li>{form.tone || 'Tono no especificado'}</li>
         </ul>
+      </div>
+      <div style={{ display: 'grid', gap: 8, background: '#f8fbff', border: '1px solid #dfe9ff', borderRadius: 14, padding: 16 }}>
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, color: '#1b3558', fontWeight: 700, cursor: 'pointer' }}>
+          <input type="checkbox" checked={form.withIdentityModule} onChange={(event) => onChange('withIdentityModule', event.target.checked)} />
+          <span>
+            Contratar {IDENTITY_MODULE_LABEL} (+ {formatCOP(IDENTITY_MODULE_COP)}/sede/mes + IVA)
+          </span>
+        </label>
+        <FieldHint text={fieldHelp.withIdentityModule} />
       </div>
       <div style={{ display: 'grid', gap: 8 }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#1b3558', fontWeight: 700, cursor: 'pointer' }}>
@@ -450,7 +479,7 @@ const stageHelp: Record<OnboardingStage, { title: string; hint: string }> = {
   },
   'channel-integration': {
     title: 'Canales e integraciones',
-    hint: 'Define por dónde atiende el agente y qué sistemas conecta.',
+    hint: 'Voz dedicada 24/7 incluida. WhatsApp solo se adapta si tu clinica trae su propio token de Meta Developer.',
   },
   'review-and-approve': {
     title: 'Revisión final',
@@ -474,6 +503,9 @@ export default function HealthOnboardingPage() {
     setForm((current) => ({ ...current, [key]: value }));
   };
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  // P1: estado del gate de identidad conforme (Res. 866/2021), leido del
+  // checklist interno de activacion para mostrarlo en la etapa de revision.
+  const [identityGate, setIdentityGate] = useState<{ loading: boolean; ok: boolean; detail: string } | null>(null);
 
   const validateRequiredFields = (): string[] => {
     const errors: string[] = [];
@@ -516,6 +548,11 @@ export default function HealthOnboardingPage() {
 
         setForm((current) => ({ ...current, ...parseStoredForm(storedForm) }));
         setCurrentStageIndex(nextIndex >= 0 ? nextIndex : 0);
+        // P2: si el caso ya fue enviado a revision (o aprobado), bloquear el
+        // reenvio para no duplicar correos ni approvals de Upway.
+        if (['PENDING_REVIEW', 'APPROVED', 'ACTIVE'].includes(data.status)) {
+          setSubmitted(true);
+        }
       } catch (error) {
         console.warn('Unable to load onboarding session:', error);
       } finally {
@@ -525,6 +562,34 @@ export default function HealthOnboardingPage() {
 
     loadExistingSession();
   }, [clinicId, organizationId]);
+
+  // P1: el diferenciador del producto es voz + dato conforme. Al llegar a la
+  // revision, el cliente ve el estado real del gate de identidad (no lo adivina).
+  useEffect(() => {
+    const stage = onboardingStages[currentStageIndex];
+    if (stage !== 'review-and-approve') return;
+    let cancelled = false;
+    setIdentityGate({ loading: true, ok: false, detail: '' });
+    fetch('/api/health/activate', { credentials: 'include' })
+      .then((response) => response.json())
+      .then((data: { checks?: Array<{ key: string; ok: boolean; detail: string }> }) => {
+        if (cancelled) return;
+        const check = Array.isArray(data.checks) ? data.checks.find((c) => c.key === 'identity') : null;
+        setIdentityGate(
+          check
+            ? { loading: false, ok: Boolean(check.ok), detail: String(check.detail ?? '') }
+            : { loading: false, ok: true, detail: 'Sin servicios que exijan documento todavia: no hay captura conforme pendiente.' }
+        );
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setIdentityGate({ loading: false, ok: true, detail: 'No se pudo verificar el estado de identidad ahora mismo (no bloquea el envio).' });
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [currentStageIndex]);
 
   const currentStage = onboardingStages[currentStageIndex];
   const stageMeta = useMemo(() => getOnboardingStageMeta(currentStage), [currentStage]);
@@ -561,6 +626,16 @@ export default function HealthOnboardingPage() {
   };
 
   const goNext = async () => {
+    // P4: validar los obligatorios al salir del paso 1, no recien al final:
+    // un NIT o contacto faltante no se descubre en el ultimo paso.
+    if (currentStageIndex === 0) {
+      const errors = validateRequiredFields();
+      if (errors.length > 0) {
+        setValidationErrors(errors);
+        return;
+      }
+    }
+    setValidationErrors([]);
     const nextIndex = Math.min(currentStageIndex + 1, onboardingStages.length - 1);
     setCurrentStageIndex(nextIndex);
     await persistCurrentStage(nextIndex);
@@ -578,6 +653,7 @@ export default function HealthOnboardingPage() {
   };
 
   const finalizeOnboarding = async () => {
+    if (submitted) return; // P2: ya esta en revision de Upway; no reenviar.
     setValidationErrors([]);
     const errors = validateRequiredFields();
     if (errors.length > 0) {
@@ -700,6 +776,30 @@ export default function HealthOnboardingPage() {
               </div>
 
               <div className="grid gap-5">{renderStage(form, updateField)}</div>
+
+              {currentStage === 'review-and-approve' && identityGate && (
+                <div
+                  className={`mt-5 rounded-[18px] border p-4 ${
+                    identityGate.loading
+                      ? 'border-slate-200 bg-slate-50'
+                      : identityGate.ok
+                        ? 'border-emerald-200 bg-emerald-50/70'
+                        : 'border-amber-300 bg-amber-50'
+                  }`}
+                >
+                  <p className={`text-sm font-bold ${identityGate.ok ? 'text-emerald-800' : 'text-amber-800'}`}>
+                    Identidad conforme (Res. 866/2021)
+                  </p>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">
+                    {identityGate.loading ? 'Verificando estado del gate…' : identityGate.detail}
+                  </p>
+                  {!identityGate.loading && !identityGate.ok && (
+                    <p className="mt-1 text-xs text-amber-700">
+                      Configura los servicios que exigen documento en la agenda (con tipo del catalogo cerrado) para que el gate quede verde antes del go-live.
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div className="mt-5 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
                 <button

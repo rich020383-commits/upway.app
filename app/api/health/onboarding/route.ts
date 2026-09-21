@@ -184,6 +184,17 @@ export async function POST(request: NextRequest) {
       orderBy: { updatedAt: 'desc' },
     });
 
+    // Navegar hacia atras en el wizard no degrada una solicitud de revision ya
+    // enviada: si la sesion esta en PENDING_REVIEW/APPROVED/ACTIVE, un simple
+    // "Anterior" no la devuelve a DRAFT/IN_PROGRESS.
+    const REVIEW_LOCKED_STATUSES = ['PENDING_REVIEW', 'APPROVED', 'ACTIVE'];
+    const effectiveStatus =
+      existing &&
+      REVIEW_LOCKED_STATUSES.includes(existing.status) &&
+      !REVIEW_LOCKED_STATUSES.includes(finalStatus)
+        ? existing.status
+        : finalStatus;
+
     const profilePayload: Record<string, string | boolean> = {};
     if (typeof formData.specialty === 'string' && formData.specialty.trim()) {
       profilePayload.specialty = formData.specialty.trim();
@@ -212,8 +223,8 @@ export async function POST(request: NextRequest) {
     const payload = {
       clinicId: clinic.id,
       currentStep: normalizedStep,
-      ...(finalStatus === 'ACTIVE' ? { completedAt: new Date() } : {}),
-      status: finalStatus as
+      ...(effectiveStatus === 'ACTIVE' ? { completedAt: new Date() } : {}),
+      status: effectiveStatus as
         | 'DRAFT'
         | 'IN_PROGRESS'
         | 'PENDING_REVIEW'
