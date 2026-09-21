@@ -65,13 +65,13 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-6 space-y-6">
               <div className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-800/50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-cyan-400 shadow-sm">
-                <Sparkles size={14} className="text-cyan-400" /> Operación Autónoma
+                <Sparkles size={14} className="text-cyan-400" /> Agente de Voz Conforme
               </div>
               <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white leading-[1.1]">
                 Sophie v2:<br/>IA telefónica para tu centro médico.
               </h2>
               <p className="text-lg text-slate-400 leading-relaxed max-w-xl">
-                Automatiza el alto tráfico de llamadas. Sophie responde, califica urgencias y agenda citas en tiempo real con una voz humana y empática, 24/7 sin descuidar a ningún paciente.
+                Automatiza el alto tráfico de llamadas. Sophie recibe la llamada, toma los datos según el protocolo médico que tú definas, califica la urgencia conforme a esos criterios y agenda en tiempo real con una voz humana y empática, 24/7 sin descuidar a ningún paciente.
               </p>
             </div>
             
@@ -96,7 +96,7 @@ export default function LandingPage() {
                       <Sparkles size={14} /> Upway Health
                     </div>
                     <p className="text-xs text-slate-300 leading-relaxed">
-                      Sincronizando atención, agenda y seguimiento comercial con contexto operativo completo.
+                      Toma de datos sin error, conformes y auditables — listos para sincronizar con tu sistema actual.
                     </p>
                   </div>
                 </div>
