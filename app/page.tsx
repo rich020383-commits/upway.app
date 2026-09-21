@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, MessageCircle, Phone, Sparkles, Calendar, Bell, HeartPulse, Users, Clock, Shield, ShieldCheck, Database, FileText, RefreshCw, ClipboardCheck, BadgeCheck, CalendarDays, Home as HomeIcon } from 'lucide-react';
-import { LEGAL_ENTITY } from '@/lib/legal';
+import Footer from '@/components/Footer';
 
 const UpwayLogo = ({ className = '' }: { className?: string }) => (
   <div className={`inline-flex items-center px-4 py-2 rounded-2xl bg-black shadow-lg overflow-hidden ${className}`}>
@@ -219,58 +219,6 @@ export default function Home() {
           </div>
         </header>
 
-        {/* HERO */}
-        <section id="inicio" className="max-w-[1280px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 pt-[45px] md:pt-[70px] pb-[55px] px-5 md:px-[5%] items-center bg-[radial-gradient(circle_at_80%_30%,_#e8fbfa,_transparent_40%)]">
-          <div className="flex flex-col">
-            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">♥ &nbsp; Recepcionista con IA para salud</div>
-            <h1 className="font-display text-[35px] md:text-[52px] leading-[1.06] tracking-[-2px] md:tracking-[-2.6px] m-0 mb-[22px] font-extrabold">
-              Atiende, agenda y confirma con tus pacientes.<br />
-              <em className="not-italic text-[#11b4b0]">Las 24 horas, sin perder un dato.</em>
-            </h1>
-            <p className="text-[16px] leading-[1.65] text-[#49698f] max-w-[600px]">
-              Una recepcionista con voz que responde tu línea 24/7: agenda citas en la Agenda Upway, confirma con el paciente y captura sus datos de forma correcta la primera vez, para que lleguen ordenados a tu operación y a tu software de salud.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 my-[26px]">
-              <a
-                href="#contacto"
-                className="inline-flex items-center justify-center rounded-full bg-[#0c3775] px-[23px] py-[14px] text-[13px] font-bold text-white hover:bg-[#092a5c] hover:shadow-[0_22px_48px_rgba(12,55,117,0.42)] transition">
-                Solicita una demo gratuita →
-              </a>
-              <a
-                href="#solucion"
-                className="inline-flex items-center justify-center rounded-full border border-[#b8cce3] bg-white px-[23px] py-[14px] text-[13px] font-bold text-[#0c3775] hover:bg-slate-50 hover:shadow-[0_22px_48px_rgba(12,55,117,0.22)] transition">
-                Descubre cómo funciona
-              </a>
-            </div>
-            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-[20px] text-[#315982] text-[10px] font-semibold uppercase tracking-wide mt-2">
-              <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Phone className="h-3.5 w-3.5" /> Voz IA 24/7</span>
-              <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Calendar className="h-3.5 w-3.5" /> Agenda propia</span>
-              <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Shield className="h-3.5 w-3.5" /> Datos correctos la primera vez</span>
-              <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Users className="h-3.5 w-3.5" /> Trazabilidad completa</span>
-            </div>
-          </div>
-          <div className="relative mt-8 md:mt-0">
-            <Image
-              src="/hero-doctora.png"
-              alt="Profesional de salud usando tecnología"
-              width={490}
-              height={390}
-              preload
-              quality={90}
-              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 46vw, 600px"
-              className="w-full rounded-[34px] block shadow-[0_0_0_2px_rgba(11,169,169,0.12),0_30px_90px_rgba(11,169,169,0.30)] health-glow-breath object-cover"
-            />
-            <div className="absolute left-2 md:-left-[35px] top-[40px] md:top-[65px] bg-white border border-[#e2edf5] rounded-[15px] p-[13px_17px] shadow-[0_12px_35px_#173e6820] text-[11px] leading-tight">
-              ◉ <b className="font-bold">Recordatorio de cita</b>
-              <br />
-              <small className="text-gray-500 text-[10px]">Cita confirmada para mañana</small>
-            </div>
-            <div className="absolute -right-2 md:-right-[18px] bottom-[20px] md:bottom-[30px] bg-white border border-[#e2edf5] rounded-[15px] p-[13px_17px] shadow-[0_12px_35px_#173e6820] text-[11px] text-[#087c7d] font-medium">
-              ✓ <b className="font-bold">Pacientes más satisfechos</b>
-            </div>
-          </div>
-        </section>
-
         {/* SECCIÓN SOPHIE V2 + VIDEO EN VIVO */}
         <section className="bg-[linear-gradient(180deg,#f7fbff_0%,#eef5ff_100%)] py-20 px-5 md:px-[5%] border-y border-[#e2edf5]">
           <div className="max-w-7xl mx-auto">
@@ -461,6 +409,59 @@ export default function Home() {
               </div>
             </div>
           </div>
+
+{/* HERO — APLIQUED en salud */}
+        <section id="inicio" className="max-w-[1280px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 pt-[45px] md:pt-[70px] pb-[55px] px-5 md:px-[5%] items-center bg-[radial-gradient(circle_at_80%_30%,_#e8fbfa,_transparent_40%)]">
+          <div className="flex flex-col">
+            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">♥ &nbsp; Recepcionista con IA para salud</div>
+            <h1 className="font-display text-[35px] md:text-[52px] leading-[1.06] tracking-[-2px] md:tracking-[-2.6px] m-0 mb-[22px] font-extrabold">
+              Atiende, agenda y confirma con tus pacientes.<br />
+              <em className="not-italic text-[#11b4b0]">Las 24 horas, sin perder un dato.</em>
+            </h1>
+            <p className="text-[16px] leading-[1.65] text-[#49698f] max-w-[600px]">
+              Una recepcionista con voz que responde tu línea 24/7: agenda citas en la Agenda Upway, confirma con el paciente y captura sus datos de forma correcta la primera vez, para que lleguen ordenados a tu operación y a tu software de salud.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 my-[26px]">
+              <a
+                href="#contacto"
+                className="inline-flex items-center justify-center rounded-full bg-[#0c3775] px-[23px] py-[14px] text-[13px] font-bold text-white hover:bg-[#092a5c] hover:shadow-[0_22px_48px_rgba(12,55,117,0.42)] transition">
+                Solicita una demo gratuita →
+              </a>
+              <a
+                href="#solucion"
+                className="inline-flex items-center justify-center rounded-full border border-[#b8cce3] bg-white px-[23px] py-[14px] text-[13px] font-bold text-[#0c3775] hover:bg-slate-50 hover:shadow-[0_22px_48px_rgba(12,55,117,0.22)] transition">
+                Descubre cómo funciona
+              </a>
+            </div>
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-[20px] text-[#315982] text-[10px] font-semibold uppercase tracking-wide mt-2">
+              <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Phone className="h-3.5 w-3.5" /> Voz IA 24/7</span>
+              <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Calendar className="h-3.5 w-3.5" /> Agenda propia</span>
+              <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Shield className="h-3.5 w-3.5" /> Datos correctos la primera vez</span>
+              <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Users className="h-3.5 w-3.5" /> Trazabilidad completa</span>
+            </div>
+          </div>
+          <div className="relative mt-8 md:mt-0">
+            <Image
+              src="/hero-doctora.png"
+              alt="Profesional de salud usando tecnología"
+              width={490}
+              height={390}
+              preload
+              quality={90}
+              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 46vw, 600px"
+              className="w-full rounded-[34px] block shadow-[0_0_0_2px_rgba(11,169,169,0.12),0_30px_90px_rgba(11,169,169,0.30)] health-glow-breath object-cover"
+            />
+            <div className="absolute left-2 md:-left-[35px] top-[40px] md:top-[65px] bg-white border border-[#e2edf5] rounded-[15px] p-[13px_17px] shadow-[0_12px_35px_#173e6820] text-[11px] leading-tight">
+              ◉ <b className="font-bold">Recordatorio de cita</b>
+              <br />
+              <small className="text-gray-500 text-[10px]">Cita confirmada para mañana</small>
+            </div>
+            <div className="absolute -right-2 md:-right-[18px] bottom-[20px] md:bottom-[30px] bg-white border border-[#e2edf5] rounded-[15px] p-[13px_17px] shadow-[0_12px_35px_#173e6820] text-[11px] text-[#087c7d] font-medium">
+              ✓ <b className="font-bold">Pacientes más satisfechos</b>
+            </div>
+          </div>
+        </section>
+
         </section>
 
         {/* CAPACIDAD OPERATIVA */}
@@ -863,30 +864,12 @@ export default function Home() {
               o llámanos: +57 312 642 7856
             </a>
           </form>
-        </section>
+                 </section>
 
-        {/* FOOTER */}
-        <footer className="flex flex-col items-center justify-between gap-6 border-t border-[#e2edf5] px-5 py-10 md:flex-row md:px-[5%]">
-          <div className="flex flex-col items-center gap-2 md:items-start">
-            <div className="font-extrabold text-[25px] tracking-[-1px] text-[#103a77]">
-              UPW<span className="text-[#11b7b1]">▲</span>Y <small className="text-[10px] tracking-[2px] ml-1 font-bold">HEALTH</small>
-            </div>
-            <span className="text-center text-[11px] leading-relaxed text-[#55718f] md:text-left">
-              Tecnología que cuida · © {new Date().getFullYear()} <strong className="font-semibold text-[#31547f]">{LEGAL_ENTITY}</strong>
-            </span>
-          </div>
-
-          <nav className="flex flex-wrap items-center justify-center gap-x-7 gap-y-4 text-[12px] font-medium text-[#55718f]">
-            <a href="mailto:contacto@upway.business" className="transition hover:text-[#103a77]">contacto@upway.business</a>
-            <Link href="/privacy" className="transition hover:text-[#103a77]">Privacidad</Link>
-            <Link href="/terminos" className="transition hover:text-[#103a77]">Términos y Condiciones</Link>
-            {/* Social links */}
-            <a href="https://www.linkedin.com/in/sophia-de-belfort-990164431" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn de Upway Health" className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-[#0d3168]/10 text-[#0a66c2] hover:bg-[#0d3168]/20 hover:text-white transition shadow-[0_4px_14px_rgba(10,102,194,0.15)]">
-              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.05-.28-3.5-.15-.25-.35-.45-.59-.61-.36-.25-.8-.4-1.23-.45-.42-.05-.84-.03-1.27.08-.3.08-.59.21-.85.4-.33.22-.63.52-.83.87a5.4 5.4 0 0 0-.52 1.57c-.02.1-.04.2-.04.3v6.82h-3.56V9h3.42v1.21h.05a3.78 3.78 0 0 1 2.96-1.31c1.72 0 2.98 1.11 3.43 2.64a6.5 6.5 0 0 1-.4 4.5c-.39.83-1 1.53-1.82 2.03-.42.28-.9.48-1.4.57a5 5 0 0 1-1.03.08c-1.31-.12-2.42-.74-3.3-1.66v4.58h-3.56v10h10.96v-8.79Zm-12.12-11.16v-.01a.96.96 0 0 1 0 1.92.96.96 0 0 1 0-1.91Z"/></svg>
-            </a>
-          </nav>
-        </footer>
+         {/* FOOTER */}
+        <Footer />
       </main>
     </>
   );
 }
+

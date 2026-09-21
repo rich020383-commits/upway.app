@@ -299,7 +299,7 @@ export default function InmobiliariasPage() {
               Volver a Upway
             </Link>
             <Link
-              href="/precios"
+              href="/inmobiliarias/precios"
               className="inline-flex items-center gap-2 rounded-full bg-[#0c3775] px-[18px] py-[10px] text-[12px] font-bold text-white shadow-md transition hover:bg-[#092a5c] md:px-[23px] md:text-[13px]"
             >
               Ver planes
@@ -326,7 +326,7 @@ export default function InmobiliariasPage() {
             </p>
             <div className="my-[26px] flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/precios"
+                href="/inmobiliarias/precios"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-[#0c3775] px-[23px] py-[14px] text-[13px] font-bold text-white transition hover:bg-[#092a5c] hover:shadow-[0_22px_48px_rgba(12,55,117,0.42)]"
               >
                 Ver planes y precios
@@ -664,7 +664,7 @@ export default function InmobiliariasPage() {
             </p>
             <div className="mt-[24px] flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/precios"
+                href="/inmobiliarias/precios"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-[23px] py-[14px] text-[13px] font-bold text-[#0c3775] transition hover:-translate-y-0.5"
               >
                 Ver planes y precios
