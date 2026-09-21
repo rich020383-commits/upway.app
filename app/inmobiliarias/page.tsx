@@ -16,30 +16,30 @@ import Footer from '@/components/Footer';
 export const metadata: Metadata = {
   title: 'Sophie para inmobiliarias — atiende leads y agenda visitas 24/7 | Upway',
   description:
-    'Sophie recibe las llamadas de tus interesados a cualquier hora, toma los datos conforme a los criterios de calificación que tú definas (presupuesto, intención, urgencia) y agenda la visita sobre tu operación real, con escalamiento a un asesor humano.',
+    'Sophie atiende las llamadas de tus interesados 24/7 con la mayor autonomía posible: califica el lead (presupuesto, intención, urgencia) según los criterios que tú definas, agenda la visita sobre tu operación real y deja el lead listo para tu equipo, con escalamiento a un asesor humano.',
   alternates: { canonical: '/inmobiliarias' },
 };
 
 const problemas = [
   {
-    title: 'Leads perdidos',
-    text: 'El interesado llama fuera de horario, nadie contesta y la oportunidad se va con la competencia.',
-    icon: MessageSquareText,
-  },
-  {
-    title: 'Tiempo de respuesta lento',
-    text: 'Cada hora sin respuesta reduce el interés del prospecto y enfría la negociación.',
+    title: 'La ventana de 5 minutos se pierde',
+    text: 'Los estudios del sector indican que responder en los primeros 5 minutos multiplica hasta 21× la probabilidad de calificar un lead frente a esperar 30 minutos. Cuando el interesado pasa a la competencia en ese minuto, la oportunidad ya no vuelve.',
     icon: PhoneCall,
   },
   {
-    title: 'Coordinación frágil de visitas',
-    text: 'Agendar visitas por WhatsApp y notas sueltas termina en cruces de horario, olvidos y reprográmaciones eternas.',
-    icon: CalendarCheck2,
+    title: 'El 78% compra al primero que responde',
+    text: 'Los compradores inmobiliarios eligen al que contesta primero, no al que cobra menos. Cada lead que tarda en recibir respuesta es un cliente que se va con otro. El promedio del sector sigue siendo de 8 a 15 horas; ese hueco es donde se pierden las ventas.',
+    icon: ShieldCheck,
   },
   {
-    title: 'Seguimiento débil',
-    text: 'El lead necesita acompañamiento durante semanas; sin trazabilidad, se enfría sin que nadie lo note.',
-    icon: Repeat,
+    title: 'El 62% de los leads llega fuera de horario',
+    text: 'Si dependes de un humano, la mayoría del tráfico —noche, madrugadas y fines de semana— espera hasta el día siguiente o se enfría sin que nadie lo note. No es falta de ganas, es un hueco estructural del sistema.',
+    icon: MessageSquareText,
+  },
+  {
+    title: 'Visitas que se pierden en la coordinación',
+    text: 'Agendar por WhatsApp y notas sueltas termina en cruces de horario, olvidos y reagendaciones. La visita que no se confirma con el asesor correcto no termina en cierre.',
+    icon: CalendarCheck2,
   },
 ];
 
@@ -201,13 +201,21 @@ export default function InmobiliariasPage() {
         </section>
 
         <section className="py-10">
-          <div className="rounded-[24px] border border-emerald-200 bg-emerald-50/70 p-6">
-            <h3 className="text-sm font-black text-emerald-900">Sin cifras inventadas</h3>
-            <p className="mt-2 text-sm leading-6 text-emerald-800">
-              Estamos en piloto con los primeros clientes de este sector. Publicaremos resultados con
-              datos reales de operación cuando los tengamos. Lo que te garantizamos por contrato:
-              atención 24/7, agenda propia, escalamiento humano y trazabilidad completa.
-            </p>
+          <div className="rounded-[24px] border border-slate-200 bg-white p-6">
+            <div className="flex items-start gap-4">
+              <ShieldCheck className="mt-0.5 h-5 w-5 text-[#1b5ed6] shrink-0" />
+              <div>
+                <h3 className="text-sm font-black text-slate-900 mb-2">Basado en investigación del sector inmobiliario</h3>
+                <p className="text-[13px] leading-6 text-slate-600">
+                  Los datos que sustentan esta landing provienen de estudios publicados del sector inmobiliario LATAM y EE.UU.:
+                  estudio de respuesta de leads (MIT / InsideSales — ventana de 5 minutos y factor 21× de calificación);
+                  encuesta Inman 2025 (tiempo promedio de respuesta 15+ horas); análisis de Pinova en 10.000 leads (tasa de conversión
+                  0.4–1.2% vs 4–6% con respuesta en minutos y seguimiento estructurado); y datos sectoriales de Unami y SalesRook
+                  (78% de compradores eligen al primero que responde; 40–62% de leads llegan fuera de horario; hasta 80% de ventas
+                  requieren 5+ seguimientos). Upway publicará resultados con datos reales de sus clientes cuando los tenga.
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
