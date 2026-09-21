@@ -27,6 +27,18 @@ const nextConfig: NextConfig = {
     // memoria; lo saltamos aquí para no bloquear el deploy.
     ignoreBuildErrors: true,
   },
+  async redirects() {
+    // Las mini-landings de /industries se retiraron: la web cuenta una sola
+    // historia (voz-first salud). Redirect 301 para conservar el equity SEO
+    // de las URLs indexadas por Google.
+    return [
+      {
+        source: '/industries/:path*',
+        destination: '/',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

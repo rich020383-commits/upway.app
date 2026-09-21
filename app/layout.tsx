@@ -3,15 +3,7 @@ import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Chatbot from "@/components/Chatbot"; 
 import PwaRegister from "@/components/PwaRegister";
-import { iniciarOidoBaseDatos } from '@/lib/listener';
-import { hasDatabaseUrl } from '@/lib/database-url';
 import Script from 'next/script'; // Importación correcta del componente Script de Next.js
-
-// Iniciamos el oído en segundo plano solo cuando exista la conexión configurada
-// (DATABASE_URL de Aiven, o cualquiera de sus alias). Ver lib/database-url.ts.
-if (typeof window === 'undefined' && hasDatabaseUrl()) {
-  iniciarOidoBaseDatos();
-}
 // 🔥 1. IMPORTAMOS EL CEREBRO DEL IDIOMA
 import { LanguageProvider } from "@/context/LanguageContext";
 
@@ -43,10 +35,14 @@ const gtmId = process.env.NEXT_PUBLIC_GTM_ID;
 
 // 🚀 Metadatos Premium para SEO, Redes y PWA
 export const metadata: Metadata = {
-  title: "Upway | Premium Intelligence Platform",
-  description: "Upway powers premium operations, care workflows and AI orchestration for high-touch businesses and clinics.",
+  title: "Upway Health — Recepcionista de voz con IA 24/7 para clínicas e IPS",
+  description:
+    "Sophie atiende las llamadas de tu clínica 24/7, agenda citas en tu propia agenda y captura la identidad del paciente conforme a la Resolución 866 de 2021, sin dejar nada sin contestar.",
   manifest: "/manifest.json",
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
+  alternates: {
+    canonical: '/',
+  },
 };
 
 // 🎨 Configuración visual para dispositivos móviles (Bloqueo de zoom)

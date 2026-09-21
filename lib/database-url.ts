@@ -4,8 +4,8 @@
  * Contexto: la app migro de Neon (capa gratuita agotada) a Aiven. La conexion
  * vive en una sola variable, pero durante la migracion algunos entornos
  * quedaron con nombres distintos. Este modulo centraliza la resolucion para que
- * `lib/prisma.ts`, `lib/listener.ts` y `app/layout.tsx` usen exactamente la
- * misma logica y no puedan divergir.
+ * `lib/prisma.ts` y el resto de la app usen exactamente la misma logica y no
+ * puedan divergir.
  *
  * Orden de precedencia: el primero que tenga valor gana.
  *   DATABASE_URL      -> nombre canonico (declarado en prisma/schema.prisma)

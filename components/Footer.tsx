@@ -44,9 +44,7 @@ export default function Footer() {
               Industrias
             </h4>
             <ul className="space-y-3 text-sm">
-              <li><Link href="/industries/clinicas" className="hover:text-blue-400 transition-colors">Clínicas y Salud</Link></li>
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Industria</a></li>
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Gobierno</a></li>
+              <li><Link href="/precios" className="hover:text-blue-400 transition-colors">Clínicas y Salud</Link></li>
             </ul>
           </div>
 
