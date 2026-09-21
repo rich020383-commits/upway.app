@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, MessageCircle, Phone, Sparkles, Calendar, Bell, HeartPulse, Users, Clock, Shield } from 'lucide-react';
+import { ArrowRight, MessageCircle, Phone, Sparkles, Calendar, Bell, HeartPulse, Users, Clock, Shield, ShieldCheck, Database, FileText, RefreshCw, ClipboardCheck, BadgeCheck, CalendarDays, Home as HomeIcon } from 'lucide-react';
 import { LEGAL_ENTITY } from '@/lib/legal';
 
 const UpwayLogo = ({ className = '' }: { className?: string }) => (
@@ -11,6 +11,43 @@ const UpwayLogo = ({ className = '' }: { className?: string }) => (
     <Image src="/upway.png" alt="Upway" width={1000} height={667} quality={90} sizes="160px" preload className="h-7 md:h-8 w-auto object-contain" />
   </div>
 );
+
+/* Capacidad operativa: lo que Sophie sostiene en la operación diaria.
+   Deliberadamente acotado a lo administrativo — atención, registro, agenda,
+   confirmación, escalamiento y entrega del dato. La valoración clínica y las
+   decisiones de salud NO entran aquí: siguen en el equipo profesional. */
+const capacidad = [
+  {
+    title: 'Atiende la línea',
+    text: 'Responde 24/7 con voz natural, sostiene varias llamadas al tiempo y retoma el hilo de cada paciente sin dejar tono ocupado.',
+    icon: Phone,
+  },
+  {
+    title: 'Registra el dato',
+    text: 'Captura con catálogos oficiales de Colombia, relee y confirma dígito a dígito, y deja evidencia de cada corrección.',
+    icon: ClipboardCheck,
+  },
+  {
+    title: 'Agenda',
+    text: 'Consulta tu disponibilidad real, aparta el cupo mientras habla y confirma la cita sobre la Agenda Upway.',
+    icon: Calendar,
+  },
+  {
+    title: 'Confirma y recuerda',
+    text: 'Confirmaciones, recordatorios, reprogramaciones y lista de espera sobre la misma agenda, sin llamadas manuales.',
+    icon: Bell,
+  },
+  {
+    title: 'Escala a tu equipo',
+    text: 'Cuando el caso lo pide, pasa la llamada a tu personal con el contexto y los datos ya capturados, según el protocolo que definas.',
+    icon: Users,
+  },
+  {
+    title: 'Entrega el dato',
+    text: 'Cada atención sale estructurada, validada y auditable hacia tu software de salud o tu HIS. Tu equipo deja de retranscribir.',
+    icon: Database,
+  },
+];
 
 export default function Home() {
   const [showSplash, setShowSplash] = useState(true);
@@ -147,20 +184,39 @@ export default function Home() {
           <a href="#inicio" className="flex items-center">
             <UpwayLogo />
           </a>
-          <nav className="hidden md:flex gap-[30px] text-[13px] font-medium text-[#31547f]">
+          <div className="flex items-center gap-3">
+            <nav className="hidden md:flex items-center gap-[22px] text-[13px] font-medium text-[#31547f] xl:gap-[30px]">
             <a href="#solucion" className="hover:text-[#103a77] transition">Solución</a>
             <a href="#agenda" className="hover:text-[#103a77] transition">Agenda</a>
             <a href="#beneficios" className="hover:text-[#103a77] transition">Beneficios</a>
             <a href="#sectores" className="hover:text-[#103a77] transition">Sectores</a>
+            <Link
+              href="/inmobiliarias"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[linear-gradient(115deg,#0ba9a9,#0c3775)] px-3.5 py-[7px] text-[12px] font-bold text-white shadow-[0_8px_20px_rgba(11,169,169,0.28)] transition hover:-translate-y-[1px] hover:shadow-[0_12px_26px_rgba(12,55,117,0.35)]"
+            >
+              <HomeIcon className="h-3.5 w-3.5" />
+              Inmobiliarias
+              <span className="rounded-full bg-white/25 px-[7px] py-[2px] text-[8px] font-black uppercase tracking-[0.1em] text-white">
+                Nuevo
+              </span>
+            </Link>
             <Link href="/precios" className="hover:text-[#103a77] transition">Precios</Link>
             <a href="#contacto" className="hover:text-[#103a77] transition">Contacto</a>
           </nav>
-          <a
-            href="#contacto"
-            className="hidden sm:inline-flex items-center justify-center rounded-full bg-[#0c3775] px-[23px] py-[10px] md:py-[14px] text-[11px] md:text-[13px] font-bold text-white hover:bg-[#092a5c] transition shadow-md"
-          >
-            Solicita una demo →
-          </a>
+            <Link
+              href="/inmobiliarias"
+              className="inline-flex md:hidden items-center gap-1.5 rounded-full bg-[linear-gradient(115deg,#0ba9a9,#0c3775)] px-3 py-[8px] text-[11px] font-bold text-white shadow-md"
+            >
+              <HomeIcon className="h-3.5 w-3.5" />
+              Inmobiliarias
+            </Link>
+            <a
+              href="#contacto"
+              className="hidden sm:inline-flex items-center justify-center rounded-full bg-[#0c3775] px-[23px] py-[10px] md:py-[14px] text-[11px] md:text-[13px] font-bold text-white hover:bg-[#092a5c] transition shadow-md"
+            >
+              Solicita una demo →
+            </a>
+          </div>
         </header>
 
         {/* HERO */}
@@ -187,10 +243,10 @@ export default function Home() {
               </a>
             </div>
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-[20px] text-[#315982] text-[10px] font-semibold uppercase tracking-wide mt-2">
-              <span className="flex items-center gap-1.5 text-cyan-500"><Phone className="h-3.5 w-3.5" /> Voz IA 24/7</span>
-              <span className="flex items-center gap-1.5 text-cyan-500"><Calendar className="h-3.5 w-3.5" /> Agenda propia</span>
-              <span className="flex items-center gap-1.5 text-cyan-500"><Shield className="h-3.5 w-3.5" /> Datos correctos la primera vez</span>
-              <span className="flex items-center gap-1.5 text-cyan-500"><Users className="h-3.5 w-3.5" /> Trazabilidad completa</span>
+              <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Phone className="h-3.5 w-3.5" /> Voz IA 24/7</span>
+              <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Calendar className="h-3.5 w-3.5" /> Agenda propia</span>
+              <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Shield className="h-3.5 w-3.5" /> Datos correctos la primera vez</span>
+              <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Users className="h-3.5 w-3.5" /> Trazabilidad completa</span>
             </div>
           </div>
           <div className="relative mt-8 md:mt-0">
@@ -241,18 +297,18 @@ export default function Home() {
 
               <div className="relative z-10 flex flex-col justify-between gap-4 border-t border-[#e2edf5] bg-white/90 p-4 backdrop-blur-md sm:p-6 md:absolute md:bottom-6 md:left-6 md:right-6 md:flex-row md:items-end md:gap-6 md:rounded-[20px] md:border md:border-white/70 md:bg-white/85 md:p-5 md:shadow-[0_18px_50px_rgba(15,31,54,0.16)]">
                 <div className="max-w-2xl space-y-2 sm:space-y-3">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-[11px] font-bold text-cyan-700">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-[#bfe9e6] bg-[#e7fbfa] px-3 py-1 text-[11px] font-bold text-[#0d8a88]">
                     <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75" />
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-500" />
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#0ba9a9] opacity-75" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-[#079fa0]" />
                     </span>
-                    Sophie v2 • Empleado Digital Autónomo
+                    Sophie v2 • Atención de voz en vivo
                   </div>
-                  <h2 className="font-display text-xl font-black leading-tight tracking-tight text-slate-900 sm:text-2xl md:text-4xl">
-                    Triage y atención en vivo <span className="text-[#0ba9a9]">24/7</span>
+                  <h2 className="font-display text-xl font-extrabold leading-tight tracking-tight text-[#0d3168] sm:text-2xl md:text-4xl">
+                    Atención y priorización en vivo <span className="text-[#0ba9a9]">24/7</span>
                   </h2>
-                  <p className="text-xs leading-relaxed text-slate-500 sm:text-sm md:text-base">
-                    Atendiendo llamadas con triage clínico y agendamiento en tiempo real sobre nuestra propia agenda: sin Google Calendar, sin Calendly y sin licencias de terceros.
+                  <p className="text-xs font-medium leading-relaxed text-[#55718f] sm:text-sm md:text-base">
+                    Atendiendo llamadas con priorización asistida por los protocolos de tu institución y agendamiento en tiempo real sobre nuestra propia agenda: sin Google Calendar, sin Calendly y sin licencias de terceros.
                   </p>
                 </div>
                 <div className="flex shrink-0 gap-2 pt-2 sm:pt-0">
@@ -268,16 +324,16 @@ export default function Home() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
               <div className="lg:col-span-6 space-y-6">
-                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-cyan-700 shadow-sm">
-                  <Sparkles size={14} className="text-cyan-600" /> Operación Autónoma
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#bfe9e6] bg-[#e7fbfa] px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#0d8a88] shadow-sm">
+                  <Sparkles size={14} className="text-[#0ba9a9]" /> Agente de Voz Conforme
                 </div>
-                <h2 className="font-display text-3xl md:text-5xl font-black tracking-tight text-slate-900 leading-[1.1]">
+                <h2 className="font-display text-3xl font-extrabold leading-[1.1] tracking-tight text-[#0d3168] md:text-5xl">
                   Sophie v2:
                   <br />
                   IA telefónica que además agenda por ti.
                 </h2>
-                <p className="text-lg text-slate-600 leading-relaxed max-w-xl">
-                  Automatiza el alto tráfico de llamadas: Sophie responde con voz humana, califica urgencias y reserva la cita sobre tu agenda real. Mientras habla aparta el cupo, así nadie más lo toma y se acaban los cruces de horarios.
+                <p className="max-w-xl text-lg font-medium leading-relaxed text-[#55718f]">
+                  Automatiza el alto tráfico de llamadas: Sophie responde con voz humana, prioriza según los protocolos de tu institución y reserva la cita sobre tu agenda real. Mientras habla aparta el cupo, así nadie más lo toma y se acaban los cruces de horarios.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 pt-1">
                   <a
@@ -290,7 +346,7 @@ export default function Home() {
                   </a>
                   <a
                     href="mailto:contacto@upway.business?subject=Quiero%20hablar%20con%20un%20experto%20de%20Upway%20Health"
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-cyan-300 bg-cyan-50 px-6 py-3.5 text-sm font-bold text-cyan-700 transition hover:border-cyan-400 hover:bg-cyan-100"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-[#9fe0dc] bg-[#e7fbfa] px-6 py-3.5 text-sm font-bold text-[#0d8a88] transition hover:border-[#0ba9a9] hover:bg-[#d7f5f2]"
                   >
                     Hablar con un experto <ArrowRight className="h-4 w-4" />
                   </a>
@@ -298,24 +354,24 @@ export default function Home() {
               </div>
 
               <div className="lg:col-span-6">
-                <div className="relative rounded-[32px] border border-[#e0edf6] bg-white p-6 shadow-[0_30px_70px_rgba(15,31,54,0.12)] text-slate-900">
+                <div className="relative rounded-[32px] border border-[#e0edf6] bg-white p-6 shadow-[0_30px_70px_rgba(15,31,54,0.12)] text-[#0d3168]">
                   <div className="flex items-center justify-between pb-6 border-b border-[#e8f0f8]">
-                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-cyan-700">
-                      <span className="h-2 w-2 rounded-full bg-cyan-500 animate-pulse"></span>
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#0d8a88]">
+                      <span className="h-2 w-2 rounded-full bg-[#0ba9a9] animate-pulse"></span>
                       Operación activa
                     </div>
-                    <span className="text-xs font-mono text-slate-400">live</span>
+                    <span className="text-xs font-mono text-[#7b93ab]">live</span>
                   </div>
 
-                  <div className="relative overflow-hidden rounded-2xl border border-[#e0edf6] bg-[#f4f9ff] my-6 p-4 flex items-center gap-5 shadow-inner">
-                    <div className="relative h-20 w-20 shrink-0 rounded-2xl overflow-hidden border border-cyan-100 bg-gradient-to-br from-cyan-100 via-cyan-50 to-white shadow-md flex items-center justify-center">
-                      <Sparkles size={28} className="text-cyan-600" />
+                  <div className="relative overflow-hidden rounded-2xl border border-[#d7f5f2] bg-[#f4f9ff] my-6 p-4 flex items-center gap-5 shadow-inner">
+                    <div className="relative h-20 w-20 shrink-0 rounded-2xl overflow-hidden border border-[#d7f5f2] bg-gradient-to-br from-[#e7fbfa] via-[#f2fcfb] to-white shadow-md flex items-center justify-center">
+                      <Sparkles size={28} className="text-[#0ba9a9]" />
                     </div>
                     <div>
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-cyan-700 mb-1">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#0d8a88] mb-1">
                         <Sparkles size={14} /> Upway Health
                       </div>
-                      <p className="text-xs text-slate-600 leading-relaxed">
+                      <p className="text-xs font-medium text-[#55718f] leading-relaxed">
                         Sincronizando atención, agenda y seguimiento comercial con contexto operativo completo.
                       </p>
                     </div>
@@ -323,33 +379,33 @@ export default function Home() {
 
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className="rounded-2xl bg-white border border-[#e0edf6] p-5">
-                      <p className="text-xs font-semibold text-slate-400 mb-1">ATENCIÓN</p>
-                      <p className="text-3xl font-black tracking-tight text-slate-900">24/7</p>
-                      <p className="text-[11px] text-slate-500 mt-1">sin depender de una persona en línea</p>
+                      <p className="text-xs font-semibold text-[#7b93ab] mb-1">ATENCIÓN</p>
+                      <p className="text-3xl font-extrabold tracking-tight text-[#0d3168]">24/7</p>
+                      <p className="text-[11px] font-medium text-[#55718f] mt-1">sin depender de una persona en línea</p>
                     </div>
                     <div className="rounded-2xl bg-white border border-[#e0edf6] p-5">
-                      <p className="text-xs font-semibold text-slate-400 mb-1">AGENDA</p>
-                      <p className="text-3xl font-black tracking-tight text-slate-900">0</p>
-                      <p className="text-[11px] text-slate-500 mt-1">licencias de terceros</p>
+                      <p className="text-xs font-semibold text-[#7b93ab] mb-1">AGENDA</p>
+                      <p className="text-3xl font-extrabold tracking-tight text-[#0d3168]">0</p>
+                      <p className="text-[11px] font-medium text-[#55718f] mt-1">licencias de terceros</p>
                     </div>
                   </div>
 
                   <div className="rounded-2xl bg-[#f4f9ff]/60 border border-[#e0edf6] p-4 space-y-2.5">
-                    <div className="flex items-center justify-between text-xs font-bold text-slate-500 mb-2">
+                    <div className="flex items-center justify-between text-xs font-bold text-[#55718f] mb-2">
                       <span>Trabajo crítico</span>
-                      <span className="text-emerald-600 flex items-center gap-1">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> en vivo
+                      <span className="text-[#0f9d6b] flex items-center gap-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#12b76a]"></span> en vivo
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs font-medium text-slate-600 bg-white px-3 py-2 rounded-xl border border-[#e0edf6]">
+                    <div className="flex items-center gap-3 text-xs font-medium text-[#55718f] bg-white px-3 py-2 rounded-xl border border-[#e0edf6]">
                       <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-[#e9f3ff] text-[10px] font-bold text-[#1b5ed6]">1</span>
-                      Calificación y priorización inteligente
+                      Priorización asistida y escalamiento humano
                     </div>
-                    <div className="flex items-center gap-3 text-xs font-medium text-slate-600 bg-white px-3 py-2 rounded-xl border border-[#e0edf6]">
+                    <div className="flex items-center gap-3 text-xs font-medium text-[#55718f] bg-white px-3 py-2 rounded-xl border border-[#e0edf6]">
                       <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-[#e9f3ff] text-[10px] font-bold text-[#1b5ed6]">2</span>
                       Agenda y disponibilidad sincronizadas
                     </div>
-                    <div className="flex items-center gap-3 text-xs font-medium text-slate-600 bg-white px-3 py-2 rounded-xl border border-[#e0edf6]">
+                    <div className="flex items-center gap-3 text-xs font-medium text-[#55718f] bg-white px-3 py-2 rounded-xl border border-[#e0edf6]">
                       <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-[#e9f3ff] text-[10px] font-bold text-[#1b5ed6]">3</span>
                       Seguimiento y escalamiento automáticos
                     </div>
@@ -388,22 +444,52 @@ export default function Home() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-[0.7fr_1fr_1fr] gap-[10px]">
               <aside className="bg-[#f7fbff] rounded-[12px] p-[14px] text-[10px] leading-[2] text-[#224a76] font-medium">
-                ⌂ Inicio<br />▦ Agenda<br />◉ Triage<br />◇ Bandeja<br />▥ Reportes<br />🔍 Auditoría
+                ⌂ Inicio<br />▦ Agenda<br />◉ Prioridades<br />◇ Bandeja<br />▥ Reportes<br />🔍 Auditoría
               </aside>
               <div className="bg-[#f7fbff] rounded-[12px] p-[14px] text-[10px] text-[#54718f]">
                 <b className="text-[#0d3168] block mb-1">Hoy · Agenda de citas</b>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">María González · 08:00</p>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">Carlos Ramírez · 09:30</p>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">Laura Torres · 11:00</p>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">Andrés Silva · 14:00</p>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">María González · 08:00</p>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">Carlos Ramírez · 09:30</p>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">Laura Torres · 11:00</p>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">Andrés Silva · 14:00</p>
               </div>
               <div className="bg-[#f7fbff] rounded-[12px] p-[14px] text-[10px] text-[#54718f]">
                 <b className="text-[#0d3168] block mb-1">Canales y agenda</b>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">● Voz IA · triage y agenda</p>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">● Agenda nativa · sin terceros</p>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">○ WhatsApp Business · al conectarlo tú</p>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">● Voz IA · prioridad y agenda</p>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">● Agenda nativa · sin terceros</p>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">○ WhatsApp Business · al conectarlo tú</p>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* CAPACIDAD OPERATIVA */}
+        <section id="capacidad" className="max-w-[1180px] mx-[15px] md:mx-auto my-[55px] md:my-[70px]">
+          <div className="text-center">
+            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Capacidad operativa</div>
+            <h2 className="font-display text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold text-[#0d3168]">
+              Sophie no solo contesta. Sostiene tu operación.
+            </h2>
+            <p className="text-[13px] leading-[1.7] text-[#55718f] max-w-[760px] mx-auto">
+              Atender, registrar, agendar, confirmar, escalar y entregar el dato: todo lo administrativo de una línea de
+              atención. La valoración clínica y las decisiones de salud siguen en tu equipo profesional.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[15px] mt-[32px]">
+            {capacidad.map(({ title, text, icon: Icon }) => (
+              <article
+                key={title}
+                className="rounded-[17px] border border-[#e0edf6] bg-white p-[22px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <h3 className="text-[13px] font-bold uppercase tracking-[0.06em] text-[#0d3168]">{title}</h3>
+                </div>
+                <p className="text-[12px] leading-[1.6] text-[#55718f] mt-[13px]">{text}</p>
+              </article>
+            ))}
           </div>
         </section>
 
@@ -497,6 +583,64 @@ export default function Home() {
           </div>
         </section>
 
+        {/* PANEL DE DATOS AUDITABLES / CONEXIÓN AL HIS */}
+        <section id="panel" className="max-w-[1180px] mx-[15px] md:mx-auto my-[30px] md:my-[50px] p-[30px] md:p-[55px] rounded-[30px] bg-[#f5fbff]">
+          <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.15fr] gap-[45px] items-start">
+            <div>
+              <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Panel de datos auditables</div>
+              <h2 className="font-display text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold text-[#0d3168]">
+                El dato conforme, listo para tu HIS.
+              </h2>
+              <p className="text-[#55718f] leading-[1.6]">
+                La agenda es nuestra, así que todo lo que ocurre en ella queda registrado en un panel que tu institución puede auditar: qué se agendó, quién llamó, qué datos se capturaron y qué se corrigió. Desde ahí la información sale estructurada hacia tu software de salud o tu HIS.
+              </p>
+              <div className="mt-[22px] rounded-[18px] border border-[#dce9f4] bg-white p-[18px]">
+                <div className="flex items-center gap-2 text-[12px] font-bold text-[#0d3168]">
+                  <Database className="h-4 w-4 text-[#0ba9a9]" /> Sin retranscribir
+                </div>
+                <p className="text-[12px] leading-[1.6] text-[#55718f] mt-[9px]">
+                  Tu equipo deja de pasar llamadas a mano al sistema. Cada registro llega con los campos completos, validados contra catálogos oficiales y con su historial de cambios.
+                </p>
+              </div>
+              <p className="text-[11px] leading-[1.6] text-[#7b93ab] mt-[16px]">
+                Upway responde por el dato capturado, validado y auditable que entrega. La historia clínica, la facturación y las transmisiones oficiales siguen a cargo de tu institución.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[14px]">
+              <article className="rounded-[17px] border border-[#e0edf6] bg-white p-[18px] transition hover:-translate-y-0.5 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+                <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]"><ClipboardCheck className="h-4 w-4" /></span>
+                <h3 className="text-[13px] font-bold mt-[13px] mb-[6px] text-[#0d3168]">Historial por cita</h3>
+                <p className="text-[11px] leading-[1.5] text-[#55718f]">Cada cita con su llamada, sus datos y sus correcciones.</p>
+              </article>
+              <article className="rounded-[17px] border border-[#e0edf6] bg-white p-[18px] transition hover:-translate-y-0.5 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+                <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]"><FileText className="h-4 w-4" /></span>
+                <h3 className="text-[13px] font-bold mt-[13px] mb-[6px] text-[#0d3168]">Exportación estructurada</h3>
+                <p className="text-[11px] leading-[1.5] text-[#55718f]">Consolidado descargable para cargar donde ya trabajas.</p>
+              </article>
+              <article className="rounded-[17px] border border-[#e0edf6] bg-white p-[18px] transition hover:-translate-y-0.5 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+                <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]"><RefreshCw className="h-4 w-4" /></span>
+                <h3 className="text-[13px] font-bold mt-[13px] mb-[6px] text-[#0d3168]">Integración con tu sistema</h3>
+                <p className="text-[11px] leading-[1.5] text-[#55718f]">Conecta el flujo a tu software de salud o a tu HIS.</p>
+              </article>
+              <article className="rounded-[17px] border border-[#e0edf6] bg-white p-[18px] transition hover:-translate-y-0.5 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+                <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]"><BadgeCheck className="h-4 w-4" /></span>
+                <h3 className="text-[13px] font-bold mt-[13px] mb-[6px] text-[#0d3168]">Datos conformes</h3>
+                <p className="text-[11px] leading-[1.5] text-[#55718f]">Catálogos oficiales, doble confirmación y evidencia de cada cambio.</p>
+              </article>
+              <article className="rounded-[17px] border border-[#e0edf6] bg-white p-[18px] transition hover:-translate-y-0.5 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+                <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]"><CalendarDays className="h-4 w-4" /></span>
+                <h3 className="text-[13px] font-bold mt-[13px] mb-[6px] text-[#0d3168]">Estados y seguimiento</h3>
+                <p className="text-[11px] leading-[1.5] text-[#55718f]">Confirmadas, atendidas, ausentes y en lista de espera.</p>
+              </article>
+              <article className="rounded-[17px] border border-[#e0edf6] bg-white p-[18px] transition hover:-translate-y-0.5 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+                <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]"><ShieldCheck className="h-4 w-4" /></span>
+                <h3 className="text-[13px] font-bold mt-[13px] mb-[6px] text-[#0d3168]">Auditoría de accesos</h3>
+                <p className="text-[11px] leading-[1.5] text-[#55718f]">Usuario, rol, fecha y hora en cada consulta al dato.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
         {/* BENEFICIOS */}
         <section id="beneficios" className="max-w-[1180px] mx-auto my-[55px] md:my-[80px] grid grid-cols-1 md:grid-cols-[0.7fr_1.3fr] gap-[60px] items-center px-5 md:px-[5%]">
           <Image
@@ -515,20 +659,28 @@ export default function Home() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-[25px]">
               <article className="py-[15px]">
-                <b className="text-[#0d3168]">Mayor acceso</b>
-                <p className="text-[12px] my-[7px] text-[#55718f]">Facilita la comunicación y el agendamiento.</p>
+                <b className="text-[#0d3168]">La línea nunca queda ocupada</b>
+                <p className="text-[12px] my-[7px] text-[#55718f]">Cada llamada entrante se atiende, a cualquier hora y en temporada alta.</p>
               </article>
               <article className="py-[15px]">
-                <b className="text-[#0d3168]">Mejor adherencia</b>
-                <p className="text-[12px] my-[7px] text-[#55718f]">Recordatorios y seguimiento continuo.</p>
+                <b className="text-[#0d3168]">Menos ausencias, más adherencia</b>
+                <p className="text-[12px] my-[7px] text-[#55718f]">Confirmación y recordatorios sobre la misma agenda, sin llamadas manuales.</p>
               </article>
               <article className="py-[15px]">
                 <b className="text-[#0d3168]">Procesos más eficientes</b>
-                <p className="text-[12px] my-[7px] text-[#55718f]">Reduce carga administrativa.</p>
+                <p className="text-[12px] my-[7px] text-[#55718f]">El dato llega estructurado a tu software: tu equipo deja de retranscribir.</p>
               </article>
               <article className="py-[15px]">
                 <b className="text-[#0d3168]">Seguridad y trazabilidad</b>
-                <p className="text-[12px] my-[7px] text-[#55718f]">Seguimiento de cada interacción.</p>
+                <p className="text-[12px] my-[7px] text-[#55718f]">Cada acceso y cada corrección con usuario, rol, fecha y hora.</p>
+              </article>
+              <article className="py-[15px]">
+                <b className="text-[#0d3168]">Escalamiento según tu protocolo</b>
+                <p className="text-[12px] my-[7px] text-[#55718f]">Cuando el caso lo pide, la llamada pasa a tu equipo con el contexto completo.</p>
+              </article>
+              <article className="py-[15px]">
+                <b className="text-[#0d3168]">Una sola agenda</b>
+                <p className="text-[12px] my-[7px] text-[#55718f]">Profesionales, sedes y cupos sobre el mismo sistema, sin licencias de terceros.</p>
               </article>
             </div>
           </div>
@@ -546,6 +698,17 @@ export default function Home() {
           <div className="max-w-[1180px] mx-auto mb-[20px] flex justify-center">
             <Link href="/precios" className="inline-flex items-center gap-2 rounded-full border border-[#1b5ed6] bg-[#edf5ff] px-5 py-2 text-[12px] font-bold text-[#1b5ed6] transition hover:bg-[#1b5ed6] hover:text-white">
               💰 Ver planes y precios →
+            </Link>
+          </div>
+          <div className="max-w-[1180px] mx-auto mb-[22px] flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-[12px] text-[#55718f]">
+            <span className="font-semibold">¿Tu operación no es salud? Sophie también trabaja para</span>
+            <Link
+              href="/inmobiliarias"
+              className="inline-flex items-center gap-2 rounded-full border border-[#bfe9e6] bg-white px-4 py-2 text-[12px] font-bold text-[#0d3168] shadow-[0_6px_18px_#153f6814] transition hover:-translate-y-0.5 hover:border-[#0ba9a9] hover:shadow-[0_10px_24px_#153f6820]"
+            >
+              <HomeIcon className="h-3.5 w-3.5 text-[#0ba9a9]" />
+              Inmobiliarias
+              <span className="rounded-full bg-[#e7fbfa] px-2 py-[2px] text-[8px] font-black uppercase tracking-[0.08em] text-[#0d8a88]">Nuevo</span>
             </Link>
           </div>
           <div className="max-w-[1180px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-[15px] text-left">

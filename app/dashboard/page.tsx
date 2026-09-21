@@ -67,10 +67,10 @@ export default function LandingPage() {
               <div className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-800/50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-cyan-400 shadow-sm">
                 <Sparkles size={14} className="text-cyan-400" /> Agente de Voz Conforme
               </div>
-              <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white leading-[1.1]">
+              <h2 className="font-display text-3xl md:text-5xl font-extrabold tracking-tight text-white leading-[1.1]">
                 Sophie v2:<br/>IA telefónica para tu centro médico.
               </h2>
-              <p className="text-lg text-slate-400 leading-relaxed max-w-xl">
+              <p className="text-lg font-medium text-slate-300 leading-relaxed max-w-xl">
                 Automatiza el alto tráfico de llamadas. Sophie recibe la llamada, toma los datos según el protocolo médico que tú definas, califica la urgencia conforme a esos criterios y agenda en tiempo real con una voz humana y empática, 24/7 sin descuidar a ningún paciente.
               </p>
             </div>
@@ -164,7 +164,7 @@ export default function LandingPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-[0.7fr_1fr_1fr] gap-[10px]">
               <aside className="bg-[#f7fbff] rounded-[12px] p-[14px] text-[10px] leading-[2] text-[#224a76] font-medium">
-                ⌂ Inicio<br/>♙ Pacientes<br/>▣ Citas<br/>◉ Triage<br/>◌ Conversaciones<br/>▥ Reportes
+                ⌂ Inicio<br/>♙ Pacientes<br/>▣ Citas<br/>◉ Prioridades<br/>◌ Conversaciones<br/>▥ Reportes
               </aside>
               <div className="bg-[#f7fbff] rounded-[12px] p-[14px] text-[10px] text-[#54718f]">
                 <b className="text-[#0d3168] block mb-1">Hoy · Agenda de citas</b>
@@ -175,7 +175,7 @@ export default function LandingPage() {
               </div>
               <div className="bg-[#f7fbff] rounded-[12px] p-[14px] text-[10px] text-[#54718f]">
                 <b className="text-[#0d3168] block mb-1">Canales y agenda</b>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">● Voz IA · triage y agenda</p>
+                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">● Voz IA · prioridad y agenda</p>
                 <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">● Agenda nativa · sin terceros</p>
                 <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">○ WhatsApp Business · al conectarlo tú</p>
               </div>

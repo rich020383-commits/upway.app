@@ -45,6 +45,7 @@ export default function Footer() {
             </h4>
             <ul className="space-y-3 text-sm">
               <li><Link href="/precios" className="hover:text-blue-400 transition-colors">Clínicas y Salud</Link></li>
+              <li><Link href="/inmobiliarias" className="hover:text-blue-400 transition-colors">Inmobiliarias</Link></li>
             </ul>
           </div>
 

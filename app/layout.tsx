@@ -23,11 +23,17 @@ const geistMono = Geist_Mono({
 /**
  * Fuente display premium para titulares (h1/h2/h3 con `font-display`).
  * Activa la clase `font-display` que antes era MUERTA en /terminos,
- * /privacy y Chatbot. Variable font: sin `weight` para no forzar pesos.
+ * /privacy y Chatbot.
+ *
+ * Pesos EXPLÍCITOS (500–800): Plus Jakarta Sans llega hasta 800, no 900.
+ * Al declarar los pesos reales evitamos que `font-black` (900) se recorte
+ * silenciosamente a 800 por el eje variable y garantizamos que el navegador
+ * sirva el archivo Bold/ExtraBold de verdad (contraste firme en titulares).
  */
 const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
   subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
   display: "swap",
 });
 
