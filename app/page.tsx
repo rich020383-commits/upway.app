@@ -409,8 +409,9 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </section>
 
-{/* HERO — APLIQUED en salud */}
+        {/* HERO — APLICADO en salud */}
         <section id="inicio" className="max-w-[1280px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 pt-[45px] md:pt-[70px] pb-[55px] px-5 md:px-[5%] items-center bg-[radial-gradient(circle_at_80%_30%,_#e8fbfa,_transparent_40%)]">
           <div className="flex flex-col">
             <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">♥ &nbsp; Recepcionista con IA para salud</div>
@@ -460,8 +461,6 @@ export default function Home() {
               ✓ <b className="font-bold">Pacientes más satisfechos</b>
             </div>
           </div>
-        </section>
-
         </section>
 
         {/* CAPACIDAD OPERATIVA */}
