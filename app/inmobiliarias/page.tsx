@@ -272,7 +272,7 @@ const segmentos = [
 
 export default function InmobiliariasPage() {
   return (
-    <main className="min-h-screen bg-white text-[#0d3168] selection:bg-[#11b7b1] selection:text-white">
+    <main className="min-h-screen bg-white font-sans text-[#0d3168] selection:bg-[#11b7b1] selection:text-white">
       <header className="sticky top-0 z-50 border-b border-[#edf3f8] bg-white/90 backdrop-blur-md">
         <div className="mx-auto flex h-[74px] w-full max-w-[1180px] items-center justify-between px-5 md:px-[5%]">
           <Link href="/" className="flex items-center gap-3" aria-label="Volver a Upway">
@@ -345,7 +345,7 @@ export default function InmobiliariasPage() {
               <span className="flex items-center gap-1.5 text-[#0ba9a9]"><ShieldCheck className="h-3.5 w-3.5" /> Datos conformes y auditables</span>
               <span className="flex items-center gap-1.5 text-[#0ba9a9]"><UserCheck className="h-3.5 w-3.5" /> Escalamiento a tu asesor</span>
             </div>
-            <p className="mt-[22px] max-w-[720px] text-[12px] leading-[1.6] text-[#7b93ab]">
+            <p className="mt-[22px] max-w-[720px] text-[13px] font-medium leading-[1.6] text-[#55718f]">
               Implementación white-glove: Upway conecta la voz dedicada y la deja operando. Tú no tocas consolas ni tokens.
             </p>
           </div>
@@ -366,7 +366,7 @@ export default function InmobiliariasPage() {
                   <Icon className="h-4 w-4" />
                 </span>
                 <h3 className="my-[15px] mb-[7px] text-[14px] font-bold text-[#0d3168]">{title}</h3>
-                <p className="text-[11px] leading-[1.6] text-[#55718f]">{text}</p>
+                <p className="text-[12px] font-medium leading-[1.6] text-[#55718f]">{text}</p>
               </div>
             ))}
           </div>
@@ -389,7 +389,7 @@ export default function InmobiliariasPage() {
                   </span>
                   <h3 className="text-[13px] font-bold uppercase tracking-[0.06em] text-[#0d3168]">{title}</h3>
                 </div>
-                <p className="mt-[13px] text-[12px] leading-[1.6] text-[#55718f]">{text}</p>
+                <p className="mt-[13px] text-[12px] font-medium leading-[1.6] text-[#55718f]">{text}</p>
               </div>
             ))}
           </div>
@@ -406,7 +406,7 @@ export default function InmobiliariasPage() {
                 key={de}
                 className="flex flex-wrap items-center justify-between gap-3 rounded-[17px] border border-[#e0edf6] bg-white px-[20px] py-[16px] shadow-[0_8px_25px_#153f6810]"
               >
-                <span className="text-[12px] font-semibold text-[#7b93ab]">{de}</span>
+                <span className="text-[12px] font-medium text-[#64809c]">{de}</span>
                 <ArrowRight className="h-4 w-4 shrink-0 text-[#0ba9a9]" />
                 <span className="text-right text-[12px] font-bold text-[#0d3168]">{a}</span>
               </div>
@@ -420,7 +420,7 @@ export default function InmobiliariasPage() {
             <h2 className="font-display mx-auto max-w-[760px] text-[26px] font-extrabold leading-[1.12] tracking-[-1.5px] text-[#0d3168] md:text-[35px]">
               Sabemos exactamente qué se pierde en una inmobiliaria.
             </h2>
-            <p className="mx-auto mt-[16px] max-w-[720px] text-[13px] leading-[1.7] text-[#55718f]">
+            <p className="mx-auto mt-[16px] max-w-[720px] text-[13px] font-medium leading-[1.7] text-[#55718f]">
               Estos son los datos publicados que sostienen la operación de Sophie para inmobiliarias: respuesta de leads,
               velocidad de contacto y conversión. Cada uno viene de un estudio identificable, no de una promesa de marketing.
             </p>
@@ -441,8 +441,8 @@ export default function InmobiliariasPage() {
                   </span>
                 </div>
                 <h3 className="mt-[15px] mb-[7px] text-[14px] font-bold text-[#0d3168]">{title}</h3>
-                <p className="flex-1 text-[12px] leading-[1.6] text-[#55718f]">{text}</p>
-                <p className="mt-[14px] border-t border-[#edf3f8] pt-[10px] text-[10px] font-semibold uppercase tracking-wide text-[#94a9c0]">
+                <p className="flex-1 text-[12px] font-medium leading-[1.6] text-[#55718f]">{text}</p>
+                <p className="mt-[14px] border-t border-[#edf3f8] pt-[10px] text-[11px] font-semibold uppercase tracking-wide text-[#8299b2]">
                   {fuente}
                 </p>
               </article>
@@ -457,7 +457,7 @@ export default function InmobiliariasPage() {
               <h2 className="font-display mx-auto max-w-[760px] text-[26px] font-extrabold leading-[1.12] tracking-[-1.5px] text-[#0d3168] md:text-[35px]">
                 Lo que Sophie cambia en esa misma operación.
               </h2>
-              <p className="mx-auto mt-[16px] max-w-[720px] text-[13px] leading-[1.7] text-[#55718f]">
+              <p className="mx-auto mt-[16px] max-w-[720px] text-[13px] font-medium leading-[1.7] text-[#55718f]">
                 No cambiamos tu forma de vender: cubrimos los huecos que los datos del sector dejan al descubierto —
                 horarios, velocidad, seguimiento y calidad del dato—. La negociación y el cierre siguen en tu equipo.
               </p>
@@ -471,7 +471,7 @@ export default function InmobiliariasPage() {
                   <h3 className="mb-[7px] flex items-center gap-2 text-[14px] font-bold text-[#0d3168] before:content-['✓'] before:text-[#10b7b2]">
                     {title}
                   </h3>
-                  <p className="text-[12px] leading-[1.6] text-[#55718f]">{text}</p>
+                  <p className="text-[12px] font-medium leading-[1.6] text-[#55718f]">{text}</p>
                 </article>
               ))}
             </div>
@@ -485,13 +485,13 @@ export default function InmobiliariasPage() {
               <h2 className="font-display mb-[18px] text-[35px] font-extrabold leading-[1.12] tracking-[-1.5px]">
                 El dato del interesado, correcto desde el primer contacto.
               </h2>
-              <p className="leading-[1.6] text-white/85">
+              <p className="font-medium leading-[1.6] text-white/85">
                 La mayoría de los leads que se pierden nacen de datos mal tomados: un teléfono incompleto, un presupuesto
                 dicho de memoria, una zona anotada a mano. Sophie captura el dato con catálogos cerrados sobre tu operación
                 real —tipo de operación, zona o barrio, rango de presupuesto y urgencia—, confirma cada dato con el interesado
                 y deja evidencia trazable de cada corrección.
               </p>
-              <p className="mt-[14px] text-[13px] leading-[1.6] text-white/70">
+              <p className="mt-[14px] text-[13px] font-medium leading-[1.6] text-white/80">
                 Tu inmobiliaria conserva la negociación y el cierre; Upway garantiza que el dato capturado llegue
                 estructurado, validado y auditable a tu CRM.
               </p>
@@ -514,7 +514,7 @@ export default function InmobiliariasPage() {
               <h2 className="font-display mb-[18px] text-[35px] font-extrabold leading-[1.12] tracking-[-1.5px] text-[#0d3168]">
                 El lead conforme, listo para tu CRM.
               </h2>
-              <p className="leading-[1.6] text-[#55718f]">
+              <p className="font-medium leading-[1.6] text-[#55718f]">
                 La agenda y la captura son nuestras, así que todo lo que ocurre en una llamada queda registrado en un panel
                 que tu inmobiliaria puede auditar: quién llamó, qué buscaba, qué se agendó y qué se corrigió. Desde ahí la
                 información sale estructurada hacia tu CRM inmobiliario o tu sistema interno.
@@ -523,12 +523,12 @@ export default function InmobiliariasPage() {
                 <div className="flex items-center gap-2 text-[12px] font-bold text-[#0d3168]">
                   <Database className="h-4 w-4 text-[#0ba9a9]" /> Sin retranscribir
                 </div>
-                <p className="mt-[9px] text-[12px] leading-[1.6] text-[#55718f]">
+                <p className="mt-[9px] text-[12px] font-medium leading-[1.6] text-[#55718f]">
                   Tu equipo deja de pasar llamadas a mano al CRM. Cada lead llega con los campos completos, validados contra
                   catálogos cerrados y con su historial de cambios.
                 </p>
               </div>
-              <p className="mt-[16px] text-[11px] leading-[1.6] text-[#7b93ab]">
+              <p className="mt-[16px] text-[12px] font-medium leading-[1.6] text-[#64809c]">
                 Upway responde por el dato capturado, validado y auditable que entrega. La calificación comercial final, la
                 negociación y el cierre siguen a cargo de tu equipo.
               </p>
@@ -543,7 +543,7 @@ export default function InmobiliariasPage() {
                     <Icon className="h-4 w-4" />
                   </span>
                   <h3 className="mt-[13px] mb-[6px] text-[13px] font-bold text-[#0d3168]">{title}</h3>
-                  <p className="text-[11px] leading-[1.5] text-[#55718f]">{text}</p>
+                  <p className="text-[12px] font-medium leading-[1.6] text-[#55718f]">{text}</p>
                 </article>
               ))}
             </div>
@@ -578,7 +578,7 @@ export default function InmobiliariasPage() {
                 ✓ Visita agendada · sábado 10:00am · asesor asignado
               </p>
             </div>
-            <p className="mt-[12px] text-[10px] leading-[1.5] text-[#7b93ab]">
+            <p className="mt-[12px] text-[11px] font-medium leading-[1.6] text-[#64809c]">
               Cada campo se capturó con catálogo cerrado, se confirmó en la llamada y quedó auditado con fecha y hora.
             </p>
           </div>
@@ -591,7 +591,7 @@ export default function InmobiliariasPage() {
               {beneficios.map(({ title, text }) => (
                 <article key={title} className="py-[15px]">
                   <b className="text-[#0d3168]">{title}</b>
-                  <p className="my-[7px] text-[12px] text-[#55718f]">{text}</p>
+                  <p className="my-[7px] text-[12px] font-medium text-[#55718f]">{text}</p>
                 </article>
               ))}
             </div>
@@ -604,7 +604,7 @@ export default function InmobiliariasPage() {
             <h2 className="font-display mx-auto max-w-[720px] text-[26px] font-extrabold leading-[1.12] tracking-[-1.5px] text-[#0d3168] md:text-[35px]">
               Distintos modelos de negocio, la misma atención sin huecos.
             </h2>
-            <p className="mx-auto mt-[16px] max-w-[680px] text-[13px] leading-[1.7] text-[#55718f]">
+            <p className="mx-auto mt-[16px] max-w-[680px] text-[13px] font-medium leading-[1.7] text-[#55718f]">
               Sophie se configura con la operación real de cada inmobiliaria: sus zonas, sus tipos de inmueble, sus reglas de
               calificación y su forma de agendar. Estos son los modelos con los que trabaja hoy.
             </p>
@@ -632,7 +632,7 @@ export default function InmobiliariasPage() {
               </span>
               <div>
                 <h3 className="mb-[8px] text-[13px] font-bold text-[#0d3168]">Basado en investigación del sector inmobiliario</h3>
-                <p className="text-[12px] leading-[1.7] text-[#55718f]">
+                <p className="text-[12px] font-medium leading-[1.7] text-[#55718f]">
                   Los datos que sustentan esta landing provienen de estudios publicados del sector inmobiliario LATAM y EE.UU.:
                   estudio de respuesta de leads (MIT / InsideSales — ventana de 5 minutos y factor 21× de calificación);
                   encuesta Inman 2025 (tiempo promedio de respuesta 15+ horas); análisis de Pinova en 10.000 leads (tasa de conversión
@@ -642,7 +642,7 @@ export default function InmobiliariasPage() {
                 </p>
                 <div className="mt-[16px] rounded-[14px] border border-[#dce9f4] bg-white p-[16px]">
                   <b className="text-[12px] text-[#0d3168]">Hasta dónde llega nuestra responsabilidad.</b>{' '}
-                  <span className="text-[12px] leading-[1.7] text-[#55718f]">
+                  <span className="text-[12px] font-medium leading-[1.7] text-[#55718f]">
                     Upway entrega el dato conforme y auditable —qué dijo el interesado, cuándo lo dijo y qué se acordó—.
                     La calificación comercial final, la negociación y el cierre siguen en tu equipo y en tu CRM.
                   </span>
@@ -658,7 +658,7 @@ export default function InmobiliariasPage() {
             <h2 className="font-display max-w-[680px] text-[26px] font-extrabold leading-[1.2] md:text-[32px]">
               ¿Qué podría hacer Sophie dentro de <em className="not-italic text-[#50e1d5]">tu operación?</em>
             </h2>
-            <p className="mt-[14px] max-w-[620px] text-[13px] leading-[1.7] text-white/85">
+            <p className="mt-[14px] max-w-[620px] text-[13px] font-medium leading-[1.7] text-white/85">
               Cuéntanos tu operación y te mostramos el flujo concreto: qué responde Sophie, qué agenda, cuándo escala a tu asesor
               y qué queda registrado.
             </p>
