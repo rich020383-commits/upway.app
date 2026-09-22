@@ -200,6 +200,12 @@ export default function Home() {
                 Nuevo
               </span>
             </Link>
+            <Link
+              href="/center"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[linear-gradient(115deg,#0ba9a9,#0c3775)] px-3.5 py-[7px] text-[12px] font-bold text-white shadow-[0_8px_20px_rgba(11,169,169,0.28)] transition hover:-translate-y-[1px] hover:shadow-[0_12px_26px_rgba(12,55,117,0.35)]"
+            >
+              🎧 Upway Center
+            </Link>
             <Link href="/precios" className="hover:text-[#103a77] transition">Precios</Link>
             <a href="#contacto" className="hover:text-[#103a77] transition">Contacto</a>
           </nav>
@@ -707,6 +713,13 @@ export default function Home() {
             >
               <HomeIcon className="h-3.5 w-3.5 text-[#0ba9a9]" />
               Inmobiliarias
+              <span className="rounded-full bg-[#e7fbfa] px-2 py-[2px] text-[8px] font-black uppercase tracking-[0.08em] text-[#0d8a88]">Nuevo</span>
+            </Link>
+            <Link
+              href="/center"
+              className="inline-flex items-center gap-2 rounded-full border border-[#bfe9e6] bg-white px-4 py-2 text-[12px] font-bold text-[#0d3168] shadow-[0_6px_18px_#153f6814] transition hover:-translate-y-0.5 hover:border-[#0ba9a9] hover:shadow-[0_10px_24px_#153f6820]"
+            >
+              🎧 Upway Center
               <span className="rounded-full bg-[#e7fbfa] px-2 py-[2px] text-[8px] font-black uppercase tracking-[0.08em] text-[#0d8a88]">Nuevo</span>
             </Link>
           </div>
