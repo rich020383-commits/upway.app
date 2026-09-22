@@ -290,7 +290,7 @@ export default function Home() {
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center gap-2 rounded-full bg-[#0c3775] px-6 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#092a5c] shadow-md"
                   >
-                    <MessageCircle className="h-4 w-4" /> Escríbenos por WhatsApp
+                    <MessageCircle className="h-4 w-4" /> Escríbenos por mensaje
                   </a>
                   <a
                     href="mailto:contacto@upway.business?subject=Quiero%20hablar%20con%20un%20experto%20de%20Upway%20Health"
@@ -405,7 +405,6 @@ export default function Home() {
                 <b className="text-[#0d3168] block mb-1">Canales y agenda</b>
                 <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">● Voz IA · prioridad y agenda</p>
                 <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">● Agenda nativa · sin terceros</p>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">○ WhatsApp Business · al conectarlo tú</p>
               </div>
             </div>
           </div>

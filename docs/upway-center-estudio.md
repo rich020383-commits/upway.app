@@ -46,7 +46,7 @@ Definidas en código (`CENTER_SERVICE_LINES`), con lo que hace **y lo que no hac
 
 | | |
 |---|---|
-| **Hace** | Recibe la falla y aplica el **árbol de diagnóstico definido por el cliente** · valida datos del equipo/servicio (serie, modelo, contrato, dirección) · **agenda la visita técnica** sobre la agenda real y confirma por WhatsApp · entrega link de seguimiento con contexto al técnico · escala fallas críticas de inmediato. |
+| **Hace** | Recibe la falla y aplica el **árbol de diagnóstico definido por el cliente** · valida datos del equipo/servicio (serie, modelo, contrato, dirección) · **agenda la visita técnica** sobre la agenda real y confirma por canal directo con el cliente · entrega link de seguimiento con contexto al técnico · escala fallas críticas de inmediato. |
 | **No hace** | No diagnostica fuera del árbol definido · no cotiza reparaciones ni decide si aplica garantía técnica · no reemplaza al tier-2/tier-3 humano. |
 | **Necesita para arrancar** | Árbol de diagnóstico cerrado (decisión del cliente) · agenda de técnicos y cobertura por zona · umbral de criticidad para escalar. |
 | **AHT de referencia** | 7 min |

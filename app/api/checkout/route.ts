@@ -4,7 +4,7 @@ import { resolveAccessFromPromoCode } from '@/lib/billing/access';
 
 // 💰 Precios oficiales definidos en el SERVIDOR (nunca confiar en el precio del cliente)
 const PLANES: Record<string, { precio: number; descripcion: string }> = {
-  emprendedor: { precio: 149900, descripcion: 'Plan Emprendedor Upway - Bot de WhatsApp (texto y catálogo básico)' },
+  emprendedor: { precio: 149900, descripcion: 'Plan Emprendedor Upway - Asistente de chat (texto y catálogo básico)' },
   negocio: { precio: 299900, descripcion: 'Plan Negocio Upway - IA multimodal, notas de voz, imágenes y RAG de inventario' },
   pro: { precio: 499900, descripcion: 'Plan PRO Upway - Alto volumen y reportes avanzados' },
 };

@@ -177,7 +177,6 @@ export default function LandingPage() {
                 <b className="text-[#0d3168] block mb-1">Canales y agenda</b>
                 <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">● Voz IA · prioridad y agenda</p>
                 <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">● Agenda nativa · sin terceros</p>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-slate-100">○ WhatsApp Business · al conectarlo tú</p>
               </div>
             </div>
           </div>
