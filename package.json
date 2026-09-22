@@ -12,6 +12,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "precios": "node scripts/precios-reporte.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {

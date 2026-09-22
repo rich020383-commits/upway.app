@@ -22,7 +22,7 @@ Fuente: **rethinkCX BPO Cost Index 2026** (`rethinkcx.com/resources/bpo-cost-ind
 
 **Fuente oficial de salarios (MinTrabajo):** SMMLV 2026 = **$2.100.000 COP/mes** (según comunicado MinTrabajo: *"Salario vital: $2.000.000 a partir de enero de 2026"*). Un agente bilingüe real cobra entre **2.5× y 3.5× el SMMLV** (≈ $5.2M–$7.4M bruto mensual); la empresa le aplica **~130% de cargas sociales/prestaciones** → agente cargado entre **~$690.000 y ~$1.390.000 COP/mes por FTE** (monolingüe) y **~$1.250.000–2.700.000 COP/mes** (bilingüe 24/7).
 
-> **Conclusión mercado:** un seat de voz Tier-1 cargado en Colombia cuesta **$14/hr ≈ $699.000 COP/mes por FTE (8h)**. Una cobertura 24/7 real (3 turnos + supervisión) ronda los **$2.4M–3.4M COP/mes equivalentes**, antes de QA, WFM, facilities y margen de BPO.
+> **Conclusión mercado (corregida sep-2026):** con la tarifa billable de $14 USD/h, una **posición** de voz Tier-1 de 8 h/día (176 h/mes) cuesta **$7.613.760 COP/mes** (antes decía $699.000: era un error de unidades, mezclaba tarifa/hora con total/mes). Cobertura 24/7 real (720 h/mes + ~25% de recargos nocturnos y dominicales) ≈ **$38,9M COP/mes**. El **minuto humano facturado** es $14 USD/h ÷ 60 = **$721 COP/min**; a 40% de ocupación, cada minuto realmente hablado le cuesta al cliente **$1.803 COP**. Esa es la referencia contra la que se compara Upway (y por eso la tarifa Upway, incluido el overage de $690, queda por debajo del minuto humano facturado).
 
 ### 1.2 Qué cobran hoy los BPO (competencia)
 
@@ -46,14 +46,19 @@ Fuente: `lib/telnyx/costs.ts` (Telefonía + IA) + `lib/health/plans.ts`.
 | AI Assistant (LLM+STT+TTS) | **$0.0575 USD/min** | — | — |
 | **Costo voz all-in** | **$0.1225 USD/min** ≈ **$379 COP/min** | — | base |
 | Número dedicado CO/mes | **$13.50 USD** ≈ **$41.715 COP** | — | fijo/línea |
-| **Overage cliente** | — | **$0.177 USD/min** ≈ **$547 COP/min** | +27% margen voz |
+| **Overage cliente** | — | **$0.2233 USD/min** ≈ **$690 COP/min** | **+45% margen voz (tarifa única)** |
 
-Estructura de planes validada en Health (`lib/health/plans.ts`):
-- Consultorio → $769.000 COP / 600 min ≈ $1.282 COP/min incluido
-- Clínica Pro → $1.914.000 COP / 1.800 min ≈ $1.063 COP/min incluido
-- IPS Plus → $7.109.000 COP / 8.000 min ≈ $887 COP/min incluido
+Estructura de planes validada en Health (`lib/health/plans.ts`, tarifa final sep-2026 —
+ver `docs/upway-health-estudio.md`):
+- Consultorio → $429.000 COP / 600 min ≈ $715 COP/min incluido
+- Clínica Pro → $1.199.000 COP / 1.800 min ≈ $666 COP/min incluido
+- IPS Plus → $4.890.000 COP / 8.000 min ≈ $611 COP/min incluido
+- IPS Enterprise → $14.490.000 COP / 25.000 min ≈ $580 COP/min incluido
 
-> Upway vende bundles a **≈ 2.6–2.9× el costo marginal**, con overage a 1.44× costo. Cube costos fijos asumiendo **50–60% de utilización del paquete** — el estándar voz-IA SaaS.
+> Upway vende bundles con $/min decreciente (más volumen, menos $/min) y un **único
+> overage de $690 COP/min (≈1.82× el costo all-in, 45% de margen)**. El costo fijo se
+> cubre asumiendo **55% de utilización del paquete** — el estándar voz-IA SaaS.
+> Reglas completas y verificables: `lib/pricing/rules.ts` (R0–R7).
 
 ---
 
@@ -71,9 +76,13 @@ Operación: línea de atención al cliente que genera **6.000 minutos/mes** de v
 
 | Alternativa | Costo mensual (COP) |
 |---|---|
-| 3 agentes humanos 24/7 (rethinkCX $14hr × 1.25 premium × 3 × 160h) | **≈ $2.600.000 COP** |
-| IA Upway: 6.000 × $379 + número $41.715 | **≈ $2.320.000** → plan Plus incluido **$1.999.000 COP** |
-| **Ahorro cliente** | **≈ 23–24% vs seat 24/7** + concurrencia infinita (más en picos) |
+| 3 posiciones humanas 24/7 (rethinkCX $14 USD/h × 1,25 de recargos × 3 × 160 h) | **≈ $25.956.000 COP** |
+| IA Upway: 6.000 min × $379 + número $41.715 | **≈ $2.316.000 COP** |
+| **Ahorro cliente** | **≈ 91%** + concurrencia infinita (más en picos) y sin recargos nocturnos |
+
+> Nota de coherencia: las tarifas de Upway Center (§4) siguen siendo propuesta y deben
+> recalcularse con la tarifa única de minuto adicional (**$690 COP**) y las reglas R0–R7
+> de `lib/pricing/rules.ts` antes de publicarse.
 
 Con el plan Plus a **$1.999.000 COP**, Upway cubre $1.999.000 de ingreso con costo ~$1.970.000 (a 55% util) y margen base + overage ($547/min) sobre volumen extra. En picos donde un BPO contrata agentes extra, Upway no contrata nada → **margen acelerado por arriba**.
 

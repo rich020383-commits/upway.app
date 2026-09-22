@@ -5,6 +5,7 @@ vi.mock('@/lib/prisma', () => ({
     activationPayment: {
       create: vi.fn(),
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       update: vi.fn(),
     },
   },
@@ -36,12 +37,14 @@ import { getHealthPlan, planCommercialSummary } from '@/lib/health/plans-enterpr
 import { withIVA } from '@/lib/health/plans';
 
 const mockedCreate = (prisma as any).activationPayment.create as unknown as Mock;
+const mockedFindFirst = (prisma as any).activationPayment.findFirst as unknown as Mock;
 const mockedFindUnique = (prisma as any).activationPayment.findUnique as unknown as Mock;
 const mockedUpdate = (prisma as any).activationPayment.update as unknown as Mock;
 const mockedBold = createBoldPaymentLink as unknown as Mock;
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockedFindFirst.mockResolvedValue(null);
   mockedBold.mockResolvedValue({ ok: true, url: 'https://pay.bold.co/test-link' });
   mockedCreate.mockImplementation(async ({ data }) => ({
     id: 'ap-1',
@@ -125,6 +128,40 @@ describe('createActivationPaymentLink', () => {
     });
     expect(result.ok).toBe(false);
     expect(mockedBold).not.toHaveBeenCalled();
+  });
+
+  it('conserva la tarifa del cliente que firmó antes de la vigencia (grandfathering)', async () => {
+    mockedFindFirst.mockResolvedValueOnce({ createdAt: new Date('2026-08-15T12:00:00Z') });
+    const result = await createActivationPaymentLink({
+      planId: 'consultorio-600',
+      customerEmail: 'cliente-viejo@test.co',
+      organizationId: 'org-1',
+    });
+
+    expect(result.ok).toBe(true);
+    // Tarifa vigente del cliente: $769.000 + setup $590.000, ambos con IVA.
+    const expectedLegacy = withIVA(769000) + withIVA(590000);
+    expect(mockedBold).toHaveBeenCalledWith(expect.objectContaining({ amountCOP: expectedLegacy }));
+    expect(mockedCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          amountCOP: expectedLegacy,
+          statusMessage: expect.stringContaining('tarifa vigente del cliente'),
+        }),
+      }),
+    );
+  });
+
+  it('a un cliente nuevo le aplica la tarifa final', async () => {
+    const result = await createActivationPaymentLink({
+      planId: 'consultorio-600',
+      customerEmail: 'cliente-nuevo@test.co',
+      organizationId: 'org-2',
+    });
+
+    expect(result.ok).toBe(true);
+    const expectedFinal = withIVA(429000) + withIVA(390000);
+    expect(mockedBold).toHaveBeenCalledWith(expect.objectContaining({ amountCOP: expectedFinal }));
   });
 
   it('marca el intento como fallido si Bold rechaza la creación', async () => {

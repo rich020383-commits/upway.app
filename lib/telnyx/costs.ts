@@ -7,13 +7,18 @@
  * - AI Assistant: $0.05 + STT $0.003 + TTS ~$0.0035 + LLM ~$0.001 = $0.0575 USD/min
  * - Total: ~$0.1225 USD/min = $379 COP/min (TRM 3,090)
  * - Numeros CO: $13.50 USD/mes c/u = $41,715 COP
- * - Minuto adicional (overage) Upway: $0.177 USD = $547 COP
+ *
+ * TARIFA FINAL DE MINUTO ADICIONAL (overage): $0.2233 USD = $690 COP/min (45.1% de
+ * margen sobre el costo all-in). Es una sola tarifa para Health e Inmobiliarias y
+ * queda POR DEBAJO del minuto humano facturado ($14 USD/h / 60 = $721 COP), que es
+ * la referencia verificable del mercado (rethinkCX BPO Cost Index).
+ * Ver lib/pricing/rules.ts (reglas R0-R7) y docs/upway-health-estudio.md.
  *
  * Env overrides: TELNYX_COST_PER_MIN_USD / UPWAY_PRICE_PER_MIN_USD / COP_PER_USD.
  */
 
 export const TELNYX_COST_PER_MIN_DEFAULT = 0.1225;
-export const UPWAY_PRICE_PER_MIN_DEFAULT = 0.177;
+export const UPWAY_PRICE_PER_MIN_DEFAULT = 0.2233;
 export const COP_PER_USD_DEFAULT = 3090;
 export const TELNYX_NUMBER_MRC_USD_DEFAULT = 13.5;
 
