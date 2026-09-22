@@ -216,6 +216,12 @@ export default function Home() {
               <HomeIcon className="h-3.5 w-3.5" />
               Inmobiliarias
             </Link>
+            <Link
+              href="/center"
+              className="inline-flex md:hidden items-center gap-1.5 rounded-full bg-[linear-gradient(115deg,#0ba9a9,#0c3775)] px-3 py-[8px] text-[11px] font-bold text-white shadow-md"
+            >
+              🎧 Center
+            </Link>
             <a
               href="#contacto"
               className="hidden sm:inline-flex items-center justify-center rounded-full bg-[#0c3775] px-[23px] py-[10px] md:py-[14px] text-[11px] md:text-[13px] font-bold text-white hover:bg-[#092a5c] transition shadow-md"
