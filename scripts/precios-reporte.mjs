@@ -207,6 +207,7 @@ function policyReport(healthPlans, inmobPlans) {
 
 const health = readPlans('lib/health/plans.ts').concat(readPlans('lib/health/plans-enterprise.ts'));
 const inmob = readPlans('lib/inmobiliaria/plans.ts');
+const center = readPlans('lib/center/plans.ts');
 
 console.log('Costo all-in: ' + money(COST_PER_MIN) + '/min | numero ' + money(COST_PER_NUMBER) + '/mes');
 console.log('Overage unico: ' + money(OVERAGE) + '/min (margen ' + pct(((OVERAGE - COST_PER_MIN) / OVERAGE) * 100) + ')');
@@ -214,6 +215,7 @@ console.log('Minuto humano facturado (referencia de valor): ' + money(HUMAN_MIN)
 
 const healthProblems = report('Upway Health', health);
 const inmobProblems = report('Upway Inmobiliarias', inmob);
+const centerProblems = report('Upway Center', center);
 policyReport(health, inmob);
 
 console.log(
@@ -221,8 +223,12 @@ console.log(
     health.filter((p) => p.monthlyCOP > 0).length +
     ' | Inmobiliarias ' +
     inmob.filter((p) => p.monthlyCOP > 0).length +
+    ' | Center ' +
+    center.filter((p) => p.monthlyCOP > 0).length +
     ' | Custom (deal desk, "a cotizar") ' +
-    [...health, ...inmob].filter((p) => p.monthlyCOP === 0).length
+    [...health, ...inmob, ...center].filter((p) => p.monthlyCOP === 0).length
 );
 
-if (healthProblems.length > 0 || inmobProblems.length > 0) process.exitCode = 1;
+if (healthProblems.length > 0 || inmobProblems.length > 0 || centerProblems.length > 0) {
+  process.exitCode = 1;
+}

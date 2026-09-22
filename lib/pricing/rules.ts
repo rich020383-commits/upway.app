@@ -74,6 +74,26 @@ export const HUMAN_TIER1_BILLABLE_USD_HOUR = 14;
 /** Minuto humano facturado en COP: $14/h ÷ 60 × TRM. */
 export const HUMAN_BILLABLE_MIN_COP = Math.round((HUMAN_TIER1_BILLABLE_USD_HOUR / 60) * TRM_COP_PER_USD);
 
+/** Modelo de costo usado por la matematica de planes (permite probar sensibilidad de TRM). */
+export type CostModel = { costPerMinCOP: number; costPerNumberCOP: number };
+
+export const DEFAULT_COST_MODEL: CostModel = {
+  costPerMinCOP: COST_PER_MIN_COP,
+  costPerNumberCOP: COST_PER_NUMBER_COP,
+};
+
+/**
+ * Costo all-in del minuto y del numero con una TRM distinta a la de referencia.
+ * Sirve para estresar la tarifa SIN cambiar precios: si la TRM sube, el costo sube y
+ * el margen baja. Regla de revision vigente: TRM sostenido por encima de 3.300.
+ */
+export function costModelAtTRM(trm: number): CostModel {
+  return {
+    costPerMinCOP: Math.round(TELNYX_COST_PER_MIN_DEFAULT * trm),
+    costPerNumberCOP: Math.round(TELNYX_NUMBER_MRC_USD_DEFAULT * trm),
+  };
+}
+
 export type TariffPlan = {
   id: string;
   name: string;
@@ -87,10 +107,14 @@ export type TariffPlan = {
 
 export const roundPct = (value: number) => Math.round(value * 10) / 10;
 
-export function monthlyCostCOP(minutes: number, numbers: number): number {
+export function monthlyCostCOP(
+  minutes: number,
+  numbers: number,
+  model: CostModel = DEFAULT_COST_MODEL
+): number {
   const mins = Math.max(0, Number(minutes) || 0);
   const nums = Math.max(0, Number(numbers) || 0);
-  return Math.round(mins * COST_PER_MIN_COP + nums * COST_PER_NUMBER_COP);
+  return Math.round(mins * model.costPerMinCOP + nums * model.costPerNumberCOP);
 }
 
 export type PlanEconomics = {
@@ -111,13 +135,20 @@ export type PlanEconomics = {
   overageProfitPerMinCOP: number | null;
 };
 
-export function planEconomics(plan: TariffPlan, utilization = PLANNING_UTILIZATION): PlanEconomics {
-  const costFullCOP = monthlyCostCOP(plan.includedMinutes, plan.includedNumbers);
+export function planEconomics(
+  plan: TariffPlan,
+  utilization = PLANNING_UTILIZATION,
+  model: CostModel = DEFAULT_COST_MODEL
+): PlanEconomics {
+  const costFullCOP = monthlyCostCOP(plan.includedMinutes, plan.includedNumbers, model);
   const costPlanningCOP = Math.round(
-    plan.includedMinutes * utilization * COST_PER_MIN_COP + plan.includedNumbers * COST_PER_NUMBER_COP
+    plan.includedMinutes * utilization * model.costPerMinCOP +
+      plan.includedNumbers * model.costPerNumberCOP
   );
   const overageMarginPct =
-    plan.overageCOP > 0 ? ((plan.overageCOP - COST_PER_MIN_COP) / plan.overageCOP) * 100 : null;
+    plan.overageCOP > 0
+      ? ((plan.overageCOP - model.costPerMinCOP) / plan.overageCOP) * 100
+      : null;
   return {
     planId: plan.id,
     name: plan.name,
@@ -133,8 +164,8 @@ export function planEconomics(plan: TariffPlan, utilization = PLANNING_UTILIZATI
   };
 }
 
-export function overageMarginPct(overageCOP = OVERAGE_COP): number {
-  return ((overageCOP - COST_PER_MIN_COP) / overageCOP) * 100;
+export function overageMarginPct(overageCOP = OVERAGE_COP, costPerMinCOP = COST_PER_MIN_COP): number {
+  return ((overageCOP - costPerMinCOP) / overageCOP) * 100;
 }
 
 /** $/min que el cliente realmente paga por cada minuto extra al subir de plan. */
@@ -212,7 +243,8 @@ export type TariffFinding = {
  */
 export function auditTariff(
   plans: readonly TariffPlan[],
-  overageCOP = OVERAGE_COP
+  overageCOP = OVERAGE_COP,
+  model: CostModel = DEFAULT_COST_MODEL
 ): TariffFinding[] {
   const findings: TariffFinding[] = [];
   const paid = plans
@@ -221,7 +253,7 @@ export function auditTariff(
     .sort((a, b) => a.includedMinutes - b.includedMinutes);
 
   if (paid.length > 0) {
-    const margin = overageMarginPct(overageCOP);
+    const margin = overageMarginPct(overageCOP, model.costPerMinCOP);
     if (margin < OVERAGE_MIN_MARGIN_PCT) {
       findings.push({
         code: 'OVERAGE_MARGEN',
@@ -238,10 +270,10 @@ export function auditTariff(
     }
   }
 
-  const marginPlanningOfEntry = paid.length > 0 ? planEconomics(paid[0]).marginPlanningPct : 0;
+  const marginPlanningOfEntry = paid.length > 0 ? planEconomics(paid[0], PLANNING_UTILIZATION, model).marginPlanningPct : 0;
 
   paid.forEach((plan, index) => {
-    const economics = planEconomics(plan);
+    const economics = planEconomics(plan, PLANNING_UTILIZATION, model);
     const previous = index > 0 ? paid[index - 1] : null;
 
     if (plan.overageCOP !== overageCOP) {
