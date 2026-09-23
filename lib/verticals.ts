@@ -1,4 +1,4 @@
-export type VerticalId = 'general' | 'health' | 'inmobiliaria' | 'retail' | 'supermercado' | 'drogueria';
+export type VerticalId = 'general' | 'health' | 'inmobiliaria' | 'center' | 'retail' | 'supermercado' | 'drogueria';
 
 export type VerticalDefinition = {
   id: VerticalId;
@@ -20,6 +20,10 @@ const segmentAliases: Record<string, string> = {
   'clínicas': 'health',
   inmobiliaria: 'inmobiliaria',
   inmobiliarias: 'inmobiliaria',
+  center: 'center',
+  'upway-center': 'center',
+  callcenter: 'center',
+  'call-center': 'center',
   retail: 'retail',
   tienda: 'retail',
   tiendas: 'retail',
@@ -48,8 +52,15 @@ export const VERTICALS: Record<VerticalId, VerticalDefinition> = {
     id: 'inmobiliaria',
     label: 'Inmobiliaria',
     description: 'Captación, seguimiento comercial y agenda de visitas.',
-    onboardingRoute: '/dashboard/onboarding/lienzo?segment=inmobiliaria',
+    onboardingRoute: '/inmobiliarias/onboarding',
     miniLandingRoute: '/',
+  },
+  center: {
+    id: 'center',
+    label: 'Upway Center',
+    description: 'Call center: servicio técnico y atención al cliente 24/7.',
+    onboardingRoute: '/center/onboarding',
+    miniLandingRoute: '/center',
   },
   retail: {
     id: 'retail',
@@ -100,8 +111,12 @@ export const SEGMENT_ROUTE_MAP: Record<string, string> = {
   clinica: '/health/onboarding',
   clinicas: '/health/onboarding',
   'clínicas': '/health/onboarding',
-  inmobiliaria: '/dashboard/onboarding/lienzo?segment=inmobiliaria',
-  inmobiliarias: '/dashboard/onboarding/lienzo?segment=inmobiliaria',
+  inmobiliaria: '/inmobiliarias/onboarding',
+  inmobiliarias: '/inmobiliarias/onboarding',
+  center: '/center/onboarding',
+  'upway-center': '/center/onboarding',
+  callcenter: '/center/onboarding',
+  'call-center': '/center/onboarding',
   retail: '/dashboard/onboarding/lienzo?segment=retail',
   tienda: '/dashboard/onboarding/lienzo?segment=retail',
   tiendas: '/dashboard/onboarding/lienzo?segment=retail',
