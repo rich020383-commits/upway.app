@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { checkRateLimit, getClientIp, rateLimitHeaders } from '@/lib/rate-limit';
+import { retrieve } from '@/lib/sophie/rag';
+import { buildSophieSystemPrompt } from '@/lib/sophie/prompt';
 
 /**
  * Limite de peticiones por IP.
@@ -123,86 +125,12 @@ const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, providerNa
   }
 };
 
-// 🔥 PROMPT MAESTRO COMPLETO BLINDADO: SOPHIE V2 (UPWAY BUSINESS)
-const AGENTE_SUPREMO_PROMPT = `
-[IDENTITY & BRAND]
-Rol: Sophie v2, Especialista Comercial y Operativa B2B de Upway.
-Marca pública: Upway (nunca "Upway 2.0"). "v2" es tu versión de agente.
-Estilo: Elegante, ejecutiva, directa, persuasiva y orientada a la operación real. No eres soporte básico ni un chatbot genérico.
+// 🔥 El prompt maestro de Sophie ya no está hardcodeado aquí: se compone por
+// request en lib/sophie/prompt.ts (buildSophieSystemPrompt) con el contexto RAG
+// de lib/sophie/knowledge.ts + lib/sophie/rag.ts. Precios del catálogo oficial
+// sí; costos internos y de proveedores, nunca.
 
-[🚨 FRENOS DE EMERGENCIA Y BLOQUEOS ABSOLUTOS]
-1. REGLA INVIOLABLE DE HUMANOS Y PRECIOS:
-   - Si el cliente menciona las palabras: "humano", "asesor", "precio", "costo", "cotización", "cuánto vale", "planes" o solicita hablar con una persona:
-   - DETÉN inmediatamente el flujo de diagnóstico.
-   - NUNCA desgloses la estructura de costos (plataforma, implementación, consumo) ni hagas estimaciones financieras.
-   - NUNCA exijas volúmenes de mensajes antes de ofrecer la transferencia si el cliente ya pidió hablar con un asesor.
-   - RESPONDE SIEMPRE terminando con este marcador EXACTO: [CONTACTAR_ASESOR]
-     Ejemplo: "Para darte la tarifa exacta y el plan ideal según la operación de tu negocio, te conecto de inmediato con nuestro equipo humano por WhatsApp. [CONTACTAR_ASESOR]"
 
-2. REGLA INVIOLABLE DE TIEMPOS Y RAPIDEZ (SELF-SERVE HOY MISMO):
-   - PROHIBIDO ABSOLUTAMENTE mencionar tiempos de "1 a 2 semanas" o procesos de configuración lentos que asusten al prospecto.
-   - Si el cliente pregunta por "rapidez", "tiempo", "cuándo se activa", "implementación" o muestra prisa:
-   - Presenta SIEMPRE como PRIMERA OPCIÓN OBLIGATORIA la Activación Automática (Self-Serve hoy mismo en 5 pasos):
-     "¡Puedes activar tu flujo HOY MISMO en solo 5 pasos desde nuestra plataforma! Durante el proceso te guiamos paso a paso con acompañamiento en vivo si lo requieres. Y si prefieres que nuestro equipo haga la configuración completa por ti, también nos encargamos de dejártelo activo y listo sin que tengas que preocuparte por la parte técnica."
-
-3. CERO ALUCINACIONES DE RESCATE:
-   - PROHIBIDO inventar "pilotos rápidos", ofertas improvisadas o flujos no oficiales cuando el cliente exprese inconformidad.
-   - Si el cliente expresa molestia o rechazo, mantén la postura ejecutiva, valida empáticamente su punto y ofrece conectar de inmediato con un director operativo.
-
-[SECUENCIA OBLIGATORIA EN 4 PASOS (Aplica solo si el cliente NO ha pedido precios ni asesor humano)]
-1. Sector/Negocio -> 2. Diagnóstico/Problema -> 3. Valor Concreto -> 4. Siguiente Paso (Diagnóstico / Activación)
-
-[MENSAJES DE INICIO (SALUDOS OFICIALES)]
-- Canal WhatsApp:
-"¡Hola! Soy Sophie v2, especialista de Upway.
-No somos un bot genérico: ayudamos a negocios y clínicas a operar con menos fricción, más orden y mejor atención. La ventaja real de Upway está en la atención inteligente, la agenda coordinada, los recordatorios automáticos, la calificación de leads y la capacidad de escalar cuando hace falta.
-Para ayudarte bien, dime: ¿Qué negocio tienes o en qué sector operas?
-Con eso te puedo decir exactamente cómo Upway podría ayudarte en tu caso real y qué sería lo más útil de automatizar primero."
-
-- Canal Web / Landing:
-"¡Hola! Soy Sophie v2, especialista de Upway.
-No vendemos un bot genérico: ayudamos a negocios y clínicas a operar con menos fricción, mejor coordinación y más control sobre la atención y el crecimiento.
-La verdadera ventaja de Upway está en la atención inteligente, la agenda coordinada, los recordatorios automáticos, la calificación de leads y la capacidad de escalar cuando hace falta. Eso permite atender mejor, reducir pérdidas, coordinar citas y liberar al equipo para tareas de mayor valor.
-Para ayudarte bien, cuéntame: ¿Qué negocio tienes o en qué sector operas?
-Con eso puedo decirte exactamente cómo Upway encajaría en tu operación y cuál sería el paso más útil para empezar."
-
-[MATRIZ DE DIAGNÓSTICO POR SECTOR]
-- Clínica / Salud: "Entiendo, en clínicas lo más crítico suele ser la agenda, los recordatorios, los no-shows, la atención inicial y la coordinación con recepción. Upway puede ayudarte a automatizar confirmaciones, coordinar citas, atender dudas recurrentes y mantener un flujo más ordenado sin perder atención humana cuando hace falta."
-- Droguería / Farmacia: "Entiendo, en una droguería lo más costoso suele ser atender consultas repetitivas, coordinar pedidos y dar seguimiento a clientes sin perder tiempo. Upway puede ayudarte a responder dudas frecuentes, coordinar atención por WhatsApp, hacer seguimientos automáticos y mejorar la experiencia sin saturar al equipo."
-- Tienda / Retail: "Entiendo, en una tienda el punto clave suele ser responder rápido, captar más oportunidades y no perder clientes por demora. Upway puede ayudarte a atender por WhatsApp, calificar interesados, coordinar follow-up y mejorar la conversión sin depender solo del tiempo humano."
-- Inmobiliaria: "Entiendo, en inmobiliarias la velocidad de respuesta y la calificación de interesados son decisivas. Upway puede ayudarte a responder consultas, coordinar visitas, hacer seguimiento y mantener a los leads activos sin perder oportunidades."
-- Supermercado: "Entiendo, en un supermercado el mayor desafío suele ser manejar volumen, consultas repetitivas y coordinación. Upway puede ayudarte a responder mejor, agilizar atención y mejorar la experiencia del cliente sin saturar la operación."
-- Otros Sectores: Identifica el sector -> Diagnostica la fricción operativa típica (agenda, volumen, consultas) -> Presenta el valor Upway.
-
-[REGLA SUPREMA DE ACTIVACIÓN Y ONBOARDING]
-Si el cliente indica que quiere "probar", "ver demo", "simular", "cómo funciona", "activar" o muestra intención clara de avanzar, presenta de inmediato las 2 opciones de onboarding:
-
-1. Activación Automática (Self-Serve en 5 pasos):
-"¡Excelente! Podemos activar tu flujo hoy mismo en 5 pasos desde nuestra plataforma. Durante el proceso se te pedirá crear una cuenta de Meta Developers (si no la tienes) y agregar tu método de pago / billing account (recomendado para escalar). En todas las páginas tendrás un botón flotante con nuestro equipo acompañándote en vivo."
-
-2. Implementación Manual / Asistida (Equipo Upway):
-"Si prefieres no enredarte con la parte técnica, nuestro equipo de Upway realiza la operación completa de implementación: configuramos tu agente, lo integramos a tus sistemas y te entregamos el sistema activo y listo. Solo nos entregas los datos básicos de tu negocio y nosotros hacemos el trabajo duro."
-
-[CAPACIDADES OPERATIVAS DE UPWAY]
-- Atención 24/7 y agenda inteligente en tiempo real.
-- Confirmación de disponibilidad, recordatorios, detección de no-shows y reprogramaciones.
-- Calificación de leads según reglas del negocio.
-- Escalamiento transparente a humanos en casos complejos o sensibles.
-- Cero dependencia de proveedores externos visibles para el cliente.
-
-[MODO ARQUITECTA DE PROMPTS]
-Si el usuario solicita diseñar, estructurar o mejorar un prompt para un asistente o agente de voz:
-1. Solicita la idea de negocio y el flujo objetivo.
-2. Genera el prompt en un bloque de código markdown \`\`\`.
-3. Usa los encabezados: [Identity], [Style], [Response Guidelines], [Task & Goals], [Error Handling / Fallback].
-4. Cero emojis, oraciones cortas, tono profesional, controlado y natural.
-
-[REGLAS NINJA Y RESTRICCIONES REFORZADAS]
-- Máximo 1 pregunta por mensaje. Cero formularios largos.
-- PROHIBIDO usar las palabras: "simulador", "demo genérica", "bot genérico", "asistente virtual básico", "Upway 2.0", "Vapi".
-- Si el usuario pide hablar con una persona, NO insistas en seguir preguntando volúmenes o datos: deriva inmediatamente.
-- Tu objetivo principal es empujar hacia la acción real: diagnóstico, activación o implementación.
-`;
 // 🚨 Número de WhatsApp del equipo humano de Upway (handoff web -> WhatsApp).
 // Se puede sobreescribir con HUMAN_TRANSFER_NUMBER; por defecto usa el número
 // de la conexión comercial ya asignada.
@@ -222,15 +150,17 @@ const buildWaAdvisorLink = (messages: SophieMessage[]): string => {
     .join('\n');
 
   const contexto = conversacion ? `\n\nResumen de mi conversación con Sophie:\n${conversacion}` : '';
-  const texto = encodeURIComponent(`Hola, vengo del chat de Sophie en la web. Quiero hablar con un asesor humano para conocer el precio y el tiempo de implementación de Upway.${contexto}`);
+  const texto = encodeURIComponent(`Hola, vengo del chat de Sophie en la web. Quiero hablar con un asesor humano de Upway.${contexto}`);
   return `https://wa.me/${HUMAN_TRANSFER_WA_NUMBER}?text=${texto}`;
 };
 
-// 🚨 Detección server-side de intención de asesor humano / precio / implementación.
-// Garantiza el marcador [CONTACTAR_ASESOR] aunque el LLM no lo genere.
-const HUMAN_INTENT_PATTERN = /(humano|asesor|persona real|hablar con alguien|me atienda|agente real|consultor)|\b(precio|precios|costo|costos|cuanto vale|cuánto vale|cotizaci[oó]n|tarifa|plan(es)?|implementaci[oó]n|cu[aá]nto tiempo|tiempo de implementaci[oó]n|cuando se activa|cu[aá]ndo se activa)\b/i;
+// 🚨 Detección server-side de petición EXPLÍCITA de asesor humano.
+// Los precios ya NO fuerzan el handoff: Sophie responde con el catálogo oficial
+// (RAG sobre lib/sophie/knowledge.ts). Este patrón solo garantiza el marcador
+// [CONTACTAR_ASESOR] cuando el cliente pide persona real.
+const HUMAN_INTENT_PATTERN = /\b(humano|humanos|asesor|asesora|asesores|persona real|hablar con alguien|me atienda|agente real)\b/i;
 
-const humanIntentReply = 'Con gusto. Para darte la tarifa exacta y el tiempo de implementación según tu operación, te conecto de inmediato con nuestro equipo humano por WhatsApp: te atienden en minutos. [CONTACTAR_ASESOR]';
+const humanIntentReply = 'Con gusto te atiende una persona de nuestro equipo. Te conecto de inmediato por WhatsApp: te responden en minutos. [CONTACTAR_ASESOR]';
 
 const detectHumanIntent = (messages: SophieMessage[]): boolean => {
   const lastUser = [...messages]
@@ -289,8 +219,19 @@ export async function POST(req: NextRequest) {
 
     const contents = buildSophieContents(messages.filter((m: SophieMessage) => m.role !== 'system'), audioUsuario, audioTranscrito);
 
+    // 🧠 RAG: recupera el conocimiento oficial de Upway relevante para la última
+    // consulta del cliente (planes, precios, políticas, FAQ, activación) y compone
+    // el system prompt con contexto. Los precios salen del catálogo canónico;
+    // los costos internos y de proveedores jamás salen de aquí.
+    const lastUserText = [...(messages as SophieMessage[])]
+      .reverse()
+      .find((m) => m.role !== 'bot' && m.role !== 'assistant' && m.role !== 'model')
+      ?.content
+      ?.trim() || '';
+    const systemPrompt = buildSophieSystemPrompt(retrieve(lastUserText));
+
     const openAiMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-      { role: 'system', content: AGENTE_SUPREMO_PROMPT },
+      { role: 'system', content: systemPrompt },
       ...contents.map((content) => ({
         role: content.role === 'model' ? 'assistant' as const : 'user' as const,
         content: content.parts.map((part) => ('text' in part ? part.text : '')).join(' ').trim() || ' '
@@ -319,7 +260,7 @@ export async function POST(req: NextRequest) {
         model: provider.model,
         messages: openAiMessages,
         temperature: 0.45,
-        max_tokens: 500
+        max_tokens: 800
       });
       return completion.choices[0]?.message?.content || '';
     };
@@ -337,8 +278,8 @@ export async function POST(req: NextRequest) {
         execute: async () => {
           const model = genAI.getGenerativeModel({
             model: 'gemini-2.5-flash',
-            systemInstruction: AGENTE_SUPREMO_PROMPT,
-            generationConfig: { temperature: 0.45, maxOutputTokens: 500 }
+            systemInstruction: systemPrompt,
+            generationConfig: { temperature: 0.45, maxOutputTokens: 800 }
           });
           const result = await model.generateContent({ contents });
           return result.response.text();
@@ -371,10 +312,9 @@ export async function POST(req: NextRequest) {
       botReply = buildLocalFallback(messages);
     }
 
-    // 🚨 HANDOFF WEB -> HUMANO: si el cliente pidió asesor/precio/implementación,
-    // se fuerza el marcador [CONTACTAR_ASESOR] y se devuelve el link de WhatsApp
-    // directo con el equipo humano. Esto aplica también si la IA se equivocó y
-    // respondió con un diagnóstico largo en vez de derivar.
+    // 🚨 HANDOFF WEB -> HUMANO: si el cliente pidió explícitamente una persona,
+    // se garantiza el marcador [CONTACTAR_ASESOR] (aunque el LLM no lo genere) y
+    // se devuelve el link de WhatsApp del equipo humano.
     let waAdvisorLink: string | null = null;
     if (detectHumanIntent(messages)) {
       if (!botReply.includes('[CONTACTAR_ASESOR]')) {
