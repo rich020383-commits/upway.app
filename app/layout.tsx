@@ -53,9 +53,11 @@ export const metadata: Metadata = {
 
 // 🎨 Configuración visual para dispositivos móviles (Bloqueo de zoom)
 export const viewport: Viewport = {
-  // Alineado con el splash móvil y la barra del navegador: sin costura de
-  // color entre el chrome del celular y el primer frame de la app.
-  themeColor: "#071a33",
+  // Alineado con el splash móvil (fondo negro) y la barra del navegador:
+  // sin costura de color entre el chrome del celular y el primer frame
+  // de la app. Negro puro para que la barra de sistema Android no asome
+  // una tira clara por debajo del splash.
+  themeColor: "#000000",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

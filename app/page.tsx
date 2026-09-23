@@ -204,7 +204,7 @@ export default function Home() {
       {showSplash && (
         <div
           style={{ height: '100dvh' }}
-          className={`fixed top-0 left-0 z-[9999] flex h-screen w-full items-center justify-center overflow-hidden overscroll-contain bg-[#071a33] transition-opacity duration-500 md:hidden ${
+          className={`fixed top-0 left-0 z-[9999] flex h-screen w-full items-center justify-center overflow-hidden overscroll-contain bg-black transition-opacity duration-500 md:hidden ${
             fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
         >
@@ -217,7 +217,7 @@ export default function Home() {
             onLoadedData={() => setSplashVideoLoaded(true)}
             onError={handleVideoEnd}
             onEnded={handleVideoEnd}
-            className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-300 ${
+            className={`absolute inset-0 h-full w-full scale-[1.02] bg-black object-cover object-center transition-opacity duration-300 ${
               splashVideoLoaded ? 'opacity-100' : 'opacity-0'
             }`}
           />
