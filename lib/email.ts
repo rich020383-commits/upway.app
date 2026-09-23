@@ -205,6 +205,114 @@ export async function sendHealthOnboardingEmail(
   }
 }
 
+export interface VerticalOnboardingEmailData {
+  /** Nombre público de la vertical: «Inmobiliarias» / «Upway Center». */
+  segmentLabel: string;
+  /** Organización solicitante (inmobiliaria o empresa). */
+  companyName: string;
+  /** Plan elegido en el wizard (va en el asunto para triage rápido). */
+  planName: string;
+  /** Filas legibles (etiqueta → valor) de cada campo respondido. */
+  rows: Array<[string, string]>;
+  /** Correo capturado en el wizard: replyTo y ACK al cliente. */
+  contactEmail: string;
+  submittedAt: string;
+}
+
+function buildVerticalOnboardingEmailHtml(data: VerticalOnboardingEmailData): string {
+  const rows: Array<[string, string]> = [
+    ['Vertical', data.segmentLabel],
+    ['Organización', data.companyName || '—'],
+    ['Plan seleccionado', data.planName || '—'],
+    ['Correo de contacto', data.contactEmail || '—'],
+    ...data.rows,
+  ];
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8" /><title>Nuevo Onboarding ${data.segmentLabel} - ${data.companyName}</title></head>
+<body style="margin:0;padding:0;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:720px;margin:0 auto;padding:24px;">
+<tr><td style="padding-bottom:24px;">
+  <div style="display:inline-flex;align-items:center;gap:12px;padding:12px 18px;border-radius:14px;background:linear-gradient(135deg,#0d1727 0%,#122841 100%);color:white;">
+    <span style="font-size:18px;font-weight:800;letter-spacing:-0.03em;">UPW<span style="color:#50e1d5;">\u25b2</span>Y</span>
+    <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.18em;opacity:0.8;">${data.segmentLabel} Onboarding</span>
+  </div>
+</td></tr>
+<tr><td style="padding:24px;background:white;border-radius:20px;border:1px solid #e2e8f0;box-shadow:0 10px 30px rgba(15,23,39,0.04);">
+  <h1 style="margin:0 0 8px;font-size:22px;font-weight:800;color:#0f172a;letter-spacing:-0.03em;">Nuevo caso de onboarding ${data.segmentLabel}</h1>
+  <p style="margin:0 0 20px;font-size:14px;color:#64748b;">Se ha recibido una nueva solicitud de onboarding vertical para revisi\u00f3n:</p>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;"><tbody>
+    ${buildRowsHtml(rows)}
+    <tr><td style="padding:8px 12px;font-weight:600;color:#334155;background:#f8fafc;">Fecha de env\u00edo</td><td style="padding:8px 12px;color:#0f172a;background:#f8fafc;">${data.submittedAt}</td></tr>
+  </tbody></table>
+  <div style="margin-top:24px;padding:16px;border-radius:12px;background:#edf5ff;border:1px solid #d3e2ff;">
+    <p style="margin:0;font-size:13px;color:#1e40af;font-weight:600;">\u26a1 Pr\u00f3ximos pasos</p>
+    <ol style="margin:8px 0 0;padding-left:18px;font-size:13px;color:#36557c;line-height:1.7;">
+      <li>Revisar completitud del caso y datos de contacto.</li>
+      <li>Contactar a <strong>${data.companyName || 'la organizaci\u00f3n'}</strong> en <strong>${data.contactEmail || '\u2014'}</strong> para validar el plan.</li>
+      <li>Confirmar n\u00famero, guion del agente y fecha de arranque.</li>
+      <li>Dejar el caso en PENDING_REVIEW hasta el visto bueno del cliente.</li>
+    </ol>
+  </div>
+</td></tr>
+<tr><td style="padding-top:16px;text-align:center;font-size:11px;color:#94a3b8;">${LEGAL_ENTITY} \u00b7 Correo generado autom\u00e1ticamente</td></tr>
+</table></body></html>`;
+}
+
+function buildVerticalOnboardingEmailText(data: VerticalOnboardingEmailData): string {
+  const lines = [
+    `Nuevo caso de onboarding ${data.segmentLabel} — ${data.companyName || 'Sin nombre'}`,
+    '='.repeat(50),
+    '',
+    `Plan seleccionado: ${data.planName || '—'}`,
+    `Correo de contacto: ${data.contactEmail || '—'}`,
+    '',
+    'RESPUESTAS DEL WIZARD:',
+    ...data.rows.map(([label, value]) => `  ${label}: ${value || '—'}`),
+    '',
+    `Enviado: ${data.submittedAt}`,
+  ];
+
+  return lines.join('\n');
+}
+
+/**
+ * Notificación interna del onboarding de verticales no-clínicas (Inmobiliaria
+ * y Upway Center). Es el equivalente vertical de sendHealthOnboardingEmail:
+ * sin este correo el envío del wizard quedaba sólo en el cliente.
+ */
+export async function sendVerticalOnboardingEmail(
+  data: VerticalOnboardingEmailData
+): Promise<{ ok: boolean; error?: string }> {
+  const transporter = createTransporter();
+
+  if (!transporter) {
+    console.warn('[email] SMTP no configurado. Saltando envío de correo de onboarding vertical.');
+    return { ok: false, error: 'SMTP_NOT_CONFIGURED' };
+  }
+
+  const subject = `[Onboarding ${data.segmentLabel}] ${data.companyName || 'Nueva solicitud'}${
+    data.planName ? ` · ${data.planName}` : ''
+  }`;
+
+  try {
+    await transporter.sendMail({
+      from: SMTP_FROM,
+      to: UPWAY_REVIEW_EMAIL,
+      subject,
+      text: buildVerticalOnboardingEmailText(data),
+      html: buildVerticalOnboardingEmailHtml(data),
+      replyTo: data.contactEmail || undefined,
+    });
+
+    return { ok: true };
+  } catch (error) {
+    console.error('[email] Error enviando correo de onboarding vertical:', error);
+    return { ok: false, error: error instanceof Error ? error.message : 'UNKNOWN_ERROR' };
+  }
+}
+
 /**
  * Envío genérico de correo transaccional (flujo de activación y otros).
  * Devuelve ok=false (no lanza) si SMTP no está configurado o falla el envío:

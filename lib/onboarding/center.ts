@@ -15,6 +15,14 @@ export const CENTER_STAGES: readonly WizardStage[] = [
     fields: [
       { id: 'empresa', label: 'Nombre de la empresa', placeholder: 'Ej. ServiTech' },
       { id: 'ciudad', label: 'Ciudad o zona', placeholder: 'Medellín' },
+      { id: 'encargado', label: 'Encargado del proyecto', placeholder: 'Nombre y cargo' },
+      {
+        id: 'contactoEmail',
+        label: 'Correo de contacto',
+        kind: 'email',
+        placeholder: 'contacto@empresa.com',
+        help: 'Ahí te confirmamos la activación y el link de pago.',
+      },
       { id: 'contacto', label: 'Teléfono de contacto', kind: 'tel', placeholder: '+57 300 000 0000' },
     ],
   },

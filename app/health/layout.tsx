@@ -43,7 +43,7 @@ export default function HealthLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="upway-shell relative flex min-h-screen flex-col text-slate-900 lg:flex-row">
-      <aside className="relative z-10 w-full border-b border-sky-100/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(234,244,255,0.84))] p-4 backdrop-blur-xl shadow-[inset_0_-1px_0_rgba(15,23,42,0.05)] lg:w-[240px] lg:border-b-0 lg:border-r lg:shadow-[inset_-1px_0_0_rgba(15,23,42,0.05)]">
+      <aside className="relative z-10 w-full border-b border-sky-100/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(234,244,255,0.84))] p-4 pt-[calc(env(safe-area-inset-top)+1rem)] backdrop-blur-xl shadow-[inset_0_-1px_0_rgba(15,23,42,0.05)] lg:w-[240px] lg:border-b-0 lg:border-r lg:pt-4 lg:shadow-[inset_-1px_0_0_rgba(15,23,42,0.05)]">
         <div className="mb-6 rounded-[20px] border border-sky-100 bg-white/80 p-3 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#eaf3ff,#dfeaff)] text-[11px] font-black text-[#1b5ed6] shadow-sm">U</div>

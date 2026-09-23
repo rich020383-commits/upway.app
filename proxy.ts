@@ -2,7 +2,10 @@ import { withAuth, NextRequestWithAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
 import { billingStateMeta, resolveBillingState } from '@/lib/billing/access';
 
-const billingGatePages = ['/dashboard/billing'];
+// Rutas que pueden verse con la facturación en cualquier estado: es donde el
+// cliente revisa el estado de su cuenta. Antes apuntaba a /dashboard/billing,
+// que se retiró junto con el panel viejo.
+const billingGatePages = ['/health/settings'];
 
 // 🛡️ withAuth maneja la redirección a /login automáticamente si no hay sesión
 export default withAuth(
@@ -41,7 +44,7 @@ export default withAuth(
     }
 
     // Redirección si el estado de facturación no permite el acceso
-    const redirectUrl = new URL('/dashboard/billing', request.url);
+    const redirectUrl = new URL('/health/settings', request.url);
     redirectUrl.searchParams.set('state', effectiveState);
     return NextResponse.redirect(redirectUrl);
   },
@@ -50,7 +53,9 @@ export default withAuth(
   }
 );
 
-// Configuración de las rutas que interceptará este archivo
+// Configuración de las rutas que interceptará este archivo.
+// /dashboard/* ya no vive aquí: next.config.ts lo redirige 301 a /health
+// antes de que corra el middleware.
 export const config = {
-  matcher: ['/dashboard/:path*', '/health/:path*'],
+  matcher: ['/health/:path*'],
 };

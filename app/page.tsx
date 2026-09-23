@@ -147,6 +147,45 @@ export default function Home() {
     return () => observer.disconnect();
   }, []);
 
+  /**
+   * 🔒 Bloquea el scroll del documento mientras el splash está visible.
+   * Sin esto, al deslizar durante la animación el navegador colapsaba la
+   * barra de direcciones y el splash (anclado al viewport) dejaba ver el
+   * desplazamiento de la página por el borde inferior del celular.
+   */
+  useEffect(() => {
+    if (!showSplash || typeof document === 'undefined') return;
+
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = body.style.overflow;
+
+    html.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+
+    return () => {
+      html.style.overflow = prevHtmlOverflow;
+      body.style.overflow = prevBodyOverflow;
+    };
+  }, [showSplash]);
+
+  /**
+   * ⏱️ Red de seguridad del splash: si el video no dispara `onEnded`
+   * (autoplay bloqueado, ahorro de datos, red lenta o códec no soportado),
+   * la pantalla se cierra igual. Nadie se queda en negro.
+   */
+  useEffect(() => {
+    if (!showSplash || shouldSkipSplash) return;
+
+    const id = window.setTimeout(() => {
+      setFadeOut(true);
+      window.setTimeout(() => setShowSplash(false), 500);
+    }, 5000);
+
+    return () => window.clearTimeout(id);
+  }, [showSplash, shouldSkipSplash]);
+
   const handleVideoEnd = () => {
     setFadeOut(true);
     setTimeout(() => {
@@ -156,10 +195,16 @@ export default function Home() {
 
   return (
     <>
-      {/* PANTALLA DE CARGA (SPLASH SCREEN) - SOLO MÓVIL */}
+      {/* PANTALLA DE CARGA (SPLASH SCREEN) - SOLO MÓVIL
+          Alto en `100dvh` (viewport visible real, sin la barra del navegador).
+          Con `inset-0` el bloque medía el viewport "con barra visible" y, al
+          colapsarse la barra al deslizar, aparecía un desplazamiento de la
+          página por el borde inferior. El `style` inline deja el fallback a
+          `h-screen` (100vh) en navegadores que aún no entienden dvh. */}
       {showSplash && (
         <div
-          className={`fixed inset-0 z-[9999] flex md:hidden items-center justify-center bg-white transition-opacity duration-500 ${
+          style={{ height: '100dvh' }}
+          className={`fixed top-0 left-0 z-[9999] flex h-screen w-full items-center justify-center overflow-hidden overscroll-contain bg-[#071a33] transition-opacity duration-500 md:hidden ${
             fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
         >
@@ -168,19 +213,20 @@ export default function Home() {
             autoPlay
             muted
             playsInline
-            preload="metadata"
+            preload="auto"
             onLoadedData={() => setSplashVideoLoaded(true)}
+            onError={handleVideoEnd}
             onEnded={handleVideoEnd}
-            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
+            className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-300 ${
               splashVideoLoaded ? 'opacity-100' : 'opacity-0'
             }`}
           />
         </div>
       )}
 
-      <main className="min-h-screen overflow-x-hidden bg-white text-[#0d3168] font-sans selection:bg-[#11b7b1] selection:text-white scroll-smooth">
+      <main className="min-h-screen overflow-x-hidden bg-white text-[#0d3168] font-sans selection:bg-[#11b7b1] selection:text-white">
         {/* NAVBAR SUPERIOR */}
-        <header className="sticky top-0 z-50 flex h-[74px] items-center justify-between px-5 md:px-[5%] border-b border-[#edf3f8] bg-white/90 backdrop-blur-md">
+        <header className="upway-topbar sticky top-0 z-50 flex items-center justify-between px-5 md:px-[5%] border-b border-[#edf3f8] bg-white/90 backdrop-blur-md">
           <a href="#inicio" className="flex items-center">
             <UpwayLogo />
           </a>
@@ -234,22 +280,29 @@ export default function Home() {
         {/* SECCIÓN SOPHIE V2 + VIDEO EN VIVO */}
         <section className="bg-[linear-gradient(180deg,#f7fbff_0%,#eef5ff_100%)] py-20 px-5 md:px-[5%] border-y border-[#e2edf5]">
           <div className="max-w-7xl mx-auto">
-            {/* VIDEO CINEMATOGRÁFICO DE SOPHIE V2 */}
+            {/* VIDEO CINEMATOGRÁFICO DE SOPHIE V2
+                Móvil: servimos `sophie-mobile.mp4` (H.264 720p, ~1.1MB, con
+                decodificación por hardware en cualquier celular) en lugar del
+                master VP9 4K de 6.9MB, que obligaba a decodificar 3830x2160
+                en software y trababa el scroll. El `poster` se pinta al
+                instante, así el bloque nunca aparece vacío ni desplaza el
+                contenido al cargar. */}
             <div className="relative mb-14 overflow-hidden rounded-[24px] border border-[#e2edf5] bg-white shadow-[0_30px_80px_rgba(15,31,54,0.10)] md:rounded-[32px]">
               <div className="relative aspect-video w-full overflow-hidden rounded-t-[24px] md:aspect-auto md:h-[500px] md:rounded-[32px] lg:h-[560px]">
                 <video
                   ref={heroVideoRef}
-                  src={heroVideoReady ? '/sophie-optimizada.webm' : undefined}
-                  autoPlay={heroVideoReady && !isMobile ? true : heroVideoReady}
+                  src={heroVideoReady ? (isMobile ? '/sophie-mobile.mp4' : '/sophie-optimizada.webm') : undefined}
+                  poster="/sophie-poster.jpg"
+                  autoPlay={heroVideoReady}
                   loop
                   muted
                   playsInline
-                  preload={heroVideoReady ? 'metadata' : 'none'}
+                  preload="metadata"
                   onLoadedData={() => setHeroVideoLoaded(true)}
                   disablePictureInPicture
                   controlsList="nodownload nofullscreen"
                   className={`h-full w-full object-cover object-center transition-opacity duration-300 ${
-                    heroVideoLoaded ? 'opacity-100' : 'opacity-0'
+                    heroVideoLoaded || isMobile ? 'opacity-100' : 'opacity-0'
                   }`}
                 />
                 <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-t from-white/25 via-transparent to-white/5 md:block"></div>

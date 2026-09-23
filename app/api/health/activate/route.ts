@@ -254,7 +254,7 @@ export async function POST(request: NextRequest) {
             planId: state.plan?.id ?? null,
             planName: state.plan?.name ?? null,
             panel: '/health',
-            operations: '/dashboard/operaciones',
+            operations: '/health/agenda',
           },
         },
         { organizationId, clinicId: state.clinic.id, role }

@@ -71,3 +71,51 @@ export function stageMeta(stageIndex: number, currentIndex: number, total: numbe
   if (stageIndex === currentIndex) return stageIndex === total - 1 ? 'PENDING_REVIEW' : 'IN PROGRESS';
   return 'DRAFT';
 }
+
+/**
+ * Filas legibles (etiqueta → valor) de todo el envío, en el orden del wizard.
+ *
+ * Es la fuente del correo interno de revisión: sin esto, el equipo de Upway
+ * recibía el caso sin saber a qué campo correspondía cada respuesta.
+ */
+export function submissionRows(
+  config: OnboardingConfig,
+  answers: Record<string, string>
+): Array<[string, string]> {
+  const rows: Array<[string, string]> = [];
+  const mapped = new Set<string>();
+
+  for (const stage of config.stages) {
+    for (const field of stage.fields ?? []) {
+      mapped.add(field.id);
+      const value = (answers[field.id] ?? '').trim();
+      if (value) rows.push([field.label, value]);
+    }
+  }
+
+  // Respuestas fuera del catálogo de campos (p. ej. quedó de una versión previa
+  // del wizard) no se pierden: se anexan con su id como etiqueta.
+  for (const [id, raw] of Object.entries(answers)) {
+    if (mapped.has(id) || id === 'planId') continue;
+    const value = (raw ?? '').trim();
+    if (value) rows.push([id, value]);
+  }
+
+  return rows;
+}
+
+/** Nombre legible del plan elegido; si no se resuelve, devuelve el id crudo. */
+export function submissionPlanName(
+  config: OnboardingConfig,
+  answers: Record<string, string>
+): string {
+  const planId = (answers.planId ?? '').trim();
+  if (!planId) return '';
+  const plans = config.stages.flatMap((stage) => [...(stage.plans ?? [])]);
+  return plans.find((plan) => plan.id === planId)?.name ?? planId;
+}
+
+/** Nombre de la organización tal como lo escribió el cliente. */
+export function submissionCompanyName(answers: Record<string, string>): string {
+  return (answers.empresa ?? '').trim();
+}

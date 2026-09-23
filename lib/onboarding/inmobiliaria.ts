@@ -15,6 +15,13 @@ export const INMOBILIARIA_STAGES: readonly WizardStage[] = [
       { id: 'empresa', label: 'Nombre de la inmobiliaria', placeholder: 'Ej. Inmobiliaria Norte' },
       { id: 'ciudad', label: 'Ciudad o zona', placeholder: 'Bogotá' },
       { id: 'encargado', label: 'Encargado del proyecto', placeholder: 'Nombre y cargo' },
+      {
+        id: 'contactoEmail',
+        label: 'Correo de contacto',
+        kind: 'email',
+        placeholder: 'contacto@inmobiliaria.com',
+        help: 'Ahí te confirmamos la activación y el link de pago.',
+      },
       { id: 'contacto', label: 'Teléfono de contacto', kind: 'tel', placeholder: '+57 300 000 0000' },
     ],
   },

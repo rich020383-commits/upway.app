@@ -21,6 +21,18 @@ const metaCls: Record<string, string> = {
 type Props = { config: OnboardingConfig };
 
 /**
+ * Resultado del envío a revisión: `ok` es la respuesta HTTP del guardado;
+ * `delivered` distingue "el equipo de Upway recibió el correo" de
+ * "guardamos el caso pero el correo no salió".
+ */
+type PersistResult = {
+  ok: boolean;
+  caseRef?: string;
+  delivered?: boolean;
+  warning?: string;
+};
+
+/**
  * Wizard de onboarding vertical (Inmobiliaria / Center) sobre el patrón de
  * Health: una sola página, etapas modeladas en lib/onboarding/*, validación
  * por etapa y cierre honesto "Enviar a revisión Upway" (no autoactiva).
@@ -35,6 +47,12 @@ export function VerticalWizard({ config }: Props) {
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
+  /** Datos del envío a revisión que se muestran al cerrar el wizard. */
+  const [submission, setSubmission] = useState<{
+    caseRef?: string;
+    delivered: boolean;
+    warning?: string;
+  } | null>(null);
 
   const stage = stages[step];
   const isLast = step === total - 1;
@@ -68,7 +86,7 @@ export function VerticalWizard({ config }: Props) {
     setErrors([]);
   };
 
-  const persist = async (currentStep: number, submit: boolean): Promise<boolean> => {
+  const persist = async (currentStep: number, submit: boolean): Promise<PersistResult> => {
     try {
       const res = await fetch('/api/onboarding', {
         method: 'POST',
@@ -82,11 +100,20 @@ export function VerticalWizard({ config }: Props) {
         }),
       });
       if (!res.ok) throw new Error('save failed');
+      const data = await res.json().catch(() => null);
       setSaveFailed(false);
-      return true;
+      return {
+        ok: true,
+        caseRef: typeof data?.caseRef === 'string' ? data.caseRef : undefined,
+        // El servidor responde ok:false cuando el correo interno no salió
+        // (SMTP sin configurar). El caso queda en revisión, pero el cliente
+        // merece saber que el equipo aún no lo recibió.
+        delivered: data?.ok !== false,
+        warning: typeof data?.warning === 'string' ? data.warning : undefined,
+      };
     } catch {
       setSaveFailed(true);
-      return false;
+      return { ok: false };
     }
   };
 
@@ -99,9 +126,16 @@ export function VerticalWizard({ config }: Props) {
     setErrors([]);
     if (isLast) {
       setSending(true);
-      const ok = await persist(step, true);
+      const result = await persist(step, true);
       setSending(false);
-      if (ok) setDone(true);
+      if (result.ok) {
+        setSubmission({
+          caseRef: result.caseRef,
+          delivered: result.delivered !== false,
+          warning: result.warning,
+        });
+        setDone(true);
+      }
       return;
     }
     // Guardado best-effort: no bloqueamos el avance si falla la red.
@@ -155,12 +189,6 @@ export function VerticalWizard({ config }: Props) {
       <header className="border-b border-[#1E293B]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
           <span className="text-[12px] font-bold tracking-[0.2em] text-[#50e1d5]">UPWAY · ONBOARDING</span>
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2 rounded-full border border-[#1E293B] bg-[#0D1117] px-4 py-2 text-[12px] font-semibold text-[#8994A6] transition hover:border-teal-500/40 hover:text-[#50e1d5]"
-          >
-            Ir al Panel <ArrowRight size={14} />
-          </Link>
         </div>
       </header>
 
@@ -170,7 +198,26 @@ export function VerticalWizard({ config }: Props) {
           <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#8994A6]">
             {config.label} · {total} etapas
           </p>
-          <ol className="space-y-2">
+          {/* En celular la lista completa empujaba el formulario fuera de la
+              pantalla: solo se muestra la etapa actual con barra de avance. */}
+          <div className="lg:hidden">
+            <div className="mb-2 flex items-baseline justify-between gap-3">
+              <span className="min-w-0 truncate text-[12px] font-semibold text-[#F5F7FA]">
+                {stages[step]?.titulo}
+              </span>
+              <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.16em] text-[#50e1d5]">
+                {step + 1}/{total}
+              </span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#1E293B]">
+              <div
+                className="h-full rounded-full bg-[#0ba9a9] transition-[width] duration-300"
+                style={{ width: `${Math.round(((step + 1) / total) * 100)}%` }}
+              />
+            </div>
+          </div>
+
+          <ol className="mt-4 hidden space-y-2 lg:block">
             {stages.map((s, i) => {
               const meta = stageMeta(i, step, total);
               return (
@@ -218,18 +265,29 @@ export function VerticalWizard({ config }: Props) {
                 Revisamos tu configuración y te contactamos para validar el plan y el arranque. No hay activación automática:
                 nada entra en producción sin tu visto bueno.
               </p>
+
+              {submission?.caseRef && (
+                <p className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#1E293B] bg-[#121821] px-4 py-2 font-mono text-[12px] font-semibold text-[#50e1d5]">
+                  Ref {submission.caseRef}
+                </p>
+              )}
+
+              {submission?.delivered ? (
+                <p className="mt-4 max-w-xl text-[12px] leading-relaxed text-[#8994A6]">
+                  El equipo de Upway ya recibió tu caso y te enviamos la confirmación al correo que registraste.
+                </p>
+              ) : submission ? (
+                <p className="mt-4 max-w-xl rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-[12px] font-semibold leading-relaxed text-amber-200">
+                  {submission.warning ?? 'Guardamos tu caso, pero no pudimos avisar al equipo de Upway. Escríbenos por WhatsApp para no perder el turno.'}
+                </p>
+              ) : null}
+
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link
-                  href="/dashboard"
+                  href={config.segment === 'center' ? '/center' : '/inmobiliarias'}
                   className="inline-flex items-center gap-2 rounded-full bg-[#0ba9a9] px-5 py-3 text-[13px] font-bold text-white transition hover:-translate-y-0.5"
                 >
-                  Ir al Panel <ArrowRight size={16} />
-                </Link>
-                <Link
-                  href={config.segment === 'center' ? '/center' : '/inmobiliarias'}
-                  className="inline-flex items-center gap-2 rounded-full border border-[#1E293B] px-5 py-3 text-[13px] font-semibold text-[#8994A6] transition hover:text-[#F5F7FA]"
-                >
-                  Volver a la página de {config.label}
+                  Volver a la página de {config.label} <ArrowRight size={16} />
                 </Link>
               </div>
             </div>

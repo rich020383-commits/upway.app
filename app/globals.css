@@ -70,6 +70,15 @@ html {
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+  /* El header sticky mide 74px: al saltar a un ancla (#solucion, #agenda,
+     #contacto) el título ya no queda escondido debajo de la barra. Suma el
+     notch porque `viewportFit: cover` dibuja de borde a borde. */
+  scroll-padding-top: calc(86px + env(safe-area-inset-top));
+  /* Sin rebote horizontal en móvil: al arrastrar de lado se veía el fondo
+     blanco del documento. El scroll vertical queda intacto. */
+  overscroll-behavior-x: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -85,10 +94,52 @@ body {
   max-width: 100%;
   overflow-x: hidden;
   /* Se eliminó overscroll-behavior-y: none que bloqueaba el scroll en pantalla táctil */
+  overscroll-behavior-x: none;
+  /* Sin rectángulo gris/azul al tocar botones: se veía "barato" en Android. */
+  -webkit-tap-highlight-color: transparent;
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* Zonas que pueden deslizarse en horizontal (tablas anchas del panel):
+   el gesto se queda dentro y nunca arrastra la página completa. */
+.upway-xscroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+/* Barra sticky de 74px que crece con el notch. Con `viewportFit: cover` la
+   app dibuja de borde a borde, así que en celulares con notch o en PWA
+   instalada el contenido quedaba debajo de la barra de estado. */
+.upway-topbar {
+  height: calc(74px + env(safe-area-inset-top));
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Táctil: elimina el retardo de 300ms y el zoom accidental por doble toque
+   en los controles, sin desactivar el scroll normal de la página. */
+a,
+button,
+[role="button"],
+summary,
+label,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+/* Nada desborda su contenedor en celular (causaba “planos” blancos y
+   desplazamientos laterales al deslizar). */
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
 }
 
 ::selection {
@@ -381,6 +432,22 @@ p {
 
   .text-shimmer {
     animation-duration: 8s;
+  }
+
+  /* 🔥 El mayor causante de scroll trabado en Android es backdrop-filter:
+     obliga a recomponer y desenfocar TODO lo que pasa por debajo en cada
+     frame (barra sticky de 74px incluida). En móvil se apaga en todas las
+     clases propias Y en las utilidades de Tailwind (backdrop-blur-sm/md/xl/2xl),
+     que antes quedaban activas porque sólo apagábamos las propias. */
+  [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* La barra sticky mantiene su fondo casi opaco para no perder legibilidad
+     al quitarle el desenfoque. */
+  header[class*="sticky"] {
+    background-color: rgba(255, 255, 255, 0.96);
   }
 }
 

@@ -769,7 +769,7 @@ export default function HealthAgendaPage() {
 
       {bookingSlot ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-4 backdrop-blur-sm sm:items-center">
-          <div className="w-full max-w-lg rounded-[28px] bg-white p-6 shadow-[0_30px_80px_rgba(15,23,42,0.25)]">
+          <div className="max-h-[88dvh] w-full max-w-lg overflow-y-auto overscroll-contain rounded-[28px] bg-white p-6 shadow-[0_30px_80px_rgba(15,23,42,0.25)]">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
@@ -855,7 +855,7 @@ export default function HealthAgendaPage() {
 
       {rescheduleTarget ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-4 backdrop-blur-sm sm:items-center">
-          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-[28px] bg-white p-6 shadow-[0_30px_80px_rgba(15,23,42,0.25)]">
+          <div className="flex max-h-[88dvh] w-full max-w-2xl flex-col rounded-[28px] bg-white p-6 shadow-[0_30px_80px_rgba(15,23,42,0.25)]">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
@@ -882,7 +882,7 @@ export default function HealthAgendaPage() {
               </button>
             </div>
 
-            <div className="mt-5 flex-1 space-y-4 overflow-y-auto pr-1">
+            <div className="mt-5 min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain pr-1">
               {rescheduleLoading ? (
                 <p className="text-sm font-semibold text-slate-500">Calculando cupos disponibles…</p>
               ) : null}

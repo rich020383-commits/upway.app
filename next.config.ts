@@ -37,6 +37,20 @@ const nextConfig: NextConfig = {
         destination: '/',
         permanent: true,
       },
+      {
+        // El panel viejo (/dashboard: bots, inbox, inventario, operaciones,
+        // billing, admin/códigos y el onboarding v1 con SDK Meta) se retiró:
+        // Upway tiene un solo panel, el de /health. 301 para no romper los
+        // enlaces que ya circularon en correos, demos y sesiones guardadas.
+        source: '/dashboard',
+        destination: '/health',
+        permanent: true,
+      },
+      {
+        source: '/dashboard/:path*',
+        destination: '/health',
+        permanent: true,
+      },
     ];
   },
   async headers() {

@@ -33,13 +33,22 @@ const segmentAliases: Record<string, string> = {
   droguerias: 'drogueria',
 };
 
+/**
+ * Verticales de Upway. Desde la consolidación, solo Health, Inmobiliarias y
+ * Center tienen flujo propio de onboarding.
+ *
+ * `retail`, `supermercado`, `drogueria` y `general` se conservan porque el
+ * registro/login y el contexto del negocio siguen etiquetando al cliente con
+ * ellos, pero apuntan al panel único (/health): su onboarding v1 con SDK Meta
+ * se retiró junto con el panel viejo /dashboard.
+ */
 export const VERTICALS: Record<VerticalId, VerticalDefinition> = {
   general: {
     id: 'general',
     label: 'Negocio general',
     description: 'Configuración operativa adaptada a tu empresa.',
-    onboardingRoute: '/dashboard/onboarding/lienzo?segment=general',
-    miniLandingRoute: '/dashboard/onboarding',
+    onboardingRoute: '/health',
+    miniLandingRoute: '/',
   },
   health: {
     id: 'health',
@@ -66,21 +75,21 @@ export const VERTICALS: Record<VerticalId, VerticalDefinition> = {
     id: 'retail',
     label: 'Retail / Tienda',
     description: 'Atención comercial más rápida y ventas más claras.',
-    onboardingRoute: '/dashboard/onboarding/lienzo?segment=retail',
+    onboardingRoute: '/health',
     miniLandingRoute: '/',
   },
   supermercado: {
     id: 'supermercado',
     label: 'Supermercado',
     description: 'Consultas, promociones y atención con mayor velocidad.',
-    onboardingRoute: '/dashboard/onboarding/lienzo?segment=supermercado',
+    onboardingRoute: '/health',
     miniLandingRoute: '/',
   },
   drogueria: {
     id: 'drogueria',
     label: 'Droguería',
     description: 'Consultas, disponibilidad y pedidos con mejor coordinación.',
-    onboardingRoute: '/dashboard/onboarding/lienzo?segment=drogueria',
+    onboardingRoute: '/health',
     miniLandingRoute: '/',
   },
 };
@@ -102,9 +111,16 @@ export function resolveVertical(value?: string | null): VerticalDefinition {
 
 export function resolvePostLoginRoute(value?: string | null): string {
   const normalized = normalizeSegment(value);
-  return VERTICALS[normalized]?.onboardingRoute ?? '/dashboard';
+  // Fallback: el panel único de Upway. /dashboard ya no existe (301 a /health).
+  return VERTICALS[normalized]?.onboardingRoute ?? '/health';
 }
 
+/**
+ * Mapa de entrada por segmento. Se mantiene porque los enlaces antiguos
+ * (`?segment=retail`, etc.) siguen llegando desde correos y campañas: los
+ * segmentos sin flujo propio aterrizan en el panel único en lugar de una
+ * ruta inexistente.
+ */
 export const SEGMENT_ROUTE_MAP: Record<string, string> = {
   health: '/health/onboarding',
   salud: '/health/onboarding',
@@ -117,14 +133,14 @@ export const SEGMENT_ROUTE_MAP: Record<string, string> = {
   'upway-center': '/center/onboarding',
   callcenter: '/center/onboarding',
   'call-center': '/center/onboarding',
-  retail: '/dashboard/onboarding/lienzo?segment=retail',
-  tienda: '/dashboard/onboarding/lienzo?segment=retail',
-  tiendas: '/dashboard/onboarding/lienzo?segment=retail',
-  supermercado: '/dashboard/onboarding/lienzo?segment=supermercado',
-  supermercados: '/dashboard/onboarding/lienzo?segment=supermercado',
-  drogueria: '/dashboard/onboarding/lienzo?segment=drogueria',
-  droguerias: '/dashboard/onboarding/lienzo?segment=drogueria',
-  general: '/dashboard/onboarding/lienzo?segment=general',
-  business: '/dashboard/onboarding/lienzo?segment=general',
-  negocio: '/dashboard/onboarding/lienzo?segment=general',
+  retail: '/health',
+  tienda: '/health',
+  tiendas: '/health',
+  supermercado: '/health',
+  supermercados: '/health',
+  drogueria: '/health',
+  droguerias: '/health',
+  general: '/health',
+  business: '/health',
+  negocio: '/health',
 };

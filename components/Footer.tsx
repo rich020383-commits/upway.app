@@ -12,7 +12,7 @@ export default function Footer() {
         </svg>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-16">
+      <div className="mx-auto max-w-7xl px-6 pt-16 pb-[calc(env(safe-area-inset-bottom)+6rem)]">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-[#0f172a] to-[#1b3a5f] shadow-lg border border-white/10 overflow-hidden">

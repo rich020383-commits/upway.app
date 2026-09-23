@@ -55,15 +55,30 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  /**
+   * Scroll del chat: movemos ÚNICAMENTE el contenedor de mensajes.
+   * Antes se usaba `scrollIntoView`, que arrastra a TODOS los ancestros
+   * scrollables —incluida la página—: con el chat abierto, al llegar un
+   * mensaje la landing completa se desplazaba sola en el celular.
+   */
+  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    container.scrollTo({ top: container.scrollHeight, behavior });
   };
 
+  // Al abrir saltamos al final sin animación: entrar desplazándose se sentía lento.
   useEffect(() => {
+    if (!isOpen) return;
+    scrollToBottom("auto");
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
     scrollToBottom();
-  }, [messages, isLoading, isRecording]);
+  }, [messages, isLoading, isRecording, isOpen]);
 
   useEffect(() => {
     const escucharBoton = () => {
@@ -72,6 +87,30 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
     window.addEventListener('abrir-chat', escucharBoton);
     return () => window.removeEventListener('abrir-chat', escucharBoton);
   }, []);
+
+  /**
+   * En celular el chat es una hoja a pantalla completa: mientras está abierto
+   * se bloquea el scroll del documento para que la página de fondo no se
+   * mueva al deslizar dentro de la conversación ni al abrir el teclado.
+   * Desde 640px el panel vuelve a ser flotante y el documento queda libre.
+   */
+  useEffect(() => {
+    if (!isOpen || typeof window === 'undefined') return;
+    if (!window.matchMedia('(max-width: 639px)').matches) return;
+
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = body.style.overflow;
+
+    html.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+
+    return () => {
+      html.style.overflow = prevHtmlOverflow;
+      body.style.overflow = prevBodyOverflow;
+    };
+  }, [isOpen]);
 
   const cerrarChat = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -112,6 +151,15 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
       setIsRecording(true);
     } catch (error) {
       console.error("Error al acceder al micrófono:", error);
+      // Antes el fallo sólo quedaba en consola: en celular el usuario veía
+      // que "no pasaba nada" al tocar el micrófono.
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "bot",
+          content: "🎤 No pude acceder a tu micrófono. Revisa los permisos del navegador o escríbeme por texto y seguimos.",
+        },
+      ]);
     }
   };
 
@@ -200,25 +248,29 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
 
   return (
     <>
-      {/* BOTÓN FLOTANTE */}
+      {/* BOTÓN FLOTANTE
+          El pulso ahora anima `opacity` (se resuelve en el compositor) en vez
+          de `box-shadow`: animar la sombra de un elemento fijo obliga a
+          repintar la pantalla completa en cada frame y era una de las causas
+          del scroll trabado en celular. También respeta el área segura del
+          iPhone (barra gestual) para no quedar tapado. */}
       <motion.button
-        animate={{
-          boxShadow: isOpen
-            ? "0px 0px 0px rgba(0,0,0,0)"
-            : ["0px 0px 15px rgba(0,209,255,0.4)", "0px 0px 30px rgba(0,209,255,0.8)", "0px 0px 15px rgba(0,209,255,0.4)"]
-        }}
-        transition={{ duration: 2, repeat: isOpen ? 0 : Infinity, ease: "easeInOut" }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`fixed bottom-6 right-6 w-14 h-14 rounded-full border border-[#00D1FF]/50 backdrop-blur-md transition-all z-[999] flex items-center justify-center overflow-hidden ${
+        aria-label={isOpen ? "Cerrar el chat de Sophie" : "Abrir el chat de Sophie"}
+        className={`group fixed right-5 bottom-[calc(env(safe-area-inset-bottom)+1.25rem)] w-14 h-14 rounded-full border border-[#00D1FF]/50 backdrop-blur-md transition-all z-[999] flex items-center justify-center overflow-hidden sm:right-6 sm:bottom-6 ${
           isOpen ? 'bg-[#0A0E14] text-white opacity-0 pointer-events-none' : 'bg-[#00D1FF]/10 text-[#00D1FF]'
         }`}
       >
+        <span
+          aria-hidden="true"
+          className={`pointer-events-none absolute inset-0 rounded-full shadow-[0_0_26px_rgba(0,209,255,0.65)] ${isOpen ? 'opacity-0' : 'animate-pulse-glow'}`}
+        />
         <div className="absolute inset-0 bg-gradient-to-tr from-[#00D1FF]/20 to-transparent pointer-events-none" />
         <img
           src="/sophie-icon.png"
-          alt="Abrir Sophie V2"
+          alt="Sophie, asistente de Upway"
           className="w-7 h-7 rounded-[8px] object-cover shadow-[0_0_10px_rgba(34,211,238,0.3)] transition-transform group-hover:scale-110 relative z-10"
         />
       </motion.button>
@@ -226,15 +278,18 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
       {/* PANEL DE COMANDO SOPHIE V2 */}
       <AnimatePresence>
         {isOpen && (
+          /* HOJA MÓVIL: a pantalla completa (hasta 640px) con alto `100dvh`
+             para que la barra del navegador no recorte el campo de escritura.
+             Desde `sm` vuelve al panel flotante de escritorio. */
           <motion.div
-            initial={{ opacity: 0, y: 30, scale: 0.95, filter: "blur(10px)" }}
-            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: 20, scale: 0.95, filter: "blur(10px)" }}
-            transition={{ type: "spring", stiffness: 200, damping: 25 }}
-            className="fixed bottom-6 right-6 w-[360px] md:w-[420px] h-[600px] bg-[#0A0E14]/90 backdrop-blur-2xl rounded-2xl shadow-[0_0_50px_rgba(0,209,255,0.15)] border border-[#00D1FF]/20 z-[1000] flex flex-col overflow-hidden ring-1 ring-white/5"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 24 }}
+            transition={{ type: "spring", stiffness: 220, damping: 26 }}
+            className="fixed inset-x-0 bottom-0 z-[1000] flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden overscroll-contain border-0 bg-[#0A0E14] ring-1 ring-white/5 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:h-[600px] sm:max-h-[calc(100dvh-3rem)] sm:w-[420px] sm:rounded-2xl sm:border sm:border-[#00D1FF]/20 sm:bg-[#0A0E14]/95 sm:shadow-[0_0_50px_rgba(0,209,255,0.15)]"
           >
-            {/* CABECERA (HUD TECH) */}
-            <div className="bg-[#03050a]/80 p-4 border-b border-[#00D1FF]/20 flex items-center justify-between shrink-0 relative overflow-hidden">
+            {/* CABECERA (HUD TECH) — con respeto al notch del celular */}
+            <div className="bg-[#03050a]/80 px-4 pb-4 pt-[calc(env(safe-area-inset-top)+0.75rem)] border-b border-[#00D1FF]/20 flex items-center justify-between shrink-0 relative overflow-hidden sm:p-4">
               <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,209,255,0.05)_50%)] bg-[length:100%_4px] pointer-events-none" />
 
               <div className="flex items-center gap-4 relative z-10">
@@ -276,8 +331,15 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
               </button>
             </div>
 
-            {/* ÁREA DE MENSAJES (TERMINAL) */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-gradient-to-b from-[#03050a]/50 to-[#0A0E14]/80 scroll-smooth">
+            {/* ÁREA DE MENSAJES (TERMINAL)
+                `overscroll-contain`: el deslizamiento se queda dentro de la
+                conversación y no se encadena a la página de fondo. Se retiró
+                `scroll-smooth` porque en móvil animaba el scroll del panel
+                completo con cada mensaje nuevo. */}
+            <div
+              ref={messagesContainerRef}
+              className="flex-1 overflow-y-auto overscroll-contain p-5 space-y-5 bg-gradient-to-b from-[#03050a]/50 to-[#0A0E14]/80 [-webkit-overflow-scrolling:touch]"
+            >
               {messages.filter(m => m.role !== "system").map((m, i) => (
                 <motion.div
                   initial={{ opacity: 0, x: m.role === 'user' ? 20 : -20 }}
@@ -302,7 +364,7 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
                         <motion.button
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => window.location.href = '/register?next=' + encodeURIComponent('/dashboard/onboarding')}
+                          onClick={() => window.location.href = '/register?next=' + encodeURIComponent('/health/onboarding')}
                           className="bg-[#00D1FF]/20 border border-[#00D1FF]/50 text-[#00D1FF] px-4 py-2.5 rounded text-[12px] font-mono tracking-widest uppercase hover:bg-[#00D1FF] hover:text-black transition-all flex items-center justify-center gap-2 mt-2 shadow-[0_0_15px_rgba(0,209,255,0.3)]"
                         >
                           <Zap className="w-4 h-4" /> REGISTRARME / INICIAR SESIÓN
@@ -355,21 +417,35 @@ Cuando hagas esto, debes incluir EXACTAMENTE este texto al final de tu respuesta
                   </motion.div>
                 )}
               </AnimatePresence>
-
-              <div ref={messagesEndRef} />
             </div>
 
-            {/* INPUT DE TERMINAL CON BOTONERA MULTIMEDIA */}
-            <div className="p-4 bg-[#03050a] border-t border-[#00D1FF]/20 shrink-0 relative z-20">
+            {/* INPUT DE TERMINAL CON BOTONERA MULTIMEDIA
+                El padding inferior suma el área segura del iPhone para que el
+                campo no quede debajo de la barra gestual. */}
+            <div className="px-4 pt-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:p-4 bg-[#03050a] border-t border-[#00D1FF]/20 shrink-0 relative z-20">
               <div className="relative flex items-center bg-[#0A0E14] border border-white/10 focus-within:border-[#00D1FF]/50 rounded text-white overflow-hidden transition-colors">
                 <div className="pl-3 text-[#00D1FF] font-mono text-[14px]">{'>'}</div>
+                {/* `onKeyDown` en vez de `onKeyPress` (evento obsoleto en React 19)
+                    y controles móviles: tecla de envío, sin autocorrección y sin
+                    mayúscula automática en comandos. El texto a 16px evita que
+                    iOS haga zoom al enfocar y descoloque la interfaz. */}
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      sendMessage();
+                    }
+                  }}
+                  enterKeyHint="send"
+                  autoComplete="off"
+                  autoCapitalize="sentences"
+                  spellCheck={false}
+                  aria-label="Escribe tu mensaje para Sophie"
                   placeholder={isRecording ? "Grabando audio..." : "Ingresa un comando o audio..."}
                   disabled={isLoading || isRecording}
-                  className="w-full bg-transparent pl-3 pr-14 py-3.5 text-[13px] font-mono text-white placeholder-white/30 outline-none disabled:opacity-50"
+                  className="w-full bg-transparent pl-3 pr-14 py-3.5 text-[16px] sm:text-[13px] font-mono text-white placeholder-white/30 outline-none disabled:opacity-50"
                 />
 
                 {/* 🔥 BOTONERA DINÁMICA DE SOFÍA */}

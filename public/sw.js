@@ -10,9 +10,10 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // 1. IGNORAR completamente el Dashboard, las API y los recursos de Next.js
+  // 1. IGNORAR completamente el panel, las API y los recursos de Next.js
+  //    (antes excluía /dashboard; ese panel se retiró y su lugar lo ocupa /health)
   if (
-    url.pathname.startsWith('/dashboard') || 
+    url.pathname.startsWith('/health') || 
     url.pathname.startsWith('/api') || 
     url.pathname.startsWith('/_next') ||
     event.request.method !== 'GET'

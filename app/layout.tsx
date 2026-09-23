@@ -53,11 +53,20 @@ export const metadata: Metadata = {
 
 // 🎨 Configuración visual para dispositivos móviles (Bloqueo de zoom)
 export const viewport: Viewport = {
-  themeColor: "#0d1727",
+  // Alineado con el splash móvil y la barra del navegador: sin costura de
+  // color entre el chrome del celular y el primer frame de la app.
+  themeColor: "#071a33",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  // `viewportFit: cover`: habilita las variables env(safe-area-inset-*) que
+  // usa el chat flotante, para no chocar con la barra gestual del iPhone.
+  viewportFit: "cover",
+  // `resizes-content`: en Android el teclado REDIMENSIONA el layout en vez de
+  // superponerse; sin esto el campo de escritura de Sophie quedaba tapado
+  // por el teclado al abrir el chat en el celular.
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({

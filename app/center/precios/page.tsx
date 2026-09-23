@@ -108,7 +108,7 @@ export default function CenterPreciosPage() {
   return (
     <main className="min-h-screen bg-white text-[#0d3168] selection:bg-[#11b7b1] selection:text-white">
       <header className="sticky top-0 z-50 border-b border-[#edf3f8] bg-white/90 backdrop-blur-md">
-        <div className="mx-auto flex h-[74px] w-full max-w-[1180px] items-center justify-between px-5 md:px-[5%]">
+        <div className="upway-topbar mx-auto flex w-full max-w-[1180px] items-center justify-between px-5 md:px-[5%]">
           <Link href="/center" className="flex items-center gap-3" aria-label="Volver a la landing de Upway Center">
             <span className="inline-flex items-center overflow-hidden rounded-2xl bg-black px-4 py-2 shadow-lg">
               <Image
