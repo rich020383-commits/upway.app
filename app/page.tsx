@@ -171,6 +171,28 @@ export default function Home() {
   }, [showSplash]);
 
   /**
+   * 🖤 Blindaje anti-línea-blanca: mientras el splash está visible, el
+   * documento detrás (html + body) se tiñe de negro. Cualquier costura de
+   * sub-píxel, hueco de composición del video o redondeo del viewport asoma
+   * NEGRO — el blanco de la página ya no puede aparecer por ningún borde.
+   * Se restaura al desmontar el splash (los estilos inline vuelven a vacío
+   * y manda la clase del theme).
+   */
+  useEffect(() => {
+    if (!showSplash || typeof document === 'undefined') return;
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtml = html.style.backgroundColor;
+    const prevBody = body.style.backgroundColor;
+    html.style.backgroundColor = '#000000';
+    body.style.backgroundColor = '#000000';
+    return () => {
+      html.style.backgroundColor = prevHtml;
+      body.style.backgroundColor = prevBody;
+    };
+  }, [showSplash]);
+
+  /**
    * ⏱️ Red de seguridad del splash: si el video no dispara `onEnded`
    * (autoplay bloqueado, ahorro de datos, red lenta o códec no soportado),
    * la pantalla se cierra igual. Nadie se queda en negro.
