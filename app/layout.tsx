@@ -45,6 +45,12 @@ export const metadata: Metadata = {
   description:
     "Sophie atiende las llamadas de tu clínica 24/7, agenda citas en tu propia agenda y captura la identidad del paciente conforme a la Resolución 866 de 2021, sin dejar nada sin contestar.",
   manifest: "/manifest.json",
+  // iOS (Safari "Agregar a pantalla de inicio"): sin este link iOS usa una
+  // captura de pantalla como icono. El PNG cuadrado con fondo negro puro
+  // funciona bien porque iOS solo redondea las esquinas.
+  icons: {
+    apple: "/apple-touch-icon.png",
+  },
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
   alternates: {
     canonical: '/',
