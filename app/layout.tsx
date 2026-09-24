@@ -44,7 +44,9 @@ export const metadata: Metadata = {
   title: "Upway Health — Recepcionista de voz con IA 24/7 para clínicas e IPS",
   description:
     "Sophie atiende las llamadas de tu clínica 24/7, agenda citas en tu propia agenda y captura la identidad del paciente conforme a la Resolución 866 de 2021, sin dejar nada sin contestar.",
-  manifest: "/manifest.json",
+  // La versión fuerza al launcher Android a releer el manifiesto tras
+  // cambiar de `standalone` a `fullscreen`; `id` conserva la misma instalación.
+  manifest: "/manifest.json?v=fullscreen-1",
   // iOS (Safari "Agregar a pantalla de inicio"): sin este link iOS usa una
   // captura de pantalla como icono. El PNG cuadrado con fondo negro puro
   // funciona bien porque iOS solo redondea las esquinas.
