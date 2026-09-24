@@ -44,7 +44,8 @@ async function telnyxFetch(path: string, init: RequestInit = {}) {
     ...init,
     headers: {
       Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
+      // FormData (clones de voz) debe llevar su propio boundary: no forzar JSON.
+      ...(init.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
       ...(init.headers ?? {}),
     },
   });
@@ -127,5 +128,130 @@ export async function upsertAssistantForTienda(opts: {
       model: opts.model ?? 'telnyx-openai-gpt-4o-mini',
       language: 'es',
     }),
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// Voces: catálogo TTS, previews y clones (panel /health/production)
+// Docs: text-to-speech + voice_designs/voice_clones de api.telnyx.com/v2
+// ─────────────────────────────────────────────────────────────
+
+export type TelnyxBinary = { contentType: string; bytes: ArrayBuffer };
+
+/** GET /text-to-speech/voices — catálogo de voces de un proveedor. */
+export async function listTtsVoices(provider = 'telnyx') {
+  return telnyxFetch(`/text-to-speech/voices?provider=${encodeURIComponent(provider)}`);
+}
+
+/**
+ * POST /text-to-speech/speech — sintetiza texto con una voz (preview del
+ * selector). `voice` usa el formato Telnyx.<modelo>.<voz>; devuelve audio
+ * binario (audio/mpeg por defecto).
+ */
+export async function generateSpeech(opts: { voice: string; text: string }): Promise<TelnyxBinary> {
+  const apiKey = requireEnv('TELNYX_API_KEY');
+  const res = await fetch(`${TELNYX_BASE}/text-to-speech/speech`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      voice: opts.voice,
+      text: opts.text,
+      output_type: 'binary_output',
+    }),
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '');
+    throw new Error(`[telnyx] POST /text-to-speech/speech -> ${res.status}: ${detail.slice(0, 300)}`);
+  }
+  return {
+    contentType: res.headers.get('content-type') ?? 'audio/mpeg',
+    bytes: await res.arrayBuffer(),
+  };
+}
+
+/** GET /voice_clones — clones de voz de la cuenta (paginado, primeras 100). */
+export async function listVoiceClones() {
+  return telnyxFetch('/voice_clones?page_size=100');
+}
+
+/** POST /voice_designs — crea una voz desde un prompt (Voice Design). */
+export async function createVoiceDesign(opts: {
+  name: string;
+  prompt: string;
+  text: string;
+  language?: string;
+}) {
+  return telnyxFetch('/voice_designs', {
+    method: 'POST',
+    body: JSON.stringify({
+      name: opts.name,
+      prompt: opts.prompt,
+      text: opts.text,
+      language: opts.language ?? 'Spanish',
+    }),
+  });
+}
+
+/** POST /voice_clones — captura un diseño de voz como clon utilizable. */
+export async function createVoiceCloneFromDesign(opts: {
+  voiceDesignId: string;
+  name: string;
+  language?: string;
+  gender?: string;
+}) {
+  return telnyxFetch('/voice_clones', {
+    method: 'POST',
+    body: JSON.stringify({
+      voice_design_id: opts.voiceDesignId,
+      name: opts.name,
+      language: opts.language ?? 'es',
+      gender: opts.gender ?? 'neutral',
+      provider: 'telnyx',
+    }),
+  });
+}
+
+/** POST /voice_clones/from_upload — clon desde muestra de audio (≤5MB, 5–60s). */
+export async function createVoiceCloneFromUpload(opts: {
+  bytes: ArrayBuffer;
+  filename: string;
+  contentType: string;
+  name: string;
+  language?: string;
+  gender?: string;
+}) {
+  const form = new FormData();
+  form.append('audio_file', new Blob([opts.bytes], { type: opts.contentType }), opts.filename);
+  form.append('name', opts.name);
+  form.append('language', opts.language ?? 'es');
+  form.append('gender', opts.gender ?? 'neutral');
+  form.append('provider', 'telnyx');
+  form.append('model_id', 'Qwen3TTS');
+  return telnyxFetch('/voice_clones/from_upload', { method: 'POST', body: form });
+}
+
+/** GET /voice_clones/{id}/sample — WAV original usado para crear el clon. */
+export async function getVoiceCloneSample(cloneId: string): Promise<TelnyxBinary> {
+  const apiKey = requireEnv('TELNYX_API_KEY');
+  const res = await fetch(`${TELNYX_BASE}/voice_clones/${encodeURIComponent(cloneId)}/sample`, {
+    headers: { Authorization: `Bearer ${apiKey}` },
+  });
+  if (!res.ok) {
+    throw new Error(`[telnyx] GET /voice_clones/{id}/sample -> ${res.status}`);
+  }
+  return {
+    contentType: res.headers.get('content-type') ?? 'audio/wav',
+    bytes: await res.arrayBuffer(),
+  };
+}
+
+/** POST /ai/assistants/{id} — aplica la voz elegida al asistente vivo.
+ *  Si Telnyx rechaza la actualización, el llamador debe degradar a
+ *  "guardado; se aplicará al reprovisionar" (el POST /api/voice/agents
+ *  reutiliza Tienda.agentVoice). */
+export async function updateAssistantVoice(assistantId: string, voice: string) {
+  return telnyxFetch(`/ai/assistants/${encodeURIComponent(assistantId)}`, {
+    method: 'POST',
+    body: JSON.stringify({ voice_settings: { voice } }),
   });
 }

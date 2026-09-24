@@ -185,7 +185,7 @@ export function VerticalWizard({ config }: Props) {
     );
   };
   return (
-    <div className="min-h-screen bg-[#0D1117] font-sans text-[#F5F7FA]">
+    <div className="upway-dark-page min-h-screen bg-[#0D1117] font-sans text-[#F5F7FA]">
       <header className="border-b border-[#1E293B]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
           <span className="text-[12px] font-bold tracking-[0.2em] text-[#50e1d5]">UPWAY · ONBOARDING</span>

@@ -147,6 +147,9 @@ export async function GET(request: NextRequest) {
           checks: state.checks,
           canActivate: state.canActivate,
           onboardingStatus: state.session?.status ?? null,
+          tiendaId: state.tienda?.id ?? null,
+          agentVoice: state.tienda?.agentVoice ?? null,
+          agentVoiceLabel: state.tienda?.agentVoiceLabel ?? null,
           plan: state.plan
             ? {
                 id: state.plan.id,

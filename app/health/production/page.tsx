@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import VoiceSelector from '@/components/health/voice-selector';
 
 type ActivationCheck = { key: string; label: string; ok: boolean; detail: string };
 
@@ -8,12 +9,16 @@ export default function HealthProductionPage() {
   const [checks, setChecks] = useState<ActivationCheck[]>([]);
   const [canActivate, setCanActivate] = useState(false);
   const [onboardingStatus, setOnboardingStatus] = useState<string | null>(null);
+  const [tiendaId, setTiendaId] = useState<string | null>(null);
+  const [agentVoice, setAgentVoice] = useState<string | null>(null);
+  const [agentVoiceLabel, setAgentVoiceLabel] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [activating, setActivating] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const load = async () => {
-    setLoading(true);
+    // loading ya inicia en true; llamar a setLoading(true) aquí violaría
+    // react-hooks/set-state-in-effect en el useEffect inicial.
     try {
       const res = await fetch('/api/health/activate', { cache: 'no-store' });
       const data = await res.json();
@@ -21,6 +26,9 @@ export default function HealthProductionPage() {
         setChecks(data.checks ?? []);
         setCanActivate(Boolean(data.canActivate));
         setOnboardingStatus(data.onboardingStatus ?? null);
+        setTiendaId(data.tiendaId ?? null);
+        setAgentVoice(data.agentVoice ?? null);
+        setAgentVoiceLabel(data.agentVoiceLabel ?? null);
       } else {
         setFeedback(data.error ?? 'No se pudo cargar el checklist de activación.');
       }
@@ -33,6 +41,7 @@ export default function HealthProductionPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial del checklist vía fetch (patrón preexistente del panel)
     void load();
   }, []);
 
@@ -117,6 +126,19 @@ export default function HealthProductionPage() {
           </div>
         )}
         {feedback && <div className="mt-4 text-sm font-semibold text-slate-700">{feedback}</div>}
+      </div>
+
+      <div className="upway-surface rounded-[28px] p-5">
+        <div className="text-lg font-black tracking-[-0.04em] text-slate-900">Voz del agente</div>
+        <p className="mb-4 mt-1 text-sm text-slate-500">
+          Elige la voz con la que el agente atiende las llamadas Telnyx o crea una voz propia (muestra de audio o
+          descripción con prompt). Puedes escuchar una muestra antes de guardar.
+        </p>
+        <VoiceSelector
+          tiendaId={tiendaId}
+          initialVoice={agentVoice}
+          initialVoiceLabel={agentVoiceLabel}
+        />
       </div>
 
       <div className="upway-surface rounded-[28px] p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">

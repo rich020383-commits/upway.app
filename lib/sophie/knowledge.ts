@@ -137,10 +137,10 @@ const CURATED: KnowledgeChunk[] = [
     tags: ['activar', 'activacion', 'onboarding', 'demo', 'probar', 'registro', 'tiempo', 'cuanto demora', 'cuánto demora', 'implementacion', 'implementación', 'self service', 'alta'],
     source: 'lib/verticals.ts + política comercial de activación',
     content: [
-      'Dos formas de arrancar:',
-      '1) Activación automática (self-serve): 5 pasos guiados desde la plataforma con acompañamiento en vivo; el flujo queda activo el mismo día.',
-      '2) Implementación asistida por el equipo de Upway: configuramos agente, agenda e integraciones y te entregamos el sistema activo; solo aportas los datos del negocio.',
+      'No hay activación automática ni self-serve: nada entra en producción por cuenta propia del cliente.',
+      'Forma oficial de arrancar: 1) El cliente completa el onboarding de su vertical; Upway revisa la configuración, valida el plan y lo contacta para acordar el arranque (nada va a producción sin su visto bueno). 2) Tras el pago del plan, Upway implementa agente, agenda, número e integraciones y entrega el sistema activo y listo para operar.',
       'Rutas de onboarding: salud /health/onboarding · inmobiliarias /inmobiliarias/onboarding · center /center/onboarding · panel del cliente /health.',
+      'Voz del agente: en el panel de Producción (/health/production) eliges entre el catálogo de voces incluidas o creas una voz propia (subes una muestra de 5–60 s o la describes con un prompt); puedes escuchar una muestra antes de guardar y se aplica al asistente.',
     ].join('\n'),
   },
   {
@@ -160,7 +160,7 @@ const CURATED: KnowledgeChunk[] = [
     content: [
       '¿Cuánto cuesta Upway? → Depende del sector: mira los planes de salud, inmobiliarias o center de este conocimiento; todos los precios están también en /precios.',
       `¿Qué pasa si me paso de los minutos incluidos? → Sigue atendiendo sin cortes: el minuto adicional cuesta ${fmt(OVERAGE_COP)}/min (misma tarifa en todos los planes).`,
-      '¿Cuánto tardo en activarlo? → El mismo día con la activación self-serve de 5 pasos, o con implementación asistida si lo prefieres.',
+      '¿Cuánto tardo en activarlo? → Completas el onboarding y el equipo de Upway revisa, te contacta e implementa; nada entra en producción sin tu visto bueno. No hay activación automática/self-serve.',
       '¿Se integra con mi CRM o sistema? → Sí: webhooks, API o export CSV según el plan.',
       '¿Cómo elijo el plan? → Por sedes/líneas y minutos al mes; si tu volumen supera el catálogo, el equipo te cotiza.',
       '¿Atienden de noche y fines de semana? → Sí, la atención es 24/7 por voz IA y WhatsApp.',

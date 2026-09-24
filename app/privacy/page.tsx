@@ -7,7 +7,7 @@ import { LEGAL_ENTITY } from '@/lib/legal';
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.15),_transparent_55%)] bg-slate-950 text-slate-100 px-4 py-12 sm:px-6 lg:px-8">
+    <div className="upway-dark-page min-h-screen bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.15),_transparent_55%)] bg-slate-950 text-slate-100 px-4 py-12 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         
         {/* Botón de retorno */}

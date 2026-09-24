@@ -65,6 +65,20 @@
   --upway-brand-shadow: rgba(14, 29, 49, 0.12);
 }
 
+/* ==========================================================
+   LÍNEA BLANCAS AL FONDO EN PÁGINAS/SECCIONES OSCURAS
+   El <body> (bg claro) y el lienzo del documento asoman por
+   debajo del contenedor oscuro: en móvil el desajuste entre
+   `min-h-screen` (100vh) y el viewport real + el overscroll
+   dejan ver una costura blanca al final. Cuando una ruta marca
+   su raíz con `.upway-dark-page`, el documento completo se tiñe
+   de negro para que esa costura siempre sea oscura.
+   ========================================================== */
+body:has(.upway-dark-page),
+html:has(.upway-dark-page) {
+  background-color: #05070b;
+}
+
 html {
   scroll-behavior: smooth;
   width: 100%;

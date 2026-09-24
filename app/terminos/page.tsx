@@ -7,7 +7,7 @@ import { LEGAL_ENTITY } from '@/lib/legal';
 
 export default function TerminosPage() {
   return (
-    <div className="min-h-screen bg-[#03050a] px-4 py-12 text-slate-300 sm:px-6 lg:px-8 selection:bg-[#00D1FF]/30 selection:text-white">
+    <div className="upway-dark-page min-h-screen bg-[#03050a] px-4 py-12 text-slate-300 sm:px-6 lg:px-8 selection:bg-[#00D1FF]/30 selection:text-white">
       <div className="mx-auto max-w-4xl">
 
         {/* Cabecera */}
