@@ -4,7 +4,7 @@ import { LEGAL_ENTITY } from '@/lib/legal';
 
 export default function Footer() {
   return (
-    <footer className="bg-gradient-to-br from-[#0f172a] via-[#132642] to-[#0d1727] text-slate-400 overflow-hidden">
+    <footer className="upway-dark-end bg-gradient-to-br from-[#0f172a] via-[#132642] to-[#0d1727] text-slate-400 overflow-hidden">
       {/* Curved top divider */}
       <div className="relative">
         <svg className="w-full h-12 text-white" viewBox="0 0 1200 120" preserveAspectRatio="none">

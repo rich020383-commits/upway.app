@@ -79,6 +79,18 @@ html:has(.upway-dark-page) {
   background-color: #05070b;
 }
 
+/* Línea blanca bajo el footer ("marco" solo visible abajo): el navegador
+   redondea el scrollHeight HACIA ARRIBA la altura fraccionaria del contenido
+   (p. ej. 5843.5px → 5844px) y ese medio píxel bajo el último elemento lo
+   pinta el canvas del documento = el fondo de <html>. En toda página que
+   renderiza el Footer oscuro, el canvas toma el color de cierre del
+   gradiente (#0d1727) para que esa costura — y el overscroll inferior —
+   sean oscuros y la línea desaparezca. El <body> mantiene su fondo claro:
+   solo el canvas (por debajo del documento) cambia. */
+html:has(.upway-dark-end) {
+  background-color: #0d1727;
+}
+
 html {
   scroll-behavior: smooth;
   width: 100%;
