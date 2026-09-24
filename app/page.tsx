@@ -203,8 +203,18 @@ export default function Home() {
           `h-screen` (100vh) en navegadores que aún no entienden dvh. */}
       {showSplash && (
         <div
-          style={{ height: '100dvh' }}
-          className={`fixed top-0 left-0 z-[9999] flex h-screen w-full items-center justify-center overflow-hidden overscroll-contain bg-black transition-opacity duration-500 md:hidden ${
+          style={{
+            // +2mm por cada lado: sella la costura de sub-píxel entre el
+            // contenedor (100dvh) y el borde real del viewport — si el browser
+            // redondea hacia abajo, asomaba la página blanca por debajo.
+            // Fallback: si un browser no entiende dvh en calc, ignora estas
+            // líneas inline y aplica las clases h-screen/w-full/top-0/left-0.
+            top: '-2mm',
+            left: '-2mm',
+            width: 'calc(100% + 4mm)',
+            height: 'calc(100dvh + 4mm)',
+          }}
+          className={`fixed z-[9999] flex h-screen w-full items-center justify-center overflow-hidden overscroll-contain bg-black transition-opacity duration-500 md:hidden ${
             fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
         >
@@ -219,8 +229,9 @@ export default function Home() {
             }`}
           />
           {/* Logo animado: 2mm más ancho por cada lado (CSS mm ≈ 3.78px →
-              +7.56px por lado): el video crece +4mm en ancho/alto y se ancla
-              en -2mm,-2mm para quedar centrado. */}
+              +7.56px por lado) y scale 1.02 que recorta los bordes del frame:
+              evita que se vea la fila de píxeles del borde del video (la
+              línea blanca que apareció al quitar el zoom anterior). */}
           <video
             src="/logo-animado.mp4"
             autoPlay
@@ -236,7 +247,7 @@ export default function Home() {
               width: 'calc(100% + 4mm)',
               height: 'calc(100% + 4mm)',
             }}
-            className={`absolute bg-black object-cover object-center transition-opacity duration-300 ${
+            className={`absolute bg-black object-cover object-center scale-[1.02] transition-opacity duration-300 ${
               splashVideoLoaded ? 'opacity-100' : 'opacity-0'
             }`}
           />
