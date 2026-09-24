@@ -250,10 +250,13 @@ export default function Home() {
               splashVideoLoaded ? 'opacity-0' : 'opacity-100'
             }`}
           />
-          {/* Logo animado: 2mm más ancho por cada lado (CSS mm ≈ 3.78px →
-              +7.56px por lado) y scale 1.02 que recorta los bordes del frame:
-              evita que se vea la fila de píxeles del borde del video (la
-              línea blanca que apareció al quitar el zoom anterior). */}
+          {/* Logo animado: el archivo original es vertical 720×1280 (9:16).
+              En pantalla completa el viewport es más alto, así que `object-cover`
+              ampliaba el video para llenar la altura y recortaba los costados:
+              por eso "UPWAY BUSINESS" quedaba incompleto. `object-contain`
+              conserva el cuadro 9:16 completo y lo centra sin deformarlo. El
+              contenedor negro llena el espacio restante, así que la experiencia
+              sigue viéndose de borde a borde. No se modifica ni recomprime el MP4. */}
           <video
             src="/logo-animado.mp4"
             autoPlay
@@ -263,13 +266,7 @@ export default function Home() {
             onLoadedData={() => setSplashVideoLoaded(true)}
             onError={handleVideoEnd}
             onEnded={handleVideoEnd}
-            style={{
-              top: '-2mm',
-              left: '-2mm',
-              width: 'calc(100% + 4mm)',
-              height: 'calc(100% + 4mm)',
-            }}
-            className={`absolute bg-black object-cover object-center scale-[1.02] transition-opacity duration-300 ${
+            className={`absolute inset-0 h-full w-full bg-black object-contain object-center transition-opacity duration-300 ${
               splashVideoLoaded ? 'opacity-100' : 'opacity-0'
             }`}
           />
