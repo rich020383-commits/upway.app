@@ -107,10 +107,10 @@ const CURATED: KnowledgeChunk[] = [
   {
     id: 'capacidades',
     title: 'Capacidades operativas de Upway',
-    tags: ['capacidad', 'capacidades', 'que hace', 'funciones', 'agenda', 'recordatorios', 'no-show', 'voz', 'whatsapp', 'grabacion', 'integracion', 'crm', 'api'],
+    tags: ['capacidad', 'capacidades', 'que hace', 'funciones', 'agenda', 'recordatorios', 'no-show', 'voz', 'grabacion', 'integracion', 'crm', 'api'],
     source: 'lib/*/plans.ts + lib/verticals.ts',
     content: [
-      'Atención 24/7 por voz IA y WhatsApp con el guion que el negocio define.',
+      'Atención 24/7 por voz IA con el guion que el negocio define.',
       'Agenda inteligente en tiempo real: confirma disponibilidad, envía recordatorios, detecta no-shows y reprograma.',
       'Calificación de leads con reglas del negocio (presupuesto, urgencia, zona) y escalamiento a un humano con contexto.',
       'Grabación de llamadas, log de eventos y evidencia auditable del registro.',
@@ -155,7 +155,7 @@ const CURATED: KnowledgeChunk[] = [
   {
     id: 'faq',
     title: 'Preguntas frecuentes de Upway',
-    tags: ['faq', 'pregunta', 'preguntas', 'duda', 'frecuente', 'como funciona', 'que es', 'integraciones', 'minutos de mas', 'pasarme', 'elegir plan', 'noches', 'fines de semana'],
+    tags: ['faq', 'pregunta', 'preguntas', 'duda', 'frecuente', 'como funciona', 'que es', 'integraciones', 'minutos de mas', 'pasarme', 'elegir plan', 'noches', 'fines de semana', 'whatsapp', 'meta', 'mensajeria'],
     source: 'docs/upway-politica-precios.md + lib/*/plans.ts',
     content: [
       '¿Cuánto cuesta Upway? → Depende del sector: mira los planes de salud, inmobiliarias o center de este conocimiento; todos los precios están también en /precios.',
@@ -163,7 +163,8 @@ const CURATED: KnowledgeChunk[] = [
       '¿Cuánto tardo en activarlo? → Completas el onboarding y el equipo de Upway revisa, te contacta e implementa; nada entra en producción sin tu visto bueno. No hay activación automática/self-serve.',
       '¿Se integra con mi CRM o sistema? → Sí: webhooks, API o export CSV según el plan.',
       '¿Cómo elijo el plan? → Por sedes/líneas y minutos al mes; si tu volumen supera el catálogo, el equipo te cotiza.',
-      '¿Atienden de noche y fines de semana? → Sí, la atención es 24/7 por voz IA y WhatsApp.',
+      '¿Atienden de noche y fines de semana? → Sí, la atención es 24/7 por voz IA.',
+      '¿Atienden por WhatsApp o se conectan a Meta? → No: por políticas internas de Upway no usamos WhatsApp ni Meta; el canal oficial es la voz IA sobre línea telefónica.',
     ].join('\n'),
   },
   {

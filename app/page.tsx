@@ -208,6 +208,19 @@ export default function Home() {
             fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
         >
+          {/* Icono de inicio: se ve mientras el video carga y se funde en el
+              logo animado (icon-512.png — el mismo del launcher PWA). */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- splash: PNG local pequeño que debe pintar en el primer frame, sin pasar por /_next/image */}
+          <img
+            src="/icon-512.png"
+            alt="Upway"
+            className={`absolute w-[46vw] max-w-[260px] transition-opacity duration-300 ${
+              splashVideoLoaded ? 'opacity-0' : 'opacity-100'
+            }`}
+          />
+          {/* Logo animado: 2mm más ancho por cada lado (CSS mm ≈ 3.78px →
+              +7.56px por lado): el video crece +4mm en ancho/alto y se ancla
+              en -2mm,-2mm para quedar centrado. */}
           <video
             src="/logo-animado.mp4"
             autoPlay
@@ -217,7 +230,13 @@ export default function Home() {
             onLoadedData={() => setSplashVideoLoaded(true)}
             onError={handleVideoEnd}
             onEnded={handleVideoEnd}
-            className={`absolute inset-0 h-full w-full scale-[1.02] bg-black object-cover object-center transition-opacity duration-300 ${
+            style={{
+              top: '-2mm',
+              left: '-2mm',
+              width: 'calc(100% + 4mm)',
+              height: 'calc(100% + 4mm)',
+            }}
+            className={`absolute bg-black object-cover object-center transition-opacity duration-300 ${
               splashVideoLoaded ? 'opacity-100' : 'opacity-0'
             }`}
           />
