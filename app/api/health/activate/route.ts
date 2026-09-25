@@ -158,6 +158,14 @@ export async function GET(request: NextRequest) {
           tiendaId: state.tienda?.id ?? null,
           agentVoice: state.tienda?.agentVoice ?? null,
           agentVoiceLabel: state.tienda?.agentVoiceLabel ?? null,
+          clinicName: state.clinic.name,
+          // Estado real de la voz de la sede: el panel de activación muestra si
+          // ya hay assistant, línea dedicada y si la voz quedó encendida. Antes
+          // el panel solo sabía el check agregado y no podíamos explicar por qué
+          // `Voz Telnyx dedicada` seguía en rojo.
+          telnyxAssistantId: state.tienda?.telnyxAssistantId ?? null,
+          telnyxPhoneNumber: state.tienda?.telnyxPhoneNumber ?? null,
+          isTelnyxActive: state.tienda?.isTelnyxActive ?? false,
           plan: state.plan
             ? {
                 id: state.plan.id,

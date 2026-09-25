@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import VoiceSelector from '@/components/health/voice-selector';
 import VoiceTestCall from '@/components/health/voice-test-call';
+import VoiceProvisioning from '@/components/health/voice-provisioning';
 
 type ActivationCheck = { key: string; label: string; ok: boolean; detail: string };
 
@@ -13,6 +14,12 @@ export default function HealthProductionPage() {
   const [tiendaId, setTiendaId] = useState<string | null>(null);
   const [agentVoice, setAgentVoice] = useState<string | null>(null);
   const [agentVoiceLabel, setAgentVoiceLabel] = useState<string | null>(null);
+  // Estado real de la voz de la sede. Sin esto el panel no podía explicar por
+  // qué el check `Voz Telnyx dedicada` seguía rojo ni dejar aprovisionar.
+  const [clinicName, setClinicName] = useState<string | null>(null);
+  const [assistantId, setAssistantId] = useState<string | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
+  const [isTelnyxActive, setIsTelnyxActive] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activating, setActivating] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -30,6 +37,10 @@ export default function HealthProductionPage() {
         setTiendaId(data.tiendaId ?? null);
         setAgentVoice(data.agentVoice ?? null);
         setAgentVoiceLabel(data.agentVoiceLabel ?? null);
+        setClinicName(data.clinicName ?? null);
+        setAssistantId(data.telnyxAssistantId ?? null);
+        setPhoneNumber(data.telnyxPhoneNumber ?? null);
+        setIsTelnyxActive(Boolean(data.isTelnyxActive));
       } else {
         setFeedback(data.error ?? 'No se pudo cargar el checklist de activación.');
       }
@@ -148,6 +159,14 @@ export default function HealthProductionPage() {
           tiendaId={tiendaId}
           initialVoice={agentVoice}
           initialVoiceLabel={agentVoiceLabel}
+        />
+        <VoiceProvisioning
+          tiendaId={tiendaId}
+          clinicName={clinicName}
+          assistantId={assistantId}
+          phoneNumber={phoneNumber}
+          isActive={isTelnyxActive}
+          onProvisioned={() => void load()}
         />
         <VoiceTestCall tiendaId={tiendaId} />
       </div>
