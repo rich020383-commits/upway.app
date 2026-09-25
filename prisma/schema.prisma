@@ -81,6 +81,7 @@ model User {
   agendaAppointmentsCreated   AgendaAppointment[]   @relation("AgendaAppointmentCreator")
   agendaAppointmentsAssigned  AgendaAppointment[]   @relation("AgendaAppointmentAssignee")
   agendaAuditEvents           AgendaAuditEvent[]    @relation("AgendaEventActor")
+  verticalOnboardingSessions  VerticalOnboardingSession[]
 }
 
 enum VerticalType {
@@ -1202,3 +1203,44 @@ model ApiClient {
   @@index([organizationId, isActive])
 }
 
+
+/// Onboarding de las verticales no-clinicas (Inmobiliaria / Center).
+/// Antes vivia solo en memoria del navegador: si el cliente recargaba a mitad
+/// perdia todo y el caso quedaba trazado unicamente por correo.
+model VerticalOnboardingSession {
+  id              String                   @id @default(cuid())
+  userId          String
+  organizationId  String?
+  clinicId        String?
+  /// Segmento del wizard: 'inmobiliaria' | 'center' (lib/onboarding/types.ts).
+  segment         String
+  status          VerticalOnboardingStatus @default(DRAFT)
+  /// Indice de la etapa actual (0-based) para reanudar donde quedo.
+  currentStep     Int                      @default(0)
+  progressPercent Int                      @default(0)
+  /// Respuestas del wizard serializadas en JSON (clave = id del campo).
+  answers         String?                  @db.Text
+  /// Ref del caso enviado a revision: se conserva entre reintentos.
+  caseRef         String?
+  submittedAt     DateTime?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, segment])
+  @@index([segment, status])
+}
+
+/// Ciclo de vida del onboarding vertical: mismo vocabulario que el de Health,
+/// pero separado para no atar las verticales no-clinicas al enum clinico.
+enum VerticalOnboardingStatus {
+  DRAFT
+  IN_PROGRESS
+  PENDING_REVIEW
+  NEEDS_CHANGES
+  APPROVED
+  ACTIVE
+  BLOCKED
+  ARCHIVED
+}

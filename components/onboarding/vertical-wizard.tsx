@@ -73,6 +73,8 @@ export function VerticalWizard({ config }: Props) {
    */
   const [authRequired, setAuthRequired] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  /** Ref del caso si esta solicitud ya se envió a revisión (evita duplicados). */
+  const [submittedRef, setSubmittedRef] = useState<string | null>(null);
   /** Datos del envío a revisión que se muestran al cerrar el wizard. */
   const [submission, setSubmission] = useState<{
     caseRef?: string;
@@ -106,6 +108,11 @@ export function VerticalWizard({ config }: Props) {
         }
         if (typeof data.step === 'number' && data.step >= 0 && data.step < total) {
           setStep(data.step);
+        }
+        // El avance ahora sí se persiste: si ya se envió, lo avisamos en vez de
+        // mostrar un formulario en blanco que invita a reenviar sin querer.
+        if (data.status === 'PENDING_REVIEW') {
+          setSubmittedRef(typeof data.caseRef === 'string' ? data.caseRef : '');
         }
       } catch {
         // Sin sesión o sin guardado previo: empezamos en blanco.
@@ -369,6 +376,15 @@ export function VerticalWizard({ config }: Props) {
             </div>
           ) : (
             <>
+              {submittedRef !== null && (
+                <div className="mb-5 rounded-xl border border-teal-500/40 bg-teal-500/10 p-4">
+                  <p className="text-[12px] font-semibold leading-relaxed text-[#50e1d5]">
+                    Esta configuración ya está en revisión
+                    {submittedRef ? ` (ref ${submittedRef})` : ''}. El equipo de Upway la está validando: puedes seguir
+                    editando y reenviar si algo cambió.
+                  </p>
+                </div>
+              )}
               <div className="mb-6 border-b border-[#1E293B] pb-5">
                 <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.22em] text-[#50e1d5]">{stage.eyebrow}</p>
                 <h2 className="font-display text-[22px] font-extrabold leading-tight tracking-[-0.5px] sm:text-[26px]">
