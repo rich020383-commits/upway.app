@@ -9,6 +9,7 @@ import {
   type TelnyxBinary,
 } from '@/lib/telnyx/client';
 import { buildPreviewText, isValidVoiceValue } from '@/lib/telnyx/voices';
+import { checkVoiceRateLimit, voiceRateLimitResponse } from '@/lib/telnyx/rate-limit';
 
 export const maxDuration = 30;
 
@@ -27,6 +28,9 @@ export async function POST(req: NextRequest) {
   if (user.id === 'meta-reviewer') {
     return NextResponse.json({ error: 'Revisor externo sin acceso a voz' }, { status: 403 });
   }
+  // TTS de muestra = cuota pagada: freno por usuario antes de sintetizar.
+  const rate = checkVoiceRateLimit('preview', user.id);
+  if (!rate.allowed) return voiceRateLimitResponse('preview', rate);
   if (!isTelnyxConfigured()) {
     return NextResponse.json(
       { error: `Telnyx no está configurado: falta ${missingTelnyxEnv().join(', ')}` },

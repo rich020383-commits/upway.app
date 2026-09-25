@@ -15,6 +15,7 @@ import {
   validateCloneFile,
   type VoiceCloneRaw,
 } from '@/lib/telnyx/voices';
+import { checkVoiceRateLimit, voiceRateLimitResponse } from '@/lib/telnyx/rate-limit';
 
 export const maxDuration = 60;
 
@@ -25,6 +26,9 @@ export async function GET(req: NextRequest) {
   if (user.id === 'meta-reviewer') {
     return NextResponse.json({ error: 'Revisor externo sin acceso a voz' }, { status: 403 });
   }
+  // Dos llamadas a Telnyx por request: limita el abuso del catálogo.
+  const rate = checkVoiceRateLimit('catalog', user.id);
+  if (!rate.allowed) return voiceRateLimitResponse('catalog', rate);
   if (!isTelnyxConfigured()) {
     return NextResponse.json(
       { error: `Telnyx no está configurado: falta ${missingTelnyxEnv().join(', ')}` },
@@ -57,6 +61,9 @@ export async function POST(req: NextRequest) {
   if (user.id === 'meta-reviewer') {
     return NextResponse.json({ error: 'Revisor externo sin acceso a voz' }, { status: 403 });
   }
+  // Diseño/clon de voz: una de las operaciones mas caras del proveedor.
+  const rate = checkVoiceRateLimit('clone', user.id);
+  if (!rate.allowed) return voiceRateLimitResponse('clone', rate);
   if (!isTelnyxConfigured()) {
     return NextResponse.json(
       { error: `Telnyx no está configurado: falta ${missingTelnyxEnv().join(', ')}` },

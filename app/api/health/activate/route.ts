@@ -45,12 +45,17 @@ async function resolveActivationState(organizationId: string, clinicId: string, 
   const [organization, tienda, triageCount, policiesCount, faqsCount, documentServices, session] = await Promise.all([
     organizationId ? prisma.organization.findUnique({ where: { id: organizationId } }) : null,
     (await prisma.tienda.findFirst({ where: { userId } })) ??
-      (await prisma.tienda.findFirst({
-        where: {
-          ...(organizationId ? { organizationId } : {}),
-          ...(clinicId ? { clinicId: clinic.id } : {}),
-        },
-      })),
+      // Fallback por tenant: SOLO con un filtro real. Sin org/clinic la
+      // consulta vacía devolvería la primera Tienda de la tabla (de otro
+      // tenant), con su número y su assistant.
+      (organizationId || clinicId
+        ? await prisma.tienda.findFirst({
+            where: {
+              ...(organizationId ? { organizationId } : {}),
+              ...(clinicId ? { clinicId: clinic.id } : {}),
+            },
+          })
+        : null),
     prisma.healthTriageRule.count({ where: { profileId: profile.id, isActive: true } }),
     prisma.healthCompliancePolicy.count({ where: { profileId: profile.id, isRequired: true } }),
     prisma.healthFAQ.count({ where: { profileId: profile.id, isPublished: true } }),

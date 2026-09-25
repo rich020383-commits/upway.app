@@ -5,6 +5,63 @@ const DEFAULT_CLINIC_NAME = 'Clínica demo Upway Health';
 const DEFAULT_USER_EMAIL = 'demo-health@upway.local';
 
 /**
+ * El tenant demo necesita su Tienda: es el contenedor de la voz (número,
+ * assistant, flags Telnyx) y el checklist de activación exige `hasTienda`.
+ * Sin ella, el check `Voz Telnyx dedicada` nunca se puede poner en verde para
+ * este tenant y cualquier consulta resuelta por organizationId/clinicId no
+ * encuentra nada.
+ *
+ * Idempotente: enlaza una Tienda huérfana del mismo dueño si existe y solo
+ * crea cuando realmente no hay ninguna.
+ */
+async function ensureDemoTienda(
+  organization: { id: string; ownerId: string },
+  clinic: { id: string; name: string }
+) {
+  const linked = await prisma.tienda.findFirst({
+    where: { userId: organization.ownerId, organizationId: organization.id },
+  });
+  if (linked) {
+    if (linked.clinicId === clinic.id) return linked;
+    return prisma.tienda.update({
+      where: { id: linked.id },
+      data: { clinicId: clinic.id },
+    });
+  }
+
+  const owned = await prisma.tienda.findFirst({ where: { userId: organization.ownerId } });
+  if (owned) {
+    return prisma.tienda.update({
+      where: { id: owned.id },
+      data: { organizationId: organization.id, clinicId: clinic.id },
+    });
+  }
+
+  return prisma.tienda.create({
+    data: {
+      userId: organization.ownerId,
+      organizationId: organization.id,
+      clinicId: clinic.id,
+      nombre: clinic.name,
+      segment: 'health',
+      // Workspace de demostración: no debe encender un bot que no está
+      // aprovisionado. El resto de tiendas conservan el default true.
+      isAiActive: false,
+    },
+  });
+}
+
+async function findClinicOf(organizationId: string) {
+  const named = await prisma.clinic.findFirst({
+    where: { organizationId, name: DEFAULT_CLINIC_NAME },
+  });
+  if (named) return named;
+  // Si el nombre de la demo cambió, reutilizamos cualquier clínica de ese
+  // mismo workspace en vez de crear una duplicada en cada llamada.
+  return prisma.clinic.findFirst({ where: { organizationId } });
+}
+
+/**
  * Resuelve (o crea) el contexto demo de Organization/Clinic usado como
  * fallback cuando aún no hay un tenant real asociado a la sesión. Mismo
  * patrón que ya usa /api/health/onboarding, centralizado aquí para que
@@ -16,10 +73,15 @@ async function ensureDefaultContext(organizationId?: string) {
     : await prisma.organization.findUnique({ where: { slug: DEFAULT_ORGANIZATION_SLUG } });
 
   if (existingOrganization) {
-    const clinic = await prisma.clinic.findFirst({
-      where: { organizationId: existingOrganization.id, name: DEFAULT_CLINIC_NAME },
-    });
-    if (clinic) return { organization: existingOrganization, clinic };
+    const existingClinic = await findClinicOf(existingOrganization.id);
+    if (existingClinic) {
+      // Solo el workspace demo lleva Tienda propia: para una organización
+      // real el alta la hace el flujo de registro / auth.
+      if (existingOrganization.slug === DEFAULT_ORGANIZATION_SLUG) {
+        await ensureDemoTienda(existingOrganization, existingClinic);
+      }
+      return { organization: existingOrganization, clinic: existingClinic };
+    }
   }
 
   const demoUser = await prisma.user.upsert({
@@ -48,6 +110,10 @@ async function ensureDefaultContext(organizationId?: string) {
       timezone: 'UTC',
     },
   });
+
+  if (organization.slug === DEFAULT_ORGANIZATION_SLUG) {
+    await ensureDemoTienda(organization, clinic);
+  }
 
   return { organization, clinic };
 }

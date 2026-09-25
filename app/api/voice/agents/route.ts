@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/session';
 import { upsertAssistantForTienda, getTelnyxConfig, isTelnyxConfigured, missingTelnyxEnv, updateAssistantVoice } from '@/lib/telnyx/client';
 import { isValidVoiceValue } from '@/lib/telnyx/voices';
+import { checkVoiceRateLimit, voiceRateLimitResponse } from '@/lib/telnyx/rate-limit';
+import { buildVoiceGreeting } from '@/lib/telnyx/voice-consent';
 
 export const maxDuration = 30;
 
@@ -25,6 +27,9 @@ export async function POST(req: NextRequest) {
   if (user.id === 'meta-reviewer') {
     return NextResponse.json({ error: 'Revisor externo sin acceso a voz' }, { status: 403 });
   }
+  // Provisionar un asistente cuesta llamadas al proveedor: freno por usuario.
+  const rate = checkVoiceRateLimit('agent', user.id);
+  if (!rate.allowed) return voiceRateLimitResponse('agent', rate);
 
   const parsed = createAgentSchema.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) {
@@ -52,9 +57,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const greeting =
-    `Hola, soy ${nombre}, de ${tienda.nombre}. ` +
-    `Te ayudo con consultas, agenda y seguimiento. ¿En qué te puedo ayudar hoy?`;
+  // El aviso de privacidad (grabación / tratamiento de datos) encabeza SIEMPRE
+  // el saludo: es la forma de recoger el consentimiento en el canal, al inicio
+  // de la llamada, como exige la política de tratamiento de Upway.
+  const greeting = buildVoiceGreeting({ agentName: nombre, businessName: tienda.nombre });
 
   try {
     const telnyxRes = await upsertAssistantForTienda({
@@ -116,6 +122,8 @@ export async function PATCH(req: NextRequest) {
   if (user.id === 'meta-reviewer') {
     return NextResponse.json({ error: 'Revisor externo sin acceso a voz' }, { status: 403 });
   }
+  const rate = checkVoiceRateLimit('agent', user.id);
+  if (!rate.allowed) return voiceRateLimitResponse('agent', rate);
 
   const parsed = updateVoiceSchema.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) {

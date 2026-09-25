@@ -3,12 +3,17 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/session';
 import { createOutboundCall, isTelnyxConfigured, missingTelnyxEnv } from '@/lib/telnyx/client';
+import { checkVoiceRateLimit, voiceRateLimitResponse } from '@/lib/telnyx/rate-limit';
+import { CALL_CONSENT_REQUIRED_MESSAGE } from '@/lib/telnyx/voice-consent';
 
 export const maxDuration = 30;
 
 const callSchema = z.object({
   tiendaId: z.string().min(1),
   to: z.string().regex(/^\+\d{7,15}$/, 'El destino debe ser E.164 (+573...)'),
+  // Consentimiento previo del destino. Opcional en el schema para poder
+  // responder SIEMPRE el mensaje legal y no un "Required" generico de zod.
+  consent: z.boolean().optional(),
 });
 
 // POST /api/voice/calls — llamada de prueba outbound desde el número Telnyx de la tienda.
@@ -18,9 +23,18 @@ export async function POST(req: NextRequest) {
   if (user.id === 'meta-reviewer') {
     return NextResponse.json({ error: 'Revisor externo sin acceso a voz' }, { status: 403 });
   }
+
+  // Freno de cuota antes de tocar Telnyx: cada intento aqui es dinero y una
+  // marcacion real a un telefono. Se aplica por usuario ya autenticado.
+  const rate = checkVoiceRateLimit('call', user.id);
+  if (!rate.allowed) return voiceRateLimitResponse('call', rate);
+
   const parsed = callSchema.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }, { status: 400 });
+  }
+  if (parsed.data.consent !== true) {
+    return NextResponse.json({ error: CALL_CONSENT_REQUIRED_MESSAGE }, { status: 400 });
   }
   const tienda = await prisma.tienda.findFirst({
     where: { id: parsed.data.tiendaId, userId: user.id },
@@ -50,6 +64,13 @@ export async function POST(req: NextRequest) {
         status: 'initiated',
       },
     }).catch(() => undefined);
+    // Evidencia del consentimiento: queda en el log del servidor con usuario,
+    // tienda y destino. El aviso al destinatario lo da el asistente al contestar.
+    console.info('[voice] llamada saliente con consentimiento atestiguado', {
+      userId: user.id,
+      tiendaId: tienda.id,
+      to: parsed.data.to,
+    });
     return NextResponse.json({ ok: true, provider: 'telnyx', call: res?.data ?? res });
   } catch (err) {
     console.error('[telnyx] outbound call failed', err);

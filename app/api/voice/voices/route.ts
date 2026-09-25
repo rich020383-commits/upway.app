@@ -9,6 +9,7 @@ import {
   type TtsVoice,
   type VoiceCloneRaw,
 } from '@/lib/telnyx/voices';
+import { checkVoiceRateLimit, voiceRateLimitResponse } from '@/lib/telnyx/rate-limit';
 
 export const maxDuration = 30;
 
@@ -21,6 +22,9 @@ export async function GET(req: NextRequest) {
   if (user.id === 'meta-reviewer') {
     return NextResponse.json({ error: 'Revisor externo sin acceso a voz' }, { status: 403 });
   }
+  // Dos llamadas a Telnyx por request: limita el abuso del catálogo.
+  const rate = checkVoiceRateLimit('catalog', user.id);
+  if (!rate.allowed) return voiceRateLimitResponse('catalog', rate);
   if (!isTelnyxConfigured()) {
     return NextResponse.json(
       { error: `Telnyx no está configurado: falta ${missingTelnyxEnv().join(', ')}` },
