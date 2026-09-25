@@ -33,9 +33,27 @@ export function getTelnyxConfig() {
   };
 }
 
+/**
+ * Env obligatorias para que la voz Telnyx funcione. Sin las tres,
+ * `isTelnyxConfigured()` devuelve false.
+ */
+export const TELNYX_REQUIRED_ENV = [
+  'TELNYX_API_KEY',
+  'TELNYX_APP_ID',
+  'TELNYX_DEFAULT_PHONE_NUMBER',
+] as const;
+
+/**
+ * Devuelve los NOMBRES de las env obligatorias que faltan (vacías o en blanco).
+ * Nunca devuelve valores: es seguro incluirla en mensajes de error 503 y en el
+ * GET /api/voice/webhooks para saber exactamente qué falta en Render.
+ */
+export function missingTelnyxEnv(): string[] {
+  return TELNYX_REQUIRED_ENV.filter((name) => !(process.env[name] ?? '').trim());
+}
+
 export function isTelnyxConfigured(): boolean {
-  const c = getTelnyxConfig();
-  return Boolean(c.apiKey && c.appId && c.defaultPhone);
+  return missingTelnyxEnv().length === 0;
 }
 
 async function telnyxFetch(path: string, init: RequestInit = {}) {

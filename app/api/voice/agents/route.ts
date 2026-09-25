@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/session';
-import { upsertAssistantForTienda, getTelnyxConfig, isTelnyxConfigured, updateAssistantVoice } from '@/lib/telnyx/client';
+import { upsertAssistantForTienda, getTelnyxConfig, isTelnyxConfigured, missingTelnyxEnv, updateAssistantVoice } from '@/lib/telnyx/client';
 import { isValidVoiceValue } from '@/lib/telnyx/voices';
 
 export const maxDuration = 30;
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
   if (!isTelnyxConfigured()) {
     return NextResponse.json(
-      { error: 'Telnyx no está configurado (TELNYX_API_KEY/APP_ID/DEFAULT_PHONE_NUMBER)' },
+      { error: `Telnyx no está configurado: falta ${missingTelnyxEnv().join(', ')}` },
       { status: 503 }
     );
   }

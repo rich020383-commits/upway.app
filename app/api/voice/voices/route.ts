@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/session';
-import { isTelnyxConfigured, listTtsVoices, listVoiceClones } from '@/lib/telnyx/client';
+import { isTelnyxConfigured, listTtsVoices, listVoiceClones, missingTelnyxEnv } from '@/lib/telnyx/client';
 import {
   FALLBACK_CATALOG,
   mapCatalogVoices,
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   }
   if (!isTelnyxConfigured()) {
     return NextResponse.json(
-      { error: 'Telnyx no está configurado (falta TELNYX_API_KEY)' },
+      { error: `Telnyx no está configurado: falta ${missingTelnyxEnv().join(', ')}` },
       { status: 503 }
     );
   }

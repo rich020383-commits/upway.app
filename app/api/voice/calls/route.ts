@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/session';
-import { createOutboundCall, isTelnyxConfigured } from '@/lib/telnyx/client';
+import { createOutboundCall, isTelnyxConfigured, missingTelnyxEnv } from '@/lib/telnyx/client';
 
 export const maxDuration = 30;
 
@@ -27,7 +27,10 @@ export async function POST(req: NextRequest) {
   });
   if (!tienda) return NextResponse.json({ error: 'Tienda no encontrada' }, { status: 404 });
   if (!isTelnyxConfigured()) {
-    return NextResponse.json({ error: 'Telnyx no configurado' }, { status: 503 });
+    return NextResponse.json(
+      { error: `Telnyx no está configurado: falta ${missingTelnyxEnv().join(', ')}` },
+      { status: 503 }
+    );
   }
   try {
     const res = await createOutboundCall({

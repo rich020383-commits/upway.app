@@ -6,6 +6,7 @@ import {
   createVoiceCloneFromUpload,
   createVoiceDesign,
   isTelnyxConfigured,
+  missingTelnyxEnv,
   listVoiceClones,
 } from '@/lib/telnyx/client';
 import {
@@ -25,7 +26,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Revisor externo sin acceso a voz' }, { status: 403 });
   }
   if (!isTelnyxConfigured()) {
-    return NextResponse.json({ error: 'Telnyx no está configurado' }, { status: 503 });
+    return NextResponse.json(
+      { error: `Telnyx no está configurado: falta ${missingTelnyxEnv().join(', ')}` },
+      { status: 503 }
+    );
   }
   try {
     const res = await listVoiceClones();
@@ -54,7 +58,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Revisor externo sin acceso a voz' }, { status: 403 });
   }
   if (!isTelnyxConfigured()) {
-    return NextResponse.json({ error: 'Telnyx no está configurado' }, { status: 503 });
+    return NextResponse.json(
+      { error: `Telnyx no está configurado: falta ${missingTelnyxEnv().join(', ')}` },
+      { status: 503 }
+    );
   }
 
   try {

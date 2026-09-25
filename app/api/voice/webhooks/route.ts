@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { estimateCallCosts } from '@/lib/telnyx/costs';
+import { missingTelnyxEnv } from '@/lib/telnyx/client';
 
 // POST /api/voice/webhooks — receptor Call Control v2 (API v2 en tu captura).
 // Telnyx firma con Ed25519: cabeceras `telnyx-signature-ed25519` + `telnyx-timestamp`.
@@ -108,13 +109,13 @@ export async function POST(req: NextRequest) {
 
 // GET de estado (no es verify de Meta). No exige firma; solo reporta config sin exponer secretos.
 export async function GET() {
-  const hasKey = Boolean(process.env.TELNYX_API_KEY);
-  const hasApp = Boolean(process.env.TELNYX_APP_ID);
-  const hasPhone = Boolean(process.env.TELNYX_DEFAULT_PHONE_NUMBER);
+  const missing = missingTelnyxEnv();
   return NextResponse.json({
     ok: true,
     provider: 'telnyx',
     webhook: '/api/voice/webhooks',
-    configured: hasKey && hasApp && hasPhone,
+    configured: missing.length === 0,
+    // Solo nombres de variables: permite ver en producción cuál falta.
+    missing,
   });
 }

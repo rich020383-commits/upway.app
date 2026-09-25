@@ -5,6 +5,7 @@ import {
   generateSpeech,
   getVoiceCloneSample,
   isTelnyxConfigured,
+  missingTelnyxEnv,
   type TelnyxBinary,
 } from '@/lib/telnyx/client';
 import { buildPreviewText, isValidVoiceValue } from '@/lib/telnyx/voices';
@@ -27,7 +28,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Revisor externo sin acceso a voz' }, { status: 403 });
   }
   if (!isTelnyxConfigured()) {
-    return NextResponse.json({ error: 'Telnyx no está configurado' }, { status: 503 });
+    return NextResponse.json(
+      { error: `Telnyx no está configurado: falta ${missingTelnyxEnv().join(', ')}` },
+      { status: 503 }
+    );
   }
 
   const parsed = previewSchema.safeParse(await req.json().catch(() => ({})));
