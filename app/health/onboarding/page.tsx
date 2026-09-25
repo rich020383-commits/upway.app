@@ -1,6 +1,6 @@
-'use client';
+﻿'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ShieldCheck } from 'lucide-react';
 import {
@@ -138,6 +138,22 @@ function FieldHint({ text }: { text?: string }) {
 
 const strOf = (v: unknown, fallback = '') => (typeof v === 'string' ? v : fallback);
 
+/**
+ * Mezcla el borrador del servidor sobre el estado actual sin vaciar un campo
+ * que el usuario ya escribio: un re-fetch tardio (o un borrador guardado antes
+ * de completar la etapa) no debe borrar lo recien capturado.
+ */
+const mergeStoredForm = (current: OnboardingForm, stored: Partial<OnboardingForm>): OnboardingForm => {
+  const merged: Record<string, unknown> = { ...current };
+  (Object.keys(stored) as (keyof OnboardingForm)[]).forEach((key) => {
+    const incoming = stored[key];
+    const existing = current[key];
+    if (incoming === '' && existing !== '' && typeof existing === 'string') return;
+    merged[key] = incoming;
+  });
+  return merged as OnboardingForm;
+};
+
 const parseStoredForm = (input: unknown): Partial<OnboardingForm> => {
   if (!input || typeof input !== 'object') return {};
   const source = input as Record<string, unknown>;
@@ -201,7 +217,7 @@ const stageContent: Record<
         <FieldHint text={fieldHelp.clinicName} />
       </div>
       <div style={{ display: 'grid', gap: 8 }}>
-        <label style={labelStyle}>Razon social</label>
+        <label style={labelStyle}>Razon social <span style={{ color: '#dc2626' }}>*</span></label>
         <input placeholder="Ej. Norte Salud IPS S.A.S." value={form.legalName} onChange={(event) => onChange('legalName', event.target.value)} style={inputStyle} />
         <FieldHint text={fieldHelp.legalName} />
       </div>
@@ -497,19 +513,50 @@ export default function HealthOnboardingPage() {
     setForm((current) => ({ ...current, [key]: value }));
   };
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  // El guardado entre etapas es best-effort (no bloquea el avance), pero un
+  // fallo HTTP no es una caida de red: hubo respuestas 401/403 que se descartaban
+  // en silencio y el formulario seguia como si se hubiera guardado.
+  const [saveFailed, setSaveFailed] = useState(false);
   // P1: estado del gate de identidad conforme (Res. 866/2021), leido del
   // checklist interno de activacion para mostrarlo en la etapa de revision.
   const [identityGate, setIdentityGate] = useState<{ loading: boolean; ok: boolean; detail: string } | null>(null);
 
-  const validateRequiredFields = (): string[] => {
-    const errors: string[] = [];
-    if (!form.clinicName.trim()) errors.push('El nombre de la clínica es obligatorio');
-    if (!form.nit.trim()) errors.push('El NIT es obligatorio');
-    if (!form.contactName.trim()) errors.push('El nombre de contacto es obligatorio');
-    if (!form.contactPhone.trim()) errors.push('El teléfono de contacto es obligatorio');
-    if (!form.contactEmail.trim()) errors.push('El email de contacto es obligatorio');
-    return errors;
-  };
+  // El checklist de activación (/api/health/activate) exige
+  // IMPLEMENTATION_INTAKE_FIELDS. Si el wizard exige menos, el caso llega a
+  // "100% completado" y el checklist igual queda en rojo: validamos por etapa
+  // con exactamente los mismos campos y con el mismo criterio (no vacío).
+  const clinicSetupRequired: { key: keyof OnboardingForm; message: string }[] = [
+    { key: 'clinicName', message: 'El nombre de la clínica es obligatorio' },
+    { key: 'legalName', message: 'La razón social es obligatoria' },
+    { key: 'nit', message: 'El NIT es obligatorio' },
+    { key: 'contactName', message: 'El nombre de contacto es obligatorio' },
+    { key: 'contactPhone', message: 'El teléfono de contacto es obligatorio' },
+    { key: 'contactEmail', message: 'El email de contacto es obligatorio' },
+  ];
+  const planVolumeRequired: { key: keyof OnboardingForm; message: string }[] = [
+    { key: 'facilityType', message: 'El tipo de sede es obligatorio' },
+    { key: 'dailyCalls', message: 'Las llamadas por día estimadas son obligatorias' },
+    { key: 'avgCallMinutes', message: 'La duración media de llamada es obligatoria' },
+    { key: 'planId', message: 'Debes elegir un plan' },
+  ];
+
+  const missingIn = (fields: { key: keyof OnboardingForm; message: string }[]): string[] =>
+    fields
+      .filter(({ key }) => {
+        const value = form[key];
+        if (typeof value === 'string') return value.trim().length === 0;
+        if (typeof value === 'number') return !Number.isFinite(value) || value <= 0;
+        return !value;
+      })
+      .map(({ message }) => message);
+
+  /** Campos obligatorios de la etapa que se está por salir (solo 1 y 2 tienen). */
+  const validateRequiredFields = (stageIndex: number): string[] =>
+    missingIn(stageIndex === 0 ? clinicSetupRequired : stageIndex === 1 ? planVolumeRequired : []);
+
+  /** Validación completa al enviar a revisión: no puede quedar nada en rojo. */
+  const validateAllRequiredFields = (): string[] =>
+    missingIn([...clinicSetupRequired, ...planVolumeRequired]);
 
 
   useEffect(() => {
@@ -521,11 +568,25 @@ export default function HealthOnboardingPage() {
     }
   }, [form.clinicName, organizationId]);
 
+  // clinicId/organizationId cambian cuando la sesion termina de cargar, pero
+  // GET /api/health/onboarding resuelve el tenant desde la cookie: un segundo
+  // fetch no trae nada nuevo y solo sirve para pisar lo que el usuario ya esta
+  // escribiendo con el borrador viejo. Se hidrata una sola vez y nunca se vacia
+  // un campo que ya tiene valor.
+  const hydratedRef = useRef(false);
+
   useEffect(() => {
     async function loadExistingSession() {
+      if (hydratedRef.current) return;
       try {
         const response = await fetch(`/api/health/onboarding?clinicId=${encodeURIComponent(clinicId)}&organizationId=${encodeURIComponent(organizationId)}`, { credentials: 'include' });
+        if (!response.ok) {
+          // Sin tenant todavia (o sesion caida): no hay borrador que restaurar.
+          console.warn('Unable to load onboarding session:', response.status);
+          return;
+        }
         const data = await response.json();
+        hydratedRef.current = true;
         const nextIndex = onboardingStages.indexOf(data.currentStep ?? onboardingStages[0]);
 
         let storedForm: Record<string, unknown> = {};
@@ -540,7 +601,7 @@ export default function HealthOnboardingPage() {
           }
         }
 
-        setForm((current) => ({ ...current, ...parseStoredForm(storedForm) }));
+        setForm((current) => mergeStoredForm(current, parseStoredForm(storedForm)));
         setCurrentStageIndex(nextIndex >= 0 ? nextIndex : 0);
         // P2: si el caso ya fue enviado a revision (o aprobado), bloquear el
         // reenvio para no duplicar correos ni approvals de Upway.
@@ -587,12 +648,16 @@ export default function HealthOnboardingPage() {
   }, [currentStageIndex]);
 
   const currentStage = onboardingStages[currentStageIndex];
+  // Estado en vivo del intake de implementación: el checklist de activación
+  // (IMPLEMENTATION_INTAKE_FIELDS) es lo que decide si el caso puede pasar a
+  // ACTIVE, así que el wizard lo muestra aunque el envío ya esté hecho.
+  const missingIntake = validateAllRequiredFields();
   const stageMeta = useMemo(() => getOnboardingStageMeta(currentStage), [currentStage]);
   const progress = ((currentStageIndex + 1) / onboardingStages.length) * 100;
 
   const renderStage = stageContent[currentStage] ?? (() => null);
 
-  const persistCurrentStage = async (nextIndex: number, nextForm = form) => {
+  const persistCurrentStage = async (nextIndex: number, nextForm = form): Promise<boolean> => {
     const step = onboardingStages[nextIndex] ?? onboardingStages[0];
     const status =
       nextIndex === onboardingStages.length - 1
@@ -602,7 +667,7 @@ export default function HealthOnboardingPage() {
           : getHealthStatusForStage(step);
 
     try {
-      await fetch('/api/health/onboarding', {
+      const response = await fetch('/api/health/onboarding', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -615,20 +680,30 @@ export default function HealthOnboardingPage() {
           formData: nextForm,
         }),
       });
+      // Antes se ignoraba el status: un 401/403 se tragaba y el avance parecia
+      // guardado. Se avanza igual (best-effort) pero el usuario se entera.
+      if (!response.ok) {
+        console.warn('Failed to persist onboarding state:', response.status);
+        setSaveFailed(true);
+        return false;
+      }
+      setSaveFailed(false);
+      return true;
     } catch (error) {
       console.warn('Failed to persist onboarding state:', error);
+      setSaveFailed(true);
+      return false;
     }
   };
 
   const goNext = async () => {
-    // P4: validar los obligatorios al salir del paso 1, no recien al final:
-    // un NIT o contacto faltante no se descubre en el ultimo paso.
-    if (currentStageIndex === 0) {
-      const errors = validateRequiredFields();
-      if (errors.length > 0) {
-        setValidationErrors(errors);
-        return;
-      }
+    // P4: validar los obligatorios al salir de la etapa que los contiene, no
+    // recien al final: un NIT, un tipo de sede o el volumen faltante no se
+    // descubre en el ultimo paso.
+    const errors = validateRequiredFields(currentStageIndex);
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      return;
     }
     setValidationErrors([]);
     const nextIndex = Math.min(currentStageIndex + 1, onboardingStages.length - 1);
@@ -650,7 +725,7 @@ export default function HealthOnboardingPage() {
   const finalizeOnboarding = async () => {
     if (submitted) return; // P2: ya esta en revision de Upway; no reenviar.
     setValidationErrors([]);
-    const errors = validateRequiredFields();
+    const errors = validateAllRequiredFields();
     if (errors.length > 0) {
       setValidationErrors(errors);
       setIsSubmitting(false);
@@ -666,10 +741,18 @@ export default function HealthOnboardingPage() {
     }
 
     try {
-      await persistCurrentStage(onboardingStages.length - 1, {
+      const persisted = await persistCurrentStage(onboardingStages.length - 1, {
         ...form,
         clinicName: normalizedClinicName,
       });
+      if (!persisted) {
+        // Sin persistir no se notifica ni se marca como enviado: antes un 401/403
+        // se pasaba por alto y el caso quedaba "en revisión" sin existir en BD.
+        // Se usa saveFailed (no validationErrors) porque ese bloque tiene
+        // titulo y pie fijos de "campos obligatorios".
+        setSaveFailed(true);
+        return;
+      }
 
       // Notificar al equipo de Upway por correo
       try {
@@ -700,7 +783,7 @@ export default function HealthOnboardingPage() {
       setSubmitted(true);
     } catch (error) {
       console.warn('No se pudo persistir el onboarding de health:', error);
-      setValidationErrors(['Error al guardar el onboarding. Por favor intenta de nuevo.']);
+      setSaveFailed(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -835,6 +918,15 @@ export default function HealthOnboardingPage() {
                 </button>
               </div>
 
+              {saveFailed && validationErrors.length === 0 && (
+                <div className="mt-4 rounded-[20px] border border-amber-200 bg-amber-50/80 p-4">
+                  <p className="text-sm font-semibold text-amber-700">⚠️ No pudimos guardar tu avance.</p>
+                  <p className="mt-1 text-sm leading-6 text-amber-700">
+                    Revisa tu sesión y tu conexión: lo reintentamos al avanzar y puedes seguir llenando el formulario.
+                  </p>
+                </div>
+              )}
+
               {validationErrors.length > 0 && (
                 <div className="mt-4 rounded-[20px] border border-rose-200 bg-rose-50/80 p-4">
                   <p className="text-sm font-semibold text-rose-700">⚠️ Faltan campos obligatorios:</p>
@@ -843,9 +935,28 @@ export default function HealthOnboardingPage() {
                       <li key={i}>{err}</li>
                     ))}
                   </ul>
-                  <p className="mt-2 text-xs text-rose-500">Completa estos campos en el paso 1 (Identifica tu operación) antes de enviar.</p>
+                  <p className="mt-2 text-xs text-rose-500">Completa estos campos para continuar: son los mismos que exige el checklist de activación de tu caso.</p>
                 </div>
               )}
+
+              {currentStageIndex === onboardingStages.length - 1 &&
+                validationErrors.length === 0 &&
+                missingIntake.length > 0 && (
+                  <div className="mt-4 rounded-[20px] border border-rose-200 bg-rose-50/80 p-4">
+                    <p className="text-sm font-semibold text-rose-700">
+                      ⚠️ El checklist de activación aún marca {missingIntake.length} dato(s) del intake sin completar:
+                    </p>
+                    <ul className="mt-2 list-disc pl-5 text-sm text-rose-600 space-y-1">
+                      {missingIntake.map((err, i) => (
+                        <li key={i}>{err}</li>
+                      ))}
+                    </ul>
+                    <p className="mt-2 text-xs text-rose-500">
+                      Usa el panel lateral para volver a <strong>Clinica</strong> (paso 1) o <strong>Plan</strong>{' '}
+                      (paso 2), complétalos y regresa: cada cambio de etapa guarda solo.
+                    </p>
+                  </div>
+                )}
 
               {currentStageIndex === onboardingStages.length - 1 && !submitted && validationErrors.length === 0 && (
                 <div className="mt-4 rounded-[20px] border border-[#d3e2ff] bg-[#edf5ff] p-4 text-sm text-[#36557c]">

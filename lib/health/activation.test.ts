@@ -61,6 +61,38 @@ describe('buildActivationChecks — modelo white-glove IPS', () => {
     expect(canActivate).toBe(false);
   });
 
+  it('acepta el triaje y las politicas escritos en el wizard de onboarding', () => {
+    const { canActivate, checks } = buildActivationChecks({
+      ...base,
+      triageCount: 0,
+      policiesCount: 0,
+      faqsCount: 0,
+      wizardTriage: true,
+      wizardPolicies: true,
+    });
+    expect(canActivate).toBe(true);
+    const clinical = checks.find((c) => c.key === 'clinical-data');
+    expect(clinical?.ok).toBe(true);
+    expect(clinical?.detail).toMatch(/onboarding/);
+  });
+
+  it('el wizard solo cubre lo que el cliente escribio: sin politicas sigue bloqueado', () => {
+    const { canActivate } = buildActivationChecks({
+      ...base,
+      triageCount: 0,
+      policiesCount: 0,
+      wizardTriage: true,
+    });
+    expect(canActivate).toBe(false);
+  });
+
+  it('el detalle sigue reportando los conteos reales de Operaciones', () => {
+    const { checks } = buildActivationChecks(base);
+    expect(checks.find((c) => c.key === 'clinical-data')?.detail).toBe(
+      '3 triaje · 2 politicas · 5 FAQs'
+    );
+  });
+
   it('bloquea sin plan elegido', () => {
     const { canActivate, checks } = buildActivationChecks({ ...base, planId: null });
     expect(canActivate).toBe(false);

@@ -84,6 +84,14 @@ async function resolveActivationState(organizationId: string, clinicId: string, 
   const plan = getHealthPlan(planId);
   const implementationIntakeReady = isImplementationIntakeReady(formData);
 
+  // ── Datos clinicos: el cliente los escribe en el wizard (texto libre), no en
+  // los modulos de Operaciones. El check no puede exigirle al cliente que ademas
+  // los capture dos veces.
+  const hasText = (value: unknown) => typeof value === 'string' && value.trim().length > 0;
+  const wizardTriage = hasText(formData.triageRules);
+  const wizardPolicies = hasText(formData.policy);
+  const wizardFaqs = hasText(formData.faq);
+
   // ── Identidad conforme: servicios que exigen documento con tipo del catalogo ──
   const servicesRequiringDocs = documentServices.filter((s) => s.requiresDocuments);
   const servicesWithCatalogType = servicesRequiringDocs.filter((s) =>
@@ -104,6 +112,9 @@ async function resolveActivationState(organizationId: string, clinicId: string, 
     triageCount,
     policiesCount,
     faqsCount,
+    wizardTriage,
+    wizardPolicies,
+    wizardFaqs,
     clinicallyApproved,
     planId,
     planAutoActivatable: plan ? plan.autoActivatable : false,

@@ -23,7 +23,7 @@ function FacilityGrid(props: { form: PlanFormSlice; onChange: (k: keyof PlanForm
   const { form, onChange, estimated } = props;
   return (
     <div style={{ display: 'grid', gap: 12 }}>
-      <label style={lbl}>Tipo de sede</label>
+      <label style={lbl}>Tipo de sede <span style={{ color: '#dc2626' }}>*</span></label>
       <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))' }}>
         {FACILITY_TYPE_OPTIONS.map((opt) => {
           const active = form.facilityType === opt.id;
@@ -53,11 +53,11 @@ function VolumeBox(props: { form: PlanFormSlice; onChange: (k: keyof PlanFormSli
     <div style={{ display: 'grid', gap: 12 }}>
       <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))' }}>
         <div style={{ display: 'grid', gap: 8, minWidth: 0 }}>
-          <label style={lbl}>Llamadas / dia (est.)</label>
+          <label style={lbl}>Llamadas / dia (est.) <span style={{ color: '#dc2626' }}>*</span></label>
           <input type="number" min={0} placeholder="Ej. 40" value={form.dailyCalls} onChange={(e) => onChange('dailyCalls', e.target.value)} style={inp} />
         </div>
         <div style={{ display: 'grid', gap: 8 }}>
-          <label style={lbl}>Duracion media (min)</label>
+          <label style={lbl}>Duracion media (min) <span style={{ color: '#dc2626' }}>*</span></label>
           <input type="number" min={0} step="0.5" placeholder="Ej. 3" value={form.avgCallMinutes} onChange={(e) => onChange('avgCallMinutes', e.target.value)} style={inp} />
         </div>
       </div>

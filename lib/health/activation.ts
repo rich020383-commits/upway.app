@@ -25,6 +25,13 @@ export type ActivationInput = {
   planAutoActivatable?: boolean;
   /** Intake de implementacion completo (NIT, contacto, volumen). */
   implementationIntakeReady?: boolean;
+  /**
+   * Datos clinicos escritos en el propio wizard de onboarding (texto libre):
+   * el cliente los captura ahi, no en los modulos de Operaciones.
+   */
+  wizardTriage?: boolean;
+  wizardPolicies?: boolean;
+  wizardFaqs?: boolean;
   /** @deprecated Campo legacy: el gate se retiro, nunca bloquea el go-live. */
   legacyMessagingRequired?: boolean;
   /** Servicios de la IPS que exigen documento del paciente (denominador). */
@@ -50,6 +57,22 @@ export function buildActivationChecks(input: ActivationInput): { checks: Activat
   const servicesWithCatalogType = input.identityServicesWithCatalogType ?? 0;
   const identityOk = servicesRequiringDocs === 0 || servicesWithCatalogType >= servicesRequiringDocs;
 
+  // Datos clinicos: sirve el registro estructurado de Operaciones O el texto que
+  // el cliente escribio en el wizard de onboarding.
+  const triageOk = input.triageCount > 0 || input.wizardTriage === true;
+  const policiesOk = input.policiesCount > 0 || input.wizardPolicies === true;
+  const clinicalOk = triageOk && policiesOk;
+  const clinicalFromWizard =
+    clinicalOk && (input.wizardTriage === true || input.wizardPolicies === true);
+  const clinicalDetail =
+    input.triageCount +
+    ' triaje · ' +
+    input.policiesCount +
+    ' politicas · ' +
+    input.faqsCount +
+    ' FAQs' +
+    (clinicalFromWizard ? ' (triaje/politicas tomados del onboarding)' : '');
+
   const checks: ActivationCheck[] = [
     {
       key: 'tenant',
@@ -74,8 +97,8 @@ export function buildActivationChecks(input: ActivationInput): { checks: Activat
     {
       key: 'clinical-data',
       label: 'Datos clinicos del onboarding (triaje + politicas + FAQs)',
-      ok: input.triageCount > 0 && input.policiesCount > 0,
-      detail: input.triageCount + ' triaje · ' + input.policiesCount + ' politicas · ' + input.faqsCount + ' FAQs',
+      ok: clinicalOk,
+      detail: clinicalDetail,
     },
     {
       key: 'channel-policy',
