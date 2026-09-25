@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { estimateCallCosts } from '@/lib/telnyx/costs';
-import { missingTelnyxEnv } from '@/lib/telnyx/client';
+import { missingTelnyxCallEnv, missingTelnyxVoiceEnv } from '@/lib/telnyx/client';
 
 // POST /api/voice/webhooks — receptor Call Control v2 (API v2 en tu captura).
 // Telnyx firma con Ed25519: cabeceras `telnyx-signature-ed25519` + `telnyx-timestamp`.
@@ -108,14 +108,23 @@ export async function POST(req: NextRequest) {
 }
 
 // GET de estado (no es verify de Meta). No exige firma; solo reporta config sin exponer secretos.
+//
+// Reporta los DOS gates por separado porque son cosas distintas:
+//  - `voice`   → catálogo, preview, clones y assistant (solo API key)
+//  - `calling` → marcar una llamada (API key + Call Control App + número emisor)
 export async function GET() {
-  const missing = missingTelnyxEnv();
+  const voiceMissing = missingTelnyxVoiceEnv();
+  const callMissing = missingTelnyxCallEnv();
   return NextResponse.json({
     ok: true,
     provider: 'telnyx',
     webhook: '/api/voice/webhooks',
-    configured: missing.length === 0,
+    voice: { configured: voiceMissing.length === 0, missing: voiceMissing },
+    calling: { configured: callMissing.length === 0, missing: callMissing },
+    // Alias del gate de llamada: es lo que se consultaba antes del split y
+    // sigue siendo la pregunta útil para "¿puedo marcar?".
+    configured: callMissing.length === 0,
     // Solo nombres de variables: permite ver en producción cuál falta.
-    missing,
+    missing: callMissing,
   });
 }

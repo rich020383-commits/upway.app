@@ -13,21 +13,28 @@ vi.mock('@/lib/prisma', () => ({
 }));
 vi.mock('@/lib/session', () => ({ getSessionUser: vi.fn() }));
 vi.mock('@/lib/telnyx/client', () => ({
-  isTelnyxConfigured: vi.fn(),
-  missingTelnyxEnv: vi.fn(),
+  isTelnyxCallReady: vi.fn(),
+  missingTelnyxCallEnv: vi.fn(),
+  telnyxNotReadyMessage: vi.fn(),
   createOutboundCall: vi.fn(),
 }));
 
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/session';
-import { createOutboundCall, isTelnyxConfigured, missingTelnyxEnv } from '@/lib/telnyx/client';
+import {
+  createOutboundCall,
+  isTelnyxCallReady,
+  missingTelnyxCallEnv,
+  telnyxNotReadyMessage,
+} from '@/lib/telnyx/client';
 import { POST } from './route';
 
 const mockedSession = getSessionUser as unknown as Mock;
 const mockedTiendaFind = prisma.tienda.findFirst as unknown as Mock;
 const mockedLogCreate = prisma.llamadaLog.create as unknown as Mock;
-const mockedConfigured = isTelnyxConfigured as unknown as Mock;
-const mockedMissing = missingTelnyxEnv as unknown as Mock;
+const mockedCallReady = isTelnyxCallReady as unknown as Mock;
+const mockedMissing = missingTelnyxCallEnv as unknown as Mock;
+const mockedNotReady = telnyxNotReadyMessage as unknown as Mock;
 const mockedCall = createOutboundCall as unknown as Mock;
 
 const TIENDA = {
@@ -52,8 +59,11 @@ beforeEach(() => {
   mockedSession.mockResolvedValue({ id: 'user-1' });
   mockedTiendaFind.mockResolvedValue(TIENDA);
   mockedLogCreate.mockResolvedValue({});
-  mockedConfigured.mockReturnValue(true);
+  mockedCallReady.mockReturnValue(true);
   mockedMissing.mockReturnValue([]);
+  mockedNotReady.mockImplementation(
+    (missing: string[]) => `Telnyx no está configurado: falta ${missing.join(', ')}`
+  );
   mockedCall.mockResolvedValue({ data: { id: 'call-1' } });
 });
 
@@ -106,12 +116,15 @@ describe('POST /api/voice/calls — sesión, ownership, consentimiento y cuota',
   });
 
   it('explica qué variable de Telnyx falta (503) sin llegar a marcar', async () => {
-    mockedConfigured.mockReturnValue(false);
+    mockedCallReady.mockReturnValue(false);
     mockedMissing.mockReturnValue(['TELNYX_DEFAULT_PHONE_NUMBER']);
     const res = await POST(request(validBody));
     expect(res.status).toBe(503);
     expect((await res.json()).error).toContain('TELNYX_DEFAULT_PHONE_NUMBER');
     expect(mockedCall).not.toHaveBeenCalled();
+    // El gate consulta con el número de la tienda: si la tienda ya tiene uno
+    // dedicado, la env global deja de ser obligatoria.
+    expect(mockedCallReady).toHaveBeenCalledWith('+573001112233');
   });
 
   it('marca el destino con el número y el assistant de la tienda', async () => {

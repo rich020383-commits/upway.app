@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/session';
-import { upsertAssistantForTienda, getTelnyxConfig, isTelnyxConfigured, missingTelnyxEnv, updateAssistantVoice } from '@/lib/telnyx/client';
+import { upsertAssistantForTienda, getTelnyxConfig, isTelnyxVoiceReady, missingTelnyxVoiceEnv, telnyxNotReadyMessage, updateAssistantVoice } from '@/lib/telnyx/client';
 import { isValidVoiceValue } from '@/lib/telnyx/voices';
 import { checkVoiceRateLimit, voiceRateLimitResponse } from '@/lib/telnyx/rate-limit';
 import { buildVoiceGreeting } from '@/lib/telnyx/voice-consent';
@@ -50,9 +50,9 @@ export async function POST(req: NextRequest) {
       ? tienda.agentVoice
       : 'Telnyx.female.sofia');
 
-  if (!isTelnyxConfigured()) {
+  if (!isTelnyxVoiceReady()) {
     return NextResponse.json(
-      { error: `Telnyx no está configurado: falta ${missingTelnyxEnv().join(', ')}` },
+      { error: telnyxNotReadyMessage(missingTelnyxVoiceEnv()) },
       { status: 503 }
     );
   }
@@ -143,7 +143,7 @@ export async function PATCH(req: NextRequest) {
   });
 
   let appliedToTelnyx = false;
-  if (tienda.telnyxAssistantId && isTelnyxConfigured()) {
+  if (tienda.telnyxAssistantId && isTelnyxVoiceReady()) {
     try {
       await updateAssistantVoice(tienda.telnyxAssistantId, voz);
       appliedToTelnyx = true;

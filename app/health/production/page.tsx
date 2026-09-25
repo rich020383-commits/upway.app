@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import VoiceSelector from '@/components/health/voice-selector';
+import VoiceTestCall from '@/components/health/voice-test-call';
 
 type ActivationCheck = { key: string; label: string; ok: boolean; detail: string };
 
@@ -148,6 +149,7 @@ export default function HealthProductionPage() {
           initialVoice={agentVoice}
           initialVoiceLabel={agentVoiceLabel}
         />
+        <VoiceTestCall tiendaId={tiendaId} />
       </div>
 
       <div className="upway-surface rounded-[28px] p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">

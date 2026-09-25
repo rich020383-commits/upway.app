@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/session';
-import { createOutboundCall, isTelnyxConfigured, missingTelnyxEnv } from '@/lib/telnyx/client';
+import { createOutboundCall, isTelnyxCallReady, missingTelnyxCallEnv, telnyxNotReadyMessage } from '@/lib/telnyx/client';
 import { checkVoiceRateLimit, voiceRateLimitResponse } from '@/lib/telnyx/rate-limit';
 import { CALL_CONSENT_REQUIRED_MESSAGE } from '@/lib/telnyx/voice-consent';
 
@@ -40,9 +40,12 @@ export async function POST(req: NextRequest) {
     where: { id: parsed.data.tiendaId, userId: user.id },
   });
   if (!tienda) return NextResponse.json({ error: 'Tienda no encontrada' }, { status: 404 });
-  if (!isTelnyxConfigured()) {
+  // Marcar sí necesita la Call Control App y un número emisor. El número
+  // dedicado de la tienda exime de la env global (mismo criterio que
+  // createOutboundCall: `from` explícito > default global).
+  if (!isTelnyxCallReady(tienda.telnyxPhoneNumber)) {
     return NextResponse.json(
-      { error: `Telnyx no está configurado: falta ${missingTelnyxEnv().join(', ')}` },
+      { error: telnyxNotReadyMessage(missingTelnyxCallEnv(tienda.telnyxPhoneNumber)) },
       { status: 503 }
     );
   }

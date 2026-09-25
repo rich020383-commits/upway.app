@@ -5,9 +5,10 @@ import {
   createVoiceCloneFromDesign,
   createVoiceCloneFromUpload,
   createVoiceDesign,
-  isTelnyxConfigured,
-  missingTelnyxEnv,
+  isTelnyxVoiceReady,
   listVoiceClones,
+  missingTelnyxVoiceEnv,
+  telnyxNotReadyMessage,
 } from '@/lib/telnyx/client';
 import {
   buildPreviewText,
@@ -29,9 +30,9 @@ export async function GET(req: NextRequest) {
   // Dos llamadas a Telnyx por request: limita el abuso del catálogo.
   const rate = checkVoiceRateLimit('catalog', user.id);
   if (!rate.allowed) return voiceRateLimitResponse('catalog', rate);
-  if (!isTelnyxConfigured()) {
+  if (!isTelnyxVoiceReady()) {
     return NextResponse.json(
-      { error: `Telnyx no está configurado: falta ${missingTelnyxEnv().join(', ')}` },
+      { error: telnyxNotReadyMessage(missingTelnyxVoiceEnv()) },
       { status: 503 }
     );
   }
@@ -64,9 +65,9 @@ export async function POST(req: NextRequest) {
   // Diseño/clon de voz: una de las operaciones mas caras del proveedor.
   const rate = checkVoiceRateLimit('clone', user.id);
   if (!rate.allowed) return voiceRateLimitResponse('clone', rate);
-  if (!isTelnyxConfigured()) {
+  if (!isTelnyxVoiceReady()) {
     return NextResponse.json(
-      { error: `Telnyx no está configurado: falta ${missingTelnyxEnv().join(', ')}` },
+      { error: telnyxNotReadyMessage(missingTelnyxVoiceEnv()) },
       { status: 503 }
     );
   }

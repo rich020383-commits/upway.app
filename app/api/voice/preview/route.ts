@@ -4,8 +4,9 @@ import { getSessionUser } from '@/lib/session';
 import {
   generateSpeech,
   getVoiceCloneSample,
-  isTelnyxConfigured,
-  missingTelnyxEnv,
+  isTelnyxVoiceReady,
+  missingTelnyxVoiceEnv,
+  telnyxNotReadyMessage,
   type TelnyxBinary,
 } from '@/lib/telnyx/client';
 import { buildPreviewText, isValidVoiceValue } from '@/lib/telnyx/voices';
@@ -31,9 +32,9 @@ export async function POST(req: NextRequest) {
   // TTS de muestra = cuota pagada: freno por usuario antes de sintetizar.
   const rate = checkVoiceRateLimit('preview', user.id);
   if (!rate.allowed) return voiceRateLimitResponse('preview', rate);
-  if (!isTelnyxConfigured()) {
+  if (!isTelnyxVoiceReady()) {
     return NextResponse.json(
-      { error: `Telnyx no está configurado: falta ${missingTelnyxEnv().join(', ')}` },
+      { error: telnyxNotReadyMessage(missingTelnyxVoiceEnv()) },
       { status: 503 }
     );
   }

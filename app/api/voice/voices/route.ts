@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/session';
-import { isTelnyxConfigured, listTtsVoices, listVoiceClones, missingTelnyxEnv } from '@/lib/telnyx/client';
+import { isTelnyxVoiceReady, listTtsVoices, listVoiceClones, missingTelnyxVoiceEnv, telnyxNotReadyMessage } from '@/lib/telnyx/client';
 import {
   FALLBACK_CATALOG,
   mapCatalogVoices,
@@ -25,9 +25,9 @@ export async function GET(req: NextRequest) {
   // Dos llamadas a Telnyx por request: limita el abuso del catálogo.
   const rate = checkVoiceRateLimit('catalog', user.id);
   if (!rate.allowed) return voiceRateLimitResponse('catalog', rate);
-  if (!isTelnyxConfigured()) {
+  if (!isTelnyxVoiceReady()) {
     return NextResponse.json(
-      { error: `Telnyx no está configurado: falta ${missingTelnyxEnv().join(', ')}` },
+      { error: telnyxNotReadyMessage(missingTelnyxVoiceEnv()) },
       { status: 503 }
     );
   }

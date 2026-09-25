@@ -34,26 +34,74 @@ export function getTelnyxConfig() {
 }
 
 /**
- * Env obligatorias para que la voz Telnyx funcione. Sin las tres,
- * `isTelnyxConfigured()` devuelve false.
+ * Env obligatorias POR AMBITO.
+ *
+ * Antes había una sola lista para todo (`TELNYX_REQUIRED_ENV`) y eso apagaba
+ * funciones que no necesitan un número: con `TELNYX_DEFAULT_PHONE_NUMBER`
+ * vacía —que es lo normal hasta comprar el DID— el catálogo de voces, el
+ * preview de TTS, los clones y el assistant devolvían 503 aunque solo
+ * necesiten la API key. En `lib/telnyx/client.ts` se verifica que `appId` y
+ * `defaultPhone` SOLO se usan en `createOutboundCall`.
  */
-export const TELNYX_REQUIRED_ENV = [
+
+/** Hablar CON la IA: catálogo, preview, clones y assistant. Basta la API key. */
+export const TELNYX_VOICE_ENV = ['TELNYX_API_KEY'] as const;
+
+/** MARCAR una llamada: además requiere la Call Control App y un número emisor. */
+export const TELNYX_CALL_ENV = [
   'TELNYX_API_KEY',
   'TELNYX_APP_ID',
   'TELNYX_DEFAULT_PHONE_NUMBER',
 ] as const;
 
+/** Union de ambas, para diagnóstico (el GET de /api/voice/webhooks). */
+export const TELNYX_REQUIRED_ENV: readonly string[] = [
+  ...new Set([...TELNYX_VOICE_ENV, ...TELNYX_CALL_ENV]),
+];
+
+function missingEnv(names: readonly string[]): string[] {
+  return names.filter((name) => !(process.env[name] ?? '').trim());
+}
+
 /**
- * Devuelve los NOMBRES de las env obligatorias que faltan (vacías o en blanco).
+ * Devuelve los NOMBRES de las env de voz que faltan (vacías o en blanco).
  * Nunca devuelve valores: es seguro incluirla en mensajes de error 503 y en el
  * GET /api/voice/webhooks para saber exactamente qué falta en Render.
  */
-export function missingTelnyxEnv(): string[] {
-  return TELNYX_REQUIRED_ENV.filter((name) => !(process.env[name] ?? '').trim());
+export function missingTelnyxVoiceEnv(): string[] {
+  return missingEnv(TELNYX_VOICE_ENV);
 }
 
-export function isTelnyxConfigured(): boolean {
-  return missingTelnyxEnv().length === 0;
+/** ¿Se puede navegar el catálogo, sintetizar una muestra, clonar y aprovisionar? */
+export function isTelnyxVoiceReady(): boolean {
+  return missingTelnyxVoiceEnv().length === 0;
+}
+
+/**
+ * Nombres de las env que faltan para MARCAR una llamada.
+ *
+ * `from` es el número dedicado de la Tienda. Si la tienda ya tiene uno, la env
+ * global deja de ser obligatoria: es el mismo criterio que usa
+ * `createOutboundCall` para elegir el `from` (explícito > default global).
+ */
+export function missingTelnyxCallEnv(from?: string | null): string[] {
+  const required = from?.trim()
+    ? TELNYX_CALL_ENV.filter((name) => name !== 'TELNYX_DEFAULT_PHONE_NUMBER')
+    : TELNYX_CALL_ENV;
+  return missingEnv(required);
+}
+
+/** ¿Se puede iniciar una llamada saliente? */
+export function isTelnyxCallReady(from?: string | null): boolean {
+  return missingTelnyxCallEnv(from).length === 0;
+}
+
+/**
+ * 503 honesto y único para todas las rutas: nombra las variables que faltan y
+ * nunca sus valores. Un solo mensaje evita que cada ruta redacte el suyo.
+ */
+export function telnyxNotReadyMessage(missing: string[]): string {
+  return `Telnyx no está configurado: falta ${missing.join(', ')}`;
 }
 
 async function telnyxFetch(path: string, init: RequestInit = {}) {

@@ -48,6 +48,11 @@ export default function VoiceSelector({
   const [mode, setMode] = useState<'none' | 'upload' | 'design'>('none');
   const [busyCreate, setBusyCreate] = useState(false);
   const [msg, setMsg] = useState<Msg>(null);
+  // El error de carga del catálogo NO va en `msg`: ese mensaje se usa para los
+  // errores de acción y se limpia al interactuar. Si no, un 503 inicial
+  // dejaba el <select> en "Sin voces disponibles", que dice una cosa falsa
+  // (no hay voces) cuando la verdad es que no se pudo consultar a Telnyx.
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [designName, setDesignName] = useState('');
   const [designPrompt, setDesignPrompt] = useState('');
   const [uploadName, setUploadName] = useState('');
@@ -60,6 +65,7 @@ export default function VoiceSelector({
     // setState síncrono dentro del efecto — regla react-hooks/set-state-in-effect).
     if (!tiendaId) return;
     try {
+      setLoadError(null);
       const res = await fetch(`/api/voice/voices?tiendaId=${encodeURIComponent(tiendaId)}`, {
         cache: 'no-store',
       });
@@ -85,7 +91,7 @@ export default function VoiceSelector({
       setSelected(saved || catalog[0]?.value || cloneList[0]?.value || '');
       setSavedVoice(saved);
     } catch (error) {
-      setMsg({ tone: 'err', text: error instanceof Error ? error.message : 'Error cargando voces.' });
+      setLoadError(error instanceof Error ? error.message : 'Error cargando voces.');
     } finally {
       setLoading(false);
     }
@@ -242,7 +248,13 @@ export default function VoiceSelector({
             }}
           >
             {voices.length === 0 && clones.length === 0 && (
-              <option value="">{loading ? 'Cargando voces…' : 'Sin voces disponibles'}</option>
+              <option value="">
+                {loading
+                  ? 'Cargando voces…'
+                  : loadError
+                    ? 'No se pudo cargar el catálogo'
+                    : 'Sin voces disponibles'}
+              </option>
             )}
             {voices.length > 0 && (
               <optgroup label="Catálogo Telnyx">
@@ -285,12 +297,18 @@ export default function VoiceSelector({
         </button>
       </div>
 
+      {loadError && (
+        <p className="rounded-[14px] border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">
+          {loadError}
+        </p>
+      )}
+
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           className={btnGhost}
           onClick={() => setMode(mode === 'upload' ? 'none' : 'upload')}
-          disabled={busy}
+          disabled={busy || Boolean(loadError)}
         >
           <Upload size={15} /> Subir muestra (5–60 s)
         </button>
@@ -298,7 +316,7 @@ export default function VoiceSelector({
           type="button"
           className={btnGhost}
           onClick={() => setMode(mode === 'design' ? 'none' : 'design')}
-          disabled={busy}
+          disabled={busy || Boolean(loadError)}
         >
           <Sparkles size={15} /> Crear voz con prompt
         </button>
