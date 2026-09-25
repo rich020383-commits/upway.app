@@ -61,5 +61,20 @@ export async function GET(req: NextRequest) {
       ? mapClonesToOptions((clonesRes.value as { data?: VoiceCloneRaw[] })?.data ?? [])
       : [];
 
-  return NextResponse.json({ ok: true, voices, clones, current, fallback: usedFallback });
+  // CONFINIDENCIALIDAD: el proveedor viaja en el campo `provider` de cada
+  // opción porque el cliente lo necesita para componer el identificador de
+  // voz, pero no se expone en la respuesta.
+  const sinProveedor = (options: Array<Record<string, unknown>>) =>
+    options.map((opcion) => {
+      const copia = { ...opcion };
+      delete copia.provider;
+      return copia;
+    });
+  return NextResponse.json({
+    ok: true,
+    voices: sinProveedor(voices),
+    clones: sinProveedor(clones),
+    current,
+    fallback: usedFallback,
+  });
 }

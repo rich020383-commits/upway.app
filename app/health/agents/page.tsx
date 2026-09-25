@@ -7,7 +7,7 @@ type AgentPayload = {
   id: string;
   name: string;
   prompt: string;
-  channels: { telnyx?: boolean; vapi?: boolean };
+  channels: { voice?: boolean; legacy?: boolean };
   isAiActive: boolean;
   status: 'active' | 'standby' | 'paused';
 };
@@ -110,7 +110,7 @@ export default function AgentsPage() {
             <div className="text-xl font-black tracking-[-0.04em] text-slate-900">{agent.name}</div>
             <div className="mt-3 flex items-center gap-2 text-sm text-slate-600">
               <Phone className="h-4 w-4" />
-              Voz IA: {(agent.channels.telnyx ?? agent.channels.vapi) ? 'conectado' : 'sin conectar'}
+              Voz IA: {(agent.channels.voice ?? agent.channels.legacy) ? 'conectado' : 'sin conectar'}
             </div>
           </div>
 

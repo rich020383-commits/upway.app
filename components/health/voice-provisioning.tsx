@@ -75,9 +75,9 @@ export default function VoiceProvisioning({
         return;
       }
       setMsg({
-        tone: data.telnyxPhoneNumber ? 'ok' : 'info',
-        text: data.telnyxPhoneNumber
-          ? `Asistente ${data.assistantId ?? ''} creado y línea ${data.telnyxPhoneNumber} asignada.`
+        tone: data.voicePhoneNumber ? 'ok' : 'info',
+        text: data.voicePhoneNumber
+          ? `Asistente ${data.assistantId ?? ''} creado y línea ${data.voicePhoneNumber} asignada.`
           : `Asistente ${data.assistantId ?? ''} creado y voz encendida. Falta el número dedicado para completar el check de voz.`,
       });
       onProvisioned();
@@ -110,8 +110,8 @@ export default function VoiceProvisioning({
 
       <p className="text-xs leading-relaxed text-slate-500">
         {isActive
-          ? 'El asistente ya está creado en Telnyx. Reaprovisiona si cambian el guion o la línea.'
-          : 'Crea el asistente en Telnyx con el guion de la sede. El saludo incluye automáticamente el aviso de grabación y tratamiento de datos.'}
+          ? 'El asistente ya está creado en Upway. Reaprovisiona si cambian el guion o la línea.'
+          : 'Crea el asistente de voz con el guion de la sede. El saludo incluye automáticamente el aviso de grabación y tratamiento de datos.'}
       </p>
 
       <div className="grid gap-3 sm:grid-cols-2">

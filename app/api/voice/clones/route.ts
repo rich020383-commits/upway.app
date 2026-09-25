@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
     const design = await createVoiceDesign({ name, prompt, text: buildPreviewText(name) });
     const designId = (design?.data?.id ?? design?.id) as string | undefined;
     if (!designId) {
-      return NextResponse.json({ error: 'Telnyx no creó el diseño de voz.' }, { status: 502 });
+      return NextResponse.json({ error: 'El servicio de voz de Upway no creó el diseño de voz.' }, { status: 502 });
     }
     const res = await createVoiceCloneFromDesign({
       voiceDesignId: designId,
@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('[voice] create clone failed', err);
     return NextResponse.json(
-      { error: 'Telnyx no pudo crear la voz propia. Revisa la API key e inténtalo de nuevo.' },
+      { error: 'El servicio de voz de Upway no pudo crear la voz propia. Inténtalo de nuevo en un momento.' },
       { status: 502 }
     );
   }

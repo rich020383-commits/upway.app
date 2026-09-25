@@ -19,7 +19,7 @@ export default function HealthProductionPage() {
   const [clinicName, setClinicName] = useState<string | null>(null);
   const [assistantId, setAssistantId] = useState<string | null>(null);
   const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
-  const [isTelnyxActive, setIsTelnyxActive] = useState(false);
+  const [isVoiceActive, setIsVoiceActive] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activating, setActivating] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -38,9 +38,9 @@ export default function HealthProductionPage() {
         setAgentVoice(data.agentVoice ?? null);
         setAgentVoiceLabel(data.agentVoiceLabel ?? null);
         setClinicName(data.clinicName ?? null);
-        setAssistantId(data.telnyxAssistantId ?? null);
-        setPhoneNumber(data.telnyxPhoneNumber ?? null);
-        setIsTelnyxActive(Boolean(data.isTelnyxActive));
+        setAssistantId(data.voiceAssistantId ?? null);
+        setPhoneNumber(data.voicePhoneNumber ?? null);
+        setIsVoiceActive(Boolean(data.isVoiceActive));
       } else {
         setFeedback(data.error ?? 'No se pudo cargar el checklist de activación.');
       }
@@ -151,7 +151,7 @@ export default function HealthProductionPage() {
           )}
         </div>
         <p className="mb-4 text-sm text-slate-500">
-          Elige la voz con la que el agente atiende las llamadas Telnyx o crea una voz propia (muestra de audio o
+          Elige la voz con la que el agente atiende las llamadas de voz o crea una voz propia (muestra de audio o
           descripción con prompt). Puedes escuchar una muestra antes de guardar. Mientras Upway revisa tu caso puedes
           probarla y elegirla: se aplica al número cuando la activación quede en verde.
         </p>
@@ -165,7 +165,7 @@ export default function HealthProductionPage() {
           clinicName={clinicName}
           assistantId={assistantId}
           phoneNumber={phoneNumber}
-          isActive={isTelnyxActive}
+          isActive={isVoiceActive}
           onProvisioned={() => void load()}
         />
         <VoiceTestCall tiendaId={tiendaId} />

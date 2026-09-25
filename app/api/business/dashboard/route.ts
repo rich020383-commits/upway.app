@@ -186,15 +186,15 @@ export async function GET(request: NextRequest) {
       }),
       prisma.message.count({ where: { conversation: { tiendaId }, createdAt: { gte: monthStart } } }),
     ]);
-    const telnyxCostRaw = (voiceAgg._sum.telnyxCost ?? 0) + (voiceAgg._sum.vapiCost ?? 0);
+    const voiceCostRaw = (voiceAgg._sum.telnyxCost ?? 0) + (voiceAgg._sum.vapiCost ?? 0);
     const consumption = {
       month: monthStart.toISOString(),
       messages: messagesThisMonth,
       voiceCalls: voiceAgg._count._all,
       voiceMinutes: Math.round((voiceAgg._sum.durationMinutes ?? 0) * 10) / 10,
-      telnyxCost: Math.round(telnyxCostRaw * 100) / 100,
-      // Alias legacy para UI antigua: vapiCost refleja telnyx hasta retirar Vapi.
-      vapiCost: Math.round(telnyxCostRaw * 100) / 100,
+      voiceCost: Math.round(voiceCostRaw * 100) / 100,
+      // Alias legacy para clientes con la UI anterior.
+      legacyVoiceCost: Math.round(voiceCostRaw * 100) / 100,
       billedCost: Math.round((voiceAgg._sum.upwayBilledCost ?? 0) * 100) / 100,
     };
 

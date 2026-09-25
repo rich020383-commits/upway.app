@@ -163,9 +163,9 @@ export async function GET(request: NextRequest) {
           // ya hay assistant, línea dedicada y si la voz quedó encendida. Antes
           // el panel solo sabía el check agregado y no podíamos explicar por qué
           // `Voz Telnyx dedicada` seguía en rojo.
-          telnyxAssistantId: state.tienda?.telnyxAssistantId ?? null,
-          telnyxPhoneNumber: state.tienda?.telnyxPhoneNumber ?? null,
-          isTelnyxActive: state.tienda?.isTelnyxActive ?? false,
+          voiceAssistantId: state.tienda?.telnyxAssistantId ?? null,
+          voicePhoneNumber: state.tienda?.telnyxPhoneNumber ?? null,
+          isVoiceActive: state.tienda?.isTelnyxActive ?? false,
           plan: state.plan
             ? {
                 id: state.plan.id,
@@ -174,7 +174,7 @@ export async function GET(request: NextRequest) {
                 setupCOP: state.plan.setupCOP,
                 includedMinutes: state.plan.includedMinutes,
                 concurrentCalls: state.plan.concurrentCalls,
-                requiresTelnyxApproval: state.plan.requiresTelnyxApproval,
+                requiresApproval: state.plan.requiresTelnyxApproval,
                 autoActivatable: state.plan.autoActivatable,
               }
             : null,
@@ -267,7 +267,7 @@ export async function POST(request: NextRequest) {
             clinicName: state.clinic.name,
             agentName: state.tienda.agentName ?? state.tienda.nombre,
             phoneNumber: state.tienda.telnyxPhoneNumber,
-            telnyxAssistantId: state.tienda.telnyxAssistantId,
+            voiceAssistantId: state.tienda.telnyxAssistantId,
             voiceActive: state.tienda.isTelnyxActive,
             planId: state.plan?.id ?? null,
             planName: state.plan?.name ?? null,

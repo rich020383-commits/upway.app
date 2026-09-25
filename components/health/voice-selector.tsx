@@ -77,12 +77,13 @@ export default function VoiceSelector({
       setFallback(Boolean(data.fallback));
       const saved: string = data.current?.voice ?? initialVoice ?? '';
       const savedLabel: string = data.current?.label ?? initialVoiceLabel ?? '';
-      // Si la voz guardada ya no está en el catálogo (p. ej. alias histórico),
-      // se inyecta como opción para que el select la muestre.
+      // Si la voz guardada ya no está en el catálogo (p. ej. una voz clonada
+      // que se borró), se inyecta como opción. NUNCA con el identificador
+      // crudo como etiqueta: es un valor técnico que delata al proveedor.
       if (saved && ![...catalog, ...cloneList].some((option) => option.value === saved)) {
         catalog.unshift({
           value: saved,
-          label: savedLabel || saved,
+          label: savedLabel || 'Voz guardada anteriormente',
           kind: 'catalog',
           provider: 'telnyx',
         });
@@ -157,7 +158,7 @@ export default function VoiceSelector({
         text:
           data.warning ??
           (data.appliedToTelnyx
-            ? 'Voz guardada y aplicada al asistente Telnyx.'
+            ? 'Voz guardada y aplicada al asistente de voz de Upway.'
             : 'Voz guardada.'),
       });
     } catch (error) {
@@ -257,7 +258,7 @@ export default function VoiceSelector({
               </option>
             )}
             {voices.length > 0 && (
-              <optgroup label="Catálogo Telnyx">
+              <optgroup label="Catálogo de voces">
                 {voices.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
@@ -377,7 +378,7 @@ export default function VoiceSelector({
             Clonar desde muestra
           </p>
           <p className="text-xs leading-relaxed text-slate-500">
-            Sube 5–60 s de voz clara en WAV, MP3, FLAC, OGG o M4A (máx. 5 MB). Telnyx crea una voz
+            Sube 5–60 s de voz clara en WAV, MP3, FLAC, OGG o M4A (máx. 5 MB). Upway crea una voz
             única con esa muestra.
           </p>
           <input

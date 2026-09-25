@@ -97,11 +97,21 @@ export function isTelnyxCallReady(from?: string | null): boolean {
 }
 
 /**
- * 503 honesto y único para todas las rutas: nombra las variables que faltan y
- * nunca sus valores. Un solo mensaje evita que cada ruta redacte el suyo.
+ * 503 honesto y único para todas las rutas.
+ *
+ * CONFINIDENCIALIDAD: este texto se muestra al cliente en la tarjeta de voz de
+ * Operaciones, así que no puede nombrar al proveedor ni a las variables (los
+ * nombres de env lo delatarían). El detalle técnico sí se registra en el log
+ * del servidor, que es donde debe estar.
  */
-export function telnyxNotReadyMessage(missing: string[]): string {
-  return `Telnyx no está configurado: falta ${missing.join(', ')}`;
+export function telnyxNotReadyMessage(
+  missing: string[],
+  scope: 'voz' | 'llamada' = 'voz'
+): string {
+  console.error('[telnyx] configuración incompleta', { scope, missing });
+  return scope === 'llamada'
+    ? 'La voz de Upway todavía no puede iniciar llamadas: falta terminar de configurar la línea telefónica de la sede.'
+    : 'La voz de Upway todavía no está disponible: falta la llave de acceso al servicio de voz.';
 }
 
 async function telnyxFetch(path: string, init: RequestInit = {}) {

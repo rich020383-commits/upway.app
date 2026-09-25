@@ -66,9 +66,9 @@ export async function GET(request: NextRequest) {
     name: tienda.agentName || tienda.nombre,
     prompt: tienda.systemPrompt ?? '',
     channels: {
-      telnyx: voiceActive,
-      // Alias legacy para UI antigua: vapi refleja telnyx hasta retirar Vapi.
-      vapi: voiceActive,
+      voice: voiceActive,
+      // Alias legacy para clientes con la UI anterior.
+      legacy: voiceActive,
     },
     isAiActive: tienda.isAiActive,
     status: statusLabel(tienda),
@@ -128,8 +128,8 @@ export async function PATCH(request: NextRequest) {
       name: updated.agentName || updated.nombre,
       prompt: updated.systemPrompt ?? '',
       channels: {
-        telnyx: voiceActive,
-        vapi: voiceActive,
+        voice: voiceActive,
+        legacy: voiceActive,
       },
       isAiActive: updated.isAiActive,
       status: statusLabel(updated),

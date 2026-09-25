@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
   // createOutboundCall: `from` explícito > default global).
   if (!isTelnyxCallReady(tienda.telnyxPhoneNumber)) {
     return NextResponse.json(
-      { error: telnyxNotReadyMessage(missingTelnyxCallEnv(tienda.telnyxPhoneNumber)) },
+      { error: telnyxNotReadyMessage(missingTelnyxCallEnv(tienda.telnyxPhoneNumber), 'llamada') },
       { status: 503 }
     );
   }
@@ -74,9 +74,9 @@ export async function POST(req: NextRequest) {
       tiendaId: tienda.id,
       to: parsed.data.to,
     });
-    return NextResponse.json({ ok: true, provider: 'telnyx', call: res?.data ?? res });
+    return NextResponse.json({ ok: true, call: res?.data ?? res });
   } catch (err) {
     console.error('[telnyx] outbound call failed', err);
-    return NextResponse.json({ error: 'Telnyx no pudo iniciar la llamada' }, { status: 502 });
+    return NextResponse.json({ error: 'El servicio de voz de Upway no pudo iniciar la llamada' }, { status: 502 });
   }
 }

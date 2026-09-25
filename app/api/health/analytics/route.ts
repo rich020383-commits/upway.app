@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
-    const telnyxCost = (voiceAgg._sum.telnyxCost ?? 0) + (voiceAgg._sum.vapiCost ?? 0);
+    const voiceCost = (voiceAgg._sum.telnyxCost ?? 0) + (voiceAgg._sum.vapiCost ?? 0);
     const payload = withTenantScope(
       {
         summary: {
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
           avgResponseSeconds: 0,
           voiceCalls: voiceAgg._count._all,
           voiceMinutes: Math.round((voiceAgg._sum.durationMinutes ?? 0) * 10) / 10,
-          telnyxCost: Math.round(telnyxCost * 100) / 100,
+          voiceCost: Math.round(voiceCost * 100) / 100,
           billedCost: Math.round((voiceAgg._sum.upwayBilledCost ?? 0) * 100) / 100,
         },
       },

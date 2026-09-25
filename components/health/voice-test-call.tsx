@@ -49,7 +49,7 @@ export default function VoiceTestCall({ tiendaId }: { tiendaId: string | null })
           tone: 'err',
           text:
             res.status === 503
-              ? `${data.error} Upway debe comprar un número en Telnyx y asignarlo a la Call Control App antes de poder marcar.`
+              ? `${data.error} Upway está terminando de configurar la línea de voz de la sede; en cuanto esté lista podrás marcar.`
               : (data.error ?? 'No se pudo iniciar la llamada.'),
         });
         return;
@@ -75,7 +75,7 @@ export default function VoiceTestCall({ tiendaId }: { tiendaId: string | null })
         Llamada de prueba
       </p>
       <p className="text-xs leading-relaxed text-slate-500">
-        Marca un número real desde la línea Telnyx de la sede para comprobar que el asistente
+        Marca un número real desde la línea de voz de la sede para comprobar que el asistente
         levanta con la voz guardada. La llamada se graba y queda en el registro de la sede.
       </p>
 

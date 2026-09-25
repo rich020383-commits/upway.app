@@ -83,13 +83,27 @@ describe('diagnóstico compartido', () => {
     }
   });
 
-  it('el mensaje nombra exactamente la env que falta, sin inventar otras', () => {
+  it('el mensaje de cara al cliente NO nombra al proveedor ni a las variables', () => {
     process.env.TELNYX_API_KEY = 'KEY_test';
-    const message = telnyxNotReadyMessage(missingTelnyxCallEnv());
-    expect(message).toBe(
-      'Telnyx no está configurado: falta TELNYX_APP_ID, TELNYX_DEFAULT_PHONE_NUMBER'
-    );
-    expect(message).not.toContain('TELNYX_API_KEY');
+    const message = telnyxNotReadyMessage(missingTelnyxCallEnv(), 'llamada');
+    // Este texto se muestra en el panel del cliente: el nombre del proveedor y
+    // los nombres de variable (que lo delatan) se quedan en el log del servidor.
+    expect(message).not.toMatch(/telnyx/i);
+    expect(message).not.toMatch(/TELNYX_/);
+    expect(message).not.toMatch(/APP_ID/);
+    expect(message).not.toContain('KEY_test');
+    expect(message).toMatch(/Upway/);
+    expect(message).toMatch(/línea/i);
+  });
+
+  it('distingue el aviso de voz del de llamada sin delatar el proveedor', () => {
+    const voz = telnyxNotReadyMessage(['TELNYX_API_KEY'], 'voz');
+    const llamada = telnyxNotReadyMessage(['TELNYX_DEFAULT_PHONE_NUMBER'], 'llamada');
+    expect(voz).not.toBe(llamada);
+    for (const texto of [voz, llamada]) {
+      expect(texto).not.toMatch(/telnyx/i);
+      expect(texto).not.toMatch(/[A-Z]{3,}_[A-Z_]+/); // ninguna constante de entorno
+    }
   });
 
   it('TELNYX_REQUIRED_ENV es la unión de los dos gates, sin repetir', () => {

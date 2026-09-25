@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-type Consumption = { month: string; messages: number; voiceCalls: number; voiceMinutes: number; telnyxCost: number; vapiCost: number; billedCost: number };
+type Consumption = { month: string; messages: number; voiceCalls: number; voiceMinutes: number; voiceCost: number; legacyVoiceCost: number; billedCost: number };
 
 export default function AnalyticsPage() {
   const [consumption, setConsumption] = useState<Consumption | null>(null);
@@ -27,11 +27,11 @@ export default function AnalyticsPage() {
     load();
   }, []);
 
-  const telnyxCost = consumption?.telnyxCost ?? consumption?.vapiCost ?? 0;
+  const voiceCost = consumption?.voiceCost ?? consumption?.legacyVoiceCost ?? 0;
   const metrics = [
     { label: 'Leads totales', value: String(summary.totalLeads), delta: `${consumption?.messages ?? 0} mensajes` },
     { label: 'Citas próximas', value: String(summary.appointments), delta: `${summary.todayAppointments} hoy` },
-    { label: 'Costo voz (real)', value: `${Number(telnyxCost).toFixed(2)}`, delta: `${consumption?.voiceCalls ?? 0} llamadas` },
+    { label: 'Costo voz (real)', value: `${Number(voiceCost).toFixed(2)}`, delta: `${consumption?.voiceCalls ?? 0} llamadas` },
     { label: 'Minutos voz', value: `${consumption?.voiceMinutes ?? 0}`, delta: `facturado $${Number(consumption?.billedCost ?? 0).toFixed(2)}` },
   ];
 
@@ -50,7 +50,7 @@ export default function AnalyticsPage() {
         <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">Analytics</div>
         <h1 className="mt-2 text-3xl font-black tracking-[-0.05em] text-slate-900">Performance clínica</h1>
         <p className="mt-1 text-sm text-slate-500">
-          {loading ? 'Cargando métricas reales…' : 'Métricas operativas reales · leads, citas y voz Telnyx.'}
+          {loading ? 'Cargando métricas reales…' : 'Métricas operativas reales · leads, citas y voz.'}
         </p>
       </div>
 

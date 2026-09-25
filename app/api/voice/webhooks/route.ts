@@ -51,7 +51,7 @@ async function verifyTelnyx(req: NextRequest, raw: string): Promise<boolean> {
 export async function POST(req: NextRequest) {
   const raw = await req.text();
   if (!(await verifyTelnyx(req, raw))) {
-    return NextResponse.json({ error: 'Firma Telnyx inválida' }, { status: 401 });
+    return NextResponse.json({ error: 'Firma de voz inválida' }, { status: 401 });
   }
   let event: TelnyxEvent;
   try {
@@ -107,24 +107,24 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ received: true, type });
 }
 
-// GET de estado (no es verify de Meta). No exige firma; solo reporta config sin exponer secretos.
+// GET de estado. No es verify de Meta: no exige firma.
 //
-// Reporta los DOS gates por separado porque son cosas distintas:
-//  - `voice`   → catálogo, preview, clones y assistant (solo API key)
-//  - `calling` → marcar una llamada (API key + Call Control App + número emisor)
+// CONFINIDENCIALIDAD: esta ruta es PÚBLICA (es el destino del webhook entrante),
+// así que no puede devolver el nombre del proveedor ni enumerar variables de
+// entorno. Responde solo si cada capacidad está lista; el detalle va al log.
+// Reporta los DOS gates porque son cosas distintas:
+//  - `voice`   → catálogo, preview, clones y assistant
+//  - `calling` → marcar una llamada
 export async function GET() {
   const voiceMissing = missingTelnyxVoiceEnv();
   const callMissing = missingTelnyxCallEnv();
+  if (voiceMissing.length > 0 || callMissing.length > 0) {
+    console.error('[telnyx] gate incompleto', { voiceMissing, callMissing });
+  }
   return NextResponse.json({
     ok: true,
-    provider: 'telnyx',
     webhook: '/api/voice/webhooks',
-    voice: { configured: voiceMissing.length === 0, missing: voiceMissing },
-    calling: { configured: callMissing.length === 0, missing: callMissing },
-    // Alias del gate de llamada: es lo que se consultaba antes del split y
-    // sigue siendo la pregunta útil para "¿puedo marcar?".
-    configured: callMissing.length === 0,
-    // Solo nombres de variables: permite ver en producción cuál falta.
-    missing: callMissing,
+    voice: { configured: voiceMissing.length === 0 },
+    calling: { configured: callMissing.length === 0 },
   });
 }

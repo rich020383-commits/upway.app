@@ -14,9 +14,7 @@ vi.mock('@/lib/telnyx/client', () => ({
   getTelnyxConfig: vi.fn(() => ({ assistantId: '' })),
   isTelnyxVoiceReady: vi.fn(),
   missingTelnyxVoiceEnv: vi.fn(() => []),
-  telnyxNotReadyMessage: vi.fn(
-    (missing: string[]) => `Telnyx no está configurado: falta ${missing.join(', ')}`
-  ),
+  telnyxNotReadyMessage: vi.fn(() => 'La voz de Upway todavía no está disponible.'),
 }));
 
 import { prisma } from '@/lib/prisma';
@@ -95,7 +93,7 @@ describe('POST /api/voice/agents — el paso que enciende la voz', () => {
     expect(mockedUpsert).not.toHaveBeenCalled();
   });
 
-  it('el saludo que se manda a Telnyx encabeza con el aviso de privacidad', async () => {
+  it('el saludo que se manda al proveedor encabeza con el aviso de privacidad', async () => {
     await POST(post(body));
     const sent = mockedUpsert.mock.calls[0][0];
     expect(sent.greeting.startsWith(VOICE_PRIVACY_NOTICE)).toBe(true);
@@ -135,16 +133,18 @@ describe('POST /api/voice/agents — el paso que enciende la voz', () => {
     expect(mockedUpsert).not.toHaveBeenCalled();
   });
 
-  it('si falta la API key lo dice y no llama a Telnyx', async () => {
+  it('si falta la llave del proveedor lo dice sin nombrarlo ni llamar', async () => {
     mockedVoiceReady.mockReturnValue(false);
     mockedMissing.mockReturnValue(['TELNYX_API_KEY']);
     const res = await POST(post(body));
     expect(res.status).toBe(503);
-    expect((await res.json()).error).toContain('TELNYX_API_KEY');
+    const cuerpo = await res.json();
+    expect(cuerpo.error).toBe('La voz de Upway todavía no está disponible.');
+    expect(JSON.stringify(cuerpo)).not.toMatch(/telnyx/i);
     expect(mockedUpsert).not.toHaveBeenCalled();
   });
 
-  it('si Telnyx falla, apaga la voz y responde 502 sin filtrar el detalle', async () => {
+  it('si el proveedor falla, apaga la voz y responde 502 sin filtrar el detalle', async () => {
     mockedUpsert.mockRejectedValue(new Error('502 upstream: key rejected'));
     const res = await POST(post(body));
     expect(res.status).toBe(502);

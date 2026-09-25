@@ -189,7 +189,7 @@ export function serviceActiveEmail(d: ServiceActiveData) {
   <p style="margin:0 0 20px;font-size:14px;color:#64748b;">Hola ${d.contactName || 'equipo'}, la implementación terminó: <strong>${d.clinicName}</strong> ya cuenta con el servicio <strong style="color:#059669;">ACTIVO</strong>.</p>
   ${infoTable(rows)}
   ${buttonHtml(d.dashboardUrl, 'Entrar a mi panel Upway')}
-  ${callout('Desde tu panel puedes monitorear conversaciones y llamadas en tiempo real, cambiar el tono del agente, activar/desactivar la IA y gestionar el traspaso a humano, según lo permitido por tu plan Telnyx + Upway. El consumo adicional sobre los minutos incluidos se factura según la tarifa de tu plan.')}`,
+  ${callout('Desde tu panel puedes monitorear conversaciones y llamadas en tiempo real, cambiar el tono del agente, activar/desactivar la IA y gestionar el traspaso a humano, según lo permitido por tu plan de Upway. El consumo adicional sobre los minutos incluidos se factura según la tarifa de tu plan.')}`,
   });
   return { subject, html };
 }

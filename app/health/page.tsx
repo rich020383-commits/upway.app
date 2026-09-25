@@ -17,11 +17,11 @@ type DashboardPayload = {
   pipeline: Record<string, number>;
   nextAppointments: { id: string; clienteNombre: string; fechaHora: string; estado: string }[];
   inbox: DashboardInboxItem[];
-  consumption?: { month: string; messages: number; voiceCalls: number; voiceMinutes: number; telnyxCost: number; vapiCost: number; billedCost: number };
+  consumption?: { month: string; messages: number; voiceCalls: number; voiceMinutes: number; voiceCost: number; legacyVoiceCost: number; billedCost: number };
 };
 
 type ComplianceItem = { id: string; title: string; status: string; value: string };
-type AgentPayload = { id: string; name: string; channels: { telnyx?: boolean; vapi?: boolean }; status: string };
+type AgentPayload = { id: string; name: string; channels: { voice?: boolean; legacy?: boolean }; status: string };
 
 function parseCount(value: string): number {
   const m = value.match(/(\d+)/);
@@ -62,13 +62,13 @@ export default function HealthOverviewPage() {
 
   const todayLabel = new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
   const consumption = dashboard?.consumption;
-  const telnyxCost = consumption?.telnyxCost ?? consumption?.vapiCost ?? 0;
+  const voiceCost = consumption?.voiceCost ?? consumption?.legacyVoiceCost ?? 0;
 
   const statCards = [
     { label: 'Leads totales', value: dashboard?.summary.totalLeads ?? 0, delta: `${dashboard?.summary.newLeads ?? 0} nuevos` },
     { label: 'Citas próximas', value: dashboard?.summary.appointments ?? 0, delta: `${dashboard?.summary.todayAppointments ?? 0} hoy` },
     { label: 'Recordatorios vencidos', value: dashboard?.summary.dueReminders ?? 0, delta: `${dashboard?.summary.pendingReminders ?? 0} pendientes` },
-    { label: 'Costo voz', value: `$${Number(telnyxCost).toFixed(2)}`, delta: `${consumption?.voiceCalls ?? 0} llamadas` },
+    { label: 'Costo voz', value: `$${Number(voiceCost).toFixed(2)}`, delta: `${consumption?.voiceCalls ?? 0} llamadas` },
   ];
 
   const conversations = (dashboard?.inbox ?? []).slice(0, 3).map((c) => ({
@@ -111,7 +111,7 @@ export default function HealthOverviewPage() {
   const triageCount = parseCount(compliance.find((i) => i.id === 'compliance-triage')?.value ?? '0');
   const faqsCount = parseCount(compliance.find((i) => i.id === 'compliance-faqs')?.value ?? '0');
   const policiesCount = parseCount(compliance.find((i) => i.id === 'compliance-policies')?.value ?? '0');
-  const telnyxOn = agent ? Boolean(agent.channels.telnyx ?? agent.channels.vapi) : false;
+  const voiceOn = agent ? Boolean(agent.channels.voice ?? agent.channels.legacy) : false;
 
   return (
     <div className="space-y-5">
@@ -263,8 +263,8 @@ export default function HealthOverviewPage() {
             {[
               ['Agente clínico', agent ? `${agent.name} · ${agent.status}` : 'Sin agente configurado'],
               ['Políticas y protocolos', `${policiesCount} políticas · ${triageCount} reglas triaje · ${faqsCount} FAQs`],
-              ['Canales reales', `Voz IA${telnyxOn ? ' (activa)' : ' (en espera)'} + CRM`],
-              ['Voz del mes', `${consumption?.voiceCalls ?? 0} llamadas · $${Number(telnyxCost).toFixed(2)} voz`],
+              ['Canales reales', `Voz IA${voiceOn ? ' (activa)' : ' (en espera)'} + CRM`],
+              ['Voz del mes', `${consumption?.voiceCalls ?? 0} llamadas · $${Number(voiceCost).toFixed(2)} voz`],
             ].map(([label, value]) => (
               <div key={label} className="rounded-[18px] border border-slate-200 bg-slate-50/80 p-3">
                 <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-slate-500">{label}</div>

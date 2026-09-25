@@ -62,7 +62,10 @@ beforeEach(() => {
   mockedCallReady.mockReturnValue(true);
   mockedMissing.mockReturnValue([]);
   mockedNotReady.mockImplementation(
-    (missing: string[]) => `Telnyx no está configurado: falta ${missing.join(', ')}`
+    (missing: string[], scope: 'voz' | 'llamada' = 'voz') =>
+      scope === 'llamada'
+        ? 'La voz de Upway todavía no puede iniciar llamadas.'
+        : `La voz de Upway todavía no está disponible. (${missing.length} faltantes)`
   );
   mockedCall.mockResolvedValue({ data: { id: 'call-1' } });
 });
@@ -115,12 +118,17 @@ describe('POST /api/voice/calls — sesión, ownership, consentimiento y cuota',
     });
   });
 
-  it('explica qué variable de Telnyx falta (503) sin llegar a marcar', async () => {
+  it('explica el bloqueo sin delatar el proveedor y deja el detalle para el log', async () => {
     mockedCallReady.mockReturnValue(false);
     mockedMissing.mockReturnValue(['TELNYX_DEFAULT_PHONE_NUMBER']);
     const res = await POST(request(validBody));
     expect(res.status).toBe(503);
-    expect((await res.json()).error).toContain('TELNYX_DEFAULT_PHONE_NUMBER');
+    const body = await res.json();
+    expect(body.error).toBe('La voz de Upway todavía no puede iniciar llamadas.');
+    expect(JSON.stringify(body)).not.toMatch(/telnyx/i);
+    // El detalle técnico sí se calcula, para el log del servidor.
+    expect(mockedMissing).toHaveBeenCalledWith('+573001112233');
+    expect(mockedNotReady).toHaveBeenCalledWith(['TELNYX_DEFAULT_PHONE_NUMBER'], 'llamada');
     expect(mockedCall).not.toHaveBeenCalled();
     // El gate consulta con el número de la tienda: si la tienda ya tiene uno
     // dedicado, la env global deja de ser obligatoria.

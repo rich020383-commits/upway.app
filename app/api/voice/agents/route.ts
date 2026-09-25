@@ -82,7 +82,9 @@ export async function POST(req: NextRequest) {
         agentName: nombre,
         systemPrompt: reglas,
         agentVoice: vozFinal,
-        agentVoiceLabel: vozLabel ?? tienda.agentVoiceLabel ?? null,
+        // Etiqueta por defecto: sin ella, el selector tendría que mostrar el
+        // identificador técnico de la voz, que es un valor del proveedor.
+        agentVoiceLabel: vozLabel ?? tienda.agentVoiceLabel ?? 'Sofía · voz Upway',
         isTelnyxActive: true,
       },
     });
@@ -102,7 +104,7 @@ export async function POST(req: NextRequest) {
       where: { id: tienda.id },
       data: { telnyxAssistantId: tienda.telnyxAssistantId ?? null, agentName: nombre, systemPrompt: reglas, agentVoice: vozFinal, agentVoiceLabel: vozLabel ?? tienda.agentVoiceLabel ?? null, isTelnyxActive: false },
     }).catch(() => undefined);
-    return NextResponse.json({ error: 'Telnyx no pudo crear el asistente. Revisa API key / App ID.' }, { status: 502 });
+    return NextResponse.json({ error: 'El servicio de voz de Upway no pudo crear el asistente. Revisa la configuración de la sede.' }, { status: 502 });
   }
 }
 

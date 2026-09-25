@@ -1,4 +1,4 @@
-﻿export type ActivationCheck = {
+export type ActivationCheck = {
   key: string;
   label: string;
   ok: boolean;
@@ -89,7 +89,7 @@ export function buildActivationChecks(input: ActivationInput): { checks: Activat
       detail: !input.planId
         ? 'Sin plan elegido en onboarding.'
         : input.planAutoActivatable === false
-          ? 'Plan custom/EPS: requiere deal desk + approval Telnyx (no auto-activar).'
+          ? 'Plan custom/EPS: requiere deal desk + aprobacion de Upway (no auto-activar).'
           : input.implementationIntakeReady === false
             ? 'Faltan datos de implementacion (NIT, contacto, volumen).'
             : 'Plan ' + input.planId + ' listo para entrega white-glove.',
@@ -112,12 +112,12 @@ export function buildActivationChecks(input: ActivationInput): { checks: Activat
     },
     {
       key: 'voice',
-      label: 'Voz Telnyx dedicada (assistant + numero)',
+      label: 'Voz dedicada de Upway (numero + asistente)',
       ok: input.voiceActive && input.hasAssistant && input.hasPhone,
       detail:
         input.voiceActive && input.hasAssistant && input.hasPhone
-          ? 'Assistant + numero dedicado activos.'
-          : 'Upway debe crear AI Assistant y asignar numero dedicado de la IPS.',
+          ? 'Asistente y numero dedicado activos.'
+          : 'Upway debe crear el asistente de voz y asignar el numero dedicado de la IPS.',
     },
     {
       key: 'approval',
