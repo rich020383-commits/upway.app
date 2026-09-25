@@ -51,7 +51,7 @@ export default function PrivacyPolicyPage() {
               </p>
               <ul className="list-disc pl-6 space-y-2 text-slate-400">
                 <li>Datos de registro (correo, nombre de la entidad, información de facturación).</li>
-                <li>Tokens de acceso de la API oficial de Meta Platforms (WhatsApp Business).</li>
+                <li>Credenciales de integración que el Cliente aporte de forma voluntaria para conectar sus propias herramientas.</li>
                 <li>Identificadores BSUID necesarios para el enrutamiento de la inteligencia artificial.</li>
               </ul>
             </section>

@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     policy: 'No dar diagnósticos',
     cancellationWindow: '2 horas',
     faq: 'Horarios, ubicación, especialidades',
-    channel: 'whatsapp',
+    channel: 'voz',
     webhook: '',
     submittedAt: new Date().toLocaleString('es-CO', {
       timeZone: 'America/Bogota',

@@ -38,10 +38,10 @@ export default function AnalyticsPage() {
   const messages = consumption?.messages ?? 0;
   const voiceCalls = consumption?.voiceCalls ?? 0;
   const total = messages + voiceCalls;
+  const voicePct = total > 0 ? Math.round((voiceCalls / total) * 100) : 0;
   const channels = [
-    { name: 'WhatsApp', value: total > 0 ? Math.round((messages / total) * 100) : 0, color: '#5cc8a2' },
-    { name: 'Telnyx', value: total > 0 ? Math.round((voiceCalls / total) * 100) : 0, color: '#7aa8ff' },
-    { name: 'Web', value: 0, color: '#d8d9f7' },
+    { name: 'Voz IA', value: voicePct, color: '#7aa8ff' },
+    { name: 'Otros', value: total > 0 ? 100 - voicePct : 0, color: '#d8d9f7' },
   ];
 
   return (

@@ -5,7 +5,6 @@ import { enforceHealthAccess } from '@/lib/health/access';
 import { withTenantScope } from '@/lib/health/tenant';
 
 type TiendaVoiceFlags = {
-  isWhatsAppActive: boolean;
   isAiActive: boolean;
   isVapiActive?: boolean | null;
   isTelnyxActive?: boolean | null;
@@ -18,15 +17,14 @@ function telnyxActive(tienda: TiendaVoiceFlags): boolean {
 
 function statusLabel(tienda: TiendaVoiceFlags) {
   if (!tienda.isAiActive) return 'paused';
-  if (tienda.isWhatsAppActive || telnyxActive(tienda)) return 'active';
+  if (telnyxActive(tienda)) return 'active';
   return 'standby';
 }
 
 /**
  * Devuelve los agentes reales del negocio autenticado (modelo Tienda), en el
  * mismo shape que consume el panel Health. Hoy cada Tienda representa un solo
- * agente omnicanal (WhatsApp + Telnyx comparten prompt/tono).
- * Unificación Health → Telnyx: el canal de voz expuesto es `telnyx`;
+ * agente de voz (el canal oficial de Upway es la voz IA sobre línea telefónica).
  * `vapi` se mantiene solo como alias legacy para UI antigua.
  */
 export async function GET(request: NextRequest) {
@@ -68,7 +66,6 @@ export async function GET(request: NextRequest) {
     name: tienda.agentName || tienda.nombre,
     prompt: tienda.systemPrompt ?? '',
     channels: {
-      whatsapp: tienda.isWhatsAppActive,
       telnyx: voiceActive,
       // Alias legacy para UI antigua: vapi refleja telnyx hasta retirar Vapi.
       vapi: voiceActive,
@@ -131,7 +128,6 @@ export async function PATCH(request: NextRequest) {
       name: updated.agentName || updated.nombre,
       prompt: updated.systemPrompt ?? '',
       channels: {
-        whatsapp: updated.isWhatsAppActive,
         telnyx: voiceActive,
         vapi: voiceActive,
       },

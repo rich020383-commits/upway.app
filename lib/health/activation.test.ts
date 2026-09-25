@@ -6,7 +6,6 @@ const base: ActivationInput = {
   hasClinic: true,
   hasTienda: true,
   onboardingStatus: 'APPROVED',
-  whatsappActive: true,
   voiceActive: true,
   hasAssistant: true,
   hasPhone: true,
@@ -33,20 +32,18 @@ describe('buildActivationChecks — modelo white-glove IPS', () => {
     expect(checks.find((c) => c.key === 'voice')?.ok).toBe(false);
   });
 
-  it('WhatsApp no gatea el go-live: no es un canal de Upway', () => {
-    const { canActivate, checks } = buildActivationChecks({ ...base, whatsappActive: false, whatsappRequired: true });
+  it('el check de canales es informativo: nunca bloquea el go-live', () => {
+    const { canActivate, checks } = buildActivationChecks(base);
     expect(canActivate).toBe(true);
-    const whatsapp = checks.find((c) => c.key === 'whatsapp');
-    expect(whatsapp?.ok).toBe(true);
-    expect(whatsapp?.detail).toMatch(/no usa ni integra WhatsApp/i);
+    const policy = checks.find((c) => c.key === 'channel-policy');
+    expect(policy?.ok).toBe(true);
+    expect(policy?.detail).toMatch(/canal oficial es la voz/i);
   });
 
-  it('el canal oficial es la voz: el check de canales es informativo', () => {
-    const { checks, canActivate } = buildActivationChecks({ ...base, whatsappActive: false });
-    expect(canActivate).toBe(true);
-    const whatsapp = checks.find((c) => c.key === 'whatsapp');
-    expect(whatsapp?.ok).toBe(true);
-    expect(whatsapp?.detail).toMatch(/canal oficial es la voz/i);
+  it('el detalle del check no expone canales de mensajeria', () => {
+    const { checks } = buildActivationChecks(base);
+    const policy = checks.find((c) => c.key === 'channel-policy');
+    expect(policy?.detail).toMatch(/mensajeria de terceros no aplica/i);
   });
 
   it('bloquea sin aprobacion clinica aunque todo lo tecnico este verde', () => {
@@ -91,28 +88,12 @@ describe('buildActivationChecks — modelo white-glove IPS', () => {
 });
 
 describe('buildActivationChecks — modelo voz-first + identidad conforme', () => {
-  it('no gatea WhatsApp cuando el cliente no contrato ese canal', () => {
-    const { checks, canActivate } = buildActivationChecks({
-      ...base,
-      whatsappActive: false,
-      whatsappRequired: false,
-    });
+  it('no deja ningun gate abierto a causa de los canales de mensajeria', () => {
+    const { checks, canActivate } = buildActivationChecks(base);
     expect(canActivate).toBe(true);
-    const whatsapp = checks.find((c) => c.key === 'whatsapp');
-    expect(whatsapp?.ok).toBe(true);
-    expect(whatsapp?.detail).toMatch(/canal oficial es la voz/i);
-  });
-
-  it('no gatea WhatsApp ni cuando el cliente lo declaro contratado', () => {
-    const { checks, canActivate } = buildActivationChecks({
-      ...base,
-      whatsappActive: false,
-      whatsappRequired: true,
-    });
-    expect(canActivate).toBe(true);
-    const whatsapp = checks.find((c) => c.key === 'whatsapp');
-    expect(whatsapp?.ok).toBe(true);
-    expect(whatsapp?.detail).toMatch(/no usa ni integra WhatsApp/i);
+    const bloqueados = checks.filter((c) => !c.ok).map((c) => c.key);
+    expect(bloqueados).toEqual([]);
+    expect(checks.some((c) => c.key === 'channel-policy' && c.ok)).toBe(true);
   });
 
   it('bloquea el go-live si un servicio exige documento sin tipo del catalogo', () => {

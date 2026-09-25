@@ -66,7 +66,7 @@ export default function TerminosPage() {
             </h3>
             <p className="mb-4 leading-relaxed">Queda expresamente prohibido:</p>
             <ul className="list-none space-y-3 mb-6">
-              <li className="flex gap-3"><span className="text-[#00D1FF]">✦</span> <span>Violar políticas de Meta Platforms (WhatsApp), Telnyx, Google, Groq o Bold.</span></li>
+              <li className="flex gap-3"><span className="text-[#00D1FF]">✦</span> <span>Violar las políticas de nuestros proveedores de infraestructura, telefonía o pagos.</span></li>
               <li className="flex gap-3"><span className="text-[#00D1FF]">✦</span> <span>Extraer código, realizar ingeniería inversa o clonar la arquitectura multi-tenant de Upway.</span></li>
               <li className="flex gap-3"><span className="text-[#00D1FF]">✦</span> <span>Procesar o solicitar mediante el bot información bancaria explícita (como CVV de tarjetas) que viole estándares PCI-DSS.</span></li>
             </ul>

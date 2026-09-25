@@ -47,7 +47,7 @@ export type DocumentRule = {
    * Estos casos son legitimos y no deben bloquear la atencion.
    */
   ipsAssigned: boolean;
-  /** Mensaje de guia para el agente de voz/WhatsApp. */
+  /** Mensaje de guia para el agente de voz. */
   hint: string;
 };
 

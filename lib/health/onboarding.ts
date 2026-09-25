@@ -90,7 +90,7 @@ export const onboardingStageMeta: Record<
   'channel-integration': {
     label: 'Canales',
     subtitle: 'Voz 24/7 + integraciones',
-    description: 'Voz dedicada incluida. Por politica interna Upway no usamos ni integramos WhatsApp ni Meta: el canal oficial es la voz IA sobre linea telefonica.',
+    description: 'Voz dedicada incluida. Por politica interna Upway el canal oficial es la voz IA sobre linea telefonica.',
   },
   'review-and-approve': {
     label: 'Revision',

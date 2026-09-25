@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Línea de WhatsApp activada y conectada exitosamente',
+      message: 'Línea conectada exitosamente',
       tiendaId: tiendaIdReal,
     });
   } catch (error) {

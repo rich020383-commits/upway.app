@@ -134,7 +134,7 @@ const geminiGenAI = geminiPremiumApiKey ? new GenerativeAI.GoogleGenerativeAI(ge
 // ==========================================
 const ALERT_WEBHOOK_URL = process.env.ALERT_WEBHOOK_URL;
 const AUDIO_TRANSCRIPTION_TIMEOUT_MS = 5000;
-// ⏳ Para el simulador web usamos 8 segundos generales porque el navegador web espera más que WhatsApp
+// ⏳ Para el simulador web usamos 8 segundos generales porque el navegador web espera más que un canal de mensajería
 const PROVIDER_TIMEOUT_MS = 8000;
 
 const sendMonitorAlert = async (message: string) => {

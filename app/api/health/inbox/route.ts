@@ -40,9 +40,9 @@ export async function GET(request: NextRequest) {
     const items = conversations.map((c) => ({
       id: c.id,
       patient: c.clientName || c.lead?.nombre || c.clientPhone,
-      // El canal oficial de Upway es la voz IA sobre linea telefonica: WhatsApp
-      // no se vende ni se integra (politica interna), asi que no se etiqueta
-      // como canal aunque la conversacion venga del motor heredado.
+      // El canal oficial de Upway es la voz IA sobre linea telefonica, asi que
+      // no se etiqueta ningun canal de mensajeria aunque la conversacion venga
+      // del motor heredado.
       channel: 'voz',
       priority: c.lead?.estado ?? 'NEW',
       summary: (c.messages?.[0]?.content ?? 'Sin mensajes').slice(0, 120),

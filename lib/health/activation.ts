@@ -10,8 +10,8 @@ export type ActivationInput = {
   hasClinic: boolean;
   hasTienda: boolean;
   onboardingStatus: string | null;
-  /** @deprecated ya no se usa: WhatsApp no es un canal de Upway (politica interna). */
-  whatsappActive?: boolean;
+  /** @deprecated Canal de mensajeria legacy: ignorado (el canal oficial es la voz). */
+  legacyMessagingActive?: boolean;
   voiceActive: boolean;
   hasAssistant: boolean;
   hasPhone: boolean;
@@ -25,8 +25,8 @@ export type ActivationInput = {
   planAutoActivatable?: boolean;
   /** Intake de implementacion completo (NIT, contacto, volumen). */
   implementationIntakeReady?: boolean;
-  /** WhatsApp no es parte del paquete: gatea solo si el cliente trae token Meta. @deprecated ya no gatea (politica interna Upway). */
-  whatsappRequired?: boolean;
+  /** @deprecated Campo legacy: el gate se retiro, nunca bloquea el go-live. */
+  legacyMessagingRequired?: boolean;
   /** Servicios de la IPS que exigen documento del paciente (denominador). */
   identityServicesRequiringDocs?: number;
   /** Cuantos de esos ya tienen tipo de documento del catalogo cerrado. */
@@ -39,9 +39,9 @@ export function buildActivationChecks(input: ActivationInput): { checks: Activat
     input.planAutoActivatable !== false &&
     input.implementationIntakeReady !== false;
 
-  // WhatsApp no es parte del paquete de servicio y ya no gatea el go-live:
-  // por politica interna Upway no usa ni integra WhatsApp/Meta (ver el check
-  // informativo mas abajo).
+  // La mensajeria de terceros no gatea el go-live: por politica interna Upway
+  // no la usa ni la integra. El canal oficial es la voz IA sobre linea
+  // telefonica (ver el check informativo mas abajo).
 
   // Identidad conforme: si un servicio exige documento, debe tener tipo del
   // catalogo cerrado (Res. 866/2021). Sin eso el agente de voz no sabe que pedir
@@ -78,14 +78,14 @@ export function buildActivationChecks(input: ActivationInput): { checks: Activat
       detail: input.triageCount + ' triaje · ' + input.policiesCount + ' politicas · ' + input.faqsCount + ' FAQs',
     },
     {
-      key: 'whatsapp',
+      key: 'channel-policy',
       label: 'Canal oficial de atencion (voz IA)',
       ok: true,
       detail:
-        'WhatsApp no aplica: por politica interna Upway no usa ni integra WhatsApp ni Meta. El canal oficial es la voz IA sobre linea telefonica.',
-      // Gate de WhatsApp retirado: por politica interna Upway no usa ni integra WhatsApp/Meta.
-      // (antes: 'Linea Meta del cliente activa, adaptada por Upway.')
-      // (antes: el cliente debia aportar su token de Meta Developer.)
+        'La mensajeria de terceros no aplica: por politica interna Upway no la usa ni la integra. El canal oficial es la voz IA sobre linea telefonica.',
+      // Check informativo: nunca bloquea el go-live.
+      // (antes: este check gateaba el go-live con la linea del cliente.)
+      // (antes: el cliente debia aportar credenciales propias.)
     },
     {
       key: 'voice',

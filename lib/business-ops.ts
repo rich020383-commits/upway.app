@@ -677,7 +677,7 @@ export async function assignLeadToUser(params: {
         createdByUserId: params.assignedByUserId ?? null,
         channel: 'whatsapp',
         status: ReminderStatus.PENDING,
-        message: 'Seguimiento de lead: revisa el estado del cliente y responde por WhatsApp.',
+        message: 'Seguimiento de lead: revisa el estado del cliente y contáctalo.',
         scheduledFor: reminderAt,
       },
     });

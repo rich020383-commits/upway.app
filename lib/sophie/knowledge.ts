@@ -164,7 +164,7 @@ const CURATED: KnowledgeChunk[] = [
       '¿Se integra con mi CRM o sistema? → Sí: webhooks, API o export CSV según el plan.',
       '¿Cómo elijo el plan? → Por sedes/líneas y minutos al mes; si tu volumen supera el catálogo, el equipo te cotiza.',
       '¿Atienden de noche y fines de semana? → Sí, la atención es 24/7 por voz IA.',
-      '¿Atienden por WhatsApp o se conectan a Meta? → No: por políticas internas de Upway no usamos WhatsApp ni Meta; el canal oficial es la voz IA sobre línea telefónica.',
+      '¿Atienden por mensajería de Meta? → No: por políticas internas de Upway no usamos ni integramos plataformas de mensajería de Meta; el canal oficial es la voz IA sobre línea telefónica.',
     ].join('\n'),
   },
   {

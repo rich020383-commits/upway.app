@@ -109,7 +109,7 @@ describe('createActivationPaymentLink', () => {
     );
   });
 
-  it('rechaza planes suspendidos de WhatsApp que no están en el catálogo Health', async () => {
+  it('rechaza planes suspendidos que no están en el catálogo Health', async () => {
     for (const planId of ['emprendedor', 'negocio', 'pro']) {
       const result = await createActivationPaymentLink({
         planId,

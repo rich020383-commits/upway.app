@@ -21,7 +21,7 @@ type DashboardPayload = {
 };
 
 type ComplianceItem = { id: string; title: string; status: string; value: string };
-type AgentPayload = { id: string; name: string; channels: { whatsapp: boolean; telnyx?: boolean; vapi?: boolean }; status: string };
+type AgentPayload = { id: string; name: string; channels: { telnyx?: boolean; vapi?: boolean }; status: string };
 
 function parseCount(value: string): number {
   const m = value.match(/(\d+)/);
@@ -74,7 +74,7 @@ export default function HealthOverviewPage() {
   const conversations = (dashboard?.inbox ?? []).slice(0, 3).map((c) => ({
     patient: c.clientName || c.lead?.nombre || c.clientPhone,
     need: c.lead ? `Lead: ${c.lead.nombre} · ${c.lead.estado}` : (c.messages?.[0]?.content ?? 'Sin mensajes').slice(0, 80),
-    channel: 'WhatsApp',
+    channel: 'Atención IA',
     time: c.updatedAt ? new Date(c.updatedAt).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : '',
     status: c.status,
   }));
@@ -82,16 +82,17 @@ export default function HealthOverviewPage() {
   const messages = consumption?.messages ?? 0;
   const voiceCalls = consumption?.voiceCalls ?? 0;
   const channelTotal = messages + voiceCalls;
-  const whatsappPct = channelTotal > 0 ? Math.round((messages / channelTotal) * 100) : 0;
-  const telnyxPct = channelTotal > 0 ? Math.round((voiceCalls / channelTotal) * 100) : 0;
+  // El canal oficial es la voz IA sobre línea telefónica: el resto se agrupa
+  // como "otros" para no exponer canales que Upway no ofrece.
+  const voicePct = channelTotal > 0 ? Math.round((voiceCalls / channelTotal) * 100) : 0;
+  const otherPct = channelTotal > 0 ? 100 - voicePct : 0;
   const donutSegments = [
-    { label: 'WhatsApp', value: whatsappPct, color: '#5cc8a2' },
-    { label: 'Voz', value: telnyxPct, color: '#7aa8ff' },
-    { label: 'Web', value: 0, color: '#d8d9f7' },
+    { label: 'Voz IA', value: voicePct, color: '#7aa8ff' },
+    { label: 'Otros', value: otherPct, color: '#d8d9f7' },
   ];
   const donutValue = channelTotal;
   const donutStyle = {
-    background: `conic-gradient(#5cc8a2 0 ${whatsappPct}%, #7aa8ff ${whatsappPct}% ${whatsappPct + telnyxPct}%, #d8d9f7 ${whatsappPct + telnyxPct}% 100%)`,
+    background: `conic-gradient(#7aa8ff 0 ${voicePct}%, #d8d9f7 ${voicePct}% 100%)`,
   };
 
   const pipeline = dashboard?.pipeline ?? {};
@@ -201,7 +202,7 @@ export default function HealthOverviewPage() {
             )}
             {!loading && conversations.length === 0 && (
               <div className="rounded-[18px] border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-                Sin conversaciones activas. Los mensajes de WhatsApp aparecerán aquí.
+                Sin conversaciones activas. Las que atienda el agente aparecerán aquí.
               </div>
             )}
             {conversations.map((item) => (
@@ -262,7 +263,7 @@ export default function HealthOverviewPage() {
             {[
               ['Agente clínico', agent ? `${agent.name} · ${agent.status}` : 'Sin agente configurado'],
               ['Políticas y protocolos', `${policiesCount} políticas · ${triageCount} reglas triaje · ${faqsCount} FAQs`],
-              ['Canales reales', `WhatsApp + Voz${telnyxOn ? ' (voz activa)' : ' (voz en espera)'} + CRM`],
+              ['Canales reales', `Voz IA${telnyxOn ? ' (activa)' : ' (en espera)'} + CRM`],
               ['Voz del mes', `${consumption?.voiceCalls ?? 0} llamadas · $${Number(telnyxCost).toFixed(2)} voz`],
             ].map(([label, value]) => (
               <div key={label} className="rounded-[18px] border border-slate-200 bg-slate-50/80 p-3">

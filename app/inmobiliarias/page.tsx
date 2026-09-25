@@ -69,7 +69,7 @@ const problemas = [
   },
   {
     title: 'Visitas que se pierden en la coordinación',
-    text: 'Agendar por WhatsApp y notas sueltas termina en cruces de horario, olvidos y reagendaciones. La visita que no se confirma con el asesor correcto no termina en cierre.',
+    text: 'Agendar con mensajes sueltos y notas en el celular termina en cruces de horario, olvidos y reagendaciones. La visita que no se confirma con el asesor correcto no termina en cierre.',
     icon: CalendarCheck2,
   },
 ];

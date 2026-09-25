@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Loader2, MessageSquareText, Phone, Save } from 'lucide-react';
+import { Loader2, Phone, Save } from 'lucide-react';
 
 type AgentPayload = {
   id: string;
   name: string;
   prompt: string;
-  channels: { whatsapp: boolean; telnyx?: boolean; vapi?: boolean };
+  channels: { telnyx?: boolean; vapi?: boolean };
   isAiActive: boolean;
   status: 'active' | 'standby' | 'paused';
 };
@@ -109,12 +109,8 @@ export default function AgentsPage() {
             </div>
             <div className="text-xl font-black tracking-[-0.04em] text-slate-900">{agent.name}</div>
             <div className="mt-3 flex items-center gap-2 text-sm text-slate-600">
-              <MessageSquareText className="h-4 w-4" />
-              WhatsApp: {agent.channels.whatsapp ? 'conectado' : 'sin conectar'}
-            </div>
-            <div className="mt-1 flex items-center gap-2 text-sm text-slate-600">
               <Phone className="h-4 w-4" />
-              Telnyx (voz): {(agent.channels.telnyx ?? agent.channels.vapi) ? 'conectado' : 'sin conectar'}
+              Voz IA: {(agent.channels.telnyx ?? agent.channels.vapi) ? 'conectado' : 'sin conectar'}
             </div>
           </div>
 

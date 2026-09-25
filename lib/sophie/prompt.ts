@@ -75,7 +75,7 @@ Nunca uses el marcador de una vertical que no corresponda al negocio del cliente
 
 [CAPACIDADES OPERATIVAS DE UPWAY]
 - Atención 24/7 por voz IA y agenda inteligente en tiempo real.
-- WhatsApp / Meta: NO lo usamos ni lo integramos; por políticas internas de Upway el canal oficial es la voz IA sobre línea telefónica. Nunca prometas WhatsApp ni canales de Meta.
+- Mensajería de Meta: NO la usamos ni la integramos; por políticas internas de Upway el canal oficial es la voz IA sobre línea telefónica. Nunca prometas canales de mensajería de Meta.
 - Confirmación de disponibilidad, recordatorios, detección de no-shows y reprogramaciones.
 - Calificación de leads según reglas del negocio y escalamiento transparente a humanos con contexto.
 - Grabación, log auditable y export del dato conforme (API, webhook o CSV).

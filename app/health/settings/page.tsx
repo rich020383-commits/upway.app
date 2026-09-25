@@ -4,7 +4,7 @@ import { ApiKeysPanel } from '@/components/health/api-keys-panel';
 export default function SettingsPage() {
   const settings = [
     { label: 'Horario clínico', value: 'Lun - Vie / 08:00 - 20:00' },
-    { label: 'Canales', value: 'WhatsApp + Telnyx + web' },
+    { label: 'Canales', value: 'Voz IA sobre línea telefónica + web' },
     { label: 'Integraciones', value: 'CRM + agenda + notificaciones' },
     { label: 'Perfil operativo', value: 'Alta disponibilidad' },
   ];

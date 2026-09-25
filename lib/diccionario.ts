@@ -6,7 +6,7 @@ export const diccionarios = {
       titulo: "Panel de Control",
       conectar: "Conectar con Meta",
       estado_desconectado: "Estado: Desconectado",
-      estado_conectado: "¡WhatsApp Conectado!",
+      estado_conectado: "¡Línea conectada!",
     }
   },
   en: {
@@ -14,7 +14,7 @@ export const diccionarios = {
       titulo: "Dashboard",
       conectar: "Connect with Meta",
       estado_desconectado: "Status: Disconnected",
-      estado_conectado: "WhatsApp Connected!",
+      estado_conectado: "Line connected!",
     }
   }
 };

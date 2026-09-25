@@ -44,8 +44,8 @@ type OnboardingForm = {
   cancellationWindow: string;
   faq: string;
   channel: string;
-  /** WhatsApp propio del cliente: 'si' = trae token Meta Developer; '' / 'no' = solo voz. */
-  whatsappOwn: string;
+  /** Campo legacy del onboarding clinico (se conserva para leer notas antiguas). */
+  legacyMessaging: string;
   webhook: string;
   /** Add-on modulo de identidad conforme (Res. 866/2021) elegido por el cliente. */
   withIdentityModule: boolean;
@@ -83,7 +83,7 @@ const initialForm: OnboardingForm = {
   cancellationWindow: '',
   faq: '',
   channel: '',
-  whatsappOwn: '',
+  legacyMessaging: '',
   webhook: '',
   withIdentityModule: false,
   approval: false, // Debe empezar desmarcado
@@ -119,8 +119,8 @@ const fieldHelp: Partial<Record<keyof OnboardingForm, string>> = {
   cancellationWindow: 'Anticipación mínima para cancelar o reprogramar sin penalización.',
   policy: 'Reglas de escalamiento y seguridad ante riesgo clínico.',
   faq: 'Preguntas frecuentes que el agente responderá de forma automática.',
-  channel: 'Voz dedicada 24/7 e integraciones incluidas. Por politica interna de Upway no usamos ni integramos WhatsApp ni Meta.',
-  whatsappOwn: 'Canal retirado: por politica interna de Upway no usamos ni integramos WhatsApp ni Meta. El canal oficial es la voz IA sobre linea telefonica.',
+  channel: 'Voz dedicada 24/7 e integraciones incluidas. Por politica interna de Upway el canal oficial es la voz IA sobre linea telefonica.',
+  legacyMessaging: 'Canales de mensajeria de terceros: no disponibles (politica interna de Upway).',
   withIdentityModule: 'Add-on por sede/mes: el agente pide el documento con catalogo cerrado (Res. 866/2021), lo confirma digito a digito y entrega el registro con evidencia.',
   webhook: 'Integraciones a conectar (agenda, CRM). Upway las implementa.',
 };
@@ -177,7 +177,7 @@ const parseStoredForm = (input: unknown): Partial<OnboardingForm> => {
     cancellationWindow: typeof source.cancellationWindow === 'string' ? source.cancellationWindow : initialForm.cancellationWindow,
     faq: typeof source.faq === 'string' ? source.faq : initialForm.faq,
     channel: typeof source.channel === 'string' ? source.channel : initialForm.channel,
-    whatsappOwn: strOf(source.whatsappOwn),
+    legacyMessaging: '',
     webhook: typeof source.webhook === 'string' ? source.webhook : initialForm.webhook,
     withIdentityModule: typeof source.withIdentityModule === 'boolean' ? source.withIdentityModule : initialForm.withIdentityModule,
     approval: typeof source.approval === 'boolean' ? source.approval : initialForm.approval,
@@ -326,7 +326,7 @@ const stageContent: Record<
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 14, padding: 14, fontSize: 13, color: '#14532d' }}>
         Upway implementa por ti (white-glove): voz dedicada 24/7 e integraciones con tu agenda, sin tokens ni consolas.
-        Por politica interna de Upway no usamos ni integramos WhatsApp ni Meta: el canal oficial es la voz IA sobre linea telefonica.
+        Por politica interna de Upway el canal oficial es la voz IA sobre linea telefonica: no integramos plataformas de mensajeria de terceros.
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Canales deseados</label>
@@ -471,7 +471,7 @@ const stageHelp: Record<OnboardingStage, { title: string; hint: string }> = {
   },
   'channel-integration': {
     title: 'Canales e integraciones',
-    hint: 'Voz dedicada 24/7 e integraciones con tu agenda. Por politica interna de Upway no usamos ni integramos WhatsApp ni Meta.',
+    hint: 'Voz dedicada 24/7 e integraciones con tu agenda. Por politica interna de Upway no integramos plataformas de mensajeria de terceros.',
   },
   'review-and-approve': {
     title: 'Revisión final',

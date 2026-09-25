@@ -31,7 +31,7 @@ export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [aiProvider, setAiProvider] = useState("SISTEMA_EN_ESPERA");
   // Contacto directo del equipo humano. Por política interna Upway no usa
-  // WhatsApp ni Meta: el traspaso sale por correo con el contexto del chat.
+  // plataformas de mensajeria ni redes de Meta: el traspaso sale por correo con el contexto del chat.
   const [advisorLink, setAdvisorLink] = useState<string | null>(null);
 
   const [messages, setMessages] = useState([

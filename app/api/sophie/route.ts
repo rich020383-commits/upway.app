@@ -132,7 +132,7 @@ const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, providerNa
 
 
 // 🚨 Handoff web -> humano. Por política interna Upway no usa ni integra
-// WhatsApp ni Meta, así que el traspaso sale por correo al equipo comercial.
+// plataformas de mensajeria ni redes de Meta, así que el traspaso sale por correo al equipo comercial.
 // Se puede sobreescribir con HUMAN_TRANSFER_EMAIL.
 const HUMAN_TRANSFER_EMAIL = process.env.HUMAN_TRANSFER_EMAIL || 'contacto@upway.business';
 
@@ -324,7 +324,7 @@ export async function POST(req: NextRequest) {
 
     // 🚨 HANDOFF WEB -> HUMANO: si el cliente pidió explícitamente una persona,
     // se garantiza el marcador [CONTACTAR_ASESOR] (aunque el LLM no lo genere) y
-    // se devuelve el contacto directo del equipo (correo: Upway no usa WhatsApp).
+    // se devuelve el contacto directo del equipo por correo.
     let advisorLink: string | null = null;
     if (detectHumanIntent(messages)) {
       if (!botReply.includes('[CONTACTAR_ASESOR]')) {
