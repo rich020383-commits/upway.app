@@ -78,7 +78,7 @@ export const CENTER_SERVICE_LINES: readonly CenterServiceLineDefinition[] = [
     includes: [
       'Recibe la falla y aplica el arbol de diagnostico definido por el cliente',
       'Valida datos del equipo/servicio (serie, modelo, contrato, direccion)',
-      'Agenda la visita tecnica sobre la agenda real y confirma por WhatsApp',
+      'Agenda la visita tecnica sobre la agenda real y confirma la cita por llamada',
       'Entrega link de seguimiento y contexto al tecnico',
       'Escala fallas criticas con el contexto completo (sin diagnostico propio)',
     ],
@@ -168,7 +168,7 @@ export const CENTER_PLANS: CenterPlan[] = [
       'Agenda de recogidas, devoluciones o llamadas de seguimiento',
       'Grabacion 1 año + log auditable',
     ],
-    bestFor: 'Operacion con 3-8 personas en atencion o con WhatsApp sin SLA.',
+    bestFor: 'Operacion con 3-8 personas en atencion y sin SLA propio.',
     autoActivatable: true,
   },
   {
@@ -188,7 +188,7 @@ export const CENTER_PLANS: CenterPlan[] = [
       '4 numeros dedicados',
       '8.000 min/mes de soporte tecnico N1',
       'Arbol de diagnostico cerrado (lo define el cliente)',
-      'Agenda de visitas tecnicas por zona + confirmacion por WhatsApp',
+      'Agenda de visitas tecnicas por zona + confirmacion de cita por llamada',
       'Link de seguimiento con contexto para el tecnico',
       'Escalamiento de fallas criticas con contexto completo',
     ],

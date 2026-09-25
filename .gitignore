@@ -40,6 +40,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# auditoria local (capturas y scripts con credenciales de prueba): no se versiona
+.audit-assets/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

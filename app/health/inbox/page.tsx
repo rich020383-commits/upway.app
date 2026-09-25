@@ -8,6 +8,8 @@ type InboxItem = {
   clientPhone: string;
   clientName?: string | null;
   status: string;
+  /** Canal real de la conversación (voz por defecto: es el canal oficial Upway). */
+  channel?: string;
   updatedAt: string;
   lead?: { id: string; nombre: string; estado: string } | null;
   messages: InboxMessage[];
@@ -30,6 +32,7 @@ export default function InboxPage() {
               clientPhone: r.clientPhone ?? '',
               clientName: r.patient,
               status: r.status,
+              channel: r.channel || 'voz',
               updatedAt: r.updatedAt ?? new Date().toISOString(),
               lead: null,
               messages: [{ id: `${r.id}-m`, senderRole: 'USER', content: r.summary ?? 'Sin mensajes', createdAt: r.updatedAt ?? new Date().toISOString() }],
@@ -50,14 +53,14 @@ export default function InboxPage() {
       <div>
         <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">Inbox</div>
         <h1 className="mt-2 text-3xl font-black tracking-[-0.05em] text-slate-900">Conversaciones activas</h1>
-        <p className="mt-1 text-sm text-slate-500">Buzón omnicanal real · Conversation + Message (WhatsApp).</p>
+        <p className="mt-1 text-sm text-slate-500">Buzón omnicanal real · Conversation + Message.</p>
       </div>
 
       {loading ? (
         <div className="upway-surface rounded-[26px] p-6 text-slate-500">Cargando conversaciones reales…</div>
       ) : items.length === 0 ? (
         <div className="upway-surface rounded-[26px] p-6 text-slate-600">
-          Sin conversaciones activas. Los mensajes de WhatsApp aparecerán aquí.
+          Sin conversaciones activas. Los mensajes que atienda el agente aparecerán aquí.
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-3">
@@ -73,7 +76,7 @@ export default function InboxPage() {
                 <div className="text-sm text-slate-600">Tel: {item.clientPhone}</div>
                 {item.lead && <div className="mt-1 text-sm text-slate-600">Lead: {item.lead.nombre} · {item.lead.estado}</div>}
                 <div className="mt-2 text-sm text-slate-600">Último: {last.slice(0, 90)}</div>
-                <div className="mt-2 text-sm text-slate-600">Canal: WhatsApp</div>
+                <div className="mt-2 text-sm text-slate-600">Canal: {item.channel}</div>
               </div>
             );
           })}

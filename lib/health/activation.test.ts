@@ -33,18 +33,20 @@ describe('buildActivationChecks — modelo white-glove IPS', () => {
     expect(checks.find((c) => c.key === 'voice')?.ok).toBe(false);
   });
 
-  it('bloquea sin WhatsApp Meta conectado cuando el cliente lo contrato', () => {
+  it('WhatsApp no gatea el go-live: no es un canal de Upway', () => {
     const { canActivate, checks } = buildActivationChecks({ ...base, whatsappActive: false, whatsappRequired: true });
-    expect(canActivate).toBe(false);
-    expect(checks.find((c) => c.key === 'whatsapp')?.ok).toBe(false);
+    expect(canActivate).toBe(true);
+    const whatsapp = checks.find((c) => c.key === 'whatsapp');
+    expect(whatsapp?.ok).toBe(true);
+    expect(whatsapp?.detail).toMatch(/no usa ni integra WhatsApp/i);
   });
 
-  it('WhatsApp no gatea por defecto: no es parte del paquete (solo voz)', () => {
+  it('el canal oficial es la voz: el check de canales es informativo', () => {
     const { checks, canActivate } = buildActivationChecks({ ...base, whatsappActive: false });
     expect(canActivate).toBe(true);
     const whatsapp = checks.find((c) => c.key === 'whatsapp');
     expect(whatsapp?.ok).toBe(true);
-    expect(whatsapp?.detail).toMatch(/solo voz/i);
+    expect(whatsapp?.detail).toMatch(/canal oficial es la voz/i);
   });
 
   it('bloquea sin aprobacion clinica aunque todo lo tecnico este verde', () => {
@@ -98,17 +100,19 @@ describe('buildActivationChecks — modelo voz-first + identidad conforme', () =
     expect(canActivate).toBe(true);
     const whatsapp = checks.find((c) => c.key === 'whatsapp');
     expect(whatsapp?.ok).toBe(true);
-    expect(whatsapp?.detail).toMatch(/solo voz/i);
+    expect(whatsapp?.detail).toMatch(/canal oficial es la voz/i);
   });
 
-  it('sigue exigiendo WhatsApp si el canal esta contratado (sin regresion)', () => {
+  it('no gatea WhatsApp ni cuando el cliente lo declaro contratado', () => {
     const { checks, canActivate } = buildActivationChecks({
       ...base,
       whatsappActive: false,
       whatsappRequired: true,
     });
-    expect(canActivate).toBe(false);
-    expect(checks.find((c) => c.key === 'whatsapp')?.ok).toBe(false);
+    expect(canActivate).toBe(true);
+    const whatsapp = checks.find((c) => c.key === 'whatsapp');
+    expect(whatsapp?.ok).toBe(true);
+    expect(whatsapp?.detail).toMatch(/no usa ni integra WhatsApp/i);
   });
 
   it('bloquea el go-live si un servicio exige documento sin tipo del catalogo', () => {

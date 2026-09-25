@@ -263,7 +263,7 @@ async function executePlan(plan: AutopilotPlan, tiendaId: string): Promise<Autop
             select: { metaPhoneNumberId: true, metaAccessToken: true, isWhatsAppActive: true },
           });
           if (!tiendaRecord?.isWhatsAppActive || !tiendaRecord.metaPhoneNumberId || !tiendaRecord.metaAccessToken) {
-            throw new Error('WhatsApp no está activo para esta tienda (conecta Meta en activación)');
+            throw new Error('Este canal no esta disponible: por politica interna Upway no usa ni integra WhatsApp ni Meta.');
           }
           const { enviarMensajePorWhatsApp } = await import('@/lib/whatsapp');
           const conversation = await ensureConversationForLead({

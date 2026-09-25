@@ -131,27 +131,37 @@ const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, providerNa
 // sí; costos internos y de proveedores, nunca.
 
 
-// 🚨 Número de WhatsApp del equipo humano de Upway (handoff web -> WhatsApp).
-// Se puede sobreescribir con HUMAN_TRANSFER_NUMBER; por defecto usa el número
-// de la conexión comercial ya asignada.
-const HUMAN_TRANSFER_WA_NUMBER = process.env.HUMAN_TRANSFER_NUMBER || '573126427824';
+// 🚨 Handoff web -> humano. Por política interna Upway no usa ni integra
+// WhatsApp ni Meta, así que el traspaso sale por correo al equipo comercial.
+// Se puede sobreescribir con HUMAN_TRANSFER_EMAIL.
+const HUMAN_TRANSFER_EMAIL = process.env.HUMAN_TRANSFER_EMAIL || 'contacto@upway.business';
 
-const buildWaAdvisorLink = (messages: SophieMessage[]): string => {
-  // 🧠 Contexto completo del handoff: el asesor humano debe abrir el chat de WhatsApp
+/**
+ * Marcadores que emite Sophie en su respuesta. `[BOTON_REGISTRO]` puede venir
+ * con vertical (`[BOTON_REGISTRO:inmobiliaria]`) para que el botón de registro
+ * no mande a un prospecto de inmobiliarias al onboarding clínico.
+ */
+const SOPHIE_MARKER_RE = /\[(BOTON_REGISTRO(?::[a-z-]+)?|CONTACTAR_ASESOR)\]/g;
+
+const buildAdvisorLink = (messages: SophieMessage[]): string => {
+  // 🧠 Contexto completo del handoff: el equipo humano debe leer el correo
   // sabiendo de qué habló el cliente con Sophie, no solo su última frase.
   const conversacion = [...messages]
     .filter((m) => (m.role !== 'system') && m.content?.trim())
-    .slice(-6) // últimos 6 turnos (usuario + Sophie) para no pasarnos de longitud en la URL
+    .slice(-6) // últimos 6 turnos (usuario + Sophie) para no pasarnos de longitud
     .map((m) => {
       const esBot = m.role === 'bot' || m.role === 'assistant' || m.role === 'model';
-      const texto = m.content!.replace(/\[(BOTON_REGISTRO|CONTACTAR_ASESOR)\]/g, '').trim();
+      const texto = m.content!.replace(SOPHIE_MARKER_RE, '').trim();
       return `${esBot ? 'Sophie' : 'Cliente'}: ${texto.slice(0, 220)}`;
     })
     .join('\n');
 
   const contexto = conversacion ? `\n\nResumen de mi conversación con Sophie:\n${conversacion}` : '';
-  const texto = encodeURIComponent(`Hola, vengo del chat de Sophie en la web. Quiero hablar con un asesor humano de Upway.${contexto}`);
-  return `https://wa.me/${HUMAN_TRANSFER_WA_NUMBER}?text=${texto}`;
+  const cuerpo = encodeURIComponent(
+    `Hola, vengo del chat de Sophie en la web. Quiero hablar con una persona del equipo de Upway.${contexto}`
+  );
+  const asunto = encodeURIComponent('Chat con Sophie: quiero hablar con el equipo');
+  return `mailto:${HUMAN_TRANSFER_EMAIL}?subject=${asunto}&body=${cuerpo}`;
 };
 
 // 🚨 Detección server-side de petición EXPLÍCITA de asesor humano.
@@ -160,7 +170,7 @@ const buildWaAdvisorLink = (messages: SophieMessage[]): string => {
 // [CONTACTAR_ASESOR] cuando el cliente pide persona real.
 const HUMAN_INTENT_PATTERN = /\b(humano|humanos|asesor|asesora|asesores|persona real|hablar con alguien|me atienda|agente real)\b/i;
 
-const humanIntentReply = 'Con gusto te atiende una persona de nuestro equipo. Te conecto de inmediato por WhatsApp: te responden en minutos. [CONTACTAR_ASESOR]';
+const humanIntentReply = 'Con gusto te atiende una persona de nuestro equipo. Te dejo el contacto directo para que te respondan lo antes posible: [CONTACTAR_ASESOR]';
 
 const detectHumanIntent = (messages: SophieMessage[]): boolean => {
   const lastUser = [...messages]
@@ -314,16 +324,16 @@ export async function POST(req: NextRequest) {
 
     // 🚨 HANDOFF WEB -> HUMANO: si el cliente pidió explícitamente una persona,
     // se garantiza el marcador [CONTACTAR_ASESOR] (aunque el LLM no lo genere) y
-    // se devuelve el link de WhatsApp del equipo humano.
-    let waAdvisorLink: string | null = null;
+    // se devuelve el contacto directo del equipo (correo: Upway no usa WhatsApp).
+    let advisorLink: string | null = null;
     if (detectHumanIntent(messages)) {
       if (!botReply.includes('[CONTACTAR_ASESOR]')) {
         botReply = humanIntentReply;
       }
-      waAdvisorLink = buildWaAdvisorLink(messages);
+      advisorLink = buildAdvisorLink(messages);
     }
 
-    return NextResponse.json({ reply: botReply, provider: chosenProvider, ok: providerWorked, waAdvisorLink });
+    return NextResponse.json({ reply: botReply, provider: chosenProvider, ok: providerWorked, advisorLink });
 
   } catch (error: unknown) {
     console.error('Error crítico en Sophie:', error);

@@ -10,7 +10,8 @@ export type ActivationInput = {
   hasClinic: boolean;
   hasTienda: boolean;
   onboardingStatus: string | null;
-  whatsappActive: boolean;
+  /** @deprecated ya no se usa: WhatsApp no es un canal de Upway (politica interna). */
+  whatsappActive?: boolean;
   voiceActive: boolean;
   hasAssistant: boolean;
   hasPhone: boolean;
@@ -24,7 +25,7 @@ export type ActivationInput = {
   planAutoActivatable?: boolean;
   /** Intake de implementacion completo (NIT, contacto, volumen). */
   implementationIntakeReady?: boolean;
-  /** WhatsApp no es parte del paquete: gatea solo si el cliente trae token Meta. */
+  /** WhatsApp no es parte del paquete: gatea solo si el cliente trae token Meta. @deprecated ya no gatea (politica interna Upway). */
   whatsappRequired?: boolean;
   /** Servicios de la IPS que exigen documento del paciente (denominador). */
   identityServicesRequiringDocs?: number;
@@ -38,10 +39,9 @@ export function buildActivationChecks(input: ActivationInput): { checks: Activat
     input.planAutoActivatable !== false &&
     input.implementationIntakeReady !== false;
 
-  // WhatsApp no es parte del paquete de servicio: solo gatea el go-live si el
-  // cliente contrato ese canal (token propio de Meta Developer). Sin marca
-  // explicita = despliegue solo voz.
-  const whatsappRequired = input.whatsappRequired === true;
+  // WhatsApp no es parte del paquete de servicio y ya no gatea el go-live:
+  // por politica interna Upway no usa ni integra WhatsApp/Meta (ver el check
+  // informativo mas abajo).
 
   // Identidad conforme: si un servicio exige documento, debe tener tipo del
   // catalogo cerrado (Res. 866/2021). Sin eso el agente de voz no sabe que pedir
@@ -79,13 +79,13 @@ export function buildActivationChecks(input: ActivationInput): { checks: Activat
     },
     {
       key: 'whatsapp',
-      label: 'WhatsApp (token propio del cliente)',
-      ok: !whatsappRequired || input.whatsappActive,
-      detail: !whatsappRequired
-        ? 'WhatsApp no contratado: no aplica para este go-live (despliegue solo voz).'
-        : input.whatsappActive
-          ? 'Linea Meta del cliente activa (adaptada por Upway).'
-          : 'WhatsApp no esta incluido: el cliente debe aportar su token de Meta Developer para que Upway lo adapte.',
+      label: 'Canal oficial de atencion (voz IA)',
+      ok: true,
+      detail:
+        'WhatsApp no aplica: por politica interna Upway no usa ni integra WhatsApp ni Meta. El canal oficial es la voz IA sobre linea telefonica.',
+      // Gate de WhatsApp retirado: por politica interna Upway no usa ni integra WhatsApp/Meta.
+      // (antes: 'Linea Meta del cliente activa, adaptada por Upway.')
+      // (antes: el cliente debia aportar su token de Meta Developer.)
     },
     {
       key: 'voice',

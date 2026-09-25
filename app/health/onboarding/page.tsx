@@ -98,7 +98,7 @@ const fieldHelp: Partial<Record<keyof OnboardingForm, string>> = {
   legalName: 'Razon social para facturacion y contrato.',
   nit: 'NIT de la IPS/clinica. Necesario para activar billing.',
   contactName: 'Persona operativa que Upway contactara durante la implementacion.',
-  contactPhone: 'Celular con WhatsApp del contacto operativo.',
+  contactPhone: 'Celular de contacto del responsable operativo.',
   contactEmail: 'Email del contacto para entregables y acceso al panel.',
   dailyCalls: 'Promedio de llamadas entrantes por dia (estimacion honesta).',
   avgCallMinutes: 'Duracion media de una llamada en minutos (tipico 2-5).',
@@ -119,8 +119,8 @@ const fieldHelp: Partial<Record<keyof OnboardingForm, string>> = {
   cancellationWindow: 'Anticipación mínima para cancelar o reprogramar sin penalización.',
   policy: 'Reglas de escalamiento y seguridad ante riesgo clínico.',
   faq: 'Preguntas frecuentes que el agente responderá de forma automática.',
-  channel: 'Voz dedicada 24/7 incluida. WhatsApp no esta incluido: solo lo adaptamos si tu clinica trae su propio token de Meta Developer.',
-  whatsappOwn: 'El paquete base es voz. WhatsApp se adapta solo si tu clinica ya tiene su propio token de Meta Developer (WhatsApp Business API).',
+  channel: 'Voz dedicada 24/7 e integraciones incluidas. Por politica interna de Upway no usamos ni integramos WhatsApp ni Meta.',
+  whatsappOwn: 'Canal retirado: por politica interna de Upway no usamos ni integramos WhatsApp ni Meta. El canal oficial es la voz IA sobre linea telefonica.',
   withIdentityModule: 'Add-on por sede/mes: el agente pide el documento con catalogo cerrado (Res. 866/2021), lo confirma digito a digito y entrega el registro con evidencia.',
   webhook: 'Integraciones a conectar (agenda, CRM). Upway las implementa.',
 };
@@ -326,19 +326,11 @@ const stageContent: Record<
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 14, padding: 14, fontSize: 13, color: '#14532d' }}>
         Upway implementa por ti (white-glove): voz dedicada 24/7 e integraciones con tu agenda, sin tokens ni consolas.
-        WhatsApp no esta incluido en el paquete: si tu clinica ya tiene su propio token de Meta Developer (WhatsApp Business API), lo adaptamos a nuestro flujo; si no, el despliegue es solo voz.
-      </div>
-      <div style={{ display: 'grid', gap: 12 }}>
-        <label style={labelStyle}>WhatsApp Business propio</label>
-        <select value={form.whatsappOwn} onChange={(event) => onChange('whatsappOwn', event.target.value)} style={inputStyle}>
-          <option value="no">No — despliegue solo voz (recomendado para arrancar)</option>
-          <option value="si">Sí — tengo token de Meta Developer y quiero que Upway lo adapte</option>
-        </select>
-        <FieldHint text={fieldHelp.whatsappOwn} />
+        Por politica interna de Upway no usamos ni integramos WhatsApp ni Meta: el canal oficial es la voz IA sobre linea telefonica.
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
         <label style={labelStyle}>Canales deseados</label>
-        <input placeholder="Ej. Voz dedicada 24/7 (+ WhatsApp propio si aplica)" value={form.channel} onChange={(event) => onChange('channel', event.target.value)} style={inputStyle} />
+        <input placeholder="Ej. Voz dedicada 24/7 e integraciones con la agenda" value={form.channel} onChange={(event) => onChange('channel', event.target.value)} style={inputStyle} />
         <FieldHint text={fieldHelp.channel} />
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
@@ -479,7 +471,7 @@ const stageHelp: Record<OnboardingStage, { title: string; hint: string }> = {
   },
   'channel-integration': {
     title: 'Canales e integraciones',
-    hint: 'Voz dedicada 24/7 incluida. WhatsApp solo se adapta si tu clinica trae su propio token de Meta Developer.',
+    hint: 'Voz dedicada 24/7 e integraciones con tu agenda. Por politica interna de Upway no usamos ni integramos WhatsApp ni Meta.',
   },
   'review-and-approve': {
     title: 'Revisión final',
@@ -569,6 +561,7 @@ export default function HealthOnboardingPage() {
     const stage = onboardingStages[currentStageIndex];
     if (stage !== 'review-and-approve') return;
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- gate de identidad al entrar a la etapa de revision (patron preexistente del panel)
     setIdentityGate({ loading: true, ok: false, detail: '' });
     fetch('/api/health/activate', { credentials: 'include' })
       .then((response) => response.json())

@@ -90,21 +90,14 @@ async function resolveActivationState(organizationId: string, clinicId: string, 
     isValidDocumentTypeCode(s.requiredDocumentType)
   );
 
-  // ── WhatsApp no es parte del paquete: solo gatea si el cliente declaro
-  // token propio de Meta Developer (whatsappOwn === 'si') o si su texto de
-  // canales menciona WhatsApp/Meta de forma explicita. Vacio = solo voz.
-  const whatsappOwn = typeof formData.whatsappOwn === 'string' ? formData.whatsappOwn.trim() : '';
-  const channelText = typeof formData.channel === 'string' ? formData.channel.trim() : '';
-  const whatsappRequired =
-    whatsappOwn === 'si' ||
-    (whatsappOwn !== 'no' && channelText.length > 0 && /whatsapp|wasap|meta/i.test(channelText));
+  // ── WhatsApp/Meta no es parte del paquete ni un canal de Upway: la politica
+  // interna lo descarta por completo, asi que ya no se calcula ni gatea nada.
 
   const input = {
     hasOrganization: Boolean(organization ?? organizationId),
     hasClinic: Boolean(clinic),
     hasTienda: Boolean(tienda),
     onboardingStatus: session?.status ?? null,
-    whatsappActive: Boolean(tienda?.isWhatsAppActive),
     voiceActive: Boolean(tienda?.isTelnyxActive ?? tienda?.isVapiActive ?? false),
     hasAssistant: Boolean(tienda?.telnyxAssistantId),
     hasPhone: Boolean(tienda?.telnyxPhoneNumber),
@@ -115,7 +108,6 @@ async function resolveActivationState(organizationId: string, clinicId: string, 
     planId,
     planAutoActivatable: plan ? plan.autoActivatable : false,
     implementationIntakeReady,
-    whatsappRequired,
     identityServicesRequiringDocs: servicesRequiringDocs.length,
     identityServicesWithCatalogType: servicesWithCatalogType.length,
   };
@@ -252,7 +244,6 @@ export async function POST(request: NextRequest) {
             agentName: state.tienda.agentName ?? state.tienda.nombre,
             phoneNumber: state.tienda.telnyxPhoneNumber,
             telnyxAssistantId: state.tienda.telnyxAssistantId,
-            whatsappActive: state.tienda.isWhatsAppActive,
             voiceActive: state.tienda.isTelnyxActive,
             planId: state.plan?.id ?? null,
             planName: state.plan?.name ?? null,

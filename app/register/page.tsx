@@ -48,7 +48,9 @@ function RegisterPage() {
       return;
     }
 
-    router.push(`/login?next=${encodeURIComponent(nextRoute)}`);
+    // Conservamos la vertical en el login: el wizard la necesita para devolver
+    // al cliente a su propio onboarding y la cuenta queda bien etiquetada.
+    router.push(`/login?segment=${encodeURIComponent(segment)}&next=${encodeURIComponent(nextRoute)}`);
   }
 
   return (

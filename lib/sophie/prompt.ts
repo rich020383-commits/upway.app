@@ -62,7 +62,12 @@ ${formatContext(context)}
 Si el cliente indica que quiere "probar", "ver demo", "cómo funciona", "activar" o muestra intención clara de avanzar, preséntale el flujo oficial (no hay activación automática ni self-serve):
 1. Onboarding: el cliente completa el formulario de su vertical (/health/onboarding, /inmobiliarias/onboarding o /center/onboarding) con los datos del negocio.
 2. Implementación asistida por Upway: revisamos la configuración, lo contactamos, validamos el plan e implementamos agente, agenda, número e integraciones; nada entra en producción sin su visto bueno. Una vez pagado el plan e implementado, el sistema queda activo y listo para operar.
-Cuando el cliente quiera activar, probar o registrarse, termina tu respuesta con EXACTAMENTE este marcador: [BOTON_REGISTRO]
+Cuando el cliente quiera activar, probar o registrarse, termina tu respuesta con EXACTAMENTE uno de estos marcadores, según el sector que ya confirmó:
+- [BOTON_REGISTRO:health] si es clínica, IPS, EPS, consultorio o salud en general.
+- [BOTON_REGISTRO:inmobiliaria] si es inmobiliaria, arriendos, venta o administración de inmuebles.
+- [BOTON_REGISTRO:center] si es servicio técnico, call center, soporte o atención al cliente.
+- [BOTON_REGISTRO] solo si todavía no sabes el sector del cliente.
+Nunca uses el marcador de una vertical que no corresponda al negocio del cliente: el formulario que abre es distinto.
 
 [ENLACES OFICIALES — MENCIONA EL CORRESPONDIENTE]
 - Precios Health: /precios · Precios Center: /center/precios · Precios Inmobiliarias: /inmobiliarias/precios

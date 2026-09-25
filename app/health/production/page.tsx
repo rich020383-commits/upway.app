@@ -104,7 +104,7 @@ export default function HealthProductionPage() {
           </button>
         </div>
         <p className="mb-4 text-sm text-slate-500">
-          Cliente llena onboarding · Upway conecta WhatsApp + voz dedicada · se entrega número alineado + panel real.
+          Cliente llena onboarding · Upway implementa voz dedicada e integraciones · se entrega número alineado + panel real.
         </p>
         {loading ? (
           <div className="rounded-[18px] border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">

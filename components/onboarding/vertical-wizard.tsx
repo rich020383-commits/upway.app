@@ -3,10 +3,26 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, Check, ShieldCheck } from 'lucide-react';
-import { stageErrors, stageMeta, type OnboardingConfig, type WizardField } from '@/lib/onboarding/types';
+import {
+  stageErrors,
+  stageMeta,
+  type OnboardingConfig,
+  type VerticalSegment,
+  type WizardField,
+} from '@/lib/onboarding/types';
 
 const cop = (n: number) =>
   n.toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+
+/**
+ * Ruta del wizard por segmento: es el `next` que devolvemos al login/registro
+ * para que el cliente vuelva exactamente a este formulario tras autenticarse.
+ * Determinista a propósito (no depende de window) para no romper el SSR.
+ */
+const SEGMENT_ONBOARDING_PATH: Record<VerticalSegment, string> = {
+  inmobiliaria: '/inmobiliarias/onboarding',
+  center: '/center/onboarding',
+};
 
 const inputCls =
   'w-full rounded-xl border border-[#d5e3f0] bg-white px-4 py-3 text-[13px] text-[#0d3168] outline-none transition focus:border-[#0ba9a9] focus:ring-2 focus:ring-[#0ba9a9]/20';
@@ -30,6 +46,8 @@ type PersistResult = {
   caseRef?: string;
   delivered?: boolean;
   warning?: string;
+  /** La API respondió 401: hace falta sesión antes de poder enviar a revisión. */
+  authRequired?: boolean;
 };
 
 /**
@@ -47,6 +65,14 @@ export function VerticalWizard({ config }: Props) {
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
+  /**
+   * Sin sesión la API responde 401. Antes el wizard seguía hasta el final y el
+   * botón "Enviar a revisión" no hacía nada (con un mensaje falso de "sin
+   * conexión"): el prospecto se perdía. Ahora mostramos el gate de cuenta y
+   * devolvemos el `next` para volver justo a este formulario.
+   */
+  const [authRequired, setAuthRequired] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   /** Datos del envío a revisión que se muestran al cerrar el wizard. */
   const [submission, setSubmission] = useState<{
     caseRef?: string;
@@ -57,12 +83,21 @@ export function VerticalWizard({ config }: Props) {
   const stage = stages[step];
   const isLast = step === total - 1;
 
+  const onboardingPath = SEGMENT_ONBOARDING_PATH[config.segment];
+  const nextParam = encodeURIComponent(onboardingPath);
+  const loginHref = `/login?segment=${config.segment}&next=${nextParam}`;
+  const registerHref = `/register?segment=${config.segment}&next=${nextParam}`;
+
   // Restaura el avance guardado (si hay sesión); best-effort.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const res = await fetch(`/api/onboarding?segment=${config.segment}`, { cache: 'no-store' });
+        if (res.status === 401) {
+          if (!cancelled) setAuthRequired(true);
+          return;
+        }
         if (!res.ok) return;
         const data = await res.json();
         if (cancelled || !data || typeof data !== 'object') return;
@@ -99,6 +134,10 @@ export function VerticalWizard({ config }: Props) {
           submit,
         }),
       });
+      if (res.status === 401) {
+        setAuthRequired(true);
+        return { ok: false, authRequired: true };
+      }
       if (!res.ok) throw new Error('save failed');
       const data = await res.json().catch(() => null);
       setSaveFailed(false);
@@ -124,6 +163,7 @@ export function VerticalWizard({ config }: Props) {
       return;
     }
     setErrors([]);
+    setSubmitError(null);
     if (isLast) {
       setSending(true);
       const result = await persist(step, true);
@@ -135,6 +175,11 @@ export function VerticalWizard({ config }: Props) {
           warning: result.warning,
         });
         setDone(true);
+      } else if (!result.authRequired) {
+        // Antes esto no mostraba nada y el botón parecía "muerto".
+        setSubmitError(
+          'No pudimos enviar tu solicitud. Revisa tu conexión e inténtalo otra vez; si el problema continúa, escríbenos a contacto@upway.business.'
+        );
       }
       return;
     }
@@ -252,7 +297,38 @@ export function VerticalWizard({ config }: Props) {
 
         {/* Tarjeta principal */}
         <main className="min-w-0 flex-1 rounded-2xl border border-[#1E293B] bg-[#0D1117] p-5 sm:p-8">
-          {done ? (
+          {authRequired ? (
+            <div className="py-6">
+              <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full bg-teal-500/15 text-[#50e1d5]">
+                <ShieldCheck size={24} />
+              </div>
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.22em] text-[#50e1d5]">
+                Necesitas una cuenta
+              </p>
+              <h2 className="font-display text-[24px] font-extrabold tracking-[-0.5px] sm:text-[28px]">
+                Crea tu cuenta para enviar esta configuración a revisión
+              </h2>
+              <p className="mt-3 max-w-xl text-[13px] leading-relaxed text-[#8994A6]">
+                Al iniciar sesión volvemos a este mismo formulario. Después del envío, el equipo de Upway revisa la
+                configuración, valida el plan con vos y solo entonces se implementa: nada entra en producción sin tu
+                visto bueno.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  href={loginHref}
+                  className="inline-flex items-center gap-2 rounded-full bg-[#0ba9a9] px-5 py-3 text-[13px] font-bold text-white transition hover:-translate-y-0.5"
+                >
+                  Iniciar sesión <ArrowRight size={16} />
+                </Link>
+                <Link
+                  href={registerHref}
+                  className="inline-flex items-center gap-2 rounded-full border border-[#1E293B] px-5 py-3 text-[13px] font-bold text-[#F5F7FA] transition hover:border-teal-500/40"
+                >
+                  Crear cuenta
+                </Link>
+              </div>
+            </div>
+          ) : done ? (
             <div className="py-6">
               <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full bg-teal-500/15 text-[#50e1d5]">
                 <ShieldCheck size={24} />
@@ -278,7 +354,7 @@ export function VerticalWizard({ config }: Props) {
                 </p>
               ) : submission ? (
                 <p className="mt-4 max-w-xl rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-[12px] font-semibold leading-relaxed text-amber-200">
-                  {submission.warning ?? 'Guardamos tu caso, pero no pudimos avisar al equipo de Upway. Escríbenos por WhatsApp para no perder el turno.'}
+                  {submission.warning ?? 'Guardamos tu caso, pero no pudimos avisar al equipo de Upway. Escríbenos a contacto@upway.business para no perder el turno.'}
                 </p>
               ) : null}
 
@@ -360,10 +436,16 @@ export function VerticalWizard({ config }: Props) {
                   </ul>
                 </div>
               )}
-              {saveFailed && (
+              {saveFailed && !authRequired && (
                 <p className="mt-4 text-[11px] text-[#8994A6]">
-                  No pudimos guardar tu avance (sin conexión). Puedes seguir: lo reintentaremos al avanzar.
+                  No pudimos guardar tu avance. Revisa tu conexión: lo reintentamos al avanzar y puedes seguir llenando
+                  el formulario.
                 </p>
+              )}
+              {submitError && (
+                <div className="mt-5 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
+                  <p className="text-[12px] font-semibold leading-relaxed text-amber-200">{submitError}</p>
+                </div>
               )}
 
               <div className="mt-7 flex items-center justify-between gap-3 border-t border-[#1E293B] pt-5">

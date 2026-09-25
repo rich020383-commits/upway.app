@@ -2,13 +2,37 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, Cpu, Activity, Zap, ShieldCheck, Mic, Square, MessageCircle } from "lucide-react";
+import { X, Send, Cpu, Activity, Zap, ShieldCheck, Mic, Square, Mail } from "lucide-react";
+
+/**
+ * Marcadores que emite Sophie. `[BOTON_REGISTRO]` puede traer la vertical
+ * (`[BOTON_REGISTRO:inmobiliaria]`): antes todos los prospectos caían en el
+ * onboarding clínico aunque su negocio fuera otro.
+ */
+const BOTON_REGISTRO_RE = /\[BOTON_REGISTRO(?::([a-z-]+))?\]/i;
+
+const REGISTRO_TARGET: Record<string, { segment: string; next: string }> = {
+  health: { segment: "health", next: "/health/onboarding" },
+  inmobiliaria: { segment: "inmobiliaria", next: "/inmobiliarias/onboarding" },
+  center: { segment: "center", next: "/center/onboarding" },
+};
+
+/** Alta con la vertical correcta y retorno al onboarding de esa vertical. */
+function registroHref(content: string): string {
+  const segment = content.match(BOTON_REGISTRO_RE)?.[1]?.toLowerCase() ?? "";
+  const target = REGISTRO_TARGET[segment] ?? REGISTRO_TARGET.health;
+  return `/register?segment=${target.segment}&next=${encodeURIComponent(target.next)}`;
+}
+
+const ADVISOR_MAILTO_FALLBACK =
+  "mailto:contacto@upway.business?subject=Quiero%20hablar%20con%20el%20equipo%20de%20Upway";
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [aiProvider, setAiProvider] = useState("SISTEMA_EN_ESPERA");
-  // 🚨 Link de WhatsApp del asesor humano (handoff web -> WhatsApp)
-  const [waAdvisorLink, setWaAdvisorLink] = useState<string | null>(null);
+  // Contacto directo del equipo humano. Por política interna Upway no usa
+  // WhatsApp ni Meta: el traspaso sale por correo con el contexto del chat.
+  const [advisorLink, setAdvisorLink] = useState<string | null>(null);
 
   const [messages, setMessages] = useState([
     {
@@ -158,7 +182,7 @@ export default function Chatbot() {
       const data = await res.json();
 
       if (data.provider) setAiProvider(data.provider);
-      if (data.waAdvisorLink) setWaAdvisorLink(data.waAdvisorLink);
+      if (data.advisorLink) setAdvisorLink(data.advisorLink);
 
       const organicDelay = Math.floor(Math.random() * 800) + 500;
       setTimeout(() => {
@@ -199,7 +223,7 @@ export default function Chatbot() {
       const data = await res.json();
 
       if (data.provider) setAiProvider(data.provider);
-      if (data.waAdvisorLink) setWaAdvisorLink(data.waAdvisorLink);
+      if (data.advisorLink) setAdvisorLink(data.advisorLink);
 
       const organicDelay = Math.floor(Math.random() * 800) + 500;
       setTimeout(() => {
@@ -328,13 +352,13 @@ export default function Chatbot() {
                     <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/30" />
                     <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/30" />
 
-                    {m.content.includes('[BOTON_REGISTRO]') ? (
+                    {BOTON_REGISTRO_RE.test(m.content) ? (
                       <div className="flex flex-col gap-3">
-                        <span>{m.content.replace('[BOTON_REGISTRO]', '')}</span>
+                        <span>{m.content.replace(BOTON_REGISTRO_RE, '')}</span>
                         <motion.button
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => window.location.href = '/register?next=' + encodeURIComponent('/health/onboarding')}
+                          onClick={() => { window.location.href = registroHref(m.content); }}
                           className="bg-[#00D1FF]/20 border border-[#00D1FF]/50 text-[#00D1FF] px-4 py-2.5 rounded text-[12px] font-mono tracking-widest uppercase hover:bg-[#00D1FF] hover:text-black transition-all flex items-center justify-center gap-2 mt-2 shadow-[0_0_15px_rgba(0,209,255,0.3)]"
                         >
                           <Zap className="w-4 h-4" /> REGISTRARME / INICIAR SESIÓN
@@ -346,13 +370,13 @@ export default function Chatbot() {
                         <motion.a
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          href={waAdvisorLink || `https://wa.me/573126427824`}
+                          href={advisorLink || ADVISOR_MAILTO_FALLBACK}
                           target="_blank"
                           rel="noopener noreferrer"
-                          onClick={() => setWaAdvisorLink(null)}
-                          className="bg-[#25D366]/15 border border-[#25D366]/50 text-[#25D366] px-4 py-2.5 rounded text-[12px] font-mono tracking-widest uppercase hover:bg-[#25D366] hover:text-black transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(37,211,102,0.3)]"
+                          onClick={() => setAdvisorLink(null)}
+                          className="bg-[#00D1FF]/15 border border-[#00D1FF]/50 text-[#00D1FF] px-4 py-2.5 rounded text-[12px] font-mono tracking-widest uppercase hover:bg-[#00D1FF] hover:text-black transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(0,209,255,0.3)]"
                         >
-                          <MessageCircle className="w-4 h-4" /> CONECTAR CON ASESOR
+                          <Mail className="w-4 h-4" /> ESCRIBIR AL EQUIPO
                         </motion.a>
                       </div>
                     ) : (
