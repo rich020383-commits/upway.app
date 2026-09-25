@@ -18,8 +18,8 @@ Notas de estado (2026-09):
 - Los pasos viven en lib/health/onboarding.ts (onboardingStages) y se persisten
   en HealthOnboardingSession via /api/health/onboarding.
 - El go-live NO es automatico: lo habilita el checklist de /api/health/activate.
-- Politica de canales: Upway NO usa ni integra WhatsApp ni Meta. El canal oficial
-  es la voz IA sobre linea telefonica (ver lib/health/activation.ts).
+- Politica de canales: Upway no integra plataformas de mensajeria de terceros.
+  El canal oficial es la voz IA sobre linea telefonica (ver lib/health/activation.ts).
 - Onboarding de Inmobiliarias/Center: components/onboarding/vertical-wizard.tsx
   (validacion compartida en lib/onboarding/types.ts). La persistencia vive en el
   modelo VerticalOnboardingSession via /api/onboarding: borrador reanudable +
