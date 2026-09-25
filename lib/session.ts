@@ -37,19 +37,29 @@ const notFound = () =>
 /**
  * Extrae y valida el usuario de la sesión NextAuth (JWT firmado con NEXTAUTH_SECRET).
  * Devuelve null si no hay sesión válida — usar en TODOS los endpoints que mutan o leen datos privados.
+ *
+ * `id` es el id de la fila en `User` (el cuid que emite el callback jwt), que es
+ * lo que guardan `Tienda.userId`, `Organization.ownerId` y los miembros. NUNCA
+ * el correo: devolver el email aquí hacía que todo filtro por `userId` no
+ * encontrara nada y las rutas respondieran 404 "Tienda no encontrada" — el
+ * checklist de Health (que usa `getHealthSession` → `token.id`) decía ✓ Tenant
+ * mientras la capa de voz y todo el panel Business no encontraban nada.
  */
 export async function getSessionUser(req: NextRequest): Promise<SessionUser | null> {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   if (!token) return null;
 
   // Aceptar token con id o email (Google users pueden no tener id si no están en BD aún)
-  const userId = (token.id as string) || '';
-  const userEmail = (token.email as string) ?? '';
+  const userId = typeof token.id === 'string' ? token.id.trim() : '';
+  const userEmail = typeof token.email === 'string' ? token.email.trim() : '';
 
   if (!userId && !userEmail) return null;
 
   return {
-    id: userEmail || userId, // Usar email como id temporal para Google users sin registro
+    // El id manda. El email es solo el respaldo para un token que aún no trae id
+    // (usuario del proveedor sin registro): en ese caso no hay Tienda que buscar
+    // igual, y `email` queda disponible para lo que sí lo necesite.
+    id: userId || userEmail,
     email: userEmail || null,
     name: (token.name as string) ?? null,
   };
