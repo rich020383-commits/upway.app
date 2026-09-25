@@ -129,10 +129,19 @@ export default function HealthProductionPage() {
       </div>
 
       <div className="upway-surface rounded-[28px] p-5">
-        <div className="text-lg font-black tracking-[-0.04em] text-slate-900">Voz del agente</div>
-        <p className="mb-4 mt-1 text-sm text-slate-500">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="text-lg font-black tracking-[-0.04em] text-slate-900">Voz del agente</div>
+          {onboardingStatus !== 'ACTIVE' && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+              {onboardingStatus === 'PENDING_REVIEW' ? 'En revisión Upway · modo preparación' : 'Modo preparación'}
+            </span>
+          )}
+        </div>
+        <p className="mb-4 text-sm text-slate-500">
           Elige la voz con la que el agente atiende las llamadas Telnyx o crea una voz propia (muestra de audio o
-          descripción con prompt). Puedes escuchar una muestra antes de guardar.
+          descripción con prompt). Puedes escuchar una muestra antes de guardar. Mientras Upway revisa tu caso puedes
+          probarla y elegirla: se aplica al número cuando la activación quede en verde.
         </p>
         <VoiceSelector
           tiendaId={tiendaId}

@@ -6,6 +6,7 @@ import GoogleProvider from "next-auth/providers/google";
 import LinkedInProvider from "next-auth/providers/linkedin"; // 🚀 1. Importamos LinkedIn
 import bcrypt from "bcryptjs";
 import { resolveBillingState } from '@/lib/billing/access';
+import { ensureOwnedWorkspace } from '@/lib/auth/workspace';
 import { prisma } from '@/lib/prisma';
 
 export const authOptions: NextAuthOptions = {
@@ -111,21 +112,24 @@ export const authOptions: NextAuthOptions = {
             console.log(`✅ [${account.provider.toUpperCase()} Auth] Nuevo usuario creado en BD`);
           }
 
+          // C7: el alta por OAuth creaba User + Tienda pero NUNCA Organization.
+          // Sin organización el JWT quedaba con role='' y toda la capa Health
+          // respondía 403 "Access denied: missing role" — entre otros síntomas,
+          // /health/production nunca recibía tiendaId y la tarjeta de voz
+          // quedaba inerte en "Sin tienda asociada".
+          const scope = await ensureOwnedWorkspace(dbUser.id, { name: user.name });
+
           const tiendaExistente = await prisma.tienda.findFirst({
             where: { userId: dbUser.id }
           });
 
           if (!tiendaExistente) {
-            // C7: no forzar id=user.id (rompe cuid) y vincular al tenant real si existe.
-            const org = await prisma.organization.findFirst({
-              where: { ownerId: dbUser.id },
-              include: { clinics: { orderBy: { createdAt: 'asc' }, take: 1 } },
-            });
+            // C7: no forzar id=user.id (rompe cuid) y vincular al tenant real.
             await prisma.tienda.create({
               data: {
                 userId: dbUser.id,
-                organizationId: org?.id ?? null,
-                clinicId: org?.clinics?.[0]?.id ?? null,
+                organizationId: scope?.organizationId ?? null,
+                clinicId: scope?.clinicId ?? null,
                 nombre: `Workspace de ${dbUser.name || 'Empresa'}`,
               }
             });
@@ -168,7 +172,7 @@ export const authOptions: NextAuthOptions = {
           token.clinicId = 'meta-reviewer-clinic';
           token.vertical = 'general';
         } else {
-          const dbUser = await prisma.user.findUnique({
+          let dbUser = await prisma.user.findUnique({
             where: { email },
             include: {
               ownedOrganizations: {
@@ -181,6 +185,35 @@ export const authOptions: NextAuthOptions = {
               },
             },
           });
+
+          // Auto-sanado de cuentas alta por OAuth antes de existir este fix:
+          // sin Organization el token quedaba con role='' y enforceHealthAccess
+          // respondía 403 "Access denied: missing role" en toda la capa Health.
+          // El callback jwt corre en cada /api/auth/session, así que la sesión
+          // vigente se repara sola sin exigir re-login. Solo escribe cuando la
+          // organización falta, por lo que en el caso normal no hay I/O extra.
+          if (dbUser && dbUser.ownedOrganizations.length === 0) {
+            try {
+              await ensureOwnedWorkspace(dbUser.id, { name: dbUser.name });
+              dbUser = await prisma.user.findUnique({
+                where: { email },
+                include: {
+                  ownedOrganizations: {
+                    include: {
+                      clinics: {
+                        orderBy: { createdAt: 'asc' },
+                        take: 1,
+                      },
+                    },
+                  },
+                },
+              });
+            } catch (error) {
+              // Nunca bloquear el login por el auto-sanado: se reintenta en la
+              // siguiente sesión y el resto del token se emite igual.
+              console.error('⚠️ [Auth] No se pudo sanear el workspace del usuario:', error);
+            }
+          }
 
           token.id = dbUser ? dbUser.id : (user?.id as string | undefined) ?? token.id;
 

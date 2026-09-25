@@ -2,6 +2,7 @@ import { getToken } from 'next-auth/jwt';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import type { PrismaClient, Tienda } from '@prisma/client';
+import { ensureOwnedWorkspace } from '@/lib/auth/workspace';
 
 export type SessionUser = {
   id: string;
@@ -118,9 +119,29 @@ export async function getHealthSession(
     };
   }
 
-  const role = typeof token.role === 'string' ? token.role : '';
-  const organizationId = typeof token.organizationId === 'string' ? token.organizationId : '';
-  const clinicId = typeof token.clinicId === 'string' ? token.clinicId : '';
+  let role = typeof token.role === 'string' ? token.role : '';
+  let organizationId = typeof token.organizationId === 'string' ? token.organizationId : '';
+  let clinicId = typeof token.clinicId === 'string' ? token.clinicId : '';
+
+  // Auto-sanado: el token pudo emitirse cuando la cuenta aún no tenía
+  // Organization (altas por OAuth antiguas), quedando con role='' y haciendo
+  // que enforceHealthAccess respondiera 403 "Access denied: missing role".
+  // Se repara aquí para que la MISMA petición funcione: el cookie se reescribe
+  // en /api/auth/session, pero no exigimos un refresh para ver Operaciones.
+  // Solo entra con role vacío, así que en el caso normal no hay I/O extra.
+  if (!role.trim() && token.id && token.id !== 'meta-reviewer') {
+    try {
+      const scope = await ensureOwnedWorkspace(token.id as string);
+      if (scope) {
+        role = 'owner';
+        organizationId = scope.organizationId;
+        clinicId = scope.clinicId;
+      }
+    } catch (error) {
+      // Nunca tumbar la petición por el saneado: se reintenta en la próxima.
+      console.error('⚠️ [Session] No se pudo sanear el workspace:', error);
+    }
+  }
 
   return {
     context: {

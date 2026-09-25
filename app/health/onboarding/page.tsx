@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { ShieldCheck } from 'lucide-react';
 import {
   onboardingStages,
   getHealthStatusForStage,
@@ -716,13 +718,24 @@ export default function HealthOnboardingPage() {
   return (
     <div className="mx-auto w-full max-w-6xl">
       <div className="w-full">
-        <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.22em] text-slate-600 shadow-[0_10px_30px_rgba(15,23,42,0.04)] backdrop-blur-sm">
             <span className="h-2 w-2 rounded-full bg-[#1b5ed6]" />
             Upway Health
           </div>
-          <div className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-700">
-            {Math.round(progress)}% completado
+          <div className="flex items-center gap-2">
+            {/* El onboarding es pausable: permite saltar a Operaciones sin
+                completar los pasos (probar voces, ver el checklist, etc.). */}
+            <Link
+              href="/health/production"
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#dfeaff] bg-white px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#1b5ed6] shadow-sm transition hover:border-[#b9d2ff] hover:bg-[#f7faff]"
+            >
+              <ShieldCheck size={12} strokeWidth={2.4} />
+              Operaciones
+            </Link>
+            <div className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-700">
+              {Math.round(progress)}% completado
+            </div>
           </div>
         </div>
 
