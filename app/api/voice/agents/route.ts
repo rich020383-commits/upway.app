@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
     console.error('[telnyx] create agent failed', err);
     await prisma.tienda.update({
       where: { id: tienda.id },
-      data: { telnyxAssistantId: tienda.telnyxAssistantId ?? null, agentName: nombre, systemPrompt: reglas, agentVoice: vozFinal, agentVoiceLabel: vozLabel ?? tienda.agentVoiceLabel ?? null, isTelnyxActive: false },
+      data: { telnyxAssistantId: tienda.telnyxAssistantId ?? null, agentName: nombre, systemPrompt: reglas, agentVoice: vozFinal, agentVoiceLabel: vozLabel ?? tienda.agentVoiceLabel ?? 'Sofía · voz Upway', isTelnyxActive: false },
     }).catch(() => undefined);
     return NextResponse.json({ error: 'El servicio de voz de Upway no pudo crear el asistente. Revisa la configuración de la sede.' }, { status: 502 });
   }
