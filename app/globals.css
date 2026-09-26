@@ -273,6 +273,42 @@ svg {
   -webkit-backdrop-filter: blur(18px);
 }
 
+/* ============================================================
+   TOQUES "PERLADO"
+   --------------------------------------------------------
+   Lo que hace que el wizard de Center/Inmobiliaria se vea
+   premium NO es el color oscuro: es la profundidad. Capas finas
+   con degradado, sombras que crecen y una elevación sutil al
+   pasar el mouse. Estas utilidades lo dan sin cambiar la paleta
+   ni romper el sistema de superficie existente.
+
+   Se aplican con moderación: un filete y una elevación, no un
+   efecto encima de cada tarjeta.
+   ============================================================ */
+
+/* Filete con degradado: separa bloques sin usar una línea gris. */
+.upway-pearl-rule {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(27, 94, 214, 0.30) 20%,
+    rgba(11, 169, 169, 0.26) 60%,
+    transparent
+  );
+}
+
+/* Elevación que responde: el bloque se acerca un milímetro al leerlo. */
+.upway-pearl-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.upway-pearl-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 54px rgba(15, 31, 54, 0.10);
+  border-color: rgba(112, 143, 190, 0.30);
+}
+
+
 .upway-panel-dark {
   background: linear-gradient(180deg, rgba(15, 23, 39, 0.96), rgba(10, 17, 28, 0.98));
   border: 1px solid rgba(148, 163, 184, 0.18);

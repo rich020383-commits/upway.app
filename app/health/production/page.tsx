@@ -92,12 +92,36 @@ export default function HealthProductionPage() {
         <h1 className="mt-2 text-3xl font-black tracking-[-0.05em] text-slate-900">Hardening operativo</h1>
       </div>
 
+      <div className="upway-pearl-rule mb-6" />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {states.map((state) => (
-          <div key={state.label} className="upway-surface rounded-[24px] p-5">
-            <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-slate-500">{state.label}</div>
-            <div className="mt-4 text-xl font-black tracking-[-0.04em] text-slate-900">{state.value}</div>
-            <div className="mt-2 text-xs font-semibold uppercase tracking-[0.12em] text-emerald-600">{state.status}</div>
+          <div key={state.label} className="upway-surface upway-pearl-lift rounded-[24px] p-5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-slate-500">
+                {state.label}
+              </div>
+              {/* Punto de estado: da color al bloque sin gritar el texto. */}
+              <span
+                aria-hidden
+                className={`h-2 w-2 shrink-0 rounded-full ${
+                  state.status === 'Ready' || state.status === 'Live' || state.status === 'Clear'
+                    ? 'bg-emerald-500'
+                    : 'bg-amber-400'
+                }`}
+              />
+            </div>
+            <div className="mt-4 text-xl font-black tracking-[-0.04em] text-slate-900">
+              {state.value}
+            </div>
+            <div
+              className={`mt-2 inline-block rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] ${
+                state.status === 'Ready' || state.status === 'Live' || state.status === 'Clear'
+                  ? 'bg-emerald-50 text-emerald-700'
+                  : 'bg-amber-50 text-amber-700'
+              }`}
+            >
+              {state.status}
+            </div>
           </div>
         ))}
       </div>
@@ -125,8 +149,21 @@ export default function HealthProductionPage() {
         ) : (
           <div className="space-y-3">
             {checks.map((check) => (
-              <div key={check.key} className="flex items-start gap-3 rounded-[18px] border border-slate-200 bg-slate-50/80 p-3">
-                <div className={`mt-0.5 flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-black ${check.ok ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+              <div
+                key={check.key}
+                className={`flex items-start gap-3 rounded-[18px] border p-3 ${
+                  check.ok
+                    ? 'border-emerald-200/60 bg-emerald-50/30'
+                    : 'border-amber-200/70 bg-amber-50/40'
+                }`}
+              >
+                <div
+                  className={`mt-0.5 flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-black ${
+                    check.ok
+                      ? 'bg-[linear-gradient(135deg,_#10b981_0%,_#34d399_100%)] text-white'
+                      : 'bg-amber-100 text-amber-700'
+                  }`}
+                >
                   {check.ok ? '✓' : '!'}
                 </div>
                 <div>

@@ -13,6 +13,7 @@ import {
 import { FACILITY_TYPE_OPTIONS, IDENTITY_MODULE_COP, IDENTITY_MODULE_LABEL, type FacilityType } from '@/lib/health/plans';
 import { getHealthPlan, estimateMinutesFromVolume, formatCOP } from '@/lib/health/plans-enterprise';
 import { PlanPicker } from '@/components/health/plan-picker';
+import PremiumProgress from '@/components/health/premium-progress';
 import { useBusinessContext } from '@/components/business-context';
 import { Tooltip } from '@/components/ui/tooltip';
 
@@ -980,7 +981,20 @@ export default function HealthOnboardingPage() {
           )}
 
           <aside className="upway-surface rounded-[30px] p-5 md:p-6">
-            <div className="mb-4 text-[11px] font-mono uppercase tracking-[0.18em] text-slate-500">Checklist</div>
+            {/* La barra va antes que el porcentaje: un número grande dice
+                cuánto falta, la barra dice que esto avanza. Es el mismo gesto
+                del wizard de Center/Inmobiliaria. */}
+            <div className="mb-5">
+              <PremiumProgress
+                value={((currentStageIndex + 1) / onboardingStages.length) * 100}
+                label="Avance del onboarding"
+                right={`Paso ${currentStageIndex + 1} de ${onboardingStages.length}`}
+              />
+            </div>
+            <div className="upway-pearl-rule mb-4" />
+            <div className="mb-4 text-[11px] font-mono uppercase tracking-[0.18em] text-slate-500">
+              Checklist
+            </div>
 
             <div className="space-y-2.5">
               {onboardingStages.map((stage, index) => {
@@ -996,17 +1010,33 @@ export default function HealthOnboardingPage() {
                   <button
                     type="button"
                     onClick={() => goToStage(index)}
-                    className={`flex w-full items-center justify-between gap-3 rounded-[18px] border p-3 text-left transition-all hover:-translate-y-0.5 ${
+                    className={`upway-pearl-lift flex w-full items-center gap-3 rounded-[18px] border p-3 text-left ${
                       isCurrent
                         ? 'border-[#d3e2ff] bg-[#edf5ff] shadow-[0_10px_26px_rgba(27,94,214,0.10)]'
                         : status === 'done'
-                          ? 'border-emerald-200/70 bg-emerald-50/40 hover:bg-emerald-50/70'
-                          : 'border-slate-200 bg-white/80 hover:border-slate-300 hover:bg-white'
+                          ? 'border-emerald-200/70 bg-emerald-50/40'
+                          : 'border-slate-200 bg-white/80 hover:border-slate-300'
                     }`}
                   >
-                    <div className="min-w-0">
+                    {/* Círculo numerado: la posición en el recorrido se lee de
+                        un vistazo, sin tener que contar las tarjetas. */}
+                    <span
+                      aria-hidden
+                      className={`mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-black ${
+                        status === 'done'
+                          ? 'bg-emerald-500 text-white'
+                          : isCurrent
+                            ? 'bg-[#1b5ed6] text-white shadow-[0_4px_12px_rgba(27,94,214,0.35)]'
+                            : 'border border-slate-300 bg-white text-slate-500'
+                      }`}
+                    >
+                      {status === 'done' ? '✓' : index + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
                       <div className="text-sm font-bold text-slate-800">{getOnboardingStageMeta(stage).label}</div>
-                      <div className="mt-1 text-[10px] uppercase tracking-[0.12em] text-slate-500">{getOnboardingStageMeta(stage).subtitle}</div>
+                      <div className="mt-1 text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                        {getOnboardingStageMeta(stage).subtitle}
+                      </div>
                     </div>
                     <span
                       className={`inline-flex min-w-[72px] items-center justify-center rounded-full px-2 py-1 text-[9px] font-black uppercase tracking-[0.14em] ${
@@ -1025,9 +1055,13 @@ export default function HealthOnboardingPage() {
               })}
             </div>
 
-            <div className="mt-5 rounded-[24px] bg-[linear-gradient(135deg,_#0f172a_0%,_#132642_100%)] p-4 text-white shadow-[0_18px_42px_rgba(15,23,42,0.18)]">
+            <div className="upway-pearl-rule my-5" />
+
+            <div className="rounded-[24px] bg-[linear-gradient(135deg,_#0f172a_0%,_#132642_100%)] p-4 text-white shadow-[0_18px_42px_rgba(15,23,42,0.18)]">
               <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-300">Health readiness</div>
-              <div className="mt-3 text-4xl font-black tracking-[-0.06em]">{Math.round(((currentStageIndex + 1) / onboardingStages.length) * 100)}%</div>
+              <div className="mt-3 text-4xl font-black tracking-[-0.06em]">
+                {Math.round(((currentStageIndex + 1) / onboardingStages.length) * 100)}%
+              </div>
               <div className="mt-2 text-sm leading-6 text-slate-200">
                 Configuración lista para validación clínica y lanzamiento controlado.
               </div>
