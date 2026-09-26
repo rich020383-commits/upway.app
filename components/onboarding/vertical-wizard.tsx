@@ -367,8 +367,14 @@ export function VerticalWizard({ config }: Props) {
 
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link
-                  href={config.segment === 'center' ? '/center' : '/inmobiliarias'}
+                  href={`/${config.segment}/caso`}
                   className="inline-flex items-center gap-2 rounded-full bg-[#0ba9a9] px-5 py-3 text-[13px] font-bold text-white transition hover:-translate-y-0.5"
+                >
+                  Ver el estado de mi caso <ArrowRight size={16} />
+                </Link>
+                <Link
+                  href={config.segment === 'center' ? '/center' : '/inmobiliarias'}
+                  className="inline-flex items-center gap-2 rounded-full border border-[#1E293B] px-5 py-3 text-[13px] font-bold text-[#50e1d5] transition hover:-translate-y-0.5"
                 >
                   Volver a la página de {config.label} <ArrowRight size={16} />
                 </Link>
@@ -383,6 +389,12 @@ export function VerticalWizard({ config }: Props) {
                     {submittedRef ? ` (ref ${submittedRef})` : ''}. El equipo de Upway la está validando: puedes seguir
                     editando y reenviar si algo cambió.
                   </p>
+                  <Link
+                    href={`/${config.segment}/caso`}
+                    className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-bold text-[#50e1d5] underline underline-offset-4"
+                  >
+                    Ver el estado de mi caso <ArrowRight size={13} />
+                  </Link>
                 </div>
               )}
               <div className="mb-6 border-b border-[#1E293B] pb-5">

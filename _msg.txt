@@ -1,0 +1,25 @@
+feat(embudo): estado de mi caso para Inmobiliaria y Center
+
+Las verticales no clinicas terminaban en un callejon sin salida: el wizard decia
+'Solicitud enviada' y ofrecia un unico enlace de vuelta a la landing. El caso
+si existia en VerticalOnboardingSession con su caseRef y su estado, pero eso
+solo lo veia Upway por correo. El cliente no tenia forma de seguirlo,
+corregirlo ni volver a el, y cada lead en revision tenia una sola oportunidad.
+
+Ahora /center/caso y /inmobiliarias/caso muestran: estado real (nunca
+'Aprobado' antes de que el equipo lo apruebe), que necesitamos de vos, el
+recorrido de que pasa despues, la Politica de voz, y lo que el cliente le
+envio tal cual (util para detectar un error de dedo sin esperar el correo).
+
+Reusa el endpoint del wizard (/api/onboarding) en vez de duplicar la consulta,
+así la pantalla y el borrador no pueden contradecirse, y reutiliza
+submissionRows() para las respuestas.
+
+Enlazado desde la pantalla de exito del wizard y desde el banner de'ya esta
+en revision', que antes no llevaba a ninguna parte.
+
+Nota sobre voz: clonar y aprovisionar siguen SIN gate de activacion en las
+APIs (ver /api/voice/clones y /api/voice/agents) y quedan pendientes de
+cerrarse a proposito. La pantalla dice la verdad de lo que se abre al aprobar.
+
+Validacion: tsc limpio, eslint limpio, 461/461 tests, build EXIT=0.
