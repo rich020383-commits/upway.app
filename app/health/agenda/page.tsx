@@ -366,18 +366,29 @@ export default function HealthAgendaPage() {
 
       <div className="grid gap-4 md:grid-cols-4">
         {[
-          { label: 'Citas del día', value: metrics.total },
-          { label: 'Por confirmar', value: metrics.pending },
-          { label: 'Confirmadas', value: metrics.confirmed },
-          { label: 'Atendidas', value: metrics.done },
+          { label: 'Citas del día', value: metrics.total, tone: 'neutral' as const },
+          // "Por confirmar" es trabajo pendiente, no un total: si hay citas sin
+          // confirmar, la agenda del día no está cerrada. Antes se leía igual
+          // que el total y había que interpretar el número a mano.
+          { label: 'Por confirmar', value: metrics.pending, tone: metrics.pending > 0 ? ('alert' as const) : ('ok' as const) },
+          { label: 'Confirmadas', value: metrics.confirmed, tone: 'neutral' as const },
+          { label: 'Atendidas', value: metrics.done, tone: 'neutral' as const },
         ].map((card) => (
-          <div key={card.label} className="upway-surface rounded-[24px] p-5">
-            <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
-              {card.label}
+          <div
+            key={card.label}
+            className={`upway-surface upway-pearl-lift rounded-[24px] p-5 ${
+              card.tone === 'alert' ? 'border-amber-300/70' : ''
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
+                {card.label}
+              </div>
+              {card.tone === 'alert' && (
+                <span aria-hidden className="h-2 w-2 rounded-full bg-amber-400" />
+              )}
             </div>
-            <div className="mt-2 text-3xl font-black tracking-[-0.05em] text-slate-900">
-              {card.value}
-            </div>
+            <div className="mt-2 text-3xl font-black tracking-[-0.05em] text-slate-900">{card.value}</div>
           </div>
         ))}
       </div>

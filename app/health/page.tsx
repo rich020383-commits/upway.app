@@ -64,11 +64,37 @@ export default function HealthOverviewPage() {
   const consumption = dashboard?.consumption;
   const voiceCost = consumption?.voiceCost ?? consumption?.legacyVoiceCost ?? 0;
 
+  /**
+   * `tone` existe porque los cuatro indicadores NO son lo mismo: tres son
+   * informativo y "Recordatorios vencidos" es una alarma. Antes todos usaban la
+   * misma píldora verde, así que un atraso real se veía igual que un lead
+   * nuevo: el tablero no distinguía "va bien" de "hay trabajo que hacer".
+   */
   const statCards = [
-    { label: 'Leads totales', value: dashboard?.summary.totalLeads ?? 0, delta: `${dashboard?.summary.newLeads ?? 0} nuevos` },
-    { label: 'Citas próximas', value: dashboard?.summary.appointments ?? 0, delta: `${dashboard?.summary.todayAppointments ?? 0} hoy` },
-    { label: 'Recordatorios vencidos', value: dashboard?.summary.dueReminders ?? 0, delta: `${dashboard?.summary.pendingReminders ?? 0} pendientes` },
-    { label: 'Costo voz', value: `$${Number(voiceCost).toFixed(2)}`, delta: `${consumption?.voiceCalls ?? 0} llamadas` },
+    {
+      label: 'Leads totales',
+      value: dashboard?.summary.totalLeads ?? 0,
+      delta: `${dashboard?.summary.newLeads ?? 0} nuevos`,
+      tone: 'neutral' as const,
+    },
+    {
+      label: 'Citas próximas',
+      value: dashboard?.summary.appointments ?? 0,
+      delta: `${dashboard?.summary.todayAppointments ?? 0} hoy`,
+      tone: 'neutral' as const,
+    },
+    {
+      label: 'Recordatorios vencidos',
+      value: dashboard?.summary.dueReminders ?? 0,
+      delta: `${dashboard?.summary.pendingReminders ?? 0} pendientes`,
+      tone: (dashboard?.summary.dueReminders ?? 0) > 0 ? ('alert' as const) : ('ok' as const),
+    },
+    {
+      label: 'Costo voz',
+      value: `$${Number(voiceCost).toFixed(2)}`,
+      delta: `${consumption?.voiceCalls ?? 0} llamadas`,
+      tone: 'neutral' as const,
+    },
   ];
 
   const conversations = (dashboard?.inbox ?? []).slice(0, 3).map((c) => ({
@@ -117,7 +143,7 @@ export default function HealthOverviewPage() {
     <div className="space-y-5">
       <div className="grid gap-4 xl:grid-cols-[1.38fr_0.92fr]">
         <div className="upway-surface rounded-[30px] p-5 shadow-[0_24px_60px_rgba(15,23,42,0.06)]">
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 pb-4">
             <div>
               <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">Centro de mando</div>
               <div className="mt-2 text-[31px] font-black tracking-[-0.05em] text-slate-900">Resumen Ejecutivo</div>
@@ -127,14 +153,32 @@ export default function HealthOverviewPage() {
               <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-slate-600">{todayLabel}</span>
             </div>
           </div>
+          <div className="upway-pearl-rule mb-4" />
 
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             {statCards.map((card) => (
-              <div key={card.label} className="rounded-[22px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff,#f8fbff)] p-4 shadow-[0_12px_26px_rgba(15,23,42,0.03)] transition-transform duration-200 hover:-translate-y-0.5">
-                <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-slate-500">{card.label}</div>
+              <div
+                key={card.label}
+                className={`upway-surface upway-pearl-lift rounded-[22px] p-4 ${
+                  card.tone === 'alert' ? 'border-amber-300/70' : ''
+                }`}
+              >
+                <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-slate-500">
+                  {card.label}
+                </div>
                 <div className="mt-3 flex items-end justify-between gap-2">
                   <div className="text-[27px] font-black tracking-[-0.06em] text-slate-900">{card.value}</div>
-                  <div className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[9px] font-bold text-emerald-700">{card.delta}</div>
+                  <div
+                    className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
+                      card.tone === 'alert'
+                        ? 'bg-amber-50 text-amber-700'
+                        : card.tone === 'ok'
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : 'border border-slate-200 bg-slate-50 text-slate-600'
+                    }`}
+                  >
+                    {card.delta}
+                  </div>
                 </div>
               </div>
             ))}

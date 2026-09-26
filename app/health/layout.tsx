@@ -35,11 +35,59 @@ const navItems = [
   { href: '/health/onboarding', label: 'Onboarding', icon: Activity, module: 'onboarding' },
 ] as const;
 
+/**
+ * El menú de 15 entradas en una sola lista no dice nada: el dueño no sabe
+ * dónde empezar. Se agrupa por lo que hace cada bloque con el usuario.
+ */
+const NAV_SECTIONS = [
+  { label: 'Operación diaria', hrefs: ['/health', '/health/inbox', '/health/agents', '/health/agenda'] },
+  {
+    label: 'Contenido clínico',
+    hrefs: ['/health/clinics', '/health/triage', '/health/policies', '/health/faq'],
+  },
+  {
+    label: 'Entrega y cumplimiento',
+    hrefs: ['/health/production', '/health/approvals', '/health/compliance', '/health/audit', '/health/analytics'],
+  },
+  { label: 'Cuenta', hrefs: ['/health/settings', '/health/onboarding'] },
+] as const;
+
 export default function HealthLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { clinicName, organizationName, role, displayRole } = useBusinessContext();
 
   const visibleNavItems = navItems.filter(({ module }) => canAccessHealthModule(role, module));
+
+  /**
+   * El título del header Sale de la ruta, no es texto fijo. Antes ponía
+   * "Resumen ejecutivo" en las quince pantallas, incluida Agenda: el rótulo
+   * mentía y por eso el shell se leía como plantilla.
+   * Se elige la coincidencia MÁS larga: '/health' es prefijo de todas, así
+   * que sin ordenar, Agenda y Producción salían con el título de Inicio.
+   */
+  const current = [...visibleNavItems]
+    .filter((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))
+    .sort((a, b) => b.href.length - a.href.length)[0];
+
+  const renderNavItem = ({ href, label, icon: Icon }: (typeof visibleNavItems)[number]) => {
+    const active = pathname === href || pathname.startsWith(`${href}/`);
+    return (
+      <Link
+        key={href}
+        href={href}
+        aria-current={active ? 'page' : undefined}
+        className={[
+          'flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] transition-all',
+          active
+            ? 'border border-[#dfeaff] bg-[linear-gradient(135deg,#edf4ff,#eafaf5)] font-bold text-[#1b5ed6] shadow-[0_8px_20px_rgba(27,94,214,0.12)]'
+            : 'border border-transparent font-semibold text-slate-600 hover:translate-x-0.5 hover:border-slate-200 hover:bg-white/60 hover:text-slate-900',
+        ].join(' ')}
+      >
+        <Icon size={15} strokeWidth={active ? 2.4 : 2} />
+        {label}
+      </Link>
+    );
+  };
 
   return (
     <div className="upway-shell relative flex min-h-screen flex-col text-slate-900 lg:flex-row">
@@ -56,29 +104,25 @@ export default function HealthLayout({ children }: { children: React.ReactNode }
 
         <div className="mb-5 rounded-[18px] border border-[#d8e8ff] bg-[linear-gradient(135deg,#edf5ff,#e9f7f4)] p-3 shadow-sm">
           <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-slate-500">Clínica</div>
-          <div className="mt-2 flex items-center justify-between gap-3">
-            <div className="truncate font-bold text-slate-800">{clinicName}</div>
-            <span className="rounded-full border border-white/80 bg-white/70 px-2 py-0.5 text-[9px] font-semibold text-slate-600">Live</span>
-          </div>
+          <div className="mt-2 truncate font-bold text-slate-800">{clinicName}</div>
         </div>
+        {/* Antes esta píldora decía "Live" siempre, sin consultar nada: era
+            una afirmación de salud del sistema dentro del shell, y no le
+            correspondía. El estado real vive en Producción, que sí lo mide. */}
 
         <nav className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-1">
-          {visibleNavItems.map(({ href, label, icon: Icon }) => {
-            const active = pathname === href || pathname.startsWith(`${href}/`);
+          {NAV_SECTIONS.map((section) => {
+            const items = visibleNavItems.filter((item) =>
+              (section.hrefs as readonly string[]).includes(item.href)
+            );
+            if (items.length === 0) return null;
             return (
-              <Link
-                key={href}
-                href={href}
-                className={[
-                  'flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all',
-                  active
-                    ? 'border border-[#dfeaff] bg-[linear-gradient(135deg,#edf4ff,#eafaf5)] text-[#1b5ed6] shadow-sm'
-                    : 'border border-transparent text-slate-600 hover:border-slate-200 hover:bg-white/60 hover:text-slate-900',
-                ].join(' ')}
-              >
-                <Icon size={16} strokeWidth={2.2} />
-                {label}
-              </Link>
+              <div key={section.label} className="mb-1">
+                <div className="mb-1.5 px-3 text-[9px] font-mono uppercase tracking-[0.18em] text-slate-400">
+                  {section.label}
+                </div>
+                <div className="space-y-1">{items.map(renderNavItem)}</div>
+              </div>
             );
           })}
         </nav>
@@ -88,7 +132,9 @@ export default function HealthLayout({ children }: { children: React.ReactNode }
         <header className="flex flex-col gap-3 border-b border-sky-100/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.78),rgba(239,245,255,0.9))] px-4 py-4 backdrop-blur-xl sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-6">
           <div>
             <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">Clinical workspace</div>
-            <div className="mt-1 text-[20px] font-black tracking-[-0.04em] text-slate-900">Resumen ejecutivo</div>
+            <div className="mt-1 text-[20px] font-black tracking-[-0.04em] text-slate-900">
+              {current?.label ?? 'Upway Health'}
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -99,8 +145,13 @@ export default function HealthLayout({ children }: { children: React.ReactNode }
               <ShieldCheck size={14} strokeWidth={2.2} />
               Producción
             </Link>
-            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">Sistema saludable</span>
-            <span className="rounded-full border border-[#dfeaff] bg-[#edf4ff] px-3 py-1.5 text-xs font-semibold text-[#1b5ed6]">{displayRole}</span>
+            {/* "Sistema saludable" estaba fijo en todas las pantallas, en verde,
+                sin medir nada. El checklist de Producción sí dice la verdad
+                (checks verdes / bloqueos reales), así que la señal se queda
+                donde está medida. */}
+            <span className="rounded-full border border-[#dfeaff] bg-[#edf4ff] px-3 py-1.5 text-xs font-semibold text-[#1b5ed6]">
+              {displayRole}
+            </span>
           </div>
         </header>
 
