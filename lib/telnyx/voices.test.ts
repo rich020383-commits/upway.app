@@ -35,6 +35,32 @@ describe('buildAssistantVoiceValue', () => {
     expect(buildAssistantVoiceValue({ provider: 'telnyx', voice_id: 'af_heart' })).toBe('Telnyx.af_heart');
   });
 
+  it(' rearma Provider.Modelo.Voz cuando `name` ES el modelo', () => {
+    // El catálogo devuelve unas voces con `name` legible y otras con `name` =
+    // modelo. Si se pierde el modelo, queda `Telnyx.af_heart`, que Telnyx
+    // rechaza con 90103 porque esa forma solo vale para proveedores con un
+    // único modelo y Telnyx tiene varios.
+    expect(
+      buildAssistantVoiceValue({ provider: 'telnyx', name: 'KokoroTTS', voice_id: 'af_heart' })
+    ).toBe('Telnyx.KokoroTTS.af_heart');
+    expect(
+      buildAssistantVoiceValue({ provider: 'telnyx', name: 'Qwen3TTS', voice_id: 'af_heart' })
+    ).toBe('Telnyx.Qwen3TTS.af_heart');
+  });
+
+  it('no confunde un nombre de voz con un modelo', () => {
+    // `af_heart` no es un modelo: no hay que inventar un segmento.
+    expect(
+      buildAssistantVoiceValue({ provider: 'telnyx', name: 'af_heart', voice_id: 'af_heart' })
+    ).toBe('Telnyx.af_heart');
+  });
+
+  it('respeta el modelo que ya viene en voice_id aunque name diga otra cosa', () => {
+    expect(
+      buildAssistantVoiceValue({ provider: 'telnyx', name: 'af_heart', voice_id: 'KokoroTTS.af_heart' })
+    ).toBe('Telnyx.KokoroTTS.af_heart');
+  });
+
   it('devuelve vacío si no hay identificador', () => {
     expect(buildAssistantVoiceValue({})).toBe('');
   });

@@ -100,7 +100,9 @@ export default function VoicePlayground({ agentName }: { agentName?: string | nu
       });
       if (!res.ok) {
         // Sin sesión vencida, servicio caído o cuota: en todos los casos el
-        // cliente recibe el motivo, nunca un TypeError pelado.
+        // cliente recibe el motivo, nunca un TypeError pelado. Cuando el
+        // proveedor rechaza UNA voz concreta, se lo decimos: si no, el
+        // cliente cree que el probador entero está roto.
         if (res.status === 401) throw new FriendlyError('Tu sesión venció. Vuelve a iniciar sesión para seguir.');
         let detalle = 'El servicio de voz no pudo generar la muestra en este momento.';
         try {
@@ -108,6 +110,9 @@ export default function VoicePlayground({ agentName }: { agentName?: string | nu
           if (typeof data.error === 'string') detalle = data.error;
         } catch {
           // Respuesta que no es JSON: se queda el mensaje genérico honesto.
+        }
+        if (res.status === 502 || res.status === 503) {
+          detalle = 'Esta voz no se pudo sintetizar ahora. Prueba con otra de la lista: el catálogo tiene más de mil.';
         }
         throw new FriendlyError(detalle);
       }

@@ -65,7 +65,11 @@ export async function POST(req: NextRequest) {
       headers: { 'Content-Type': audio.contentType, 'Cache-Control': 'no-store' },
     });
   } catch (err) {
-    console.error('[voice] preview failed', err);
+    // El log anterior no decía QUÉ voz falló ni el código del proveedor, así
+    // que un 90103 en producción no daba ninguna pista. Ahora queda la voz
+    // exacta que se intentó: sin eso no se puede distinguir un identificador
+    // mal armado de un problema del texto.
+    console.error('[voice] preview failed', { voice, error: err });
     return NextResponse.json({ error: 'No se pudo generar la muestra de voz.' }, { status: 502 });
   }
 }

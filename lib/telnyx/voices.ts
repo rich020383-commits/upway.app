@@ -54,6 +54,40 @@ export const FALLBACK_CATALOG: VoiceOption[] = [
   { value: DEFAULT_AGENT_VOICE, label: 'Sofia (clásica, predeterminada)', kind: 'catalog', provider: 'telnyx' },
 ];
 
+/**
+ * Modelos de TTS que expone Telnyx hoy.
+ *
+ * Se usan solo para una desambiguación: el catálogo devuelve `name` y
+ * `voice_id`, y en unas voces `name` es el nombre legible de la voz
+ * (`af_heart`) y en otras es el MODELO (`KokoroTTS`). Cuando `name` no trae
+ * punto y es uno de estos modelos, hay que rearmar el identificador como
+ * `Telnyx.<modelo>.<voz>`.
+ *
+ * Sin esto, un catálogo que devuelva `{name:'KokoroTTS', voice_id:'af_heart'}`
+ * produce `Telnyx.af_heart`, que Telnyx rechaza con 90103 "Failed to produce
+ * text to speech" porque la forma `Provider.VoiceId` solo es válida para
+ * proveedores con un único modelo.
+ */
+const TELNYX_TTS_MODELS = new Set([
+  'ultraturbo',
+  'ultra',
+  'kokorotts',
+  'qwen3tts',
+  'bayan',
+  'sukhan',
+  'chattts',
+  'cartesia',
+  'deepgram',
+  'elevenlabs',
+  'playht',
+  'resemble',
+]);
+
+/** ¿Este `name` es en realidad el nombre de un modelo de Telnyx? */
+function looksLikeTelnyxModel(name: string): boolean {
+  return TELNYX_TTS_MODELS.has(name.toLowerCase());
+}
+
 /** Compone el identificador de voz que entienden TTS y el AI Assistant. */
 export function buildAssistantVoiceValue(voice: TtsVoice): string {
   const name = (voice.name ?? '').trim();
@@ -62,6 +96,17 @@ export function buildAssistantVoiceValue(voice: TtsVoice): string {
   if (voiceId.startsWith('Telnyx.')) return voiceId;
   const provider = (voice.provider ?? 'telnyx').trim() || 'telnyx';
   const prefix = provider.toLowerCase() === 'telnyx' ? 'Telnyx' : provider;
+
+  // Si alguno de los dos ya trae el modelo, se respeta tal cual.
+  if (voiceId.includes('.')) return `${prefix}.${voiceId}`;
+  if (name.includes('.')) return `${prefix}.${name}`;
+
+  // `name` es el modelo y `voice_id` la voz suelta: hay que volver a unir los
+  // dos, porque Telnyx exige Provider.Model.VoiceId cuando hay varios modelos.
+  if (name && voiceId && looksLikeTelnyxModel(name)) {
+    return `${prefix}.${name}.${voiceId}`;
+  }
+
   const body = voiceId || name;
   return body ? `${prefix}.${body}` : '';
 }
