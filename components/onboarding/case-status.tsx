@@ -9,10 +9,15 @@ import {
   FileSearch,
   Loader2,
   PenLine,
-  ShieldCheck,
   TriangleAlert,
 } from 'lucide-react';
-import { submissionRows, verticalBasePath, type OnboardingConfig } from '@/lib/onboarding/types';
+import VoicePlayground from '@/components/onboarding/voice-playground';
+import {
+  submissionCompanyName,
+  submissionRows,
+  verticalBasePath,
+  type OnboardingConfig,
+} from '@/lib/onboarding/types';
 
 type Status =
   | 'DRAFT'
@@ -233,18 +238,14 @@ export default function CaseStatus({ config }: { config: OnboardingConfig }) {
         </ol>
       </div>
 
-      {/* Lo que sí puede hacer hoy con la voz. Honesto: clonar y encender el
-          asistente se abren al aprobar, no antes. */}
+      {/* Anticipaba únicamente la clonación y dejaba pensar que sin clonar no hay
+          voz. Las voces de fábrica ya se pueden escuchar: este bloque es el que
+          de verdad muestra el producto antes de aprobar. */}
       <div className={card}>
-        <p className={label}>Tu voz en Upway</p>
-        <p className="mt-2 text-[15px] text-slate-300 sm:text-sm">
-          Al aprobar tu plan se abre la creación de tu propia voz clonada, con tu
-          autorización registrada.
-        </p>
-        <p className="mt-2 flex items-start gap-2 text-[13px] leading-relaxed text-slate-500 sm:text-[12px]">
-          <ShieldCheck size={14} className="mt-0.5 shrink-0" />
-          Ninguna voz se activa ni recibe llamadas sin tu confirmación.
-        </p>
+        <p className={label}>Probá la voz de tu asistente</p>
+        <div className="mt-3">
+          <VoicePlayground agentName={submissionCompanyName(data.answers ?? {})} />
+        </div>
       </div>
 
       {/* Lo que el cliente le envió a Upway, tal cual. Sirve para detectar un
