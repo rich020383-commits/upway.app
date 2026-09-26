@@ -13,6 +13,7 @@ import {
   TriangleAlert,
 } from 'lucide-react';
 import VoicePlayground from '@/components/onboarding/voice-playground';
+import { fetchJson, FETCH_FALLBACKS } from '@/lib/client-fetch';
 import {
   submissionCompanyName,
   submissionRows,
@@ -131,14 +132,15 @@ export default function CaseStatus({ config }: { config: OnboardingConfig }) {
 
   useEffect(() => {
     let alive = true;
-    fetch(`/api/onboarding?segment=${config.segment}`)
-      .then(async (res) => {
-        const json = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(json.error ?? 'No se pudo leer tu caso.');
-        if (alive) setData(json as Payload);
+    fetchJson<Payload>(`/api/onboarding?segment=${config.segment}`, {
+      cache: 'no-store',
+      fallback: FETCH_FALLBACKS.caso,
+    })
+      .then((data) => {
+        if (alive) setData(data);
       })
       .catch((e: unknown) => {
-        if (alive) setError(e instanceof Error ? e.message : 'No se pudo leer tu caso.');
+        if (alive) setError(e instanceof Error ? e.message : FETCH_FALLBACKS.caso);
       });
     return () => {
       alive = false;

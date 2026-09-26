@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Headphones, Info, Loader2, Play, Search, Volume2 } from 'lucide-react';
+import { fetchJson, FriendlyError, FETCH_FALLBACKS } from '@/lib/client-fetch';
 import {
   VOICE_LANGUAGE_FILTERS,
   countByLanguage,
@@ -48,19 +49,15 @@ export default function VoicePlayground({ agentName }: { agentName?: string | nu
 
   useEffect(() => {
     let alive = true;
-    // Sin tiendaId a propósito: en esta etapa el caso todavía no tiene sede
-    // operativa asignada, y el catálogo es público para cualquier sesión.
-    fetch('/api/voice/voices')
-      .then(async (res) => {
-        const json = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(json.error ?? 'No se pudo cargar el catálogo de voces.');
+    fetchJson<{ voices: VoiceOption[] }>('/api/voice/voices', { fallback: FETCH_FALLBACKS.voz })
+      .then((json) => {
         if (!alive) return;
-        const lista: VoiceOption[] = json.voices ?? [];
+        const lista = json.voices ?? [];
         setVoices(lista);
         setSelected(lista[0] ?? null);
       })
       .catch((e: unknown) => {
-        if (alive) setLoadError(e instanceof Error ? e.message : 'No se pudo cargar el catálogo.');
+        if (alive) setLoadError(e instanceof Error ? e.message : FETCH_FALLBACKS.voz);
       })
       .finally(() => {
         if (alive) setLoading(false);
@@ -89,6 +86,8 @@ export default function VoicePlayground({ agentName }: { agentName?: string | nu
     setPlaying(true);
     setPlayError(null);
     try {
+      // OJO: el preview devuelve BYTES de audio, no JSON. No puede pasar por
+      // `fetchJson`, que siempre intenta parsear JSON.
       const res = await fetch('/api/voice/preview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -100,8 +99,17 @@ export default function VoicePlayground({ agentName }: { agentName?: string | nu
         }),
       });
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? 'No se pudo generar la muestra.');
+        // Sin sesión vencida, servicio caído o cuota: en todos los casos el
+        // cliente recibe el motivo, nunca un TypeError pelado.
+        if (res.status === 401) throw new FriendlyError('Tu sesión venció. Vuelve a iniciar sesión para seguir.');
+        let detalle = 'El servicio de voz no pudo generar la muestra en este momento.';
+        try {
+          const data = (await res.json()) as { error?: unknown };
+          if (typeof data.error === 'string') detalle = data.error;
+        } catch {
+          // Respuesta que no es JSON: se queda el mensaje genérico honesto.
+        }
+        throw new FriendlyError(detalle);
       }
       const url = URL.createObjectURL(await res.blob());
       if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
@@ -114,7 +122,9 @@ export default function VoicePlayground({ agentName }: { agentName?: string | nu
       await audio.play();
     } catch (error) {
       setPlaying(false);
-      setPlayError(error instanceof Error ? error.message : 'No se pudo reproducir la muestra.');
+      setPlayError(
+        error instanceof Error ? error.message : 'No se pudo reproducir la muestra de voz.'
+      );
     }
   };
 

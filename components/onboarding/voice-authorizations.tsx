@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { CheckCircle2, Loader2, MicOff, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { fetchJson, FETCH_FALLBACKS } from '@/lib/client-fetch';
 
 type Autorizacion = {
   id: string;
@@ -31,10 +32,10 @@ export default function VoiceAuthorizations() {
   const [okMsg, setOkMsg] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
-    const res = await fetch('/api/voice/authorizations', { cache: 'no-store' });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error ?? 'No se pudieron cargar tus voces.');
-    return (data.autorizaciones ?? []) as Autorizacion[];
+    const data = await fetchJson<{ autorizaciones: Autorizacion[] }>('/api/voice/authorizations', {
+      fallback: 'No pudimos cargar tus voces.',
+    });
+    return data.autorizaciones ?? [];
   }, []);
 
   useEffect(() => {
@@ -65,17 +66,15 @@ export default function VoiceAuthorizations() {
     setError(null);
     setOkMsg(null);
     try {
-      const res = await fetch('/api/voice/authorizations', {
+      await fetchJson('/api/voice/authorizations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ authorizationId: row.id, motivo }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error ?? 'No se pudo revocar la voz.');
       setOkMsg(`La voz autorizada por ${row.titular} quedó revocada.`);
       setRows(await cargar());
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'No se pudo revocar la voz.');
+      setError(e instanceof Error ? e.message : FETCH_FALLBACKS.revocar);
     } finally {
       setBusyId(null);
     }

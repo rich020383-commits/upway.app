@@ -12,6 +12,7 @@ import {
   UserPlus,
 } from 'lucide-react';
 import { verticalBasePath, type OnboardingConfig } from '@/lib/onboarding/types';
+import { fetchJson, FETCH_FALLBACKS } from '@/lib/client-fetch';
 import VoiceAuthorizations from '@/components/onboarding/voice-authorizations';
 
 type Activation = {
@@ -112,9 +113,13 @@ export default function OperationsPanel({ config }: { config: OnboardingConfig }
     let alive = true;
     (async () => {
       try {
-        const res = await fetch(`/api/onboarding?segment=${config.segment}`, { cache: 'no-store' });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error ?? 'No se pudo leer tu caso.');
+        const data = await fetchJson<{
+          status: string;
+          activation?: Activation | null;
+        }>(`/api/onboarding?segment=${config.segment}`, {
+          cache: 'no-store',
+          fallback: FETCH_FALLBACKS.caso,
+        });
         if (!alive) return;
         const estado: string = data.status ?? 'DRAFT';
         setStatus(estado);
@@ -124,12 +129,13 @@ export default function OperationsPanel({ config }: { config: OnboardingConfig }
           setLoading(false);
           return;
         }
-        const dres = await fetch('/api/business/dashboard', { cache: 'no-store' });
-        const ddata = await dres.json().catch(() => ({}));
-        if (!dres.ok) throw new Error(ddata.error ?? 'No se pudo cargar el panel.');
+        const ddata = await fetchJson<Dash>('/api/business/dashboard', {
+          cache: 'no-store',
+          fallback: FETCH_FALLBACKS.panel,
+        });
         if (alive) setDash(ddata);
       } catch (e: unknown) {
-        if (alive) setError(e instanceof Error ? e.message : 'No se pudo cargar el panel.');
+        if (alive) setError(e instanceof Error ? e.message : FETCH_FALLBACKS.panel);
       } finally {
         if (alive) setLoading(false);
       }
