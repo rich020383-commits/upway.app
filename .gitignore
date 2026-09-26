@@ -52,3 +52,7 @@ next-env.d.ts
 
 # logs de desarrollo y diagnósticos (nunca versionar)
 *.log
+
+# Salida de `next build` que se deja para inspeccionar el resultado.
+# Artefacto temporal: se regenera en cada build y nunca se versiona.
+_build.txt
