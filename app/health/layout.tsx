@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from 'react';
 import Link from 'next/link';
 import {
   Activity,
@@ -8,10 +9,12 @@ import {
   CalendarCheck2,
   FileText,
   House,
+  Menu,
   MessageSquareText,
   Settings,
   ShieldCheck,
   Users,
+  X,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { canAccessHealthModule } from '@/lib/health/permissions';
@@ -56,6 +59,14 @@ export default function HealthLayout({ children }: { children: React.ReactNode }
   const pathname = usePathname();
   const { clinicName, organizationName, role, displayRole } = useBusinessContext();
 
+  /**
+   * En móvil el aside va PRIMERO en el DOM, así que con 15 entradas el menú
+   * entero empujaba el título de la página y el contenido fuera de pantalla:
+   * había que atravesar el menú para saber dónde estabas. Por eso en móvil el
+   * menú arranca cerrado. En `lg` nunca se oculta.
+   */
+  const [navOpen, setNavOpen] = useState(false);
+
   const visibleNavItems = navItems.filter(({ module }) => canAccessHealthModule(role, module));
 
   /**
@@ -75,6 +86,7 @@ export default function HealthLayout({ children }: { children: React.ReactNode }
       <Link
         key={href}
         href={href}
+        onClick={() => setNavOpen(false)}
         aria-current={active ? 'page' : undefined}
         className={[
           'flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] transition-all',
@@ -91,7 +103,7 @@ export default function HealthLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="upway-shell relative flex min-h-screen flex-col text-slate-900 lg:flex-row">
-      <aside className="relative z-10 w-full border-b border-sky-100/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(234,244,255,0.84))] p-4 pt-[calc(env(safe-area-inset-top)+1rem)] backdrop-blur-xl shadow-[inset_0_-1px_0_rgba(15,23,42,0.05)] lg:w-[240px] lg:border-b-0 lg:border-r lg:pt-4 lg:shadow-[inset_-1px_0_0_rgba(15,23,42,0.05)]">
+      <aside className="relative z-10 w-full border-b border-sky-100/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(234,244,255,0.84))] p-4 pt-[max(env(safe-area-inset-top),2.75rem)] backdrop-blur-xl shadow-[inset_0_-1px_0_rgba(15,23,42,0.05)] lg:w-[240px] lg:border-b-0 lg:border-r lg:pt-4 lg:shadow-[inset_-1px_0_0_rgba(15,23,42,0.05)]">
         <div className="mb-6 rounded-[20px] border border-sky-100 bg-white/80 p-3 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#eaf3ff,#dfeaff)] text-[11px] font-black text-[#1b5ed6] shadow-sm">U</div>
@@ -110,7 +122,28 @@ export default function HealthLayout({ children }: { children: React.ReactNode }
             una afirmación de salud del sistema dentro del shell, y no le
             correspondía. El estado real vive en Producción, que sí lo mide. */}
 
-        <nav className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-1">
+        <button
+          type="button"
+          onClick={() => setNavOpen((open) => !open)}
+          aria-expanded={navOpen}
+          aria-controls="health-nav"
+          className="mb-4 flex w-full items-center justify-between gap-2 rounded-[16px] border border-slate-200 bg-white/70 px-3.5 py-3 text-left lg:hidden"
+        >
+          <span className="flex items-center gap-2 text-sm font-bold text-slate-800">
+            {navOpen ? <X size={16} /> : <Menu size={16} />}
+            {navOpen ? 'Cerrar menú' : 'Menú'}
+          </span>
+          <span className="flex items-center gap-2">
+            <span className="rounded-full bg-[#edf4ff] px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.14em] text-[#1b5ed6]">
+              {current?.label ?? 'Health'}
+            </span>
+          </span>
+        </button>
+
+        <nav
+          id="health-nav"
+          className={`${navOpen ? 'grid' : 'hidden'} gap-1.5 sm:grid-cols-2 lg:grid lg:grid-cols-1`}
+        >
           {NAV_SECTIONS.map((section) => {
             const items = visibleNavItems.filter((item) =>
               (section.hrefs as readonly string[]).includes(item.href)
