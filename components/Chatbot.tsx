@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send, Cpu, Activity, Zap, ShieldCheck, Mic, Square, Mail } from "lucide-react";
+import { ABRIR_CHAT_EVENT } from "@/lib/chat-event";
 
 /**
  * Marcadores que emite Sophie. `[BOTON_REGISTRO]` puede traer la vertical
@@ -75,11 +76,14 @@ export default function Chatbot() {
   }, [messages, isLoading, isRecording, isOpen]);
 
   useEffect(() => {
+    // El nombre del evento vive en lib/chat-event.ts: el botón y el chat
+    // importan la misma constante. Con un string escrito a mano en cada lado,
+    // un typo deja el botón sin hacer nada y sin ningún error visible.
     const escucharBoton = () => {
       setIsOpen(true);
     };
-    window.addEventListener('abrir-chat', escucharBoton);
-    return () => window.removeEventListener('abrir-chat', escucharBoton);
+    window.addEventListener(ABRIR_CHAT_EVENT, escucharBoton);
+    return () => window.removeEventListener(ABRIR_CHAT_EVENT, escucharBoton);
   }, []);
 
   /**

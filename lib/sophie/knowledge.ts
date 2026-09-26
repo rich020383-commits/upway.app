@@ -144,6 +144,61 @@ const CURATED: KnowledgeChunk[] = [
     ].join('\n'),
   },
   {
+    id: 'seguimiento-caso',
+    title: 'Seguimiento del caso y pantalla "Mi caso"',
+    tags: ['mi caso', 'caso', 'seguimiento', 'estado', 'revision', 'aprobado', 'pauta', 'en revision', 'donde veo', 'avance', 'ref', 'referencia'],
+    source: 'app/center/caso + app/inmobiliarias/caso + lib/onboarding/types.ts',
+    content: [
+      'Desde el primer paso hay una pantalla "Mi caso" propia del cliente: /inmobiliarias/caso y /center/caso.',
+      'Qué muestra: el estado real del caso, un número de referencia (ej. UPW-ONB-XXXX), la fecha de envío, qué necesitamos de vos, el camino que sigue y la copia exacta de lo que enviaste.',
+      'Estados posibles: En revisión (lo revisa el equipo de Upway), Necesita cambios (te avisamos qué ajustar), Aprobado y Activo.',
+      'Mientras está en revisión puedes escuchar una muestra de las voces de fábrica del catálogo para decidir; es solo escucha, no se guarda nada hasta que el caso esté aprobado.',
+      'Una vez aprobado se abre el panel de operación con tus interesados, visitas agendadas, consumo y la voz de tu asistente.',
+      'El caso no se pierde: aunque recargues o cierres la sesión, queda guardado con su referencia.',
+    ].join('\n'),
+  },
+  {
+    id: 'panel-operacion',
+    title: 'Panel de operación del cliente (Center e Inmobiliaria)',
+    tags: ['panel', 'operacion', 'panel de operacion', 'dashboard', 'crm', 'leads', 'interesados', 'visitas', 'solicitudes', 'consumo', 'minutos', 'reportes', 'donde veo mis'],
+    source: 'app/api/business/dashboard + components/onboarding/operations-panel.tsx',
+    content: [
+      'Con el caso aprobado, el cliente entra a su panel: /center/panel e /inmobiliarias/panel (enlace "Mi operación" dentro de "Mi caso").',
+      'Qué muestra: interesados o solicitudes del mes, los nuevos, las visitas o atenciones agendadas, los minutos de voz consumidos y el detalle de cada visita.',
+      'En Inmobiliaria el lenguaje es "interesados" y "visitas"; en Center es "solicitudes" y "atenciones": el mismo panel con el vocabulario de cada giro.',
+      'Mientras el agente todavía no recibe llamadas, el panel lo dice explícitamente en vez de mostrar ceros como si fueran resultados.',
+    ].join('\n'),
+  },
+  {
+    id: 'voz-del-agente',
+    title: 'La voz del agente: catálogo, elección y voz propia',
+    tags: ['voz', 'voces', 'catalogo de voces', 'clonar', 'clon', 'mi voz', 'voz propia', 'muestra', 'probar voz', 'sonido', 'acento', 'colombiana'],
+    // Sin nombres de proveedor en el `source`: el invariante de confidencialidad
+    // escanea el chunk completo, y aquí lo que interesa es la trazabilidad
+    // interna, no la marca del motor de voz.
+    source: 'components/health/voice-selector.tsx + política de voz y consentimiento',
+    content: [
+      'El agente usa voz IA. En el panel eliges entre el catálogo de voces incluidas o creas una voz propia.',
+      'El catálogo tiene más de mil voces, con filtro por idioma (Colombianas, Español, Inglés, Todas) y buscador. Se puede escribir un texto y oírlo con esa voz antes de guardarla.',
+      'La voz propia se crea de dos formas: subiendo una muestra de audio de 5 a 60 segundos, o describiendo la voz con un texto. En ambos casos se registra la autorización de quien autoriza.',
+      'La voz es un dato biométrico sensible: solo la puede autorizar la persona cuya voz es, y la autorización queda con evidencia registrada (hash del audio y del texto leído) sin que Upway guarde el audio.',
+      'El cliente puede revocar una voz cuando quiera desde el mismo panel: la revocación es efectiva y elimina la voz del servicio.',
+      'Las instrucciones del agente (qué debe resolver, con qué criterios califica y qué nunca debe prometer) son editables por el cliente en cualquier momento.',
+    ].join('\n'),
+  },
+  {
+    id: 'puesta-en-marcha',
+    title: 'Puesta en marcha: qué pasa después de aprobar',
+    tags: ['puesta en marcha', 'despues de aprobar', 'cuando empieza', 'numero dedicado', 'linea', 'asistente', 'cuando me pueden llamar', 'go live', 'arranque'],
+    source: 'lib/voice-access.ts + components/onboarding/case-status.tsx',
+    content: [
+      'Tras el pago, Upway implementa el sistema y lo deja activo. No hay activación automática.',
+      'En "Mi caso" el cliente ve el avance paso a paso: sede operativa, agente configurado, voz asignada, número dedicado conectado y recibiendo llamadas.',
+      'El número dedicado lo entrega Upway y es el que recibe las llamadas entrantes.',
+      'Antes de que el número esté listo se puede aprobar el caso por separado: aprobar es un acto comercial y encender la voz es técnico, y no se frenan entre sí.',
+    ].join('\n'),
+  },
+  {
     id: 'verticales',
     title: 'Verticales de Upway',
     tags: ['sector', 'verticales', 'negocio', 'giro', 'tienda', 'supermercado', 'drogueria', 'retail', 'general'],
