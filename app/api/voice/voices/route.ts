@@ -34,15 +34,37 @@ export async function GET(req: NextRequest) {
 
   const tiendaId = req.nextUrl.searchParams.get('tiendaId');
   let current: { voice: string | null; label: string | null; assistantId: string | null } | null = null;
-  if (tiendaId) {
-    const tienda = await prisma.tienda.findFirst({ where: { id: tiendaId, userId: user.id } });
-    if (!tienda) return NextResponse.json({ error: 'Tienda no encontrada' }, { status: 404 });
+  // La sede del usuario se resuelve siempre (no solo cuando llega `tiendaId`):
+  // hace falta para filtrar los clones aunque el catálogo se pida sin sede.
+  const tienda = await prisma.tienda.findFirst({
+    where: tiendaId ? { id: tiendaId, userId: user.id } : { userId: user.id },
+    select: {
+      id: true,
+      agentVoice: true,
+      agentVoiceLabel: true,
+      telnyxAssistantId: true,
+    },
+  });
+  if (tiendaId && !tienda) {
+    return NextResponse.json({ error: 'Tienda no encontrada' }, { status: 404 });
+  }
+  if (tienda) {
     current = {
       voice: tienda.agentVoice ?? null,
       label: tienda.agentVoiceLabel ?? null,
       assistantId: tienda.telnyxAssistantId ?? null,
     };
   }
+
+  // Clones autorizados de ESTA sede. Sin este filtro, `listVoiceClones()`
+  // devuelve las voces clonadas de todos los clientes de la cuenta compartida.
+  const propias = tienda?.id
+    ? await prisma.voiceCloneAuthorization.findMany({
+        where: { tiendaId: tienda.id, revokedAt: null, voiceCloneId: { not: null } },
+        select: { voiceCloneId: true },
+      })
+    : [];
+  const clonesPropios: string[] = propias.map((r) => r.voiceCloneId as string);
 
   const [catalogRes, clonesRes] = await Promise.allSettled([listTtsVoices('telnyx'), listVoiceClones()]);
 
@@ -58,7 +80,15 @@ export async function GET(req: NextRequest) {
 
   const clones =
     clonesRes.status === 'fulfilled'
-      ? mapClonesToOptions((clonesRes.value as { data?: VoiceCloneRaw[] })?.data ?? [])
+      ? // Solo las voces autorizadas por esta sede: la cuenta de Telnyx es
+        // compartida y la lista completa exponía los clones de otros clientes.
+        (() => {
+          const permitidos = new Set(clonesPropios);
+          const todos = ((clonesRes.value as { data?: VoiceCloneRaw[] })?.data ?? []) as VoiceCloneRaw[];
+          return permitidos.size
+            ? mapClonesToOptions(todos.filter((c) => permitidos.has(String(c?.id ?? ''))))
+            : [];
+        })()
       : [];
 
   // CONFINIDENCIALIDAD: el proveedor viaja en el campo `provider` de cada

@@ -12,6 +12,7 @@ import {
   UserPlus,
 } from 'lucide-react';
 import { verticalBasePath, type OnboardingConfig } from '@/lib/onboarding/types';
+import VoiceAuthorizations from '@/components/onboarding/voice-authorizations';
 
 type Activation = {
   pasos: { sede: boolean; asistente: boolean; numero: boolean; voz: boolean; encendida: boolean };
@@ -41,6 +42,35 @@ type Dash = {
   }>;
   pipeline?: Record<string, number>;
   consumption?: { voiceCalls: number; voiceMinutes: number; voiceCost: number };
+};
+
+/**
+ * Vocabulario por vertical. El panel es el mismo para las dos, pero no puede
+ * decir lo mismo: para una inmobiliaria un lead es un interesado y una cita es
+ * una visita; para un center es una solicitud y una atención. Decirle
+ * "Interesados" a un centro de servicio técnico es lo mismo que ponerle la
+ * etiqueta equivocada a un producto.
+ */
+const COPY: Record<
+  string,
+  { interesados: string; nuevos: string; citas: string; minutos: string; recientes: string; motivo: string }
+> = {
+  inmobiliaria: {
+    interesados: 'Interesados',
+    nuevos: 'Nuevos interesados',
+    citas: 'Visitas agendadas',
+    minutos: 'Minutos de voz',
+    recientes: 'Interesados recientes',
+    motivo: 'Qué necesitaba',
+  },
+  center: {
+    interesados: 'Solicitudes',
+    nuevos: 'Solicitudes nuevas',
+    citas: 'Atenciones agendadas',
+    minutos: 'Minutos de voz',
+    recientes: 'Solicitudes recientes',
+    motivo: 'Qué pedía',
+  },
 };
 
 const card = 'rounded-2xl border border-[#1E293B] bg-[#0b121c] p-4 sm:p-5';
@@ -161,6 +191,7 @@ export default function OperationsPanel({ config }: { config: OnboardingConfig }
   const citas = dash?.nextAppointments ?? [];
   const consumo = dash?.consumption;
   const vacio = (s?.totalLeads ?? 0) === 0 && citas.length === 0;
+  const copy = COPY[config.segment] ?? COPY.inmobiliaria;
 
   return (
     <Wrap base={base} label={config.label}>
@@ -193,10 +224,10 @@ export default function OperationsPanel({ config }: { config: OnboardingConfig }
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
-          { icon: UserPlus, n: s?.totalLeads ?? 0, t: 'Interesados' },
-          { icon: TrendingUp, n: s?.newLeads ?? 0, t: 'Nuevos' },
-          { icon: CalendarCheck2, n: s?.appointments ?? 0, t: 'Visitas agendadas' },
-          { icon: Clock, n: consumo?.voiceMinutes ?? 0, t: 'Minutos de voz' },
+          { icon: UserPlus, n: s?.totalLeads ?? 0, t: copy.interesados },
+          { icon: TrendingUp, n: s?.newLeads ?? 0, t: copy.nuevos },
+          { icon: CalendarCheck2, n: s?.appointments ?? 0, t: copy.citas },
+          { icon: Clock, n: consumo?.voiceMinutes ?? 0, t: copy.minutos },
         ].map((k) => (
           <div key={k.t} className={card}>
             <k.icon size={16} className="text-slate-500" />
@@ -234,7 +265,7 @@ export default function OperationsPanel({ config }: { config: OnboardingConfig }
 
       {leads.length > 0 && (
         <div className={card}>
-          <p className={label}>Interesados recientes</p>
+          <p className={label}>{copy.recientes}</p>
           <ul className="mt-3 divide-y divide-[#1E293B]">
             {leads.slice(0, 15).map((l) => (
               <li key={l.id} className="py-2.5">
@@ -252,6 +283,15 @@ export default function OperationsPanel({ config }: { config: OnboardingConfig }
           </ul>
         </div>
       )}
+
+      {/* Revocación: la ley 1581 da a la persona el derecho a que su voz deje de
+          usarse, y tiene que poder hacerlo sin hablar con soporte. */}
+      <div className={card}>
+        <p className={label}>Voces clonadas y autorizaciones</p>
+        <div className="mt-3">
+          <VoiceAuthorizations />
+        </div>
+      </div>
 
       {consumo && consumo.voiceCalls > 0 && (
         <p className="flex flex-wrap items-center gap-2 text-[12px] text-slate-500">

@@ -321,6 +321,20 @@ export async function getVoiceCloneSample(cloneId: string): Promise<TelnyxBinary
   };
 }
 
+/**
+ * DELETE /voice_clones/{id} — elimina el clon en el proveedor.
+ *
+ * Es la parte que hace real la revocación: marcar `revokedAt` en la base de
+ * datos solo deja de mostrarlo en Upway, pero la voz seguiría existiendo en
+ * Telnyx yendo ausable. Por eso el orden correcto es borrar primero en el
+ * proveedor y solo después marcar la autorización como revocada: si el borrado
+ * falla, la fila sigue viva y el cliente puede reintentar, en vez de registrar
+ * una revocación que en realidad no ocurrió.
+ */
+export async function deleteVoiceClone(cloneId: string) {
+  return telnyxFetch(`/voice_clones/${encodeURIComponent(cloneId)}`, { method: 'DELETE' });
+}
+
 /** POST /ai/assistants/{id} — aplica la voz elegida al asistente vivo.
  *  Si Telnyx rechaza la actualización, el llamador debe degradar a
  *  "guardado; se aplicará al reprovisionar" (el POST /api/voice/agents

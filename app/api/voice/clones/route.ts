@@ -51,8 +51,25 @@ export async function GET(req: NextRequest) {
     );
   }
   try {
+    // La cuenta de Telnyx es de Upway, no del cliente: `listVoiceClones()`
+    // devuelve las voces de TODOS los tenants. Se cruza con las autorizaciones
+    // de ESTA sede para devolver solo lo propio. Antes devolvía la lista
+    // completa, o sea que cualquier sesión autenticada veía (y podía previsualizar)
+    // voces clonadas por otros clientes.
+    const tienda = await prisma.tienda.findFirst({ where: { userId: user.id }, select: { id: true } });
+    const propias = tienda
+      ? await prisma.voiceCloneAuthorization.findMany({
+          where: { tiendaId: tienda.id, revokedAt: null, voiceCloneId: { not: null } },
+          select: { voiceCloneId: true },
+        })
+      : [];
+    const permitidos = new Set(propias.map((p) => p.voiceCloneId as string));
+
     const res = await listVoiceClones();
-    const clones = mapClonesToOptions((res?.data ?? res ?? []) as VoiceCloneRaw[]);
+    const todos = (res?.data ?? res ?? []) as VoiceCloneRaw[];
+    const clones = permitidos.size
+      ? mapClonesToOptions(todos.filter((c) => permitidos.has(String(c?.id ?? ''))))
+      : [];
     return NextResponse.json({ ok: true, clones });
   } catch (err) {
     console.error('[voice] list clones failed', err);
