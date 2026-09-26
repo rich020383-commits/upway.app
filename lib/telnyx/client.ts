@@ -11,6 +11,10 @@
  * - NEXT_PUBLIC_APP_URL o NEXTAUTH_URL (para construir webhook_url pública)
  */
 
+// La voz por defecto vive en voices.ts y se verificó contra la API (HTTP 200).
+// Importarla desde acá evita que quede otra constante con la voz vieja.
+import { DEFAULT_AGENT_VOICE } from './voices';
+
 const TELNYX_BASE = 'https://api.telnyx.com/v2';
 
 function requireEnv(name: string): string {
@@ -175,7 +179,9 @@ export async function speakOnCall(callControlId: string, payload: string, voice?
     method: 'POST',
     body: JSON.stringify({
       payload,
-      voice: voice ?? 'Telnyx.female.sofia',
+      // Default verificado: la voz histórica 'Telnyx.female.sofia' ya no
+      // existe (400) desde que Telnyx usa `Provider.Modelo.Voz`.
+      voice: voice ?? DEFAULT_AGENT_VOICE,
       language: 'es-CO',
     }),
   });
@@ -200,7 +206,7 @@ export async function upsertAssistantForTienda(opts: {
       name: opts.name.slice(0, 60),
       greeting: opts.greeting.slice(0, 500),
       instructions: opts.instructions.slice(0, 8000),
-      voice: opts.voice ?? 'Telnyx.female.sofia',
+      voice: opts.voice ?? DEFAULT_AGENT_VOICE,
       model: opts.model ?? 'telnyx-openai-gpt-4o-mini',
       language: 'es',
     }),

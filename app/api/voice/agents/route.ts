@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
 import { getSessionUser } from '@/lib/session';
 import { upsertAssistantForTienda, getTelnyxConfig, isTelnyxVoiceReady, missingTelnyxVoiceEnv, telnyxNotReadyMessage, updateAssistantVoice } from '@/lib/telnyx/client';
 import { isValidVoiceValue } from '@/lib/telnyx/voices';
@@ -119,6 +120,17 @@ const updateVoiceSchema = z.object({
   tiendaId: z.string().min(1),
   voz: z.string().trim().min(3).max(140).refine(isValidVoiceValue, 'voz inválida'),
   vozLabel: z.string().trim().max(80).optional(),
+  /**
+   * Instrucciones del agente. Editables por el cliente desde el panel final
+   * una vez aprobado el caso: el prompt es SU producto y debe poder tomarlo
+   * con calma y refinarlo, no quedar congelado en lo que escribió en el
+   * wizard.
+   *
+   * Opcional a propósito: esta misma ruta guarda la voz sin tocar el prompt,
+   * y al revés. Se guarda lo que venga y nada más.
+   */
+  agentName: z.string().trim().min(2).max(80).optional(),
+  systemPrompt: z.string().trim().min(10).max(8000).optional(),
 });
 
 // PATCH /api/voice/agents — guarda la voz elegida en el panel de activación
@@ -141,15 +153,21 @@ export async function PATCH(req: NextRequest) {
       { status: 400 }
     );
   }
-  const { tiendaId, voz, vozLabel } = parsed.data;
+  const { tiendaId, voz, vozLabel, agentName, systemPrompt } = parsed.data;
 
   const tienda = await prisma.tienda.findFirst({ where: { id: tiendaId, userId: user.id } });
   if (!tienda) return NextResponse.json({ error: 'Tienda no encontrada' }, { status: 404 });
 
-  const updated = await prisma.tienda.update({
-    where: { id: tienda.id },
-    data: { agentVoice: voz, agentVoiceLabel: vozLabel ?? null },
-  });
+  // Solo se escribe lo que vino. Así una llamada que trae solo `voz` no borra el
+  // prompt, y una que trae solo el prompt no pisa la voz.
+  const cambios: Prisma.TiendaUpdateInput = {
+    agentVoice: voz,
+    agentVoiceLabel: vozLabel ?? tienda.agentVoiceLabel ?? null,
+  };
+  if (agentName !== undefined) cambios.agentName = agentName;
+  if (systemPrompt !== undefined) cambios.systemPrompt = systemPrompt;
+
+  const updated = await prisma.tienda.update({ where: { id: tienda.id }, data: cambios });
 
   let appliedToTelnyx = false;
   if (tienda.telnyxAssistantId && isTelnyxVoiceReady()) {
@@ -167,6 +185,8 @@ export async function PATCH(req: NextRequest) {
     appliedToTelnyx,
     agentVoice: updated.agentVoice,
     agentVoiceLabel: updated.agentVoiceLabel,
+    agentName: updated.agentName,
+    systemPrompt: updated.systemPrompt,
     warning: appliedToTelnyx
       ? null
       : 'Voz guardada. Se aplicará al asistente en el próximo provisionamiento.',

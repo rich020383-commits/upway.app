@@ -210,6 +210,8 @@ export async function GET(request: NextRequest) {
       tiendaNombre: tienda.nombre,
       agentVoice: tienda.agentVoice ?? null,
       agentVoiceLabel: tienda.agentVoiceLabel ?? null,
+      agentName: tienda.agentName ?? null,
+      systemPrompt: tienda.systemPrompt ?? null,
       summary: {
         totalLeads,
         newLeads,

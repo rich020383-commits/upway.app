@@ -18,6 +18,7 @@ import VoiceAuthorizations from '@/components/onboarding/voice-authorizations';
 // depende de Health (recibe la sede por props). Se reutiliza tal cual para que las
 // verticales no tengan una segunda implementación del selector de voz.
 import VoiceSelector from '@/components/health/voice-selector';
+import AgentPromptEditor from '@/components/onboarding/agent-prompt-editor';
 
 type Activation = {
   pasos: { sede: boolean; asistente: boolean; numero: boolean; voz: boolean; encendida: boolean };
@@ -28,6 +29,8 @@ type Dash = {
   tiendaNombre?: string;
   agentVoice?: string | null;
   agentVoiceLabel?: string | null;
+  agentName?: string | null;
+  systemPrompt?: string | null;
   summary?: {
     totalLeads: number;
     newLeads: number;
@@ -297,6 +300,33 @@ export default function OperationsPanel({ config }: { config: OnboardingConfig }
           </ul>
         </div>
       )}
+
+      {/*
+        Las instrucciones del agente son SU producto: entran con lo que escribió
+        en el wizard y acá las refina cuando quiera. Viene precargada para no
+        dejarlo frente a una caja en blanco.
+      */}
+      <div className={card}>
+        <p className={label}>Instrucciones de tu agente</p>
+        <p className="mt-2 text-[15px] text-slate-300 sm:text-sm">
+          Contale qué debe resolver, con qué criterios califica y qué nunca debe prometer.
+          Puedes volver a editarla cuando quieras.
+        </p>
+        <div className="mt-4">
+          {dash?.tiendaId ? (
+            <AgentPromptEditor
+              tiendaId={dash.tiendaId}
+              initialPrompt={dash.systemPrompt ?? null}
+              initialName={dash.agentName ?? null}
+              currentVoice={dash.agentVoice ?? null}
+            />
+          ) : (
+            <p className="text-[13px] text-slate-500">
+              No pudimos identificar tu sede. Recarga la página; si sigue, escríbenos.
+            </p>
+          )}
+        </div>
+      </div>
 
       {/*
         LA VOZ ES DEL PRODUCTO FINAL, no del caso.
