@@ -302,7 +302,7 @@ export default function CaseStatus({ config }: { config: OnboardingConfig }) {
           voz. Las voces de fábrica ya se pueden escuchar: este bloque es el que
           de verdad muestra el producto antes de aprobar. */}
       <div className={card}>
-        <p className={label}>Probá la voz de tu asistente</p>
+        <p className={label}>Prueba la voz de tu asistente</p>
         <div className="mt-3">
           <VoicePlayground agentName={submissionCompanyName(data.answers ?? {})} />
         </div>

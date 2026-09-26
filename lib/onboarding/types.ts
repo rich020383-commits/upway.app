@@ -10,7 +10,7 @@ export type VerticalSegment = 'inmobiliaria' | 'center';
  * NO coincide con el segmento: el id es `inmobiliaria` (singular, así está en
  * la base de datos y en la API) pero la carpeta es `/inmobiliarias` (plural).
  * Construir la URL como `/${segment}` daba /inmobiliaria/caso → 404. Se centraliza
- * acá para que ningún enlace vuelva a adivinarlo.
+ * aquí para que ningún enlace vuelva a adivinarlo.
  */
 export const VERTICAL_BASE_PATH: Record<VerticalSegment, string> = {
   inmobiliaria: '/inmobiliarias',

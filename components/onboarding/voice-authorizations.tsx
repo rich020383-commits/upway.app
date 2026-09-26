@@ -84,8 +84,8 @@ export default function VoiceAuthorizations() {
   return (
     <div>
       <p className="text-[15px] text-slate-300 sm:text-sm">
-        Cada voz clonada necesita la autorización de la persona cuya voz es. Acá ves esas
-        autorizaciones y podés revocar cualquiera en el momento.
+        Cada voz clonada necesita la autorización de la persona cuya voz es. Aquí ves esas
+        autorizaciones y puedes revocar cualquiera en el momento.
       </p>
 
 
@@ -109,7 +109,7 @@ export default function VoiceAuthorizations() {
       ) : !rows || rows.length === 0 ? (
         <p className="mt-3 text-[13px] text-slate-500">
           Todavía no hay voces clonadas en tu operación. Cuando clones una, la autorización
-          queda registrada acá.
+          queda registrada aquí.
         </p>
       ) : (
         <ul className="mt-4 space-y-2.5">

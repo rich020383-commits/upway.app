@@ -122,7 +122,7 @@ export default function VoicePlayground({ agentName }: { agentName?: string | nu
   return (
     <div>
       <p className="text-[15px] text-slate-300 sm:text-sm">
-        Escuchá las voces de fábrica de Upway y probá cómo sonaría tu asistente. Podés
+        Escucha las voces de fábrica de Upway y prueba cómo sonaría tu asistente. Puedes
         cambiar el texto para oírlo con tus palabras.
       </p>
 
@@ -203,7 +203,7 @@ export default function VoicePlayground({ agentName }: { agentName?: string | nu
               })}
               {visibles.length > 60 && (
                 <p className="px-1 pt-1 text-[11px] text-slate-500">
-                  Mostrando 60 de {visibles.length}. Usá el buscador para afinar.
+                  Mostrando 60 de {visibles.length}. Usa el buscador para afinar.
                 </p>
               )}
             </div>

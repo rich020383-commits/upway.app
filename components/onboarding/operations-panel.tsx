@@ -172,7 +172,7 @@ export default function OperationsPanel({ config }: { config: OnboardingConfig }
           <p className="mt-3 text-[15px] leading-relaxed text-slate-300 sm:text-sm">
             {status === 'DRAFT' || status === 'IN_PROGRESS'
               ? 'Todavía no enviaste tu caso. Cuando lo envíes, el equipo de Upway lo revisa y te lo aprovamos.'
-              : 'Tu caso está en revisión del equipo de Upway. Apenas lo aprobemos, acá vas a ver los interesados que-qualificamos, las visitas agendadas y el consumo de tu plan.'}
+              : 'Tu caso está en revisión del equipo de Upway. Apenas lo aprobemos, aquí vas a ver los interesados que calificamos, las visitas agendadas y el consumo de tu plan.'}
           </p>
           <Link
             href={`${base}/caso`}
@@ -210,8 +210,8 @@ export default function OperationsPanel({ config }: { config: OnboardingConfig }
           </p>
           <p className="mt-2 text-[15px] leading-relaxed text-slate-300 sm:text-sm">
             {activation?.pasos.encendida
-              ? 'Tu agente ya recibe llamadas. En cuanto entre la primera, el interesado y la visita agendada aparecen acá.'
-              : 'Tu agente todavía no está recibiendo llamadas. En cuanto Upway termine la puesta en marcha, los interesados que califique y las visitas que agende van a aparecer acá.'}
+              ? 'Tu agente ya recibe llamadas. En cuanto entre la primera, el interesado y la visita agendada aparecen aquí.'
+              : 'Tu agente todavía no está recibiendo llamadas. En cuanto Upway termine la puesta en marcha, los interesados que califique y las visitas que agende van a aparecer aquí.'}
           </p>
           <Link
             href={`${base}/caso`}
