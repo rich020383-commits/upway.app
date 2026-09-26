@@ -5,6 +5,7 @@ import { getSessionUser } from '@/lib/session';
 import { createOutboundCall, isTelnyxCallReady, missingTelnyxCallEnv, telnyxNotReadyMessage } from '@/lib/telnyx/client';
 import { checkVoiceRateLimit, voiceRateLimitResponse } from '@/lib/telnyx/rate-limit';
 import { CALL_CONSENT_REQUIRED_MESSAGE } from '@/lib/telnyx/voice-consent';
+import { voiceCapabilityDenied } from '@/lib/voice-access';
 
 export const maxDuration = 30;
 
@@ -22,6 +23,11 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'No hay sesión activa' }, { status: 401 });
   if (user.id === 'meta-reviewer') {
     return NextResponse.json({ error: 'Revisor externo sin acceso a voz' }, { status: 403 });
+  }
+  // Una llamada marca un teléfono real y cuesta minutos: solo con el caso aprobado.
+  const callDenied = await voiceCapabilityDenied(user.id, 'call');
+  if (callDenied) {
+    return NextResponse.json({ error: callDenied.error }, { status: callDenied.status });
   }
 
   // Freno de cuota antes de tocar Telnyx: cada intento aqui es dinero y una

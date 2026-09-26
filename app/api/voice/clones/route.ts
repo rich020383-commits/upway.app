@@ -24,6 +24,7 @@ import {
   type VoiceCloneRaw,
 } from '@/lib/telnyx/voices';
 import { checkVoiceRateLimit, voiceRateLimitResponse } from '@/lib/telnyx/rate-limit';
+import { voiceCapabilityDenied } from '@/lib/voice-access';
 
 export const maxDuration = 60;
 
@@ -74,6 +75,12 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'No hay sesión activa' }, { status: 401 });
   if (user.id === 'meta-reviewer') {
     return NextResponse.json({ error: 'Revisor externo sin acceso a voz' }, { status: 403 });
+  }
+  // Clonar guarda la biometría de una voz y cuesta un clon al proveedor: se
+  // abre al aprobar el caso, no durante la revisión.
+  const cloneDenied = await voiceCapabilityDenied(user.id, 'clone');
+  if (cloneDenied) {
+    return NextResponse.json({ error: cloneDenied.error }, { status: cloneDenied.status });
   }
   // Diseño/clon de voz: una de las operaciones mas caras del proveedor.
   const rate = checkVoiceRateLimit('clone', user.id);

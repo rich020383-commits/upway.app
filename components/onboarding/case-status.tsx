@@ -88,7 +88,7 @@ const STATUS: Record<
   },
 };
 
-const card = 'rounded-2xl border border-[#1E293B] bg-[#0b121c] p-5';
+const card = 'rounded-2xl border border-[#1E293B] bg-[#0b121c] p-4 sm:p-5';
 const label = 'text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500';
 
 
@@ -255,10 +255,10 @@ export default function CaseStatus({ config }: { config: OnboardingConfig }) {
             {rows.map(([field, value]) => (
               <div
                 key={field}
-                className="flex flex-wrap items-baseline justify-between gap-2 py-2"
+                className="flex flex-col gap-0.5 py-2.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6"
               >
                 <dt className="text-[12px] text-slate-500">{field}</dt>
-                <dd className="max-w-full text-[13px] font-semibold text-slate-200">{value}</dd>
+                <dd className="text-[13px] font-semibold text-slate-200 sm:text-right">{value}</dd>
               </div>
             ))}
           </dl>
@@ -294,8 +294,8 @@ function Shell({
   children: React.ReactNode;
 }) {
   return (
-    <main className="min-h-screen bg-[#070B12] px-4 py-8 text-slate-100 sm:px-6">
-      <div className="mx-auto max-w-3xl space-y-4">
+    <main className="min-h-screen bg-[#070B12] pb-[calc(env(safe-area-inset-bottom)+2rem)] pt-[max(env(safe-area-inset-top),1.5rem)] text-slate-100">
+      <div className="mx-auto w-full max-w-5xl space-y-4 px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-3">
           <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">
             Upway · {config.label}

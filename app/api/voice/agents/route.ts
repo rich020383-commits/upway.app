@@ -6,6 +6,7 @@ import { upsertAssistantForTienda, getTelnyxConfig, isTelnyxVoiceReady, missingT
 import { isValidVoiceValue } from '@/lib/telnyx/voices';
 import { checkVoiceRateLimit, voiceRateLimitResponse } from '@/lib/telnyx/rate-limit';
 import { buildVoiceGreeting } from '@/lib/telnyx/voice-consent';
+import { voiceCapabilityDenied } from '@/lib/voice-access';
 
 export const maxDuration = 30;
 
@@ -26,6 +27,12 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'No hay sesión activa' }, { status: 401 });
   if (user.id === 'meta-reviewer') {
     return NextResponse.json({ error: 'Revisor externo sin acceso a voz' }, { status: 403 });
+  }
+  // Encender el asistente (y con él, el número que recibe llamadas) se abre al
+  // aprobar el caso. Es el paso white-glove: el equipo aprueba y provisiona.
+  const provisionDenied = await voiceCapabilityDenied(user.id, 'provision');
+  if (provisionDenied) {
+    return NextResponse.json({ error: provisionDenied.error }, { status: provisionDenied.status });
   }
   // Provisionar un asistente cuesta llamadas al proveedor: freno por usuario.
   const rate = checkVoiceRateLimit('agent', user.id);

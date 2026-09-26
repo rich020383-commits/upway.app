@@ -8,6 +8,7 @@ vi.mock('@/lib/prisma', () => ({
   prisma: { tienda: { findFirst: vi.fn(), update: vi.fn() } },
 }));
 vi.mock('@/lib/session', () => ({ getSessionUser: vi.fn() }));
+vi.mock('@/lib/voice-access', () => ({ voiceCapabilityDenied: vi.fn(async () => null) }));
 vi.mock('@/lib/telnyx/client', () => ({
   upsertAssistantForTienda: vi.fn(),
   updateAssistantVoice: vi.fn(),

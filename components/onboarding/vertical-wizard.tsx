@@ -238,13 +238,13 @@ export function VerticalWizard({ config }: Props) {
   };
   return (
     <div className="upway-dark-page min-h-screen bg-[#0D1117] font-sans text-[#F5F7FA]">
-      <header className="border-b border-[#1E293B]">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+      <header className="border-b border-[#1E293B] pt-[max(env(safe-area-inset-top),0.75rem)]">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-3 py-3 sm:px-6 lg:px-8">
           <span className="text-[12px] font-bold tracking-[0.2em] text-[#50e1d5]">UPWAY · ONBOARDING</span>
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 lg:flex-row lg:gap-10">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-3 pb-[calc(env(safe-area-inset-bottom)+2rem)] pt-6 sm:px-6 lg:flex-row lg:gap-10 lg:px-8">
         {/* Barra lateral de etapas */}
         <aside className="lg:w-72 lg:shrink-0">
           <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#8994A6]">
@@ -303,7 +303,7 @@ export function VerticalWizard({ config }: Props) {
         </aside>
 
         {/* Tarjeta principal */}
-        <main className="min-w-0 flex-1 rounded-2xl border border-[#1E293B] bg-[#0D1117] p-5 sm:p-8">
+        <main className="min-w-0 flex-1 rounded-2xl border border-[#1E293B] bg-[#0D1117] p-4 sm:p-6 lg:p-8">
           {authRequired ? (
             <div className="py-6">
               <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full bg-teal-500/15 text-[#50e1d5]">
