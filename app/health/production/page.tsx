@@ -157,6 +157,7 @@ export default function HealthProductionPage() {
         </p>
         <VoiceSelector
           tiendaId={tiendaId}
+          tiendaNombre={clinicName ?? null}
           initialVoice={agentVoice}
           initialVoiceLabel={agentVoiceLabel}
         />

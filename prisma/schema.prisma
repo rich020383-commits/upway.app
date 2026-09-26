@@ -73,6 +73,7 @@ model User {
   leadAssignmentHistory   LeadAssignment[]     @relation("LeadAssignmentOwner")
   leadActivities          LeadActivity[]       @relation("LeadActivityActor")
   leadReminders           LeadReminder[]       @relation("LeadReminderCreator")
+  voiceCloneAuthorizations VoiceCloneAuthorization[]
   appointmentAssignments  Cita[]               @relation("AppointmentAssignee")
   createdLeads            Lead[]               @relation("LeadCreator")
   assignedLeads           Lead[]               @relation("LeadAssignee")
@@ -233,6 +234,7 @@ model Organization {
   waitlistEntries    WaitlistEntry[]
   patientIdentities  PatientIdentity[]
   apiClients         ApiClient[]
+  voiceCloneAuthorizations VoiceCloneAuthorization[]
 }
 
 model OrganizationMember {
@@ -515,6 +517,53 @@ model Tienda {
   leads         Lead[]
   conversations Conversation[] // 💬 Relación con el buzón omnicanal
   citas         Cita[] // 📅 Relación con la Agenda Nativa Upway
+  voiceCloneAuthorizations VoiceCloneAuthorization[] // 🗣️ Quién autorizó cada voz clonada
+}
+
+// Autorización de clonación de voz.
+// Ley 1581: la voz es dato biométrico sensible y solo el TITULAR puede
+// autorizarla. La sede es la BENEFICIARIA del uso, no la titular: por eso
+// `tiendaId` convive con `consentingName`.
+// Aquí vive la EVIDENCIA, no el audio: los hashes SHA-256 de la autorización
+// y de la muestra demuestran que existieron y que no se alteraron, sin que
+// Upway custodie la voz de la persona.
+// Ver lib/voice-clone-consent.ts para el alcance real de esta protección.
+model VoiceCloneAuthorization {
+  id                  String    @id @default(cuid())
+  organizationId      String
+  tiendaId            String
+
+  // Titular: la persona cuya voz se clona. Obligatorio siempre.
+  consentingName      String
+  consentingDocument  String?
+  // Beneficiario: para qué se usa la voz.
+  purpose             String
+  // Texto leído y versión: permite probar qué se leyó exactamente.
+  scriptVersion       String
+  grantedAt           DateTime  @default(now())
+
+  // Revocación: el derecho real de la persona a que esto termine.
+  revokedAt           DateTime?
+  revokeReason        String?
+
+  // Evidencia (hashes, no audio).
+  authorizationSha256 String?
+  sampleSha256        String?
+  sampleSeconds       Int?
+  voiceCloneId        String?
+
+  createdByUserId     String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tienda       Tienda       @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  createdBy    User?        @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, grantedAt])
+  @@index([tiendaId, grantedAt])
+  @@index([voiceCloneId])
+  @@index([consentingDocument])
 }
 
 model Producto {

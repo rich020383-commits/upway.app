@@ -138,6 +138,51 @@ export function isValidVoiceValue(value: string): boolean {
 /** Límite Telnyx para clonar desde archivo: 5 MB (5–60 s de voz clara). */
 export const CLONE_MAX_BYTES = 5 * 1024 * 1024;
 
+/**
+ * Filtros de idioma del catálogo.
+ *
+ * Por qué existen: el catálogo tiene más de mil voces. Sin filtro, el selector
+ * es inusable. Y el número importa para el discurso comercial: de las voces en
+ * español, solo unas pocas son de acento colombiano, que es justo lo que pide
+ * una clínica o una inmobiliaria en Colombia.
+ */
+export const VOICE_LANGUAGE_FILTERS = [
+  { id: 'es-CO', label: 'Colombianas' },
+  { id: 'es', label: 'Español' },
+  { id: 'en', label: 'Inglés' },
+  { id: 'all', label: 'Todas' },
+] as const;
+
+export type VoiceLanguageFilter = (typeof VOICE_LANGUAGE_FILTERS)[number]['id'];
+
+/** `es-CO` es exacto; `es` y `en` son prefijos (así `es-MX` entra en "Español"). */
+export function matchesLanguageFilter(language: string | null | undefined, filter: string): boolean {
+  const f = filter.trim().toLowerCase();
+  if (f === 'all') return true;
+  const lang = (language ?? '').trim().toLowerCase();
+  if (!lang) return false;
+  // El prefijo solo aplica a los filtros de una letra: con él, "es" trae
+  // es-MX, es-ES y es-CO. Los de dos partes (es-CO) son exactos a propósito.
+  if (f === 'es' || f === 'en') return lang.startsWith(f);
+  return lang === f;
+}
+
+/** Forma mínima que necesitan los filtros: no dependen del proveedor. */
+type FiltrableVoice = { label: string; value: string; language?: string | null };
+
+export function countByLanguage(voices: readonly FiltrableVoice[], filter: string): number {
+  return voices.filter((v) => matchesLanguageFilter(v.language, filter)).length;
+}
+
+/** Búsqueda por texto libre sobre la etiqueta y el valor de la voz. */
+export function searchVoices<T extends FiltrableVoice>(voices: readonly T[], query: string): T[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return [...voices];
+  return voices.filter(
+    (v) => v.label.toLowerCase().includes(q) || v.value.toLowerCase().includes(q)
+  );
+}
+
 export const CLONE_ALLOWED_TYPES = [
   'audio/wav',
   'audio/x-wav',

@@ -1,7 +1,15 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Loader2, Pause, Play, Save, Sparkles, Upload, Waves, X } from 'lucide-react';
+import { Loader2, Pause, Play, Save, Search, Sparkles, Upload, Waves, X } from 'lucide-react';
+import VoiceCloneRecorder from './voice-clone-recorder';
+import {
+  VOICE_LANGUAGE_FILTERS,
+  countByLanguage,
+  matchesLanguageFilter,
+  searchVoices,
+  type VoiceLanguageFilter,
+} from '@/lib/telnyx/voices';
 
 type VoiceOption = {
   value: string;
@@ -30,10 +38,13 @@ const btnGhost =
  */
 export default function VoiceSelector({
   tiendaId,
+  tiendaNombre,
   initialVoice,
   initialVoiceLabel,
 }: {
   tiendaId: string | null;
+  /** Nombre de la sede: aparece en los textos que la persona debe leer. */
+  tiendaNombre?: string | null;
   initialVoice?: string | null;
   initialVoiceLabel?: string | null;
 }) {
@@ -46,6 +57,9 @@ export default function VoiceSelector({
   const [previewing, setPreviewing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [mode, setMode] = useState<'none' | 'upload' | 'design'>('none');
+  // Filtro del catálogo: con más de mil voces, un <select> a secas es inusable.
+  const [langFilter, setLangFilter] = useState<VoiceLanguageFilter>('es');
+  const [query, setQuery] = useState('');
   const [busyCreate, setBusyCreate] = useState(false);
   const [msg, setMsg] = useState<Msg>(null);
   // El error de carga del catálogo NO va en `msg`: ese mensaje se usa para los
@@ -55,8 +69,6 @@ export default function VoiceSelector({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [designName, setDesignName] = useState('');
   const [designPrompt, setDesignPrompt] = useState('');
-  const [uploadName, setUploadName] = useState('');
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const objectUrlRef = useRef<string | null>(null);
 
@@ -103,7 +115,11 @@ export default function VoiceSelector({
     void load();
   }, [load]);
 
-  const all = [...voices, ...clones];
+  const catalogo = searchVoices(
+    voices.filter((v) => matchesLanguageFilter(v.language, langFilter)),
+    query
+  );
+  const all = [...catalogo, ...clones];
   const current = all.find((option) => option.value === selected) ?? null;
   const dirty = Boolean(selected) && selected !== savedVoice;
   const busy = previewing || saving || busyCreate;
@@ -200,29 +216,6 @@ export default function VoiceSelector({
     }
   };
 
-  const createUpload = async () => {
-    setBusyCreate(true);
-    setMsg(null);
-    try {
-      if (!uploadFile || uploadName.trim().length < 2) {
-        throw new Error('Nombre (2–80 caracteres) y muestra de audio son obligatorios.');
-      }
-      const form = new FormData();
-      form.append('audio_file', uploadFile);
-      form.append('name', uploadName.trim());
-      const res = await fetch('/api/voice/clones', { method: 'POST', body: form });
-      const data = await res.json();
-      if (!res.ok || !data.clone) throw new Error(data.error ?? 'No se pudo crear la voz.');
-      addClone(data.clone as VoiceOption);
-      setUploadName('');
-      setUploadFile(null);
-      setMsg({ tone: 'ok', text: 'Voz clonada. Escucha la muestra y guarda para aplicarla.' });
-    } catch (error) {
-      setMsg({ tone: 'err', text: error instanceof Error ? error.message : 'No se pudo clonar la voz.' });
-    } finally {
-      setBusyCreate(false);
-    }
-  };
 
   if (!tiendaId) {
     return (
@@ -234,6 +227,48 @@ export default function VoiceSelector({
 
   return (
     <div className="space-y-4">
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-[220px] flex-1">
+            <Search
+              size={15}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            />
+            <input
+              className={`${inputCls} pl-9`}
+              placeholder="Buscar voz por nombre…"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </div>
+          {VOICE_LANGUAGE_FILTERS.map((f) => {
+            const total = countByLanguage(voices, f.id);
+            if (f.id !== 'all' && total === 0) return null;
+            const activo = langFilter === f.id;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setLangFilter(f.id)}
+                className={
+                  activo
+                    ? 'rounded-xl bg-[#1b5ed6] px-3 py-2 text-xs font-bold text-white'
+                    : 'rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:border-slate-400'
+                }
+              >
+                {f.label} · {total}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-xs text-slate-500">
+          {catalogo.length} voces en la lista
+          {query.trim() ? ` para "${query.trim()}"` : ''}. Arrancamos en español: la mayoría de
+          nuestras sedes atienden en español, y las de acento colombiano son las que mejor suenan
+          para un paciente o un prospecto local.
+        </p>
+      </div>
+
       <div className="flex flex-wrap items-end gap-3">
         <label className="min-w-[260px] flex-1">
           <span className="mb-1 block text-[10px] font-mono uppercase tracking-[0.16em] text-slate-500">
@@ -311,7 +346,7 @@ export default function VoiceSelector({
           onClick={() => setMode(mode === 'upload' ? 'none' : 'upload')}
           disabled={busy || Boolean(loadError)}
         >
-          <Upload size={15} /> Subir muestra (5–60 s)
+          <Upload size={15} /> Subir muestra o grabar (5–10 s)
         </button>
         <button
           type="button"
@@ -373,46 +408,18 @@ export default function VoiceSelector({
       )}
 
       {mode === 'upload' && (
-        <div className="space-y-2 rounded-[18px] border border-slate-200 bg-slate-50/80 p-4">
+        <div className="space-y-3 rounded-[18px] border border-slate-200 bg-slate-50/80 p-4">
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
             Clonar desde muestra
           </p>
-          <p className="text-xs leading-relaxed text-slate-500">
-            Sube 5–60 s de voz clara en WAV, MP3, FLAC, OGG o M4A (máx. 5 MB). Upway crea una voz
-            única con esa muestra.
-          </p>
-          <input
-            className={inputCls}
-            placeholder="Nombre, ej. Voz Fundadora"
-            value={uploadName}
-            maxLength={80}
-            onChange={(event) => setUploadName(event.target.value)}
+          <VoiceCloneRecorder
+            tiendaId={tiendaId}
+            businessName={tiendaNombre ?? null}
+            onCloned={(clone) => addClone(clone as VoiceOption)}
           />
-          <input
-            type="file"
-            accept="audio/*"
-            className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-xl file:border-0 file:bg-white file:px-3 file:py-2 file:text-xs file:font-bold file:text-slate-700 file:shadow-sm"
-            onChange={(event) => setUploadFile(event.target.files?.[0] ?? null)}
-          />
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className={btnPrimary}
-              onClick={() => void createUpload()}
-              disabled={busyCreate || !uploadFile || uploadName.trim().length < 2}
-            >
-              {busyCreate ? <Loader2 size={16} className="animate-spin" /> : <Waves size={16} />}
-              Clonar voz
-            </button>
-            <button
-              type="button"
-              className={btnGhost}
-              onClick={() => setMode('none')}
-              disabled={busyCreate}
-            >
-              <X size={15} /> Cancelar
-            </button>
-          </div>
+          <button type="button" className={btnGhost} onClick={() => setMode('none')}>
+            <X size={15} /> Cerrar
+          </button>
         </div>
       )}
 

@@ -5,7 +5,10 @@ import {
   FALLBACK_CATALOG,
   buildAssistantVoiceValue,
   buildPreviewText,
+  countByLanguage,
   isValidVoiceValue,
+  matchesLanguageFilter,
+  searchVoices,
   mapCatalogVoices,
   mapClonesToOptions,
   validateCloneFile,
@@ -98,6 +101,49 @@ describe('isValidVoiceValue', () => {
     expect(isValidVoiceValue('ab')).toBe(false);
     expect(isValidVoiceValue(`Telnyx.${'x'.repeat(200)}`)).toBe(false);
     expect(isValidVoiceValue('voz;rm')).toBe(false);
+  });
+});
+
+describe('filtros del catálogo — con más de mil voces, sin filtro no hay panel', () => {
+  const voces = [
+    { label: 'Catalina', value: 'v1', language: 'es-CO' },
+    { label: 'Gabriela', value: 'v2', language: 'es-MX' },
+    { label: 'Marcos', value: 'v3', language: 'es-ES' },
+    { label: 'Teresa', value: 'v4', language: 'es' },
+    { label: 'Nancy', value: 'v5', language: 'en-US' },
+    { label: 'Sin idioma', value: 'v6', language: null },
+  ];
+
+  it('las colombianas se separan del resto del español', () => {
+    expect(voces.filter((v) => matchesLanguageFilter(v.language, 'es-CO'))).toHaveLength(1);
+    // "Español" es un prefijo: incluye CO, MX, ES y el genérico.
+    expect(voces.filter((v) => matchesLanguageFilter(v.language, 'es'))).toHaveLength(4);
+  });
+
+  it('"todas" no descarta nada, incluidas las voces sin idioma', () => {
+    expect(voces.filter((v) => matchesLanguageFilter(v.language, 'all'))).toHaveLength(6);
+  });
+
+  it('una voz sin idioma no aparece en un filtro concreto', () => {
+    expect(matchesLanguageFilter(null, 'es')).toBe(false);
+    expect(matchesLanguageFilter(undefined, 'en')).toBe(false);
+  });
+
+  it('es insensible a mayúsculas y espacios', () => {
+    expect(matchesLanguageFilter('  ES-co ', 'es-CO')).toBe(true);
+  });
+
+  it('cuenta por filtro para pintar el chip con su número', () => {
+    expect(countByLanguage(voces, 'es-CO')).toBe(1);
+    expect(countByLanguage(voces, 'es')).toBe(4);
+    expect(countByLanguage(voces, 'en')).toBe(1);
+    expect(countByLanguage(voces, 'all')).toBe(6);
+  });
+
+  it('la búsqueda libre no distingue mayúsculas y busca en etiqueta y valor', () => {
+    expect(searchVoices(voces, 'catalina')).toHaveLength(1);
+    expect(searchVoices(voces, 'V5')).toHaveLength(1);
+    expect(searchVoices(voces, '  ')).toHaveLength(6);
   });
 });
 
