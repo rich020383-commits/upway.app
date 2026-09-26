@@ -8,6 +8,7 @@ import {
   stageMeta,
   type OnboardingConfig,
   type VerticalSegment,
+  verticalBasePath,
   type WizardField,
 } from '@/lib/onboarding/types';
 
@@ -236,13 +237,15 @@ export function VerticalWizard({ config }: Props) {
       </div>
     );
   };
+  const base = verticalBasePath(config.segment);
+
   return (
     <div className="upway-dark-page min-h-screen bg-[#0D1117] font-sans text-[#F5F7FA]">
       <header className="border-b border-[#1E293B] pt-[max(env(safe-area-inset-top),0.75rem)]">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-3 py-3 sm:px-6 lg:px-8">
           <span className="text-[12px] font-bold tracking-[0.2em] text-[#50e1d5]">UPWAY · ONBOARDING</span>
           <Link
-            href={`/${config.segment}/caso`}
+            href={`${base}/caso`}
             className="text-[12px] font-bold text-[#8994A6] transition hover:text-[#50e1d5]"
           >
             Mi caso →
@@ -373,13 +376,13 @@ export function VerticalWizard({ config }: Props) {
 
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link
-                  href={`/${config.segment}/caso`}
+                  href={`${base}/caso`}
                   className="inline-flex items-center gap-2 rounded-full bg-[#0ba9a9] px-5 py-3 text-[13px] font-bold text-white transition hover:-translate-y-0.5"
                 >
                   Ver el estado de mi caso <ArrowRight size={16} />
                 </Link>
                 <Link
-                  href={config.segment === 'center' ? '/center' : '/inmobiliarias'}
+                  href={base}
                   className="inline-flex items-center gap-2 rounded-full border border-[#1E293B] px-5 py-3 text-[13px] font-bold text-[#50e1d5] transition hover:-translate-y-0.5"
                 >
                   Volver a la página de {config.label} <ArrowRight size={16} />
@@ -396,7 +399,7 @@ export function VerticalWizard({ config }: Props) {
                     editando y reenviar si algo cambió.
                   </p>
                   <Link
-                    href={`/${config.segment}/caso`}
+                    href={`${base}/caso`}
                     className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-bold text-[#50e1d5] underline underline-offset-4"
                   >
                     Ver el estado de mi caso <ArrowRight size={13} />

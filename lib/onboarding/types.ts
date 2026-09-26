@@ -4,6 +4,24 @@ import { validateEmail, validateRequired } from '@/lib/validation';
 
 export type VerticalSegment = 'inmobiliaria' | 'center';
 
+/**
+ * Carpeta de rutas de cada segmento en `app/`.
+ *
+ * NO coincide con el segmento: el id es `inmobiliaria` (singular, así está en
+ * la base de datos y en la API) pero la carpeta es `/inmobiliarias` (plural).
+ * Construir la URL como `/${segment}` daba /inmobiliaria/caso → 404. Se centraliza
+ * acá para que ningún enlace vuelva a adivinarlo.
+ */
+export const VERTICAL_BASE_PATH: Record<VerticalSegment, string> = {
+  inmobiliaria: '/inmobiliarias',
+  center: '/center',
+};
+
+/** Ruta base pública de una vertical. */
+export function verticalBasePath(segment: VerticalSegment): string {
+  return VERTICAL_BASE_PATH[segment] ?? '/';
+}
+
 export type WizardFieldKind = 'text' | 'email' | 'tel' | 'textarea' | 'select';
 
 export interface WizardField {

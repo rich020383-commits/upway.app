@@ -12,7 +12,7 @@ import {
   ShieldCheck,
   TriangleAlert,
 } from 'lucide-react';
-import { submissionRows, type OnboardingConfig } from '@/lib/onboarding/types';
+import { submissionRows, verticalBasePath, type OnboardingConfig } from '@/lib/onboarding/types';
 
 type Status =
   | 'DRAFT'
@@ -124,8 +124,9 @@ export default function CaseStatus({ config }: { config: OnboardingConfig }) {
     };
   }, [config.segment]);
 
-  const onboardingHref = `/${config.segment}/onboarding`;
-  const homeHref = `/${config.segment}`;
+  const base = verticalBasePath(config.segment);
+  const onboardingHref = `${base}/onboarding`;
+  const homeHref = base;
 
   if (error) {
     return (
