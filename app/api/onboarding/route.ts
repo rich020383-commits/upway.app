@@ -95,13 +95,64 @@ async function resolveTenant(req: NextRequest) {
 
   const tienda = await prisma.tienda.findFirst({
     where: { userId: user.id },
-    select: { organizationId: true, clinicId: true },
+    // La sede se lee una sola vez y se usa para dos cosas: el tenant del caso y
+    // el estado de activación que ve el cliente. Un solo viaje a la base de datos.
+    select: {
+      organizationId: true,
+      clinicId: true,
+      nombre: true,
+      agentName: true,
+      telnyxPhoneNumber: true,
+      telnyxAssistantId: true,
+      isTelnyxActive: true,
+      agentVoice: true,
+      agentVoiceLabel: true,
+    },
   });
 
   return {
     userId: user.id,
     organizationId: tienda?.organizationId ?? null,
     clinicId: tienda?.clinicId ?? null,
+    tienda,
+  };
+}
+
+/** La sede tal como la ve el cliente, o null si todavía no tiene. */
+type TenantTienda = {
+  organizationId: string | null;
+  clinicId: string | null;
+  nombre: string | null;
+  agentName: string | null;
+  telnyxPhoneNumber: string | null;
+  telnyxAssistantId: string | null;
+  isTelnyxActive: boolean;
+  agentVoice: string | null;
+  agentVoiceLabel: string | null;
+} | null;
+
+/**
+ * Estado de activación, derivado de lo que REALMENTE está configurado.
+ *
+ * Viaja como banderas + el número y el nombre de la voz, nunca como ids crudos:
+ * el `assistantId` y el `agentVoice` son identificadores internos del proveedor
+ * y no se exponen al cliente (misma regla que ya se aplica al catálogo de voces
+ * y a los clones). Que el cliente vea "número conectado" y no
+ * "assistant_abc123" es también mejor producto.
+ */
+function activation(tienda: TenantTienda) {
+  return {
+    sede: Boolean(tienda),
+    agenteNombre: tienda?.agentName ?? null,
+    numeroTexto: tienda?.telnyxPhoneNumber ?? null,
+    vozLabel: tienda?.agentVoiceLabel ?? null,
+    pasos: {
+      sede: Boolean(tienda),
+      asistente: Boolean(tienda?.telnyxAssistantId),
+      numero: Boolean(tienda?.telnyxPhoneNumber),
+      voz: Boolean(tienda?.agentVoice),
+      encendida: Boolean(tienda?.isTelnyxActive),
+    },
   };
 }
 
@@ -119,8 +170,16 @@ export async function GET(req: NextRequest) {
     where: { userId_segment: { userId: tenant.userId, segment } },
   });
 
+  // El estado de activación se devuelve aunque no haya caso todavía: el cliente
+  // necesita ver en qué punto está la puesta en marcha, no solo si envió el
+  // formulario.
   if (!session) {
-    return NextResponse.json({ answers: {}, step: 0, status: null });
+    return NextResponse.json({
+      answers: {},
+      step: 0,
+      status: null,
+      activation: activation(tenant.tienda),
+    });
   }
 
   return NextResponse.json({
@@ -129,6 +188,7 @@ export async function GET(req: NextRequest) {
     status: session.status,
     caseRef: session.caseRef,
     submittedAt: session.submittedAt?.toISOString() ?? null,
+    activation: activation(tenant.tienda),
   });
 }
 

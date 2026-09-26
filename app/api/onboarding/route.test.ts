@@ -102,10 +102,20 @@ describe('GET /api/onboarding — persistencia del wizard vertical', () => {
     expect(res.status).toBe(400);
   });
 
-  it('sin avance guardado devuelve el formulario en blanco', async () => {
+  it('sin avance guardado devuelve el formulario en blanco y la activación', async () => {
     const res = await GET(get('inmobiliaria'));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ answers: {}, step: 0, status: null });
+    const data = await res.json();
+    expect(data.answers).toEqual({});
+    expect(data.step).toBe(0);
+    expect(data.status).toBeNull();
+    expect(data.activation).toEqual({
+      sede: true,
+      agenteNombre: null,
+      numeroTexto: null,
+      vozLabel: null,
+      pasos: { sede: true, asistente: false, numero: false, voz: false, encendida: false },
+    });
   });
 
   it('devuelve el avance guardado y acota el paso al rango del wizard', async () => {
@@ -142,6 +152,65 @@ describe('GET /api/onboarding — persistencia del wizard vertical', () => {
 
     const orArgument = mockedUserFind.mock.calls[0][0].where.OR;
     expect(orArgument).toEqual([{ id: 'ana@norte.com' }, { email: 'ana@norte.com' }]);
+  });
+});
+
+describe('GET /api/onboarding — estado de activación que ve el cliente', () => {
+  const tiendaVacia = { organizationId: 'org-1', clinicId: 'clinic-1' };
+
+  it('marca cada paso según lo que está realmente configurado', async () => {
+    mockedTiendaFind.mockResolvedValue({
+      ...tiendaVacia,
+      nombre: 'Inmobiliaria Norte',
+      agentName: 'Ana',
+      telnyxPhoneNumber: '+573001112233',
+      telnyxAssistantId: 'assistant-1',
+      isTelnyxActive: true,
+      agentVoice: 'Telnyx.female.sofia',
+      agentVoiceLabel: 'Sofía',
+    });
+
+    const data = await (await GET(get('inmobiliaria'))).json();
+
+    expect(data.activation.pasos).toEqual({
+      sede: true,
+      asistente: true,
+      numero: true,
+      voz: true,
+      encendida: true,
+    });
+    expect(data.activation.numeroTexto).toBe('+573001112233');
+    expect(data.activation.vozLabel).toBe('Sofía');
+  });
+
+  it('NO expone los identificadores internos del proveedor', async () => {
+    mockedTiendaFind.mockResolvedValue({
+      ...tiendaVacia,
+      agentVoice: 'Telnyx.female.sofia',
+      telnyxAssistantId: 'assistant-secreto-123',
+    });
+
+    const crudo = JSON.stringify(await (await GET(get('inmobiliaria'))).json());
+
+    expect(crudo).not.toContain('assistant-secreto-123');
+    expect(crudo).not.toContain('Telnyx.female.sofia');
+    // El id de la sede es interno: tampoco debe viajar.
+    expect(crudo).not.toContain('org-1');
+  });
+
+  it('sin sede devuelve todos los pasos en false en vez de fallar', async () => {
+    mockedTiendaFind.mockResolvedValue(null);
+
+    const data = await (await GET(get('inmobiliaria'))).json();
+
+    expect(data.activation.sede).toBe(false);
+    expect(data.activation.pasos).toEqual({
+      sede: false,
+      asistente: false,
+      numero: false,
+      voz: false,
+      encendida: false,
+    });
   });
 });
 

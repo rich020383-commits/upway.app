@@ -30,12 +30,27 @@ type Status =
   | 'ARCHIVED'
   | null;
 
+type Activation = {
+  sede: boolean;
+  agenteNombre: string | null;
+  numeroTexto: string | null;
+  vozLabel: string | null;
+  pasos: {
+    sede: boolean;
+    asistente: boolean;
+    numero: boolean;
+    voz: boolean;
+    encendida: boolean;
+  };
+};
+
 type Payload = {
   answers: Record<string, string>;
   step: number;
   status: Status;
   caseRef?: string | null;
   submittedAt?: string | null;
+  activation?: Activation | null;
 };
 
 /** Estado → etiqueta y tono. Sin esto la pantalla mentiría: "Enviado" no es "Aprobado". */
@@ -158,6 +173,7 @@ export default function CaseStatus({ config }: { config: OnboardingConfig }) {
   const info = STATUS[status];
   const sent = status !== 'DRAFT' && status !== 'IN_PROGRESS';
   const rows = submissionRows(config, data.answers ?? {});
+  const act = data.activation ?? null;
 
   return (
     <Shell config={config} homeHref={homeHref}>
@@ -237,6 +253,49 @@ export default function CaseStatus({ config }: { config: OnboardingConfig }) {
           ))}
         </ol>
       </div>
+
+      {/* Puesta en marcha. La activación la hace Upway a mano y antes el cliente
+          no tenía forma de saber en qué punto estaba: solo un "Enviado a
+          revisión". Cada paso sale de un campo real de la sede, no de un
+          progreso inventado. */}
+      {act && act.pasos.sede && (
+        <div className={card}>
+          <p className={label}>Puesta en marcha</p>
+          <ul className="mt-3 space-y-2.5">
+            {[
+              { ok: act.pasos.sede, text: 'Sede operativa creada' },
+              { ok: act.pasos.asistente, text: 'Agente configurado' },
+              { ok: act.pasos.voz, text: 'Voz asignada' },
+              { ok: act.pasos.numero, text: 'Número dedicado conectado' },
+              { ok: act.pasos.encendida, text: 'Recibiendo llamadas' },
+            ].map((p) => (
+              <li key={p.text} className="flex items-center gap-2.5">
+                {p.ok ? (
+                  <CheckCircle2 size={16} className="shrink-0 text-emerald-400" />
+                ) : (
+                  <CircleDashed size={16} className="shrink-0 text-slate-600" />
+                )}
+                <span
+                  className={`text-[15px] sm:text-sm ${p.ok ? 'text-slate-200' : 'text-slate-500'}`}
+                >
+                  {p.text}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {act.numeroTexto && (
+            <p className="mt-3 border-t border-[#1E293B] pt-3 font-mono text-[13px] text-slate-300">
+              {act.numeroTexto}
+            </p>
+          )}
+          {!act.pasos.encendida && act.pasos.numero && (
+            <p className="mt-3 text-[12px] leading-relaxed text-slate-500">
+              Tu número ya está asignado. Upway lo activa en la llamada de validación; te
+              avisamos por correo en cuanto esté recibiendo llamadas.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Anticipaba únicamente la clonación y dejaba pensar que sin clonar no hay
           voz. Las voces de fábrica ya se pueden escuchar: este bloque es el que
