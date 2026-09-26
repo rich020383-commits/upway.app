@@ -8,7 +8,9 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['lib/**/*.test.ts', 'app/**/*.test.ts', 'upway-health/**/*.test.ts'],
+    // `proxy.test.ts` vive en la raíz: el include tiene que nombrarlo o vitest
+    // ni lo ve y el redirect de host canónico queda sin cubrir.
+    include: ['lib/**/*.test.ts', 'app/**/*.test.ts', 'upway-health/**/*.test.ts', 'proxy.test.ts'],
     environment: 'node',
   },
 });
