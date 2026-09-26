@@ -1,5 +1,4 @@
-import { prisma } from '@/lib/prisma';
-import type { HealthOnboardingStatus, VerticalOnboardingStatus } from '@prisma/client';
+import { resolveCaseState } from '@/lib/case-access';
 
 /**
  * Permisos de voz por estado del caso.
@@ -54,9 +53,6 @@ const APPROVED: VoiceAccess = {
   canCall: true,
 };
 
-const HEALTH_APPROVED: HealthOnboardingStatus[] = ['APPROVED', 'ACTIVE'];
-const VERTICAL_APPROVED: VerticalOnboardingStatus[] = ['APPROVED', 'ACTIVE'];
-
 /** Qué operación se está intentando, para el mensaje y el registro. */
 export type VoiceCapability = 'clone' | 'provision' | 'call';
 
@@ -88,59 +84,19 @@ export type VoiceAccessResult = {
 };
 
 /**
- * Resuelve el estado de voz de un usuario leyendo los DOS embudos, porque un
- * mismo cliente puede haber pasado por cualquiera de los dos: el caso de Health
- * vive en HealthOnboardingSession y el de Center/Inmobiliaria en
- * VerticalOnboardingSession. Basta con que uno de los dos esté aprobado.
+ * Permisos de voz, derivados del estado del caso.
  *
- * Ante un fallo de base de datos NO se abre el candado: se degrada a `review`,
- * que es el estado por defecto de todos modos.
+ * El estado (aprobado / en revisión / sin caso) lo resuelve `lib/case-access.ts`
+ * —el mismo que usa el panel de operaciones—, para que la voz y el panel no
+ * puedan discrepar sobre si un caso está aprobado.
  */
 export async function resolveVoiceAccess(userId: string): Promise<VoiceAccessResult> {
-  try {
-    const tienda = await prisma.tienda.findFirst({
-      where: { userId },
-      select: { clinicId: true },
-    });
-
-    const healthWhere = {
-      status: { in: HEALTH_APPROVED },
-      OR: [
-        { ownerUserId: userId },
-        ...(tienda?.clinicId ? [{ clinicId: tienda.clinicId }] : []),
-      ],
-    };
-
-    const [health, vertical] = await Promise.all([
-      prisma.healthOnboardingSession.findFirst({ where: healthWhere, select: { id: true } }),
-      prisma.verticalOnboardingSession.findFirst({
-        where: { userId, status: { in: VERTICAL_APPROVED } },
-        select: { segment: true },
-      }),
-    ]);
-
-    if (health) return { access: APPROVED, state: 'approved', segment: null };
-    if (vertical) return { access: APPROVED, state: 'approved', segment: vertical.segment };
-
-    // Sin caso aprobado: se mira si al menos hay uno en revisión, para poder
-    // distinguir "todavía no empezaste" de "ya lo enviaste y lo estamos viendo".
-    const pendiente = await prisma.verticalOnboardingSession.findFirst({
-      where: { userId },
-      select: { segment: true },
-    });
-    const pendienteHealth = await prisma.healthOnboardingSession.findFirst({
-      where: { OR: [{ ownerUserId: userId }, ...(tienda?.clinicId ? [{ clinicId: tienda.clinicId }] : [])] },
-      select: { id: true },
-    });
-
-    if (pendiente || pendienteHealth) {
-      return { access: REVIEW, state: 'review', segment: pendiente?.segment ?? null };
-    }
-    return { access: REVIEW, state: 'none', segment: null };
-  } catch (error) {
-    console.error('[voice-access] no se pudo resolver el estado; se degrada a revisión', error);
-    return { access: REVIEW, state: 'review', segment: null };
-  }
+  const { state, segment } = await resolveCaseState(userId);
+  return {
+    access: state === 'approved' ? APPROVED : REVIEW,
+    state,
+    segment,
+  };
 }
 
 /**

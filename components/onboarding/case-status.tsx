@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   CircleDashed,
   FileSearch,
+  LayoutDashboard,
   Loader2,
   PenLine,
   TriangleAlert,
@@ -326,6 +327,8 @@ export default function CaseStatus({ config }: { config: OnboardingConfig }) {
         </div>
       )}
 
+      {/* El panel solo sirve si el caso está aprobado, pero el enlace se muestra
+          siempre: el cliente tiene que poder ver por qué aún no lo tiene. */}
       <div className="flex flex-wrap gap-3">
         <Link
           href={onboardingHref}
@@ -333,6 +336,13 @@ export default function CaseStatus({ config }: { config: OnboardingConfig }) {
         >
           {status === 'NEEDS_CHANGES' ? <PenLine size={15} /> : <FileSearch size={15} />}
           {status === 'NEEDS_CHANGES' ? 'Editar y reenviar' : 'Ver el formulario'}
+        </Link>
+        <Link
+          href={`${base}/panel`}
+          className="inline-flex items-center gap-2 rounded-full border border-[#1E293B] px-5 py-3 text-[13px] font-bold text-slate-300 transition hover:-translate-y-0.5"
+        >
+          <LayoutDashboard size={15} />
+          Mi operación
         </Link>
         <Link
           href={homeHref}
