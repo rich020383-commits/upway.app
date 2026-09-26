@@ -132,7 +132,7 @@ export default function CaseStatus({ config }: { config: OnboardingConfig }) {
       <Shell config={config} homeHref={homeHref}>
         <div className={`${card} flex items-start gap-3 border-rose-500/40`}>
           <TriangleAlert size={18} className="mt-0.5 shrink-0 text-rose-300" />
-          <p className="text-sm text-rose-200">{error}</p>
+          <p className="text-[15px] text-rose-200 sm:text-sm">{error}</p>
         </div>
       </Shell>
     );
@@ -161,16 +161,16 @@ export default function CaseStatus({ config }: { config: OnboardingConfig }) {
           Estado del caso
         </p>
         <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h1 className={`font-display text-[28px] font-extrabold ${info.tone}`}>{info.label}</h1>
+          <h1 className={`font-display text-[30px] font-extrabold sm:text-[28px] ${info.tone}`}>{info.label}</h1>
           {data.caseRef && (
             <span className="font-mono text-[12px] font-semibold text-[#50e1d5]">
               Ref {data.caseRef}
             </span>
           )}
         </div>
-        <p className="mt-2 text-sm text-slate-300">{info.blurb}</p>
+        <p className="mt-2 text-[15px] text-slate-300 sm:text-sm">{info.blurb}</p>
         {data.submittedAt && (
-          <p className="mt-1 text-[12px] text-slate-500">
+          <p className="mt-1 text-[13px] text-slate-500 sm:text-[12px]">
             Enviado el{' '}
             {new Date(data.submittedAt).toLocaleDateString('es-CO', {
               day: '2-digit',
@@ -186,18 +186,18 @@ export default function CaseStatus({ config }: { config: OnboardingConfig }) {
       <div className={card}>
         <p className={label}>Qué necesitamos de vos</p>
         {status === 'NEEDS_CHANGES' ? (
-          <p className="mt-2 text-sm font-semibold text-amber-200">
+          <p className="mt-2 text-[15px] font-semibold text-amber-200 sm:text-sm">
             Tu caso tiene algo que ajustar. Editá la configuración y volvé a enviarla: el
             equipo la revisa de nuevo.
           </p>
         ) : sent ? (
-          <p className="mt-2 text-sm text-slate-300">
+          <p className="mt-2 text-[15px] text-slate-300 sm:text-sm">
             Nada por ahora. Revisamos tu configuración y te contactamos para validar el plan
             y el arranque.{' '}
             <span className="text-slate-400">No hay activación automática.</span>
           </p>
         ) : (
-          <p className="mt-2 text-sm text-slate-300">
+          <p className="mt-2 text-[15px] text-slate-300 sm:text-sm">
             Todavía no enviaste el caso. Completa la configuración y envíala para que el
             equipo la revise.
           </p>
@@ -223,7 +223,7 @@ export default function CaseStatus({ config }: { config: OnboardingConfig }) {
               ) : (
                 <CircleDashed size={17} className="mt-0.5 shrink-0 text-slate-600" />
               )}
-              <span className={`text-sm ${step.done ? 'text-slate-200' : 'text-slate-500'}`}>
+              <span className={`text-[15px] sm:text-sm ${step.done ? 'text-slate-200' : 'text-slate-500'}`}>
                 <span className="mr-2 font-mono text-[11px] text-slate-600">{i + 1}</span>
                 {step.text}
               </span>
@@ -236,11 +236,11 @@ export default function CaseStatus({ config }: { config: OnboardingConfig }) {
           asistente se abren al aprobar, no antes. */}
       <div className={card}>
         <p className={label}>Tu voz en Upway</p>
-        <p className="mt-2 text-sm text-slate-300">
+        <p className="mt-2 text-[15px] text-slate-300 sm:text-sm">
           Al aprobar tu plan se abre la creación de tu propia voz clonada, con tu
           autorización registrada.
         </p>
-        <p className="mt-2 flex items-start gap-2 text-[12px] leading-relaxed text-slate-500">
+        <p className="mt-2 flex items-start gap-2 text-[13px] leading-relaxed text-slate-500 sm:text-[12px]">
           <ShieldCheck size={14} className="mt-0.5 shrink-0" />
           Ninguna voz se activa ni recibe llamadas sin tu confirmación.
         </p>
@@ -257,8 +257,8 @@ export default function CaseStatus({ config }: { config: OnboardingConfig }) {
                 key={field}
                 className="flex flex-col gap-0.5 py-2.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6"
               >
-                <dt className="text-[12px] text-slate-500">{field}</dt>
-                <dd className="text-[13px] font-semibold text-slate-200 sm:text-right">{value}</dd>
+                <dt className="text-[13px] text-slate-500 sm:text-[12px]">{field}</dt>
+                <dd className="text-[14px] font-semibold text-slate-200 sm:text-[13px] sm:text-right">{value}</dd>
               </div>
             ))}
           </dl>
@@ -295,7 +295,7 @@ function Shell({
 }) {
   return (
     <main className="min-h-screen bg-[#070B12] pb-[calc(env(safe-area-inset-bottom)+2rem)] pt-[max(env(safe-area-inset-top),1.5rem)] text-slate-100">
-      <div className="mx-auto w-full max-w-5xl space-y-4 px-3 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full space-y-4 px-3 sm:max-w-6xl sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-3">
           <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">
             Upway · {config.label}

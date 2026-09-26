@@ -241,6 +241,12 @@ export function VerticalWizard({ config }: Props) {
       <header className="border-b border-[#1E293B] pt-[max(env(safe-area-inset-top),0.75rem)]">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-3 py-3 sm:px-6 lg:px-8">
           <span className="text-[12px] font-bold tracking-[0.2em] text-[#50e1d5]">UPWAY · ONBOARDING</span>
+          <Link
+            href={`/${config.segment}/caso`}
+            className="text-[12px] font-bold text-[#8994A6] transition hover:text-[#50e1d5]"
+          >
+            Mi caso →
+          </Link>
         </div>
       </header>
 

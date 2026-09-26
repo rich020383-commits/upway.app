@@ -11,6 +11,7 @@ import {
   ClipboardList,
   Clock,
   Database,
+  FileSearch,
   FileText,
   Handshake,
   Home,
@@ -293,8 +294,15 @@ export default function InmobiliariasPage() {
           </Link>
           <div className="flex items-center gap-2">
             <Link
+              href="/inmobiliarias/caso"
+              className="inline-flex items-center gap-2 rounded-full border border-[#b8cce3] bg-white px-4 py-2 text-[12px] font-bold text-[#0c3775] transition hover:border-[#9fc6ee]"
+            >
+              <FileSearch className="h-3.5 w-3.5" />
+              Mi caso
+            </Link>
+            <Link
               href="/"
-              className="hidden rounded-full border border-[#dce9f4] bg-white px-4 py-2 text-[12px] font-bold text-[#0d3168] transition hover:border-[#9fc6ee] sm:inline-flex"
+              className="hidden rounded-full border border-[#dce9f4] bg-white px-4 py-2 text-[12px] font-bold text-[#0d3168] transition hover:border-[#9fc6ee] lg:inline-flex"
             >
               Volver a Upway
             </Link>
