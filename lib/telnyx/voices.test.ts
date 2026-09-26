@@ -16,6 +16,42 @@ import {
 } from './voices';
 
 describe('buildAssistantVoiceValue', () => {
+  /**
+   * Fixtures TOMADOS de la respuesta real de
+   * GET /v2/text-to-speech/voices. El campo se llama `id` y trae el
+   * identificador completo; `voice_id` NO existe en la API. Con `voice_id`
+   *siempre undefined, el compositor caía al `name` legible y armaba
+   * `Telnyx.em_alex` en vez de `Telnyx.KokoroTTS.em_alex`, que Telnyx rechaza
+   * con 400 90103.
+   */
+  it('usa el campo `id` de la respuesta real (Provider.Modelo.Voz)', () => {
+    expect(
+      buildAssistantVoiceValue({
+        id: 'Telnyx.KokoroTTS.em_alex',
+        name: 'em_alex',
+        language: 'es-ES',
+        provider: 'telnyx',
+        gender: 'Male',
+      })
+    ).toBe('Telnyx.KokoroTTS.em_alex');
+
+    expect(
+      buildAssistantVoiceValue({
+        id: 'Telnyx.Bayan.Amjad',
+        name: 'Amjad',
+        language: 'ar-PS',
+        provider: 'telnyx',
+        gender: 'Male',
+      })
+    ).toBe('Telnyx.Bayan.Amjad');
+  });
+
+  it('respeta el `id` de otros proveedores sin reprocesarlo', () => {
+    expect(
+      buildAssistantVoiceValue({ id: 'AWS.Polly.Isabelle-Neural', name: 'Isabelle (Neural)', provider: 'aws' })
+    ).toBe('AWS.Polly.Isabelle-Neural');
+  });
+
   it('compone Telnyx.<modelo>.<voz> desde voice_id con modelo (doc Telnyx)', () => {
     expect(
       buildAssistantVoiceValue({ provider: 'telnyx', name: 'af_heart', voice_id: 'KokoroTTS.af_heart' })

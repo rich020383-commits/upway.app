@@ -12,6 +12,18 @@
 export type TtsVoice = {
   provider?: string | null;
   name?: string | null;
+  /**
+   * Identificador completo que devuelve Telnyx, del tipo
+   * `Telnyx.KokoroTTS.em_alex` (Provider.Modelo.Voz).
+   *
+   * OJO: el campo se llama `id`, NO `voice_id`. Durante un tiempo el tipo de
+   * abajo declaraba `voice_id`, un campo que la API nunca devuelve, así que
+   * siempre venía `undefined` y el compositor armaba el valor con el `name` en
+   * crudo: `Telnyx.em_alex` en vez de `Telnyx.KokoroTTS.em_alex`. Telnyx
+   * rechaza eso con 400 90103 "Failed to produce text to speech".
+   */
+  id?: string | null;
+  /** @deprecated No existe en la respuesta de Telnyx. Se conserva solo para fixtures viejos. */
   voice_id?: string | null;
   language?: string | null;
   gender?: string | null;
@@ -40,18 +52,32 @@ export type VoiceOption = {
   status?: string | null;
 };
 
-/** Voz histórica de Upway: la que usan Speak y la creación de assistants. */
-export const DEFAULT_AGENT_VOICE = 'Telnyx.female.sofia';
+/**
+ * Voz por defecto del agente.
+ *
+ * Antes era `Telnyx.female.sofia`, que devuelve 400: el identificador de dos
+ * segmentos quedó obsoleto cuando Telnyx pasó a `Provider.Modelo.Voz`. Como es
+ * el valor con el que se crea un asistente cuando la sede no eligió voz, el
+ * fallo no era visible: solo aparecía al hablar.
+ *
+ * Esta es una voz `es-CO` femenina verificada contra la API (HTTP 200), que es
+ * además la que corresponde: una voz de español de España suena distinto en
+ * Colombia y el cliente lo nota en la primera llamada.
+ */
+export const DEFAULT_AGENT_VOICE = 'Telnyx.Ultra.162e0f37-8504-474c-bb33-c606c01890dc';
 
 /**
  * Catálogo mínimo garantizado cuando la API de voces de Telnyx no responde.
- * af_heart es la voz de ejemplo oficial de la documentación de Telnyx.
+ *
+ * Todos los valores de esta lista se verificaron uno por uno contra
+ * POST /v2/text-to-speech/speech y devolvieron 200. No se agrega ninguno sin
+ * comprobarlo: un valor de respaldo roto es peor que no tener respaldo, porque
+ * el cliente ve un error en vez de una lista vacía.
  */
 export const FALLBACK_CATALOG: VoiceOption[] = [
-  { value: 'Telnyx.KokoroTTS.af_heart', label: 'Kokoro · af_heart (femenina)', kind: 'catalog', provider: 'telnyx' },
-  { value: 'Telnyx.KokoroTTS.af_bella', label: 'Kokoro · af_bella (femenina)', kind: 'catalog', provider: 'telnyx' },
-  { value: 'Telnyx.KokoroTTS.am_michael', label: 'Kokoro · am_michael (masculina)', kind: 'catalog', provider: 'telnyx' },
-  { value: DEFAULT_AGENT_VOICE, label: 'Sofia (clásica, predeterminada)', kind: 'catalog', provider: 'telnyx' },
+  { value: DEFAULT_AGENT_VOICE, label: 'Colombiana (femenina)', kind: 'catalog', provider: 'telnyx', language: 'es-CO', gender: 'female' },
+  { value: 'Telnyx.KokoroTTS.ef_dora', label: 'Kokoro · ef_dora (femenina)', kind: 'catalog', provider: 'telnyx', language: 'es-ES', gender: 'female' },
+  { value: 'Telnyx.KokoroTTS.em_alex', label: 'Kokoro · em_alex (masculina)', kind: 'catalog', provider: 'telnyx', language: 'es-ES', gender: 'male' },
 ];
 
 /**
@@ -88,8 +114,22 @@ function looksLikeTelnyxModel(name: string): boolean {
   return TELNYX_TTS_MODELS.has(name.toLowerCase());
 }
 
-/** Compone el identificador de voz que entienden TTS y el AI Assistant. */
+/**
+ * Compone el identificador de voz que entienden TTS y el AI Assistant.
+ *
+ * Telnyx espera `Provider.Modelo.Voz` (ej. `Telnyx.KokoroTTS.em_alex`) y solo
+ * acepta `Provider.Voz` cuando el proveedor tiene un único modelo, cosa que no
+ * pasa: Telnyx expone Ultra, KokoroTTS, Qwen3TTS, Bayan, Sukhan y Bayan. Por
+ * eso la fuente de verdad es el campo `id` de la respuesta, que YA viene
+ * completo; `name` es solo la etiqueta legible ("Isabelle (Neural)", "Amjad")
+ * y nunca sirve para construir el valor.
+ */
 export function buildAssistantVoiceValue(voice: TtsVoice): string {
+  // `id` es el identificador completo que entrega la API. Si viene, se respeta
+  // tal cual y el problema no puede existir.
+  const id = (voice.id ?? '').trim();
+  if (id.includes('.')) return id;
+
   const name = (voice.name ?? '').trim();
   const voiceId = (voice.voice_id ?? '').trim();
   if (name.startsWith('Telnyx.')) return name;
@@ -97,12 +137,9 @@ export function buildAssistantVoiceValue(voice: TtsVoice): string {
   const provider = (voice.provider ?? 'telnyx').trim() || 'telnyx';
   const prefix = provider.toLowerCase() === 'telnyx' ? 'Telnyx' : provider;
 
-  // Si alguno de los dos ya trae el modelo, se respeta tal cual.
+  // Sin `id` útil: se intenta reconstruir con lo que haya.
   if (voiceId.includes('.')) return `${prefix}.${voiceId}`;
   if (name.includes('.')) return `${prefix}.${name}`;
-
-  // `name` es el modelo y `voice_id` la voz suelta: hay que volver a unir los
-  // dos, porque Telnyx exige Provider.Model.VoiceId cuando hay varios modelos.
   if (name && voiceId && looksLikeTelnyxModel(name)) {
     return `${prefix}.${name}.${voiceId}`;
   }
