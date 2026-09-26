@@ -14,12 +14,20 @@ import {
 import { verticalBasePath, type OnboardingConfig } from '@/lib/onboarding/types';
 import { fetchJson, FETCH_FALLBACKS } from '@/lib/client-fetch';
 import VoiceAuthorizations from '@/components/onboarding/voice-authorizations';
+// Infraestructura compartida: vive bajo components/health/ por historia, pero no
+// depende de Health (recibe la sede por props). Se reutiliza tal cual para que las
+// verticales no tengan una segunda implementación del selector de voz.
+import VoiceSelector from '@/components/health/voice-selector';
 
 type Activation = {
   pasos: { sede: boolean; asistente: boolean; numero: boolean; voz: boolean; encendida: boolean };
 };
 
 type Dash = {
+  tiendaId?: string;
+  tiendaNombre?: string;
+  agentVoice?: string | null;
+  agentVoiceLabel?: string | null;
   summary?: {
     totalLeads: number;
     newLeads: number;
@@ -289,6 +297,42 @@ export default function OperationsPanel({ config }: { config: OnboardingConfig }
           </ul>
         </div>
       )}
+
+      {/*
+        LA VOZ ES DEL PRODUCTO FINAL, no del caso.
+        En "Mi caso" el probador es solo una muestra: se escucha, no se elige ni
+        se guarda, porque antes de aprobar todavía no hay nada que configurar.
+        Acá —con el caso aprobado— es donde la voz se elige de verdad, se guarda
+        en la sede y se puede clonar.
+
+        Se reutiliza `VoiceSelector`, el mismo componente de Health, en vez de
+        escribir uno nuevo: ya tiene el filtro de idioma, el preview, el clon por
+        muestra o por diseño, la autorización con su texto legal y el guardado.
+        Vive en components/health/ por historia, pero no tiene nada de Health:
+        recibe la sede por props. (Moverlo a components/voice/ es un refactor
+        aparte, para no tocar la página de producción de Health hoy.)
+      */}
+      <div className={card}>
+        <p className={label}>La voz de tu asistente</p>
+        <p className="mt-2 text-[15px] text-slate-300 sm:text-sm">
+          Elegí la voz que va a contestar tus llamadas. También podés clonar la voz de
+          quien lo autorice, con su consentimiento registrado.
+        </p>
+        <div className="mt-4">
+          {dash?.tiendaId ? (
+            <VoiceSelector
+              tiendaId={dash.tiendaId}
+              tiendaNombre={dash.tiendaNombre ?? null}
+              initialVoice={dash.agentVoice ?? null}
+              initialVoiceLabel={dash.agentVoiceLabel ?? null}
+            />
+          ) : (
+            <p className="text-[13px] text-slate-500">
+              No pudimos identificar tu sede. Recarga la página; si sigue, escríbenos.
+            </p>
+          )}
+        </div>
+      </div>
 
       {/* Revocación: la ley 1581 da a la persona el derecho a que su voz deje de
           usarse, y tiene que poder hacerlo sin hablar con soporte. */}

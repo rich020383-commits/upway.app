@@ -201,6 +201,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       ok: true,
       segment,
+      // Identidad de la sede. No es información nueva: es la MISMA tienda que
+      // `getOwnedTienda` ya resolvió y contra la que se consultó todo lo demás
+      // de esta respuesta. Se devuelve porque el selector de voz la necesita
+      // para leer y guardar `agentVoice` de esa tienda concreta, y obligar al
+      // panel a adivinarla sería una fuente de errores.
+      tiendaId: tienda.id,
+      tiendaNombre: tienda.nombre,
+      agentVoice: tienda.agentVoice ?? null,
+      agentVoiceLabel: tienda.agentVoiceLabel ?? null,
       summary: {
         totalLeads,
         newLeads,
