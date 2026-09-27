@@ -338,7 +338,7 @@ export default function Home() {
           </a>
           <div className="flex items-center gap-3">
             <nav className="hidden md:flex items-center gap-[22px] text-[13px] font-medium text-[#31547f] xl:gap-[30px]">
-            <a href="#solucion" className="hover:text-[#103a77] transition">Solución</a>
+            <a href="#capacidad" className="hover:text-[#103a77] transition">Solución</a>
             <a href="#verticales" className="hover:text-[#103a77] transition">Verticales</a>
             <a href="#por-que" className="hover:text-[#103a77] transition">Beneficios</a>
             <Link href="/precios" className="hover:text-[#103a77] transition">Precios</Link>
@@ -508,52 +508,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* PANEL / SOLUCIÓN */}
-        <section id="solucion" className="max-w-[1180px] mx-[15px] md:mx-auto my-[30px] md:my-[50px] p-[30px] md:p-[55px] rounded-[30px] bg-[#f5fbff] grid grid-cols-1 lg:grid-cols-[0.8fr_1.2fr] gap-[45px]">
-          <div>
-            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Se integra a tu operación, no la reemplaza</div>
-            <h2 className="font-display text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold">
-              Comunicación y gestión para una mejor atención.
-            </h2>
-            <p className="text-[#55718f] leading-[1.6]">
-              Upway trabaja sobre tu operación actual: tu línea telefónica, tu agenda y tu software de salud. Tu equipo conserva el control; nosotros atendemos, coordinamos y entregamos la información ordenada.
-            </p>
-            <div className="grid grid-cols-2 gap-[14px] mt-[25px] text-[12px] font-semibold text-[#0d3168]">
-              <span className="flex items-center gap-2 before:content-['✓'] before:text-[#10b7b2]">Automatiza recordatorios</span>
-              <span className="flex items-center gap-2 before:content-['✓'] before:text-[#10b7b2]">Reduce ausencias</span>
-              <span className="flex items-center gap-2 before:content-['✓'] before:text-[#10b7b2]">Integra canales</span>
-              <span className="flex items-center gap-2 before:content-['✓'] before:text-[#10b7b2]">Protege datos</span>
-            </div>
-          </div>
-          <div className="bg-white border border-[#dce9f4] rounded-[18px] p-[17px] shadow-[0_20px_45px_#173e6815]">
-            <div className="flex items-center justify-between gap-3 mb-[15px]">
-              <div className="font-extrabold text-[#0d3168]">
-                UPWAY <small className="text-[#10a9aa] tracking-[1px]">HEALTH</small>
-              </div>
-              <span className="rounded-full border border-[#dce9f4] bg-[#f7fbff] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wide text-[#7b93ab]">
-                Vista ilustrativa
-              </span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-[0.7fr_1fr_1fr] gap-[10px]">
-              <aside className="bg-[#f7fbff] rounded-[12px] p-[14px] text-[10px] leading-[2] text-[#224a76] font-medium">
-                ⌂ Inicio<br />▦ Agenda<br />◉ Prioridades<br />◇ Bandeja<br />▥ Reportes<br />🔍 Auditoría
-              </aside>
-              <div className="bg-[#f7fbff] rounded-[12px] p-[14px] text-[10px] text-[#54718f]">
-                <b className="text-[#0d3168] block mb-1">Hoy · Agenda de citas</b>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">María González · 08:00</p>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">Carlos Ramírez · 09:30</p>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">Laura Torres · 11:00</p>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">Andrés Silva · 14:00</p>
-              </div>
-              <div className="bg-[#f7fbff] rounded-[12px] p-[14px] text-[10px] text-[#54718f]">
-                <b className="text-[#0d3168] block mb-1">Canales y agenda</b>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">● Voz IA · prioridad y agenda</p>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">● Agenda nativa · sin terceros</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* HERO — la portada es de Upway, no de una vertical.
             Sin fotografía de una vertical: la portada es común a las tres y una
             foto de sector haría que el primer pantallazo respondiera "¿tu
@@ -579,7 +533,7 @@ export default function Home() {
                 Solicita una demo gratuita →
               </a>
               <a
-                href="#solucion"
+                href="#verticales"
                 className="inline-flex items-center justify-center rounded-full border border-[#b8cce3] bg-white px-[23px] py-[14px] text-[13px] font-bold text-[#0c3775] hover:bg-slate-50 hover:shadow-[0_22px_48px_rgba(12,55,117,0.22)] transition">
                 Descubre cómo funciona
               </a>
@@ -695,7 +649,7 @@ export default function Home() {
 
         {/* LAS TRES VERTICALES */}
         <section id="verticales" className="bg-[#f4faff] py-[65px] px-[5%]">
-          <div className="max-w-[1180px] mx-auto text-center">
+          <div className="max-w-[1320px] mx-auto text-center">
             <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Elige tu vertical</div>
             <h2 className="font-display text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold text-[#0d3168]">
               La misma inteligencia, tres operaciones distintas.
@@ -706,13 +660,13 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="max-w-[1180px] mx-auto mt-[38px] grid grid-cols-1 lg:grid-cols-3 gap-[18px] items-start">
+          <div className="max-w-[1320px] mx-auto mt-[38px] grid grid-cols-1 lg:grid-cols-3 gap-[18px]">
             {verticales.map((v) => (
               <article
                 key={v.id}
                 className={`group flex flex-col bg-white rounded-[22px] overflow-hidden border ${
                   v.insignia
-                    ? 'border-[#9fc6ee] shadow-[0_18px_44px_#153f6826] lg:-translate-y-2'
+                    ? 'border-[#9fc6ee] shadow-[0_18px_44px_#153f6826]'
                     : 'border-[#e0edf6] shadow-[0_8px_25px_#153f6810]'
                 } transition hover:-translate-y-1 hover:shadow-[0_16px_40px_#153f6822]`}
               >
@@ -728,7 +682,7 @@ export default function Home() {
                       width={420}
                       height={210}
                       quality={90}
-                      sizes="(max-width: 1024px) 92vw, 400px"
+                      sizes="(max-width: 1024px) 92vw, 440px"
                       onError={() => setImagenesCaidas((prev) => ({ ...prev, [v.id]: true }))}
                       className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                     />
@@ -753,29 +707,31 @@ export default function Home() {
                       El más completo
                     </span>
                   )}
-                  {/* Los botones van ENCIMA de la pieza, sobre un degradado y en
-                      dos columnas. Encima para no recortar la imagen con un pie
-                      de texto blanco; en dos columnas para que ocupen solo la
-                      franja inferior y el arte se vea entero. */}
-                  <div className="absolute inset-x-0 bottom-0 grid grid-cols-2 gap-2 bg-gradient-to-t from-[#081a30]/95 via-[#081a30]/70 to-transparent p-[12px] pt-12">
-                    <Link
-                      href={v.href}
-                      className={`flex items-center justify-center gap-1.5 rounded-full px-3 py-[11px] text-[12px] font-bold transition ${
-                        v.insignia
-                          ? 'bg-[linear-gradient(115deg,#0ba9a9,#0c3775)] text-white hover:-translate-y-[1px]'
-                          : 'bg-white text-[#0d3168] hover:bg-[#e7fbfa]'
-                      }`}
-                    >
-                      {v.nombre}
-                      <ArrowRight className="h-3.5 w-3.5 shrink-0" />
-                    </Link>
-                    <Link
-                      href={v.loginHref}
-                      className="flex items-center justify-center rounded-full border border-white/50 px-3 py-[11px] text-[12px] font-bold text-white transition hover:bg-white/15"
-                    >
-                      Entrar
-                    </Link>
-                  </div>
+                </div>
+
+                {/* Los botones van DEBAJO de la pieza, no encima. Con el velo
+                    encima tapaba justo los rótulos que el arte trae abajo a la
+                    izquierda ("Gestión de citas médicas", "Historia clínica
+                    digital"): la parte que más argumentaba a favor. Debajo se
+                    lee la pieza entera y la tarjeta sigue siendo la imagen. */}
+                <div className="grid grid-cols-2 gap-2 p-[12px]">
+                  <Link
+                    href={v.href}
+                    className={`flex items-center justify-center gap-1.5 rounded-full px-3 py-[11px] text-[12px] font-bold transition ${
+                      v.insignia
+                        ? 'bg-[linear-gradient(115deg,#0ba9a9,#0c3775)] text-white shadow-[0_8px_20px_rgba(11,169,169,0.28)]'
+                        : 'border border-[#0ba9a9] text-[#0d3168] hover:bg-[#e7fbfa]'
+                    }`}
+                  >
+                    {v.nombre}
+                    <ArrowRight className="h-3.5 w-3.5 shrink-0" />
+                  </Link>
+                  <Link
+                    href={v.loginHref}
+                    className="flex items-center justify-center rounded-full border border-[#e0edf6] px-3 py-[11px] text-[12px] font-bold text-[#31547f] transition hover:border-[#9fc6ee]"
+                  >
+                    Entrar
+                  </Link>
                 </div>
               </article>
             ))}

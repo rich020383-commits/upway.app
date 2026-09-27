@@ -280,7 +280,7 @@ export default function Home() {
           </a>
           <div className="flex items-center gap-3">
             <nav className="hidden md:flex items-center gap-[22px] text-[13px] font-medium text-[#31547f] xl:gap-[30px]">
-            <a href="#solucion" className="hover:text-[#103a77] transition">Solución</a>
+            <a href="#capacidad" className="hover:text-[#103a77] transition">Solución</a>
             <a href="#agenda" className="hover:text-[#103a77] transition">Agenda</a>
             <a href="#beneficios" className="hover:text-[#103a77] transition">Beneficios</a>
             <a href="#sectores" className="hover:text-[#103a77] transition">Sectores</a>
@@ -405,52 +405,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* PANEL / SOLUCIÓN */}
-        <section id="solucion" className="max-w-[1180px] mx-[15px] md:mx-auto my-[30px] md:my-[50px] p-[30px] md:p-[55px] rounded-[30px] bg-[#f5fbff] grid grid-cols-1 lg:grid-cols-[0.8fr_1.2fr] gap-[45px]">
-          <div>
-            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Se integra a tu operación, no la reemplaza</div>
-            <h2 className="font-display text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold">
-              Comunicación y gestión para una mejor atención.
-            </h2>
-            <p className="text-[#55718f] leading-[1.6]">
-              Upway trabaja sobre tu operación actual: tu línea telefónica, tu agenda y tu software de salud. Tu equipo conserva el control; nosotros atendemos, coordinamos y entregamos la información ordenada.
-            </p>
-            <div className="grid grid-cols-2 gap-[14px] mt-[25px] text-[12px] font-semibold text-[#0d3168]">
-              <span className="flex items-center gap-2 before:content-['✓'] before:text-[#10b7b2]">Automatiza recordatorios</span>
-              <span className="flex items-center gap-2 before:content-['✓'] before:text-[#10b7b2]">Reduce ausencias</span>
-              <span className="flex items-center gap-2 before:content-['✓'] before:text-[#10b7b2]">Integra canales</span>
-              <span className="flex items-center gap-2 before:content-['✓'] before:text-[#10b7b2]">Protege datos</span>
-            </div>
-          </div>
-          <div className="bg-white border border-[#dce9f4] rounded-[18px] p-[17px] shadow-[0_20px_45px_#173e6815]">
-            <div className="flex items-center justify-between gap-3 mb-[15px]">
-              <div className="font-extrabold text-[#0d3168]">
-                UPWAY <small className="text-[#10a9aa] tracking-[1px]">HEALTH</small>
-              </div>
-              <span className="rounded-full border border-[#dce9f4] bg-[#f7fbff] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wide text-[#7b93ab]">
-                Vista ilustrativa
-              </span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-[0.7fr_1fr_1fr] gap-[10px]">
-              <aside className="bg-[#f7fbff] rounded-[12px] p-[14px] text-[10px] leading-[2] text-[#224a76] font-medium">
-                ⌂ Inicio<br />▦ Agenda<br />◉ Prioridades<br />◇ Bandeja<br />▥ Reportes<br />🔍 Auditoría
-              </aside>
-              <div className="bg-[#f7fbff] rounded-[12px] p-[14px] text-[10px] text-[#54718f]">
-                <b className="text-[#0d3168] block mb-1">Hoy · Agenda de citas</b>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">María González · 08:00</p>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">Carlos Ramírez · 09:30</p>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">Laura Torres · 11:00</p>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">Andrés Silva · 14:00</p>
-              </div>
-              <div className="bg-[#f7fbff] rounded-[12px] p-[14px] text-[10px] text-[#54718f]">
-                <b className="text-[#0d3168] block mb-1">Canales y agenda</b>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">● Voz IA · prioridad y agenda</p>
-                <p className="bg-white p-[4px_8px] rounded-[7px] my-[7px] leading-[1.3] shadow-sm border border-[#e8f0f8]">● Agenda nativa · sin terceros</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* HERO — APLICADO en salud */}
         <section id="inicio" className="max-w-[1280px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 pt-[45px] md:pt-[70px] pb-[55px] px-5 md:px-[5%] items-center bg-[radial-gradient(circle_at_80%_30%,_#e8fbfa,_transparent_40%)]">
           <div className="flex flex-col">
@@ -469,7 +423,7 @@ export default function Home() {
                 Solicita una demo gratuita →
               </a>
               <a
-                href="#solucion"
+                href="#agenda"
                 className="inline-flex items-center justify-center rounded-full border border-[#b8cce3] bg-white px-[23px] py-[14px] text-[13px] font-bold text-[#0c3775] hover:bg-slate-50 hover:shadow-[0_22px_48px_rgba(12,55,117,0.22)] transition">
                 Descubre cómo funciona
               </a>
