@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { estimateCallCosts } from '@/lib/telnyx/costs';
-import { missingTelnyxCallEnv, missingTelnyxVoiceEnv } from '@/lib/telnyx/client';
+import { decodeClientState, missingTelnyxCallEnv, missingTelnyxVoiceEnv } from '@/lib/telnyx/client';
 
 // POST /api/voice/webhooks — receptor Call Control v2 (API v2 en tu captura).
 // Telnyx firma con Ed25519: cabeceras `telnyx-signature-ed25519` + `telnyx-timestamp`.
@@ -17,17 +17,61 @@ export const maxDuration = 30;
 type TelnyxEvent = {
   data?: {
     event_type?: string;
+    /** Momento del evento. Junto a `start_time` del payload da la duración. */
+    occurred_at?: string;
     payload?: {
       call_control_id?: string;
       call_leg_id?: string;
       from?: string;
       to?: string;
-      direction?: string;
       client_state?: string;
-      call_duration_secs?: number;
+      /** Inicio de la llamada. Telnyx NO envía un campo de duración. */
+      start_time?: string;
+      state?: string;
+      hangup_cause?: string;
     };
   };
 };
+
+/**
+ * Minutos de la llamada.
+ *
+ * AUDITORÍA: el código leía `payload.call_duration_secs`, campo que Telnyx NO
+ * envía en `call.hangup`. Como venía `undefined`, TODA llamada se guardaba con
+ * 0 minutos: el panel mostraba "minutos de voz" en cero y los costos de la
+ * llamada quedaban en 0. No daba error, solo datos falsos.
+ *
+ * La duración real se obtiene restando `start_time` (payload) de `occurred_at`
+ * (sobre del evento), que sí vienen. Se acota a 24h por si vinieran corruptos.
+ */
+function minutesOfCall(event: TelnyxEvent): number {
+  const start = event.data?.payload?.start_time;
+  const end = event.data?.occurred_at;
+  if (!start || !end) return 0;
+  const ms = new Date(end).getTime() - new Date(start).getTime();
+  if (!Number.isFinite(ms) || ms <= 0) return 0;
+  const minutes = ms / 60000;
+  return minutes > 24 * 60 ? 0 : Math.round(minutes * 100) / 100;
+}
+
+/**
+ * Dirección de la llamada.
+ *
+ * AUDITORÍA: se leía `payload.direction`, que Telnyx tampoco envía, así que
+ * toda llamada quedaba registrada como 'inbound' —incluidas las salientes que
+ * dispara el propio panel.
+ *
+ * No hay campo de dirección en el payload, así que se deduce: las salientes se
+ * crean con `client_state = tienda.id` (ver createOutboundCall), mientras que
+ * una entrante llega con el `client_state` de la_numbers application o vacío.
+ * Es una inferencia, no un dato del proveedor, y queda dicho aquí para no
+ * confundirla con una verdad del API.
+ */
+async function directionOfCall(clientState: string | null): Promise<'inbound' | 'outbound'> {
+  if (!clientState) return 'inbound';
+  const tienda = await prisma.tienda.findFirst({ where: { id: clientState }, select: { id: true } });
+  return tienda ? 'outbound' : 'inbound';
+}
 
 async function verifyTelnyx(req: NextRequest, raw: string): Promise<boolean> {
   const publicKey = process.env.TELNYX_PUBLIC_KEY;
@@ -62,7 +106,8 @@ export async function POST(req: NextRequest) {
 
   const type = event.data?.event_type ?? 'unknown';
   const p = event.data?.payload ?? {};
-  const tiendaId = (p.client_state ?? '').slice(0, 64) || null;
+  // `client_state` viaja en Base-64: se decodifica para recuperar el tiendaId.
+  const tiendaId = decodeClientState(p.client_state);
 
   // Persistencia en LlamadaLog para telemetría y facturación del centro de mando.
   // Costos reales Telnyx → Upway vía lib/telnyx/costs (persistidos por llamada).
@@ -70,9 +115,13 @@ export async function POST(req: NextRequest) {
   try {
     if (type === 'call.hangup' || type === 'call.hangup.final') {
       if (tiendaId) {
-        const costs = estimateCallCosts((p.call_duration_secs ?? 0) / 60);
+        // Duración calculada de los tiempos reales; antes salía siempre 0
+        // porque `call_duration_secs` no existe en el payload de Telnyx.
+        const costs = estimateCallCosts(minutesOfCall(event));
+        const direction = await directionOfCall(tiendaId);
+        const sessionId = p.call_control_id ?? `hangup-${Date.now()}`;
         await prisma.llamadaLog.upsert({
-          where: { callSessionId: p.call_control_id ?? `hangup-${Date.now()}` },
+          where: { callSessionId: sessionId },
           update: {
             status: 'completed',
             durationMinutes: costs.durationMinutes,
@@ -82,9 +131,9 @@ export async function POST(req: NextRequest) {
           },
           create: {
             tiendaId,
-            callSessionId: p.call_control_id ?? `hangup-${Date.now()}`,
+            callSessionId: sessionId,
             callControlId: p.call_control_id ?? null,
-            direction: p.direction ?? 'inbound',
+            direction,
             durationMinutes: costs.durationMinutes,
             telnyxCost: costs.telnyxCost,
             upwayBilledCost: costs.upwayBilledCost,

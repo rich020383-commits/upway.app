@@ -138,6 +138,32 @@ async function telnyxFetch(path: string, init: RequestInit = {}) {
   return data;
 }
 
+/**
+ * `client_state` debe ser Base-64 (dice el contrato de Telnyx). Mandarlo crudo
+ * hace que el valor vuelva alterado o directamente rechazado, y entonces
+ * ninguna llamada se puede atribuir a su tienda: no entra ni una fila en el
+ * registro. Se codifica aquí y se decodifica en el webhook, con estas dos
+ * funciones para que no puedan desincronizarse.
+ *
+ * `client_state` no está en el enum, pero los ~44 bytes que ocupa un UUID en
+ * Base-64 quedan muy por debajo del límite del campo.
+ */
+export function encodeClientState(value: string | null | undefined): string {
+  if (!value) return '';
+  return Buffer.from(value.slice(0, 64), 'utf8').toString('base64');
+}
+
+export function decodeClientState(value: string | null | undefined): string | null {
+  if (!value) return null;
+  try {
+    const texto = Buffer.from(value, 'base64').toString('utf8');
+    const limpio = texto.slice(0, 64);
+    return limpio || null;
+  } catch {
+    return null;
+  }
+}
+
 export type CreateVoiceCallInput = {
   to: string; // E.164 destino, ej +57312...
   from?: string; // número dedicado de la IPS (Tienda.telnyxPhoneNumber) o TELNYX_DEFAULT_PHONE_NUMBER
@@ -164,10 +190,15 @@ export async function createOutboundCall(input: CreateVoiceCallInput) {
       webhook_url: webhookUrl,
       webhook_url_method: 'POST',
       timeout_secs: input.timeoutSecs ?? 30,
-      client_state: input.clientState ?? '',
-      // Si hay assistant configurado, Telnyx lo engancha vía `ai_assistant`:
+      // Base-64 obligatorio; el webhook lo decodifica.
+      client_state: encodeClientState(input.clientState),
+      // AUDITORÍA: el campo se llama `assistant`. Se mandaba `ai_assistant`,
+      // que no existe en el esquema, así que Telnyx ignoraba el enganche y la
+      // llamada se iba al IVR de siempre sin contestarla el asistente de IA.
+      // Verificado contra el OpenAPI de Telnyx (CallRequest.assistant ->
+      // CallAssistantRequest, donde `id` es el único campo obligatorio).
       ...(input.assistantId ?? cfg.assistantId
-        ? { ai_assistant: { id: input.assistantId ?? cfg.assistantId } }
+        ? { assistant: { id: input.assistantId ?? cfg.assistantId } }
         : {}),
     }),
   });
@@ -182,7 +213,10 @@ export async function speakOnCall(callControlId: string, payload: string, voice?
       // Default verificado: la voz histórica 'Telnyx.female.sofia' ya no
       // existe (400) desde que Telnyx usa `Provider.Modelo.Voz`.
       voice: voice ?? DEFAULT_AGENT_VOICE,
-      language: 'es-CO',
+      // AUDITORÍA: era 'es-CO', que NO está en el enum de Telnyx (la API
+      // responde 400). Para español latinoamericano neutro el valor es 'es-MX';
+      // las únicas opciones del enum son es-ES, es-MX y es-US.
+      language: 'es-MX',
     }),
   });
 }
@@ -198,17 +232,26 @@ export async function upsertAssistantForTienda(opts: {
   greeting: string;
   instructions: string;
   voice?: string;
-  model?: string;
 }) {
-  return telnyxFetch('/ai_assistants', {
+  // AUDITORÍA: la ruta era `/ai_assistants`, que Telnyx responde 404 "Resource
+  // not found" — el provisionamiento de voz NUNCA funcionó, y por eso el check
+  // "Voz dedicada" del checklist se quedaba rojo. La ruta real es
+  // `/ai/assistants` (verificado contra la API: 200).
+  //
+  // La voz NO va en la raíz: va dentro de `voice_settings.voice`. En la raíz se
+  // ignora en silencio, que es peor que un error porque el asistente queda mudo
+  // sin avisar.
+  //
+  // `model` no se envía a propósito: Telnyx aplica su valor por defecto
+  // (`moonshotai/Kimi-K2.6`). Fijarlo a mano es la misma clase de bug que la voz
+  // —un valor hardcodeado que envejece— y el que mandaba era inválido.
+  return telnyxFetch('/ai/assistants', {
     method: 'POST',
     body: JSON.stringify({
       name: opts.name.slice(0, 60),
       greeting: opts.greeting.slice(0, 500),
       instructions: opts.instructions.slice(0, 8000),
-      voice: opts.voice ?? DEFAULT_AGENT_VOICE,
-      model: opts.model ?? 'telnyx-openai-gpt-4o-mini',
-      language: 'es',
+      voice_settings: { voice: opts.voice ?? DEFAULT_AGENT_VOICE },
     }),
   });
 }

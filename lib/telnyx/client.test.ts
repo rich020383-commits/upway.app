@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   TELNYX_CALL_ENV,
   TELNYX_REQUIRED_ENV,
@@ -8,6 +8,12 @@ import {
   missingTelnyxCallEnv,
   missingTelnyxVoiceEnv,
   telnyxNotReadyMessage,
+  createOutboundCall,
+  decodeClientState,
+  encodeClientState,
+  speakOnCall,
+  upsertAssistantForTienda,
+  updateAssistantVoice,
 } from './client';
 
 // Copia de seguridad de las env que la prueba manipula.
@@ -112,5 +118,169 @@ describe('diagnóstico compartido', () => {
       'TELNYX_APP_ID',
       'TELNYX_DEFAULT_PHONE_NUMBER',
     ]);
+  });
+});
+
+/**
+ * AUDITORÍA: forma real de `POST /v2/ai/assistants`, verificada contra la API
+ * de Telnyx el 25-sep-2026.
+ *
+ * Estos tests fijan tres cosas que estaban rotas y que ningún test cubría:
+ *  · la ruta es `/ai/assistants`; `/ai_assistants` responde 404 y hacía que el
+ *    provisionamiento de voz nunca funcionara;
+ *  · la voz va DENTRO de `voice_settings.voice`; en la raíz se ignora en
+ *    silencio y el asistente queda mudo sin avisar;
+ *  · `model` no se manda: se fija el valor por defecto del proveedor.
+ *
+ * Los fixtures salen de la respuesta real de la API, no de memoria: un test
+ * verde contra un payload inventado es lo que dejó pasar el bug original.
+ */
+describe('upsertAssistantForTienda — contrato con la API de Telnyx', () => {
+  let fetchSpy: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    process.env.TELNYX_API_KEY = 'clave-de-prueba';
+    fetchSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ data: { id: 'assistant-1' } }),
+      headers: new Headers(),
+    });
+    vi.stubGlobal('fetch', fetchSpy);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    delete process.env.TELNYX_API_KEY;
+  });
+
+  const cuerpoEnviado = () => {
+    const init = fetchSpy.mock.calls[0][1] as RequestInit;
+    return JSON.parse(String(init.body)) as Record<string, unknown>;
+  };
+
+  it('usa la ruta /ai/assistants, no /ai_assistants', async () => {
+    await upsertAssistantForTienda({ name: 'Ana', greeting: 'hola', instructions: 'reglas' });
+    const url = String(fetchSpy.mock.calls[0][0]);
+    expect(url).toContain('/v2/ai/assistants');
+    // La ruta con guion bajo no existe: Telnyx responde 404.
+    expect(url).not.toContain('ai_assistants');
+  });
+
+  it('manda la voz dentro de voice_settings, no en la raíz', async () => {
+    await upsertAssistantForTienda({
+      name: 'Ana',
+      greeting: 'hola',
+      instructions: 'reglas',
+      voice: 'Telnyx.KokoroTTS.ef_dora',
+    });
+    const cuerpo = cuerpoEnviado();
+    expect(cuerpo.voice_settings).toEqual({ voice: 'Telnyx.KokoroTTS.ef_dora' });
+    // En la raíz se ignora en silencio: el asistente quedaría mudo.
+    expect(cuerpo.voice).toBeUndefined();
+  });
+
+  it('no fija el modelo: es un valor por defecto del proveedor', async () => {
+    await upsertAssistantForTienda({ name: 'Ana', greeting: 'hola', instructions: 'reglas' });
+    const cuerpo = cuerpoEnviado();
+    expect(cuerpo.model).toBeUndefined();
+    expect(cuerpo.language).toBeUndefined();
+  });
+
+  it('si no le pasan voz, usa la predeterminada verificada (no la voz histórica)', async () => {
+    await upsertAssistantForTienda({ name: 'Ana', greeting: 'hola', instructions: 'reglas' });
+    const cuerpo = cuerpoEnviado() as { voice_settings: { voice: string } };
+    expect(cuerpo.voice_settings.voice).toBeTruthy();
+    expect(cuerpo.voice_settings.voice).not.toBe('Telnyx.female.sofia');
+  });
+});
+
+describe('createOutboundCall — contrato con la API de Telnyx', () => {
+  let fetchSpy: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    process.env.TELNYX_API_KEY = 'clave';
+    process.env.TELNYX_APP_ID = 'app-1';
+    process.env.TELNYX_DEFAULT_PHONE_NUMBER = '+573001111111';
+    fetchSpy = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({}), headers: new Headers() });
+    vi.stubGlobal('fetch', fetchSpy);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    for (const k of ['TELNYX_API_KEY', 'TELNYX_APP_ID', 'TELNYX_DEFAULT_PHONE_NUMBER']) delete process.env[k];
+  });
+
+  const cuerpo = () => JSON.parse(String((fetchSpy.mock.calls[0][1] as RequestInit).body));
+
+  it('engancha el asistente con `assistant`, no con `ai_assistant`', async () => {
+    await createOutboundCall({ to: '+573001234567', assistantId: 'assistant-7' });
+    const c = cuerpo();
+    // El esquema de Telnyx es CallRequest.assistant -> CallAssistantRequest.
+    expect(c.assistant).toEqual({ id: 'assistant-7' });
+    // Nombre inexistente: se ignoraba y la llamada no la contestaba la IA.
+    expect(c.ai_assistant).toBeUndefined();
+  });
+
+  it('omite el asistente si no hay ninguno configurado', async () => {
+    await createOutboundCall({ to: '+573001234567' });
+    expect(cuerpo().assistant).toBeUndefined();
+  });
+
+  it('manda client_state en Base-64, como exige Telnyx', async () => {
+    await createOutboundCall({ to: '+573001234567', clientState: 'tienda-1' });
+    const enviado = cuerpo().client_state as string;
+    expect(enviado).toBe(Buffer.from('tienda-1').toString('base64'));
+    // Y el webhook lo recupera intacto.
+    expect(decodeClientState(enviado)).toBe('tienda-1');
+  });
+
+  it('usa un idioma que está en el enum de Telnyx', async () => {
+    await speakOnCall('v3:abc', 'hola');
+    // 'es-CO' no existe en el enum (400). Las opciones son es-ES/es-MX/es-US.
+    expect(cuerpo().language).toBe('es-MX');
+  });
+});
+
+describe('client_state — ida y vuelta en Base-64', () => {
+  it('encode y decode son inversos', () => {
+    expect(decodeClientState(encodeClientState('tienda-abc-123'))).toBe('tienda-abc-123');
+  });
+
+  it('un estado vacío no inventa una tienda', () => {
+    expect(encodeClientState(undefined)).toBe('');
+    expect(encodeClientState(null)).toBe('');
+    expect(decodeClientState('')).toBeNull();
+    expect(decodeClientState(undefined)).toBeNull();
+  });
+
+  it('trunca a 64 caracteres para no exceder el campo', () => {
+    const largo = 'x'.repeat(200);
+    expect(decodeClientState(encodeClientState(largo))).toHaveLength(64);
+  });
+});
+
+describe('updateAssistantVoice — contrato con la API de Telnyx', () => {
+  it('aplica la voz en la ruta correcta y dentro de voice_settings', async () => {
+    process.env.TELNYX_API_KEY = 'clave-de-prueba';
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({}),
+      headers: new Headers(),
+    });
+    vi.stubGlobal('fetch', fetchSpy);
+
+    await updateAssistantVoice('assistant-9', 'Telnyx.KokoroTTS.em_alex');
+
+    const url = String(fetchSpy.mock.calls[0][0]);
+    expect(url).toContain('/v2/ai/assistants/assistant-9');
+    const init = fetchSpy.mock.calls[0][1] as RequestInit;
+    expect(JSON.parse(String(init.body))).toEqual({
+      voice_settings: { voice: 'Telnyx.KokoroTTS.em_alex' },
+    });
+
+    vi.unstubAllGlobals();
+    delete process.env.TELNYX_API_KEY;
   });
 });
