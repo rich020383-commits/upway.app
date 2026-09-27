@@ -1,9 +1,9 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { MessageCircle, Phone, Sparkles, Calendar, Bell, Users, Shield, ShieldCheck, Database, RefreshCw, ClipboardCheck, BadgeCheck, CalendarDays, ArrowRight, Headphones, Home as HomeIcon } from 'lucide-react';
+import { MessageCircle, Phone, Sparkles, Calendar, Bell, HeartPulse, Users, Clock, Shield, ShieldCheck, Database, FileText, RefreshCw, ClipboardCheck, BadgeCheck, CalendarDays } from 'lucide-react';
 import Footer from '@/components/Footer';
 import SophieChatButton from '@/components/sophie-chat-button';
 
@@ -16,26 +16,16 @@ const UpwayLogo = ({ className = '' }: { className?: string }) => (
 /* Capacidad operativa: lo que Sophie sostiene en la operación diaria.
    Deliberadamente acotado a lo administrativo — atención, registro, agenda,
    confirmación, escalamiento y entrega del dato. La valoración clínica y las
-   decisiones de salud NO entran aquí: siguen en el equipo profesional.
-
-   Este bloque es COMÚN a las tres verticales, así que el texto evita nombrar un
-   sector concreto. Antes decía "paciente" y "software de salud", lo que hacía que
-   la raíz respondiera "¿tu operación es salud?" en el primer pantallazo y dejara
-   a Center e Inmobiliaria como apéndice de una página de salud. */
+   decisiones de salud NO entran aquí: siguen en el equipo profesional. */
 const capacidad = [
   {
     title: 'Atiende la línea',
-    text: 'Responde 24/7 con voz natural, sostiene varias llamadas al mismo tiempo y retoma el hilo de cada conversación sin dejar el tono ocupado.',
+    text: 'Responde 24/7 con voz natural, sostiene varias llamadas al tiempo y retoma el hilo de cada paciente sin dejar tono ocupado.',
     icon: Phone,
   },
   {
-    title: 'Entiende y resuelve',
-    text: 'No sigue un guion: escucha, deduce la intención, consulta lo que tu operación necesita y contesta lo que corresponde en cada caso.',
-    icon: Sparkles,
-  },
-  {
     title: 'Registra el dato',
-    text: 'Captura con validación, relee para confirmar y deja evidencia de cada corrección. Sin adivinar, sin texto libre donde no aplica.',
+    text: 'Captura con catálogos oficiales de Colombia, relee y confirma dígito a dígito, y deja evidencia de cada corrección.',
     icon: ClipboardCheck,
   },
   {
@@ -55,86 +45,8 @@ const capacidad = [
   },
   {
     title: 'Entrega el dato',
-    text: 'Cada atención sale estructurada, validada y auditable hacia tu sistema. Tu equipo deja de retranscribir.',
+    text: 'Cada atención sale estructurada, validada y auditable hacia tu software de salud o tu HIS. Tu equipo deja de retranscribir.',
     icon: Database,
-  },
-  {
-    title: 'Lo puedes auditar',
-    text: 'Usuario, rol, fecha y hora en cada consulta. El agente no improvisa respuestas que no estén en lo que le definiste.',
-    icon: ShieldCheck,
-  },
-  {
-    title: 'Aprende de tu operación',
-    text: 'Tus catálogos, tus reglas, tu tono. Cada vertical queda con el conocimiento de tu negocio, no con un modelo genérico.',
-    icon: RefreshCw,
-  },
-];
-
-/* Las tres verticales. Health va primero y es la tarjeta insignia: es el
-   producto más construido (17 módulos en su panel, agenda clínica, triaje,
-   políticas y cumplimiento), mientras Center e Inmobiliaria arrancan con
-   onboarding, caso y panel. Igualar las tres visualmente daría a entender que
-   los tres productos maduran igual, y no es el caso.
-
-   `imagen` de Center e Inmobiliaria es un marcador: las fotografías con el mismo
-   estilo que las de Health todavía no existen (todo lo que hay en /public es de
-   salud), así que se dejan preparadas como `null` y se sustituyen cuando
-   lleguen. Mientras tanto la tarjeta cae a un treatment con icono para que no
-   se vea un hueco. */
-const verticales = [
-  {
-    id: 'health',
-    nombre: 'Upway Health',
-    claim: 'La línea de atención de tu institución, de punta a punta.',
-    texto:
-      'Recepción, agenda, triaje, confirmaciones y entrega del dato clínico estructurado a tu HIS, con catálogos oficiales y trazabilidad bajo la Ley 1581.',
-    href: '/salud',
-    loginHref: '/login?segment=health',
-    para: 'Clínicas · IPS · EPS · Centros de salud · Consultorios',
-    insignia: true,
-    imagen: '/sectores/actores-salud.jpg',
-    puntos: [
-      'Agenda con profesionales, servicios y lista de espera',
-      'Captura conforme con doble confirmación dígito a dígito',
-      'Triaje, políticas y escalamiento según tu protocolo',
-      'Auditoría con usuario, rol, fecha y hora',
-    ],
-  },
-  {
-    id: 'center',
-    nombre: 'Upway Center',
-    claim: 'Tu servicio técnico y al cliente, atendido 24/7.',
-    texto:
-      'La línea de soporte que no puede quedarse sin contestar: diagnóstico, seguimiento y escalado a tu equipo con el caso ya documentado.',
-    href: '/center',
-    loginHref: '/login?segment=center',
-    para: 'Servicios técnicos · Call centers · Soporte · EMEA',
-    insignia: false,
-    imagen: null,
-    puntos: [
-      'Diagnóstico guiado con el guion de tu producto',
-      'Seguimiento del caso hasta resolverlo',
-      'Escalado a humano con todo el contexto',
-      'Grabación y log de eventos de cada llamada',
-    ],
-  },
-  {
-    id: 'inmobiliaria',
-    nombre: 'Upway Inmobiliarias',
-    claim: 'Tu agenda de visitas, sin perder un lead.',
-    texto:
-      'Califica al interesado, agenda la visita, confirma y hace seguimiento. La línea trabaja mientras tu asesor está en la cita.',
-    href: '/inmobiliarias',
-    loginHref: '/login?segment=inmobiliaria',
-    para: 'Agencias · Inmobiliarias · Constructoras',
-    insignia: false,
-    imagen: null,
-    puntos: [
-      'Calificación del interés con tus criterios',
-      'Agenda de visitas con confirmación automática',
-      'Seguimiento y reprogramación de prospectos',
-      'Panel con el estado de cada caso',
-    ],
   },
 ];
 
@@ -371,17 +283,26 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <nav className="hidden md:flex items-center gap-[22px] text-[13px] font-medium text-[#31547f] xl:gap-[30px]">
             <a href="#solucion" className="hover:text-[#103a77] transition">Solución</a>
-            <a href="#verticales" className="hover:text-[#103a77] transition">Verticales</a>
-            <a href="#por-que" className="hover:text-[#103a77] transition">Beneficios</a>
+            <a href="#agenda" className="hover:text-[#103a77] transition">Agenda</a>
+            <a href="#beneficios" className="hover:text-[#103a77] transition">Beneficios</a>
+            <a href="#sectores" className="hover:text-[#103a77] transition">Sectores</a>
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#0ba9a9] bg-white px-3.5 py-[7px] text-[12px] font-bold text-[#0d3168] transition hover:-translate-y-[1px] hover:shadow-[0_10px_24px_rgba(11,169,169,0.25)]"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-[#0ba9a9]" />
+              Otras verticales
+            </Link>
             <Link href="/precios" className="hover:text-[#103a77] transition">Precios</Link>
             <a href="#contacto" className="hover:text-[#103a77] transition">Contacto</a>
           </nav>
-            <a
-              href="#verticales"
+            <Link
+              href="/"
               className="inline-flex md:hidden items-center gap-1.5 rounded-full border border-[#0ba9a9] bg-white px-3 py-[8px] text-[11px] font-bold text-[#0d3168]"
             >
+              <Sparkles className="h-3.5 w-3.5 text-[#0ba9a9]" />
               Verticales
-            </a>
+            </Link>
             <a
               href="#contacto"
               className="hidden sm:inline-flex items-center justify-center rounded-full bg-[#0c3775] px-[23px] py-[10px] md:py-[14px] text-[11px] md:text-[13px] font-bold text-white hover:bg-[#092a5c] transition shadow-md"
@@ -452,17 +373,15 @@ export default function Home() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
               <div className="lg:col-span-6 space-y-6">
                 <div className="inline-flex items-center gap-2 rounded-full border border-[#bfe9e6] bg-[#e7fbfa] px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#0d8a88] shadow-sm">
-                  <Sparkles size={14} className="text-[#0ba9a9]" /> La inteligencia que mueve al agente
+                  <Sparkles size={14} className="text-[#0ba9a9]" /> Agente de Voz Conforme
                 </div>
                 <h2 className="font-display text-3xl font-extrabold leading-[1.1] tracking-tight text-[#0d3168] md:text-5xl">
                   Sophie v2:
                   <br />
-                  IA que entiende, atiende y agenda por ti.
+                  IA telefónica que además agenda por ti.
                 </h2>
                 <p className="max-w-xl text-lg font-medium leading-relaxed text-[#55718f]">
-                  No es un guion que se reproduce: Sophie escucha, entiende lo que la persona pide, consulta lo que tu
-                  operación necesita y agenda sobre tu disponibilidad real. Mientras habla aparta el cupo, así nadie
-                  más lo toma y se acaban los cruces de horarios.
+                  Automatiza el alto tráfico de llamadas: Sophie responde con voz humana, prioriza según los protocolos de tu institución y reserva la cita sobre tu agenda real. Mientras habla aparta el cupo, así nadie más lo toma y se acaban los cruces de horarios.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 pt-1">
                   <a
@@ -493,10 +412,10 @@ export default function Home() {
                     </div>
                     <div>
                       <div className="flex items-center gap-1.5 text-xs font-bold text-[#0d8a88] mb-1">
-                        <Sparkles size={14} /> Upway
+                        <Sparkles size={14} /> Upway Health
                       </div>
                       <p className="text-xs font-medium text-[#55718f] leading-relaxed">
-                        Sincronizando atención, agenda y seguimiento con contexto operativo completo.
+                        Sincronizando atención, agenda y seguimiento comercial con contexto operativo completo.
                       </p>
                     </div>
                   </div>
@@ -586,18 +505,16 @@ export default function Home() {
           </div>
         </section>
 
-        {/* HERO — la portada es de Upway, no de una vertical */}
+        {/* HERO — APLICADO en salud */}
         <section id="inicio" className="max-w-[1280px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 pt-[45px] md:pt-[70px] pb-[55px] px-5 md:px-[5%] items-center bg-[radial-gradient(circle_at_80%_30%,_#e8fbfa,_transparent_40%)]">
           <div className="flex flex-col">
-            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">♥ &nbsp; La línea de atención de tu negocio, con IA</div>
+            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">♥ &nbsp; Recepcionista con IA para salud</div>
             <h1 className="font-display text-[35px] md:text-[52px] leading-[1.06] tracking-[-2px] md:tracking-[-2.6px] m-0 mb-[22px] font-extrabold">
-              Atiende, agenda y confirma con quien te llama.<br />
+              Atiende, agenda y confirma con tus pacientes.<br />
               <em className="not-italic text-[#11b4b0]">Las 24 horas, sin perder un dato.</em>
             </h1>
             <p className="text-[16px] leading-[1.65] text-[#49698f] max-w-[600px]">
-              Una inteligencia artificial con voz que responde tu línea 24/7: entiende lo que le piden, agenda sobre tu
-              disponibilidad real y entrega el dato estructurado a tu sistema. Funciona en salud, en servicio técnico y
-              en inmobiliaria, con las reglas de cada una.
+              Una recepcionista con voz que responde tu línea 24/7: agenda citas en la Agenda Upway, confirma con el paciente y captura sus datos de forma correcta la primera vez, para que lleguen ordenados a tu operación y a tu software de salud.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 my-[26px]">
               <a
@@ -670,176 +587,334 @@ export default function Home() {
           </div>
         </section>
 
-        {/* LAS TRES VERTICALES */}
-        <section id="verticales" className="bg-[#f4faff] py-[65px] px-[5%]">
-          <div className="max-w-[1180px] mx-auto text-center">
-            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Elige tu vertical</div>
-            <h2 className="font-display text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold text-[#0d3168]">
-              La misma inteligencia, tres operaciones distintas.
-            </h2>
-            <p className="text-[#55718f] leading-[1.7] max-w-[760px] mx-auto">
-              Sophie es el mismo agente en las tres: entiende, atiende, agenda y entrega el dato. Lo que cambia es el
-              guion, los catálogos y las reglas con las que lo configuras.
-            </p>
-          </div>
-
-          <div className="max-w-[1180px] mx-auto mt-[38px] grid grid-cols-1 lg:grid-cols-3 gap-[18px] items-start">
-            {verticales.map((v) => (
-              <article
-                key={v.id}
-                className={`group flex flex-col bg-white rounded-[22px] overflow-hidden border ${
-                  v.insignia
-                    ? 'border-[#9fc6ee] shadow-[0_18px_44px_#153f6826] lg:-translate-y-2'
-                    : 'border-[#e0edf6] shadow-[0_8px_25px_#153f6810]'
-                } transition hover:-translate-y-1 hover:shadow-[0_16px_40px_#153f6822]`}
-              >
-                {/*
-                  Health ya tiene fotografía. Center e Inmobiliaria todavía no
-                  (todo el material de /public es de salud), así que la tarjeta
-                  cae a un bloque con icono en vez de dejar un hueco roto. Cuando
-                  lleguen las fotos, basta con poner la ruta en `verticales` y
-                  esta rama deja de usarse.
-                */}
-                <div className="relative aspect-[420/210] overflow-hidden bg-[#eaf4fb]">
-                  {v.imagen ? (
-                    <Image
-                      src={v.imagen}
-                      alt={v.nombre}
-                      width={420}
-                      height={210}
-                      quality={90}
-                      sizes="(max-width: 1024px) 92vw, 400px"
-                      className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-                    />
-                  ) : (
-                    <div className="grid h-full w-full place-items-center bg-[linear-gradient(135deg,#0d3168,#0b6a72)]">
-                      <span className="text-center px-6">
-                        <span className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-white/15 text-[#50e1d5]">
-                          {v.id === 'center' ? (
-                            <Headphones className="h-7 w-7" />
-                          ) : (
-                            <HomeIcon className="h-7 w-7" />
-                          )}
-                        </span>
-                        <span className="block text-[11px] font-bold uppercase tracking-[0.1em] text-white/70">
-                          {v.nombre}
-                        </span>
-                      </span>
-                    </div>
-                  )}
-                  {v.insignia && (
-                    <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-[6px] text-[10px] font-black uppercase tracking-[0.08em] text-[#0d3168] shadow">
-                      El más completo
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex flex-1 flex-col p-[24px]">
-                  <h3 className="font-display text-[21px] leading-tight font-extrabold text-[#0d3168] mb-[8px]">
-                    {v.nombre}
-                  </h3>
-                  <p className="text-[13px] font-bold text-[#079fa0] mb-[12px]">{v.claim}</p>
-                  <p className="text-[12px] leading-[1.65] text-[#55718f] mb-[16px]">{v.texto}</p>
-
-                  <ul className="mb-[20px] space-y-[9px]">
-                    {v.puntos.map((p) => (
-                      <li key={p} className="flex items-start gap-2 text-[12px] leading-[1.5] text-[#31547f]">
-                        <span className="mt-[3px] grid h-[15px] w-[15px] shrink-0 place-items-center rounded-full bg-[#e7fbfa] text-[9px] text-[#079fa0]">
-                          ✓
-                        </span>
-                        {p}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <p className="mb-[18px] text-[11px] text-[#7b93ab]">Para: {v.para}</p>
-
-                  <div className="mt-auto flex flex-col gap-2">
-                    <Link
-                      href={v.href}
-                      className={`flex items-center justify-center gap-2 rounded-full px-5 py-3 text-[13px] font-bold transition ${
-                        v.insignia
-                          ? 'bg-[linear-gradient(115deg,#0ba9a9,#0c3775)] text-white shadow-[0_8px_20px_rgba(11,169,169,0.28)] hover:-translate-y-[1px]'
-                          : 'border border-[#0ba9a9] text-[#0d3168] hover:bg-[#e7fbfa]'
-                      }`}
-                    >
-                      Ver {v.nombre}
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
-                    <Link
-                      href={v.loginHref}
-                      className="flex items-center justify-center gap-2 rounded-full border border-[#e0edf6] px-5 py-2.5 text-[12px] font-bold text-[#31547f] transition hover:border-[#9fc6ee]"
-                    >
-                      Ya soy cliente · Entrar
-                    </Link>
-                  </div>
-                </div>
+        {/* DATOS CONFORMES */}
+        <section id="datos" className="max-w-[1180px] mx-[15px] md:mx-auto my-[30px] md:my-[50px] p-[30px] md:p-[55px] rounded-[30px] bg-[linear-gradient(120deg,#0d3168,#0b6a72)] text-white">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-[45px] items-start">
+            <div>
+              <div className="text-[#50e1d5] font-bold text-[13px] mb-[17px]">Captura de identidad conforme</div>
+              <h2 className="font-display text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold">
+                El dato correcto desde el primer contacto.
+              </h2>
+              <p className="leading-[1.6] text-white/85">
+                La mayoría de los rechazos de registros en salud nacen de datos mal tomados: un documento mal digitado, un nombre incompleto, una fecha de nacimiento dudosa. Nuestra recepcionista captura el dato con catálogos oficiales de Colombia (tipo de documento, sexo, municipio), confirma cada dato con el paciente, dígito a dígito cuando es necesario, y deja evidencia trazable de cada corrección.
+              </p>
+              <p className="leading-[1.6] text-white/70 text-[13px] mt-[14px]">
+                Tu institución conserva la responsabilidad de su registro clínico y sus transmisiones; Upway garantiza que el dato capturado en la atención inicial llegue estructurado, validado y auditable.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-[14px]">
+              <article className="rounded-[17px] border border-white/15 bg-white/10 p-[18px]">
+                <h3 className="text-[14px] font-bold mb-[6px]">Catálogos oficiales, nunca texto libre</h3>
+                <p className="text-[12px] leading-[1.55] text-white/75">Tipo de documento, sexo y municipio se validan contra catálogos cerrados. Si un dato no es claro, se vuelve a preguntar: no se adivina.</p>
               </article>
-            ))}
+              <article className="rounded-[17px] border border-white/15 bg-white/10 p-[18px]">
+                <h3 className="text-[14px] font-bold mb-[6px]">Doble confirmación con el paciente</h3>
+                <p className="text-[12px] leading-[1.55] text-white/75">El documento se relee y se confirma dígito a dígito en la llamada. La corrección queda registrada con evidencia.</p>
+              </article>
+              <article className="rounded-[17px] border border-white/15 bg-white/10 p-[18px]">
+                <h3 className="text-[14px] font-bold mb-[6px]">Auditoría con usuario, rol, fecha y hora</h3>
+                <p className="text-[12px] leading-[1.55] text-white/75">Cada acceso y cada corrección quedan trazados, con tratamiento de datos bajo la Ley 1581 y encargo registrado.</p>
+              </article>
+            </div>
           </div>
         </section>
 
-        {/* POR QUÉ UPWAY */}
-        <section id="por-que" className="max-w-[1180px] mx-[15px] md:mx-auto my-[55px] md:my-[80px] px-5">
-          <div className="text-center mb-[32px]">
-            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Por qué Upway</div>
-            <h2 className="font-display text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold text-[#0d3168]">
-              Un solo sistema, no tres productos distintos.
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[15px]">
-            {[
-              {
-                icon: Phone,
-                t: 'La línea nunca queda ocupada',
-                d: 'Cada llamada entrante se atiende, a cualquier hora y en temporada alta. Varias a la vez.',
-              },
-              {
-                icon: CalendarDays,
-                t: 'Menos ausencias, más adherencia',
-                d: 'Confirmación y recordatorios sobre la misma agenda, sin llamadas manuales.',
-              },
-              {
-                icon: RefreshCw,
-                t: 'Procesos más eficientes',
-                d: 'El dato llega estructurado a tu sistema: tu equipo deja de retranscribir.',
-              },
-              {
-                icon: ShieldCheck,
-                t: 'Seguridad y trazabilidad',
-                d: 'Cada acceso y cada corrección con usuario, rol, fecha y hora.',
-              },
-              {
-                icon: Users,
-                t: 'Escalamiento según tu protocolo',
-                d: 'Cuando el caso lo pide, la llamada pasa a tu equipo con el contexto completo.',
-              },
-              {
-                icon: BadgeCheck,
-                t: 'Un solo lugar de trabajo',
-                d: 'Agenda, casos, leads y agente en el mismo panel, sin licencias de terceros.',
-              },
-            ].map(({ t, d, icon: Icon }) => (
-              <article
-                key={t}
-                className="rounded-[17px] border border-[#e0edf6] bg-white p-[22px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee]"
-              >
-                <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">
-                  <Icon className="h-4 w-4" />
-                </span>
-                <h3 className="text-[13px] font-bold mt-[13px] mb-[6px] text-[#0d3168]">{t}</h3>
-                <p className="text-[12px] leading-[1.6] text-[#55718f]">{d}</p>
+        {/* AGENDA UPWAY */}
+        <section id="agenda" className="max-w-[1180px] mx-[15px] md:mx-auto my-[30px] md:my-[50px] p-[30px] md:p-[55px] rounded-[30px] border border-[#e0edf6] bg-white">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.05fr] gap-[45px] items-start">
+            <div>
+              <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Agenda Upway</div>
+              <h2 className="font-display text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold text-[#0d3168]">
+                Una agenda que pertenece a tu operación.
+              </h2>
+              <p className="text-[#55718f] leading-[1.6]">
+                Organiza profesionales, servicios y disponibilidad en un espacio propio. Tu equipo y tu asistente de voz trabajan sobre la misma agenda, sin depender de un calendario personal ni de licencias de terceros.
+              </p>
+              <div className="mt-[26px] rounded-[18px] border border-[#dce9f4] bg-[#f4f9ff] p-[18px]">
+                <div className="flex items-center gap-2 text-[12px] font-bold text-[#0d3168]">
+                  <Sparkles className="h-4 w-4 text-[#0ba9a9]" /> Voz con identidad propia
+                </div>
+                <p className="text-[12px] leading-[1.6] text-[#55718f] mt-[9px]">
+                  Tu institución recibe una voz femenina o masculina de catálogo y define el saludo, el tono y las instrucciones de atención. La personalización con una voz propia se evalúa según compatibilidad técnica y autorización de su titular.
+                </p>
+              </div>
+              <p className="text-[11px] leading-[1.6] text-[#7b93ab] mt-[16px]">
+                Prestamos asistencia administrativa y orientación según los protocolos de la institución. No sustituimos la valoración de un profesional de salud.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[14px]">
+              <article className="rounded-[17px] border border-[#e0edf6] bg-[#f7fbff] p-[18px] transition hover:-translate-y-0.5 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+                <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]"><Users className="h-4 w-4" /></span>
+                <h3 className="text-[13px] font-bold mt-[13px] mb-[6px] text-[#0d3168]">Profesionales y recursos</h3>
+                <p className="text-[11px] leading-[1.5] text-[#55718f]">Organiza quién atiende y dónde, por profesional o consultorio.</p>
               </article>
-            ))}
+              <article className="rounded-[17px] border border-[#e0edf6] bg-[#f7fbff] p-[18px] transition hover:-translate-y-0.5 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+                <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]"><Clock className="h-4 w-4" /></span>
+                <h3 className="text-[13px] font-bold mt-[13px] mb-[6px] text-[#0d3168]">Servicios y horarios</h3>
+                <p className="text-[11px] leading-[1.5] text-[#55718f]">Define la duración de cada servicio y los turnos de atención.</p>
+              </article>
+              <article className="rounded-[17px] border border-[#e0edf6] bg-[#f7fbff] p-[18px] transition hover:-translate-y-0.5 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+                <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]"><Calendar className="h-4 w-4" /></span>
+                <h3 className="text-[13px] font-bold mt-[13px] mb-[6px] text-[#0d3168]">Gestión de citas</h3>
+                <p className="text-[11px] leading-[1.5] text-[#55718f]">Confirma, reprograma o cancela desde el panel operativo.</p>
+              </article>
+              <article className="rounded-[17px] border border-[#e0edf6] bg-[#f7fbff] p-[18px] transition hover:-translate-y-0.5 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+                <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]"><HeartPulse className="h-4 w-4" /></span>
+                <h3 className="text-[13px] font-bold mt-[13px] mb-[6px] text-[#0d3168]">Estados de atención</h3>
+                <p className="text-[11px] leading-[1.5] text-[#55718f]">Identifica pacientes en sala, atendidos y ausencias del día.</p>
+              </article>
+              <article className="rounded-[17px] border border-[#e0edf6] bg-[#f7fbff] p-[18px] transition hover:-translate-y-0.5 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+                <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]"><Bell className="h-4 w-4" /></span>
+                <h3 className="text-[13px] font-bold mt-[13px] mb-[6px] text-[#0d3168]">Lista de espera</h3>
+                <p className="text-[11px] leading-[1.5] text-[#55718f]">Mantén visibles las solicitudes pendientes de cupo.</p>
+              </article>
+              <article className="rounded-[17px] border border-[#e0edf6] bg-[#f7fbff] p-[18px] transition hover:-translate-y-0.5 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+                <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]"><Shield className="h-4 w-4" /></span>
+                <h3 className="text-[13px] font-bold mt-[13px] mb-[6px] text-[#0d3168]">Trazabilidad</h3>
+                <p className="text-[11px] leading-[1.5] text-[#55718f]">Consulta los movimientos registrados en la agenda.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        {/* PANEL DE DATOS AUDITABLES / CONEXIÓN AL HIS */}
+        <section id="panel" className="max-w-[1180px] mx-[15px] md:mx-auto my-[30px] md:my-[50px] p-[30px] md:p-[55px] rounded-[30px] bg-[#f5fbff]">
+          <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.15fr] gap-[45px] items-start">
+            <div>
+              <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Panel de datos auditables</div>
+              <h2 className="font-display text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold text-[#0d3168]">
+                El dato conforme, listo para tu HIS.
+              </h2>
+              <p className="text-[#55718f] leading-[1.6]">
+                La agenda es nuestra, así que todo lo que ocurre en ella queda registrado en un panel que tu institución puede auditar: qué se agendó, quién llamó, qué datos se capturaron y qué se corrigió. Desde ahí la información sale estructurada hacia tu software de salud o tu HIS.
+              </p>
+              <div className="mt-[22px] rounded-[18px] border border-[#dce9f4] bg-white p-[18px]">
+                <div className="flex items-center gap-2 text-[12px] font-bold text-[#0d3168]">
+                  <Database className="h-4 w-4 text-[#0ba9a9]" /> Sin retranscribir
+                </div>
+                <p className="text-[12px] leading-[1.6] text-[#55718f] mt-[9px]">
+                  Tu equipo deja de pasar llamadas a mano al sistema. Cada registro llega con los campos completos, validados contra catálogos oficiales y con su historial de cambios.
+                </p>
+              </div>
+              <p className="text-[11px] leading-[1.6] text-[#7b93ab] mt-[16px]">
+                Upway responde por el dato capturado, validado y auditable que entrega. La historia clínica, la facturación y las transmisiones oficiales siguen a cargo de tu institución.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[14px]">
+              <article className="rounded-[17px] border border-[#e0edf6] bg-white p-[18px] transition hover:-translate-y-0.5 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+                <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]"><ClipboardCheck className="h-4 w-4" /></span>
+                <h3 className="text-[13px] font-bold mt-[13px] mb-[6px] text-[#0d3168]">Historial por cita</h3>
+                <p className="text-[11px] leading-[1.5] text-[#55718f]">Cada cita con su llamada, sus datos y sus correcciones.</p>
+              </article>
+              <article className="rounded-[17px] border border-[#e0edf6] bg-white p-[18px] transition hover:-translate-y-0.5 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+                <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]"><FileText className="h-4 w-4" /></span>
+                <h3 className="text-[13px] font-bold mt-[13px] mb-[6px] text-[#0d3168]">Exportación estructurada</h3>
+                <p className="text-[11px] leading-[1.5] text-[#55718f]">Consolidado descargable para cargar donde ya trabajas.</p>
+              </article>
+              <article className="rounded-[17px] border border-[#e0edf6] bg-white p-[18px] transition hover:-translate-y-0.5 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+                <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]"><RefreshCw className="h-4 w-4" /></span>
+                <h3 className="text-[13px] font-bold mt-[13px] mb-[6px] text-[#0d3168]">Integración con tu sistema</h3>
+                <p className="text-[11px] leading-[1.5] text-[#55718f]">Conecta el flujo a tu software de salud o a tu HIS.</p>
+              </article>
+              <article className="rounded-[17px] border border-[#e0edf6] bg-white p-[18px] transition hover:-translate-y-0.5 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+                <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]"><BadgeCheck className="h-4 w-4" /></span>
+                <h3 className="text-[13px] font-bold mt-[13px] mb-[6px] text-[#0d3168]">Datos conformes</h3>
+                <p className="text-[11px] leading-[1.5] text-[#55718f]">Catálogos oficiales, doble confirmación y evidencia de cada cambio.</p>
+              </article>
+              <article className="rounded-[17px] border border-[#e0edf6] bg-white p-[18px] transition hover:-translate-y-0.5 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+                <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]"><CalendarDays className="h-4 w-4" /></span>
+                <h3 className="text-[13px] font-bold mt-[13px] mb-[6px] text-[#0d3168]">Estados y seguimiento</h3>
+                <p className="text-[11px] leading-[1.5] text-[#55718f]">Confirmadas, atendidas, ausentes y en lista de espera.</p>
+              </article>
+              <article className="rounded-[17px] border border-[#e0edf6] bg-white p-[18px] transition hover:-translate-y-0.5 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+                <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]"><ShieldCheck className="h-4 w-4" /></span>
+                <h3 className="text-[13px] font-bold mt-[13px] mb-[6px] text-[#0d3168]">Auditoría de accesos</h3>
+                <p className="text-[11px] leading-[1.5] text-[#55718f]">Usuario, rol, fecha y hora en cada consulta al dato.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        {/* BENEFICIOS */}
+        <section id="beneficios" className="max-w-[1180px] mx-auto my-[55px] md:my-[80px] grid grid-cols-1 md:grid-cols-[0.7fr_1.3fr] gap-[60px] items-center px-5 md:px-[5%]">
+          <Image
+            src="/atencion-paciente.png"
+            alt="Atención médica centrada en el paciente"
+            width={375}
+            height={285}
+            quality={90}
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 45vw, 470px"
+            className="w-full rounded-[35px] object-cover"
+          />
+          <div>
+            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Beneficios reales para tu institución</div>
+            <h2 className="font-display text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold text-[#0d3168]">
+              Una solución pensada en la salud y en las personas.
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[25px]">
+              <article className="py-[15px]">
+                <b className="text-[#0d3168]">La línea nunca queda ocupada</b>
+                <p className="text-[12px] my-[7px] text-[#55718f]">Cada llamada entrante se atiende, a cualquier hora y en temporada alta.</p>
+              </article>
+              <article className="py-[15px]">
+                <b className="text-[#0d3168]">Menos ausencias, más adherencia</b>
+                <p className="text-[12px] my-[7px] text-[#55718f]">Confirmación y recordatorios sobre la misma agenda, sin llamadas manuales.</p>
+              </article>
+              <article className="py-[15px]">
+                <b className="text-[#0d3168]">Procesos más eficientes</b>
+                <p className="text-[12px] my-[7px] text-[#55718f]">El dato llega estructurado a tu software: tu equipo deja de retranscribir.</p>
+              </article>
+              <article className="py-[15px]">
+                <b className="text-[#0d3168]">Seguridad y trazabilidad</b>
+                <p className="text-[12px] my-[7px] text-[#55718f]">Cada acceso y cada corrección con usuario, rol, fecha y hora.</p>
+              </article>
+              <article className="py-[15px]">
+                <b className="text-[#0d3168]">Escalamiento según tu protocolo</b>
+                <p className="text-[12px] my-[7px] text-[#55718f]">Cuando el caso lo pide, la llamada pasa a tu equipo con el contexto completo.</p>
+              </article>
+              <article className="py-[15px]">
+                <b className="text-[#0d3168]">Una sola agenda</b>
+                <p className="text-[12px] my-[7px] text-[#55718f]">Profesionales, sedes y cupos sobre el mismo sistema, sin licencias de terceros.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        {/* SECTORES */}
+        <section id="sectores" className="bg-[#f4faff] py-[65px] px-[5%] text-center">
+          <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Ideal para</div>
+          <h2 className="font-display text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold text-[#0d3168]">
+            Todos los actores del sistema de salud.
+          </h2>
+          <p className="text-[#55718f] leading-[1.6] mb-[30px]">
+            Una plataforma flexible para diferentes modelos de atención.
+          </p>
+          <div className="max-w-[1180px] mx-auto mb-[20px] flex justify-center">
+            <Link href="/precios" className="inline-flex items-center gap-2 rounded-full border border-[#1b5ed6] bg-[#edf5ff] px-5 py-2 text-[12px] font-bold text-[#1b5ed6] transition hover:bg-[#1b5ed6] hover:text-white">
+              💰 Ver planes y precios →
+            </Link>
+          </div>
+          <div className="max-w-[1180px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-[15px] text-left">
+            <Link href="/login?segment=health" className="block overflow-hidden bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+              <div className="relative -mx-[20px] -mt-[20px] mb-[16px] aspect-[220/140] overflow-hidden bg-[#eaf4fb]">
+                <Image
+                  src="/sectores/clinicas.jpg"
+                  alt="Clínicas atendidas por Upway Health"
+                  width={220}
+                  height={140}
+                  quality={90}
+                  sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 224px"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">✚</span>
+              <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">Clínicas</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Optimiza la atención hospitalaria y la gestión de pacientes.</p>
+              <span className="mt-[14px] inline-flex items-center gap-1 text-[11px] font-bold text-[#0ba9a9]">Comenzar onboarding →</span>
+            </Link>
+            <Link href="/login?segment=health" className="block overflow-hidden bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+              <div className="relative -mx-[20px] -mt-[20px] mb-[16px] aspect-[220/140] overflow-hidden bg-[#eaf4fb]">
+                <Image
+                  src="/sectores/ips.jpg"
+                  alt="IPS atendidas por Upway Health"
+                  width={220}
+                  height={140}
+                  quality={90}
+                  sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 224px"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">♧</span>
+              <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">IPS</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Mejora la operación y comunicación con tu población.</p>
+              <span className="mt-[14px] inline-flex items-center gap-1 text-[11px] font-bold text-[#0ba9a9]">Comenzar onboarding →</span>
+            </Link>
+            <Link href="/login?segment=health" className="block overflow-hidden bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+              <div className="relative -mx-[20px] -mt-[20px] mb-[16px] aspect-[220/140] overflow-hidden bg-[#eaf4fb]">
+                <Image
+                  src="/sectores/eps.jpg"
+                  alt="EPS atendidas por Upway Health"
+                  width={220}
+                  height={140}
+                  quality={90}
+                  sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 224px"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">▣</span>
+              <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">EPS</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Fortalece el acceso, seguimiento y trazabilidad.</p>
+              <span className="mt-[14px] inline-flex items-center gap-1 text-[11px] font-bold text-[#0ba9a9]">Comenzar onboarding →</span>
+            </Link>
+            <Link href="/login?segment=health" className="block overflow-hidden bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+              <div className="relative -mx-[20px] -mt-[20px] mb-[16px] aspect-[220/140] overflow-hidden bg-[#eaf4fb]">
+                <Image
+                  src="/sectores/centros-de-salud.jpg"
+                  alt="Centros de salud atendidos por Upway Health"
+                  width={220}
+                  height={140}
+                  quality={90}
+                  sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 224px"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">◫</span>
+              <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">Centros de salud</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Simplifica citas y coordinación.</p>
+              <span className="mt-[14px] inline-flex items-center gap-1 text-[11px] font-bold text-[#0ba9a9]">Comenzar onboarding →</span>
+            </Link>
+            <Link href="/login?segment=health" className="block overflow-hidden bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
+              <div className="relative -mx-[20px] -mt-[20px] mb-[16px] aspect-[220/140] overflow-hidden bg-[#eaf4fb]">
+                <Image
+                  src="/sectores/consultorios.jpg"
+                  alt="Consultorios atendidos por Upway Health"
+                  width={220}
+                  height={140}
+                  quality={90}
+                  sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 224px"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">◉</span>
+              <h3 className="text-[14px] font-bold my-[15px] mb-[7px] text-[#0d3168]">Consultorios</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Lleva tu práctica médica al siguiente nivel.</p>
+              <span className="mt-[14px] inline-flex items-center gap-1 text-[11px] font-bold text-[#0ba9a9]">Comenzar onboarding →</span>
+            </Link>
+          </div>
+        </section>
+
+        {/* CONFIANZA REGULATORIA */}
+        <section className="max-w-[1180px] mx-[15px] md:mx-auto my-[30px] md:my-[50px] p-[26px] md:p-[36px] rounded-[24px] border border-[#e0edf6] bg-[#f7fbff]">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-[18px] text-[#0d3168]">
+            <div>
+              <span className="block text-[18px] mb-1 text-[#079fa0]">◈</span>
+              <h3 className="text-[13px] font-bold mb-[4px]">Ley 1581 de 2012</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Tratamiento de datos personales con política pública y registro ante la SIC.</p>
+            </div>
+            <div>
+              <span className="block text-[18px] mb-1 text-[#079fa0]">▣</span>
+              <h3 className="text-[13px] font-bold mb-[4px]">Contrato de encargo</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Cada institución firma un encargo de tratamiento antes de activar la captura de datos.</p>
+            </div>
+            <div>
+              <span className="block text-[18px] mb-1 text-[#079fa0]">◉</span>
+              <h3 className="text-[13px] font-bold mb-[4px]">Auditoría de accesos</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Usuario, rol, fecha y hora registrados en cada acceso a información de pacientes.</p>
+            </div>
+            <div>
+              <span className="block text-[18px] mb-1 text-[#079fa0]">◇</span>
+              <h3 className="text-[13px] font-bold mb-[4px]">Frontera clínica clara</h3>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">Asistencia administrativa según los protocolos de la institución. No sustituimos la valoración médica.</p>
+            </div>
           </div>
         </section>
 
         {/* CTA CONTACTO */}
         <section id="contacto" className="py-[48px] px-5 md:px-[8%] flex flex-col md:flex-row items-center justify-between bg-[linear-gradient(110deg,#103d79,#0b858d)] text-white gap-8">
           <div>
-            <small className="text-[13px] text-[#50e1d5] font-semibold block mb-2">Empieza por tu vertical</small>
+            <small className="text-[13px] text-[#50e1d5] font-semibold block mb-2">Transforma la atención en salud hoy</small>
             <h2 className="font-display text-[28px] max-w-[650px] m-0 font-extrabold leading-[1.2]">
-              Tu operación merece una <em className="not-italic text-[#50e1d5]">comunicación más inteligente.</em>
+              Tu institución merece una <em className="not-italic text-[#50e1d5]">comunicación más inteligente.</em>
             </h2>
           </div>
           <form
@@ -850,19 +925,19 @@ export default function Home() {
               const nombre = String(data.get('nombre') ?? '').trim();
               const institucion = String(data.get('institucion') ?? '').trim();
               const telefono = String(data.get('telefono') ?? '').trim();
-              const subject = `Solicitud de demo Upway — ${institucion || nombre || 'Nueva solicitud'}`;
+              const subject = `Solicitud de demo Upway Health — ${institucion || nombre || 'Nueva solicitud'}`;
               const body = [
                 `Nombre: ${nombre}`,
-                `Institución/Empresa: ${institucion}`,
+                `Institución: ${institucion}`,
                 `Teléfono: ${telefono}`,
                 '',
-                'Solicito una demo de Upway.',
+                'Solicito una demo de Upway Health.',
               ].join('\n');
               window.location.href = `mailto:contacto@upway.business?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
             }}
           >
             <input name="nombre" required placeholder="Tu nombre" className="rounded-full px-4 py-2.5 text-[13px] text-[#0d3168] bg-white/95 border border-white/40 placeholder:text-[#7b93ab] outline-none focus:ring-2 focus:ring-[#50e1d5]" />
-            <input name="institucion" placeholder="Institución, empresa o agencia" className="rounded-full px-4 py-2.5 text-[13px] text-[#0d3168] bg-white/95 border border-white/40 placeholder:text-[#7b93ab] outline-none focus:ring-2 focus:ring-[#50e1d5]" />
+            <input name="institucion" placeholder="Institución o consultorio" className="rounded-full px-4 py-2.5 text-[13px] text-[#0d3168] bg-white/95 border border-white/40 placeholder:text-[#7b93ab] outline-none focus:ring-2 focus:ring-[#50e1d5]" />
             <input name="telefono" required inputMode="tel" placeholder="Teléfono de contacto" className="rounded-full px-4 py-2.5 text-[13px] text-[#0d3168] bg-white/95 border border-white/40 placeholder:text-[#7b93ab] outline-none focus:ring-2 focus:ring-[#50e1d5]" />
             <button type="submit" className="rounded-full font-bold text-[13px] bg-white text-[#123e77] hover:bg-slate-100 transition px-[23px] py-[14px]">
               Solicita una demo gratuita →
