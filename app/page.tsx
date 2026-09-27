@@ -76,11 +76,11 @@ const capacidad = [
    onboarding, caso y panel. Igualar las tres visualmente daría a entender que
    los tres productos maduran igual, y no es el caso.
 
-   `imagen` de Center e Inmobiliaria es un marcador: las fotografías con el mismo
-   estilo que las de Health todavía no existen (todo lo que hay en /public es de
-   salud), así que se dejan preparadas como `null` y se sustituyen cuando
-   lleguen. Mientras tanto la tarjeta cae a un treatment con icono para que no
-   se vea un hueco. */
+   `imagen` ya está en las tres verticales. Health usa el recorte de la pieza
+   de marca que habla de salud; Center usa el recorte de la misma pieza (la
+   mitad de call center) e Inmobiliaria su propia pieza. La tarjeta cae a un
+   treatment con icono SOLO si el archivo no llega a cargarse, para que un 404
+   en /public nunca se vea como una tarjeta rota. */
 const verticales = [
   {
     id: 'health',
@@ -92,7 +92,7 @@ const verticales = [
     loginHref: '/login?segment=health',
     para: 'Clínicas · IPS · EPS · Centros de salud · Consultorios',
     insignia: true,
-    imagen: '/sectores/actores-salud.jpg',
+    imagen: '/verticales/salud.jpg',
     puntos: [
       'Agenda con profesionales, servicios y lista de espera',
       'Captura conforme con doble confirmación dígito a dígito',
@@ -110,7 +110,7 @@ const verticales = [
     loginHref: '/login?segment=center',
     para: 'Servicios técnicos · Call centers · Soporte · EMEA',
     insignia: false,
-    imagen: null,
+    imagen: '/verticales/center.jpg',
     puntos: [
       'Diagnóstico guiado con el guion de tu producto',
       'Seguimiento del caso hasta resolverlo',
@@ -128,7 +128,7 @@ const verticales = [
     loginHref: '/login?segment=inmobiliaria',
     para: 'Agencias · Inmobiliarias · Constructoras',
     insignia: false,
-    imagen: null,
+    imagen: '/verticales/inmobiliaria.jpg',
     puntos: [
       'Calificación del interés con tus criterios',
       'Agenda de visitas con confirmación automática',
@@ -145,6 +145,7 @@ export default function Home() {
   const [heroVideoReady, setHeroVideoReady] = useState(false);
   const [heroVideoLoaded, setHeroVideoLoaded] = useState(false);
   const [splashVideoLoaded, setSplashVideoLoaded] = useState(false);
+  const [imagenesCaidas, setImagenesCaidas] = useState<Record<string, boolean>>({});
   const heroVideoRef = useRef<HTMLVideoElement | null>(null);
 
   // Apaga el splash en pantallas grandes (>= 768px)
@@ -586,9 +587,14 @@ export default function Home() {
           </div>
         </section>
 
-        {/* HERO — la portada es de Upway, no de una vertical */}
-        <section id="inicio" className="max-w-[1280px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 pt-[45px] md:pt-[70px] pb-[55px] px-5 md:px-[5%] items-center bg-[radial-gradient(circle_at_80%_30%,_#e8fbfa,_transparent_40%)]">
-          <div className="flex flex-col">
+        {/* HERO — la portada es de Upway, no de una vertical.
+            Sin fotografía de una vertical: la portada es común a las tres y una
+            foto de sector haría que el primer pantallazo respondiera "¿tu
+            operación es salud?", dejando a las otras dos como apéndice. El peso
+            visual del hero lo carga el titular y el bloque de dolor/cura que va
+            justo antes de las tarjetas. */}
+        <section id="inicio" className="max-w-[900px] mx-auto pt-[45px] md:pt-[70px] pb-[35px] px-5 text-center bg-[radial-gradient(circle_at_50%_0%,_#e8fbfa,_transparent_55%)]">
+          <div className="flex flex-col items-center">
             <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">♥ &nbsp; La línea de atención de tu negocio, con IA</div>
             <h1 className="font-display text-[35px] md:text-[52px] leading-[1.06] tracking-[-2px] md:tracking-[-2.6px] m-0 mb-[22px] font-extrabold">
               Atiende, agenda y confirma con quien te llama.<br />
@@ -611,31 +617,11 @@ export default function Home() {
                 Descubre cómo funciona
               </a>
             </div>
-            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-[20px] text-[#315982] text-[10px] font-semibold uppercase tracking-wide mt-2">
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-[20px] text-[#315982] text-[10px] font-semibold uppercase tracking-wide mt-2">
               <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Phone className="h-3.5 w-3.5" /> Voz IA 24/7</span>
               <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Calendar className="h-3.5 w-3.5" /> Agenda propia</span>
               <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Shield className="h-3.5 w-3.5" /> Datos correctos la primera vez</span>
               <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Users className="h-3.5 w-3.5" /> Trazabilidad completa</span>
-            </div>
-          </div>
-          <div className="relative mt-8 md:mt-0">
-            <Image
-              src="/hero-doctora.png"
-              alt="Profesional de salud usando tecnología"
-              width={490}
-              height={390}
-              preload
-              quality={90}
-              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 46vw, 600px"
-              className="w-full rounded-[34px] block shadow-[0_0_0_2px_rgba(11,169,169,0.12),0_30px_90px_rgba(11,169,169,0.30)] health-glow-breath object-cover"
-            />
-            <div className="absolute left-2 md:-left-[35px] top-[40px] md:top-[65px] bg-white border border-[#e2edf5] rounded-[15px] p-[13px_17px] shadow-[0_12px_35px_#173e6820] text-[11px] leading-tight">
-              ◉ <b className="font-bold">Recordatorio de cita</b>
-              <br />
-              <small className="text-gray-500 text-[10px]">Cita confirmada para mañana</small>
-            </div>
-            <div className="absolute -right-2 md:-right-[18px] bottom-[20px] md:bottom-[30px] bg-white border border-[#e2edf5] rounded-[15px] p-[13px_17px] shadow-[0_12px_35px_#173e6820] text-[11px] text-[#087c7d] font-medium">
-              ✓ <b className="font-bold">Pacientes más satisfechos</b>
             </div>
           </div>
         </section>
@@ -670,6 +656,76 @@ export default function Home() {
           </div>
         </section>
 
+        {/* DOLOR Y CURA — el poder de Upway, en cualquier vertical.
+            Va justo antes de las tarjetas a propósito: primero el visitante
+            entiende qué dolor se le quita, y después elige por dónde empezar.
+            El texto es deliberadamente COMÚN a las tres verticales (no dice
+            "paciente" ni "cita"): el detalle clínico vive en /salud y el
+            comercial en cada landing. */}
+        <section id="dolor-y-cura" className="max-w-[1180px] mx-[15px] md:mx-auto mb-[20px] px-5">
+          <div className="rounded-[30px] overflow-hidden border border-[#d9e9f6] bg-white shadow-[0_24px_60px_rgba(15,31,54,0.10)]">
+            <div className="grid grid-cols-1 lg:grid-cols-2">
+              {/* EL DOLOR */}
+              <div className="p-[30px] md:p-[44px] bg-[#f7f9fc]">
+                <div className="inline-flex items-center gap-2 rounded-full bg-white border border-[#e3eaf2] px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#8a5a5a]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#d98a8a]" />
+                  Lo que hoy te cuesta
+                </div>
+                <h3 className="font-display text-[23px] md:text-[27px] leading-[1.18] font-extrabold text-[#0d3168] mt-[16px] mb-[8px]">
+                  El dolor no es la tecnología. Es lo que pasa cuando nadie atiende.
+                </h3>
+                <ul className="mt-[22px] space-y-[14px]">
+                  {[
+                    'La línea suena y nadie contesta: se va la venta, la cita o el soporte.',
+                    'La agenda se llena sola, pero con ausencias y cruces de horario.',
+                    'El dato queda en papel, en WhatsApp o en la cabeza de alguien.',
+                    'Cada respuesta es un comercial interrumpido en lo que sí sabe hacer.',
+                    'No hay forma de saber qué pasó, ni quién lo atendió, ni cuándo.',
+                  ].map((d) => (
+                    <li key={d} className="flex items-start gap-[11px] text-[13px] leading-[1.6] text-[#5b6f86]">
+                      <span className="mt-[5px] grid h-[16px] w-[16px] shrink-0 place-items-center rounded-full bg-[#fbeaea] text-[10px] font-black text-[#c96a6a]">
+                        ✕
+                      </span>
+                      {d}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* LA CURA */}
+              <div className="p-[30px] md:p-[44px] bg-[linear-gradient(150deg,#0c3775_0%,#0b6a72_58%,#0ba9a9_100%)] text-white">
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white/90">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#7ef0d8]" />
+                  Lo que Upway cambia
+                </div>
+                <h3 className="font-display text-[23px] md:text-[27px] leading-[1.18] font-extrabold mt-[16px] mb-[8px]">
+                  Sophie contesta, agenda y deja el dato listo para tu sistema.
+                </h3>
+                <ul className="mt-[22px] space-y-[14px]">
+                  {[
+                    'La línea se atiende 24/7, con voz natural y sin guion fijo: siempre hay alguien.',
+                    'La cita se aparta mientras habla y se confirma sola: menos ausencias.',
+                    'El dato llega estructurado y validado a tu sistema, sin retranscribir.',
+                    'Tu equipo solo entra cuando el caso lo pide, con todo el contexto arriba.',
+                    'Cada llamada queda con usuario, rol, fecha y hora: se puede auditar.',
+                  ].map((c) => (
+                    <li key={c} className="flex items-start gap-[11px] text-[13px] leading-[1.6] text-white/90">
+                      <span className="mt-[5px] grid h-[16px] w-[16px] shrink-0 place-items-center rounded-full bg-white/20 text-[9px] font-black text-white">
+                        ✓
+                      </span>
+                      {c}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-[26px] pt-[20px] border-t border-white/15 text-[12px] leading-[1.6] text-white/75">
+                  Y esto se activa en las tres verticales con las reglas de cada una: el mismo agente, distinta
+                  configuración.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* LAS TRES VERTICALES */}
         <section id="verticales" className="bg-[#f4faff] py-[65px] px-[5%]">
           <div className="max-w-[1180px] mx-auto text-center">
@@ -693,15 +749,12 @@ export default function Home() {
                     : 'border-[#e0edf6] shadow-[0_8px_25px_#153f6810]'
                 } transition hover:-translate-y-1 hover:shadow-[0_16px_40px_#153f6822]`}
               >
-                {/*
-                  Health ya tiene fotografía. Center e Inmobiliaria todavía no
-                  (todo el material de /public es de salud), así que la tarjeta
-                  cae a un bloque con icono en vez de dejar un hueco roto. Cuando
-                  lleguen las fotos, basta con poner la ruta en `verticales` y
-                  esta rama deja de usarse.
-                */}
+                {/* Las tres verticales ya tienen fotografía. El fallback con
+                    icono no es decorativo: si un archivo se pierde en un
+                    despliegue, la tarjeta cae al treatment en vez de quedar
+                    con el ícono de imagen rota. */}
                 <div className="relative aspect-[420/210] overflow-hidden bg-[#eaf4fb]">
-                  {v.imagen ? (
+                  {v.imagen && !imagenesCaidas[v.id] ? (
                     <Image
                       src={v.imagen}
                       alt={v.nombre}
@@ -709,6 +762,7 @@ export default function Home() {
                       height={210}
                       quality={90}
                       sizes="(max-width: 1024px) 92vw, 400px"
+                      onError={() => setImagenesCaidas((prev) => ({ ...prev, [v.id]: true }))}
                       className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                     />
                   ) : (

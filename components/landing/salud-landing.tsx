@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MessageCircle, Phone, Sparkles, Calendar, Bell, HeartPulse, Users, Clock, Shield, ShieldCheck, Database, FileText, RefreshCw, ClipboardCheck, BadgeCheck, CalendarDays } from 'lucide-react';
@@ -53,63 +53,16 @@ const capacidad = [
 export default function Home() {
   const [showSplash, setShowSplash] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [heroVideoReady, setHeroVideoReady] = useState(false);
-  const [heroVideoLoaded, setHeroVideoLoaded] = useState(false);
   const [splashVideoLoaded, setSplashVideoLoaded] = useState(false);
-  const heroVideoRef = useRef<HTMLVideoElement | null>(null);
 
   // Apaga el splash en pantallas grandes (>= 768px)
   const shouldSkipSplash = typeof window !== 'undefined' && window.innerWidth >= 768;
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const mediaQuery = window.matchMedia('(max-width: 767px)');
-    const updateBreakpoint = () => setIsMobile(mediaQuery.matches);
-
-    if (mediaQuery.matches !== isMobile) {
-      const id = requestAnimationFrame(() => setIsMobile(mediaQuery.matches));
-      return () => cancelAnimationFrame(id);
-    }
-
-    if (typeof mediaQuery.addEventListener === 'function') {
-      mediaQuery.addEventListener('change', updateBreakpoint);
-      return () => mediaQuery.removeEventListener('change', updateBreakpoint);
-    }
-
-    mediaQuery.addListener(updateBreakpoint);
-    return () => mediaQuery.removeListener(updateBreakpoint);
-  }, [isMobile]);
 
   useEffect(() => {
     if (!shouldSkipSplash) return;
     const id = requestAnimationFrame(() => setShowSplash(false));
     return () => cancelAnimationFrame(id);
   }, [shouldSkipSplash]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !heroVideoRef.current) return;
-
-    if (!('IntersectionObserver' in window)) {
-      const id = requestAnimationFrame(() => setHeroVideoReady(true));
-      return () => cancelAnimationFrame(id);
-    }
-
-    const video = heroVideoRef.current;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          setHeroVideoReady(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: '250px 0px' }
-    );
-
-    observer.observe(video);
-    return () => observer.disconnect();
-  }, []);
 
   /**
    * Scroll reveal premium: anima cada sección al entrar en viewport.
@@ -312,64 +265,12 @@ export default function Home() {
           </div>
         </header>
 
-        {/* SECCIÓN SOPHIE V2 + VIDEO EN VIVO */}
+        {/* SOPHIE V2 — LA AGENTE DE VOZ (sin video: pesa y la vertical ya tiene
+            suficiente prueba visual en su propio hero y en los bloques de
+            datos; el video vive en la portada raíz, que es donde se presenta
+            el producto por primera vez). */}
         <section className="bg-[linear-gradient(180deg,#f7fbff_0%,#eef5ff_100%)] py-20 px-5 md:px-[5%] border-y border-[#e2edf5]">
           <div className="max-w-7xl mx-auto">
-            {/* VIDEO CINEMATOGRÁFICO DE SOPHIE V2
-                Móvil: servimos `sophie-mobile.mp4` (H.264 720p, ~1.1MB, con
-                decodificación por hardware en cualquier celular) en lugar del
-                master VP9 4K de 6.9MB, que obligaba a decodificar 3830x2160
-                en software y trababa el scroll. El `poster` se pinta al
-                instante, así el bloque nunca aparece vacío ni desplaza el
-                contenido al cargar. */}
-            <div className="relative mb-14 overflow-hidden rounded-[24px] border border-[#e2edf5] bg-white shadow-[0_30px_80px_rgba(15,31,54,0.10)] md:rounded-[32px]">
-              <div className="relative aspect-video w-full overflow-hidden rounded-t-[24px] md:aspect-auto md:h-[500px] md:rounded-[32px] lg:h-[560px]">
-                <video
-                  ref={heroVideoRef}
-                  src={heroVideoReady ? (isMobile ? '/sophie-mobile.mp4' : '/sophie-optimizada.webm') : undefined}
-                  poster="/sophie-poster.jpg"
-                  autoPlay={heroVideoReady}
-                  loop
-                  muted
-                  playsInline
-                  preload="metadata"
-                  onLoadedData={() => setHeroVideoLoaded(true)}
-                  disablePictureInPicture
-                  controlsList="nodownload nofullscreen"
-                  className={`h-full w-full object-cover object-center transition-opacity duration-300 ${
-                    heroVideoLoaded || isMobile ? 'opacity-100' : 'opacity-0'
-                  }`}
-                />
-                <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-t from-white/25 via-transparent to-white/5 md:block"></div>
-              </div>
-
-              <div className="relative z-10 flex flex-col justify-between gap-4 border-t border-[#e2edf5] bg-white/90 p-4 backdrop-blur-md sm:p-6 md:absolute md:bottom-6 md:left-6 md:right-6 md:flex-row md:items-end md:gap-6 md:rounded-[20px] md:border md:border-white/70 md:bg-white/85 md:p-5 md:shadow-[0_18px_50px_rgba(15,31,54,0.16)]">
-                <div className="max-w-2xl space-y-2 sm:space-y-3">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-[#bfe9e6] bg-[#e7fbfa] px-3 py-1 text-[11px] font-bold text-[#0d8a88]">
-                    <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#0ba9a9] opacity-75" />
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-[#079fa0]" />
-                    </span>
-                    Sophie v2 • Atención de voz en vivo
-                  </div>
-                  <h2 className="font-display text-xl font-extrabold leading-tight tracking-tight text-[#0d3168] sm:text-2xl md:text-4xl">
-                    Atención y priorización en vivo <span className="text-[#0ba9a9]">24/7</span>
-                  </h2>
-                  <p className="text-xs font-medium leading-relaxed text-[#55718f] sm:text-sm md:text-base">
-                    Atendiendo llamadas con priorización asistida por los protocolos de tu institución y agendamiento en tiempo real sobre nuestra propia agenda: sin Google Calendar, sin Calendly y sin licencias de terceros.
-                  </p>
-                </div>
-                <div className="flex shrink-0 gap-2 pt-2 sm:pt-0">
-                  <a
-                    href="tel:+573126427856"
-                    className="btn-glow-primary inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 sm:w-auto sm:px-7 sm:py-3.5"
-                  >
-                    <Phone className="h-4 w-4" /> Hablar con un asesor
-                  </a>
-                </div>
-              </div>
-            </div>
-
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
               <div className="lg:col-span-6 space-y-6">
                 <div className="inline-flex items-center gap-2 rounded-full border border-[#bfe9e6] bg-[#e7fbfa] px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#0d8a88] shadow-sm">
