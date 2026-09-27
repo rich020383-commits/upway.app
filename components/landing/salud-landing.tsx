@@ -1,11 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MessageCircle, Phone, Sparkles, Calendar, Bell, HeartPulse, Users, Clock, Shield, ShieldCheck, Database, FileText, RefreshCw, ClipboardCheck, BadgeCheck, CalendarDays } from 'lucide-react';
 import Footer from '@/components/Footer';
 import SophieChatButton from '@/components/sophie-chat-button';
+
+/* El logo animado es el splash de arranque de la app, no un adorno de la
+   página: se marca en sessionStorage para que solo aparezca al iniciar. La `v1`
+   permite invalidar la preferencia si algún día cambia el video. */
+const SPLASH_KEY = 'upway:splash:v1';
 
 const UpwayLogo = ({ className = '' }: { className?: string }) => (
   <div className={`inline-flex items-center px-4 py-2 rounded-2xl bg-black shadow-lg overflow-hidden ${className}`}>
@@ -55,14 +60,54 @@ export default function Home() {
   const [fadeOut, setFadeOut] = useState(false);
   const [splashVideoLoaded, setSplashVideoLoaded] = useState(false);
 
-  // Apaga el splash en pantallas grandes (>= 768px)
-  const shouldSkipSplash = typeof window !== 'undefined' && window.innerWidth >= 768;
+  /* El logo animado es un splash de ARRANQUE, no un adorno de la página. Antes
+     `showSplash` arrancaba en `true`, así que /salud lo repetía en CADA visita
+     y en cada montaje del componente: cinco segundos de video para alguien que
+     solo navega. Ahora se decide una vez por sesión.
 
+     Se lee con useSyncExternalStore y no con useState + useEffect porque
+     sessionStorage solo existe en el cliente. El tercer argumento
+     (getServerSnapshot) es lo que React usa durante la hidratación, así que
+     servidor y cliente arrancan de acuerdo en "ya visto" y no hay mismatch; en
+     el primer render no se pinta nada y React resuelve el valor real en la
+     misma pasada. Con un useEffect la respuesta llegaría un render más tarde y
+     en una visita de retorno se vería un destello de pantalla negra.
+  */
+  const yaVistoElSplash = useSyncExternalStore(
+    // No hay nada que escuchar: la decisión se toma una vez al abrir la página.
+    () => () => {},
+    () => {
+      // En escritorio el splash nunca se ha mostrado (se corta en >= 768px).
+      if (window.innerWidth >= 768) return true;
+      try {
+        return window.sessionStorage.getItem(SPLASH_KEY) === '1';
+      } catch {
+        // Sin sessionStorage (modo privado, cookies bloqueadas) se muestra.
+        return false;
+      }
+    },
+    // Servidor e hidratación: siempre "ya visto", o sea, no se pinta nada.
+    () => true
+  );
+
+  // Marca la sesión. Va en un efecto y no dentro de getSnapshot porque
+  // getSnapshot tiene que ser puro: escribir ahí puede dispararse dos veces.
   useEffect(() => {
-    if (!shouldSkipSplash) return;
-    const id = requestAnimationFrame(() => setShowSplash(false));
-    return () => cancelAnimationFrame(id);
-  }, [shouldSkipSplash]);
+    if (yaVistoElSplash) return;
+    try {
+      window.sessionStorage.setItem(SPLASH_KEY, '1');
+    } catch {
+      /* si no se puede guardar, se repetirá la próxima vez: no es grave */
+    }
+  }, [yaVistoElSplash]);
+
+  /**
+   * Si el splash está en pantalla. Los efectos de bloqueo de scroll y de fondo
+   * negro dependen de ESTE valor y no de `showSplash`: si dependieran de
+   * `showSplash` seguirían bloqueando la página los cinco segundos completos
+   * en cada visita, con la pantalla ya oculta y el fondo en negro.
+   */
+  const splashActivo = !yaVistoElSplash && showSplash;
 
   /**
    * Scroll reveal premium: anima cada sección al entrar en viewport.
@@ -108,7 +153,7 @@ export default function Home() {
    * desplazamiento de la página por el borde inferior del celular.
    */
   useEffect(() => {
-    if (!showSplash || typeof document === 'undefined') return;
+    if (!splashActivo || typeof document === 'undefined') return;
 
     const html = document.documentElement;
     const body = document.body;
@@ -122,7 +167,7 @@ export default function Home() {
       html.style.overflow = prevHtmlOverflow;
       body.style.overflow = prevBodyOverflow;
     };
-  }, [showSplash]);
+  }, [splashActivo]);
 
   /**
    * 🖤 Blindaje anti-línea-blanca: mientras el splash está visible, el
@@ -133,7 +178,7 @@ export default function Home() {
    * y manda la clase del theme).
    */
   useEffect(() => {
-    if (!showSplash || typeof document === 'undefined') return;
+    if (!splashActivo || typeof document === 'undefined') return;
     const html = document.documentElement;
     const body = document.body;
     const prevHtml = html.style.backgroundColor;
@@ -144,7 +189,7 @@ export default function Home() {
       html.style.backgroundColor = prevHtml;
       body.style.backgroundColor = prevBody;
     };
-  }, [showSplash]);
+  }, [splashActivo]);
 
   /**
    * ⏱️ Red de seguridad del splash: si el video no dispara `onEnded`
@@ -152,7 +197,7 @@ export default function Home() {
    * la pantalla se cierra igual. Nadie se queda en negro.
    */
   useEffect(() => {
-    if (!showSplash || shouldSkipSplash) return;
+    if (!splashActivo) return;
 
     const id = window.setTimeout(() => {
       setFadeOut(true);
@@ -160,7 +205,7 @@ export default function Home() {
     }, 5000);
 
     return () => window.clearTimeout(id);
-  }, [showSplash, shouldSkipSplash]);
+  }, [splashActivo]);
 
   const handleVideoEnd = () => {
     setFadeOut(true);
@@ -177,7 +222,7 @@ export default function Home() {
           colapsarse la barra al deslizar, aparecía un desplazamiento de la
           página por el borde inferior. El `style` inline deja el fallback a
           `h-screen` (100vh) en navegadores que aún no entienden dvh. */}
-      {showSplash && (
+      {splashActivo && (
         <div
           style={{
             // +2mm por cada lado: sella la costura de sub-píxel entre el

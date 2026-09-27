@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { MessageCircle, Phone, Sparkles, Calendar, Bell, Users, Shield, ShieldCheck, Database, RefreshCw, ClipboardCheck, BadgeCheck, CalendarDays, ArrowRight, Headphones, Home as HomeIcon } from 'lucide-react';
+import { MessageCircle, Phone, Sparkles, Calendar, Bell, Users, Shield, ShieldCheck, RefreshCw, ClipboardCheck, BadgeCheck, CalendarDays, ArrowRight, Headphones, Home as HomeIcon } from 'lucide-react';
 import Footer from '@/components/Footer';
 import SophieChatButton from '@/components/sophie-chat-button';
 
@@ -13,15 +13,21 @@ const UpwayLogo = ({ className = '' }: { className?: string }) => (
   </div>
 );
 
-/* Capacidad operativa: lo que Sophie sostiene en la operación diaria.
-   Deliberadamente acotado a lo administrativo — atención, registro, agenda,
-   confirmación, escalamiento y entrega del dato. La valoración clínica y las
+/* Capacidad operativa: el flujo de una línea de atención, de la llamada al
+   escalamiento. Deliberadamente acotado a lo administrativo — atención,
+   registro, agenda, confirmación y escalamiento. La valoración clínica y las
    decisiones de salud NO entran aquí: siguen en el equipo profesional.
 
    Este bloque es COMÚN a las tres verticales, así que el texto evita nombrar un
    sector concreto. Antes decía "paciente" y "software de salud", lo que hacía que
    la raíz respondiera "¿tu operación es salud?" en el primer pantallazo y dejara
-   a Center e Inmobiliaria como apéndice de una página de salud. */
+   a Center e Inmobiliaria como apéndice de una página de salud.
+
+   Son SEIS, no nueve. Eran nueve tarjetas (tres filas) y las tres últimas
+   repetían en otra forma lo que ya dicen el bloque de dolor/cura y las
+   verticales. "Entrega del dato" y "Lo puedes auditar" siguen siendo
+   diferenciadores reales — sobre todo en salud: si se quieren recuperar, esas
+   dos son las que vuelven primero. */
 const capacidad = [
   {
     title: 'Atiende la línea',
@@ -53,21 +59,6 @@ const capacidad = [
     text: 'Cuando el caso lo pide, pasa la llamada a tu personal con el contexto y los datos ya capturados, según el protocolo que definas.',
     icon: Users,
   },
-  {
-    title: 'Entrega el dato',
-    text: 'Cada atención sale estructurada, validada y auditable hacia tu sistema. Tu equipo deja de retranscribir.',
-    icon: Database,
-  },
-  {
-    title: 'Lo puedes auditar',
-    text: 'Usuario, rol, fecha y hora en cada consulta. El agente no improvisa respuestas que no estén en lo que le definiste.',
-    icon: ShieldCheck,
-  },
-  {
-    title: 'Aprende de tu operación',
-    text: 'Tus catálogos, tus reglas, tu tono. Cada vertical queda con el conocimiento de tu negocio, no con un modelo genérico.',
-    icon: RefreshCw,
-  },
 ];
 
 /* Las tres verticales. Health va primero y es la tarjeta insignia: es el
@@ -76,65 +67,41 @@ const capacidad = [
    onboarding, caso y panel. Igualar las tres visualmente daría a entender que
    los tres productos maduran igual, y no es el caso.
 
-   `imagen` ya está en las tres verticales. Health usa el recorte de la pieza
-   de marca que habla de salud; Center usa el recorte de la misma pieza (la
-   mitad de call center) e Inmobiliaria su propia pieza. La tarjeta cae a un
+   LA TARJETA ES LA IMAGEN. Los recortes son piezas de marca que ya llevan
+   nombre, propuesta y contenido, así que en la tarjeta solo va la imagen con
+   los botones encima. Antes la imagen se metía en una caja 2:1 arriba de un
+   bloque blanco con nombre, claim, párrafo, cuatro viñetas y "Para: ...": la
+   foto quedaba apretada y el mismo mensaje se leía dos veces, en dos
+   tamaños. Por eso el arreglo ya no guarda `claim`, `texto`, `puntos` ni
+   `para`: viven en el arte, que es donde se leen mejor.
+
+   La tarjeta cae a un
    treatment con icono SOLO si el archivo no llega a cargarse, para que un 404
    en /public nunca se vea como una tarjeta rota. */
 const verticales = [
   {
     id: 'health',
     nombre: 'Upway Health',
-    claim: 'La línea de atención de tu institución, de punta a punta.',
-    texto:
-      'Recepción, agenda, triaje, confirmaciones y entrega del dato clínico estructurado a tu HIS, con catálogos oficiales y trazabilidad bajo la Ley 1581.',
     href: '/salud',
     loginHref: '/login?segment=health',
-    para: 'Clínicas · IPS · EPS · Centros de salud · Consultorios',
     insignia: true,
     imagen: '/verticales/salud.jpg',
-    puntos: [
-      'Agenda con profesionales, servicios y lista de espera',
-      'Captura conforme con doble confirmación dígito a dígito',
-      'Triaje, políticas y escalamiento según tu protocolo',
-      'Auditoría con usuario, rol, fecha y hora',
-    ],
   },
   {
     id: 'center',
     nombre: 'Upway Center',
-    claim: 'Tu servicio técnico y al cliente, atendido 24/7.',
-    texto:
-      'La línea de soporte que no puede quedarse sin contestar: diagnóstico, seguimiento y escalado a tu equipo con el caso ya documentado.',
     href: '/center',
     loginHref: '/login?segment=center',
-    para: 'Servicios técnicos · Call centers · Soporte · EMEA',
     insignia: false,
     imagen: '/verticales/center.jpg',
-    puntos: [
-      'Diagnóstico guiado con el guion de tu producto',
-      'Seguimiento del caso hasta resolverlo',
-      'Escalado a humano con todo el contexto',
-      'Grabación y log de eventos de cada llamada',
-    ],
   },
   {
     id: 'inmobiliaria',
     nombre: 'Upway Inmobiliarias',
-    claim: 'Tu agenda de visitas, sin perder un lead.',
-    texto:
-      'Califica al interesado, agenda la visita, confirma y hace seguimiento. La línea trabaja mientras tu asesor está en la cita.',
     href: '/inmobiliarias',
     loginHref: '/login?segment=inmobiliaria',
-    para: 'Agencias · Inmobiliarias · Constructoras',
     insignia: false,
     imagen: '/verticales/inmobiliaria.jpg',
-    puntos: [
-      'Calificación del interés con tus criterios',
-      'Agenda de visitas con confirmación automática',
-      'Seguimiento y reprogramación de prospectos',
-      'Panel con el estado de cada caso',
-    ],
   },
 ];
 
@@ -631,11 +598,11 @@ export default function Home() {
           <div className="text-center">
             <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Capacidad operativa</div>
             <h2 className="font-display text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold text-[#0d3168]">
-              Sophie no solo contesta. Sostiene tu operación.
+              La línea no solo contesta. Sostiene la operación.
             </h2>
             <p className="text-[13px] leading-[1.7] text-[#55718f] max-w-[760px] mx-auto">
-              Atender, registrar, agendar, confirmar, escalar y entregar el dato: todo lo administrativo de una línea de
-              atención. La valoración clínica y las decisiones de salud siguen en tu equipo profesional.
+              Atender, registrar, agendar, confirmar y escalar. La valoración clínica y las decisiones de salud siguen en
+              tu equipo profesional.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[15px] mt-[32px]">
@@ -662,11 +629,11 @@ export default function Home() {
             El texto es deliberadamente COMÚN a las tres verticales (no dice
             "paciente" ni "cita"): el detalle clínico vive en /salud y el
             comercial en cada landing. */}
-        <section id="dolor-y-cura" className="max-w-[1180px] mx-[15px] md:mx-auto mb-[20px] px-5">
+        <section id="dolor-y-cura" className="max-w-[1180px] mx-[15px] md:mx-auto mb-[20px]">
           <div className="rounded-[30px] overflow-hidden border border-[#d9e9f6] bg-white shadow-[0_24px_60px_rgba(15,31,54,0.10)]">
             <div className="grid grid-cols-1 lg:grid-cols-2">
               {/* EL DOLOR */}
-              <div className="p-[30px] md:p-[44px] bg-[#f7f9fc]">
+              <div className="p-[22px] sm:p-[30px] md:p-[44px] bg-[#f7f9fc]">
                 <div className="inline-flex items-center gap-2 rounded-full bg-white border border-[#e3eaf2] px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#8a5a5a]">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#d98a8a]" />
                   Lo que hoy te cuesta
@@ -693,7 +660,7 @@ export default function Home() {
               </div>
 
               {/* LA CURA */}
-              <div className="p-[30px] md:p-[44px] bg-[linear-gradient(150deg,#0c3775_0%,#0b6a72_58%,#0ba9a9_100%)] text-white">
+              <div className="p-[22px] sm:p-[30px] md:p-[44px] bg-[linear-gradient(150deg,#0c3775_0%,#0b6a72_58%,#0ba9a9_100%)] text-white">
                 <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white/90">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#7ef0d8]" />
                   Lo que Upway cambia
@@ -734,8 +701,8 @@ export default function Home() {
               La misma inteligencia, tres operaciones distintas.
             </h2>
             <p className="text-[#55718f] leading-[1.7] max-w-[760px] mx-auto">
-              Sophie es el mismo agente en las tres: entiende, atiende, agenda y entrega el dato. Lo que cambia es el
-              guion, los catálogos y las reglas con las que lo configuras.
+              Cada vertical habla del problema que resuelve y del sistema al que le entrega el dato, con sus propios
+              catálogos y sus propias reglas.
             </p>
           </div>
 
@@ -786,45 +753,27 @@ export default function Home() {
                       El más completo
                     </span>
                   )}
-                </div>
-
-                <div className="flex flex-1 flex-col p-[24px]">
-                  <h3 className="font-display text-[21px] leading-tight font-extrabold text-[#0d3168] mb-[8px]">
-                    {v.nombre}
-                  </h3>
-                  <p className="text-[13px] font-bold text-[#079fa0] mb-[12px]">{v.claim}</p>
-                  <p className="text-[12px] leading-[1.65] text-[#55718f] mb-[16px]">{v.texto}</p>
-
-                  <ul className="mb-[20px] space-y-[9px]">
-                    {v.puntos.map((p) => (
-                      <li key={p} className="flex items-start gap-2 text-[12px] leading-[1.5] text-[#31547f]">
-                        <span className="mt-[3px] grid h-[15px] w-[15px] shrink-0 place-items-center rounded-full bg-[#e7fbfa] text-[9px] text-[#079fa0]">
-                          ✓
-                        </span>
-                        {p}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <p className="mb-[18px] text-[11px] text-[#7b93ab]">Para: {v.para}</p>
-
-                  <div className="mt-auto flex flex-col gap-2">
+                  {/* Los botones van ENCIMA de la pieza, sobre un degradado y en
+                      dos columnas. Encima para no recortar la imagen con un pie
+                      de texto blanco; en dos columnas para que ocupen solo la
+                      franja inferior y el arte se vea entero. */}
+                  <div className="absolute inset-x-0 bottom-0 grid grid-cols-2 gap-2 bg-gradient-to-t from-[#081a30]/95 via-[#081a30]/70 to-transparent p-[12px] pt-12">
                     <Link
                       href={v.href}
-                      className={`flex items-center justify-center gap-2 rounded-full px-5 py-3 text-[13px] font-bold transition ${
+                      className={`flex items-center justify-center gap-1.5 rounded-full px-3 py-[11px] text-[12px] font-bold transition ${
                         v.insignia
-                          ? 'bg-[linear-gradient(115deg,#0ba9a9,#0c3775)] text-white shadow-[0_8px_20px_rgba(11,169,169,0.28)] hover:-translate-y-[1px]'
-                          : 'border border-[#0ba9a9] text-[#0d3168] hover:bg-[#e7fbfa]'
+                          ? 'bg-[linear-gradient(115deg,#0ba9a9,#0c3775)] text-white hover:-translate-y-[1px]'
+                          : 'bg-white text-[#0d3168] hover:bg-[#e7fbfa]'
                       }`}
                     >
-                      Ver {v.nombre}
-                      <ArrowRight className="h-3.5 w-3.5" />
+                      {v.nombre}
+                      <ArrowRight className="h-3.5 w-3.5 shrink-0" />
                     </Link>
                     <Link
                       href={v.loginHref}
-                      className="flex items-center justify-center gap-2 rounded-full border border-[#e0edf6] px-5 py-2.5 text-[12px] font-bold text-[#31547f] transition hover:border-[#9fc6ee]"
+                      className="flex items-center justify-center rounded-full border border-white/50 px-3 py-[11px] text-[12px] font-bold text-white transition hover:bg-white/15"
                     >
-                      Ya soy cliente · Entrar
+                      Entrar
                     </Link>
                   </div>
                 </div>
