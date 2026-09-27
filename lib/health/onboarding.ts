@@ -26,6 +26,26 @@ export type HealthOnboardingStatus =
   | 'BLOCKED'
   | 'ARCHIVED';
 
+/**
+ * Estados que el CLIENTE puede pedir para su propia sesión.
+ *
+ * AUDITORÍA (pase 2): el endpoint de onboarding tomaba el estado del cuerpo de
+ * la petición, así que una clínica podía escribirse `APPROVED` a sí misma y con
+ * eso desbloquear el gate de voz (clonar, aprovisionar, llamar) sin aprobación
+ * comercial ni pago. El estado se deriva en el servidor; esta es la lista de lo
+ * que sigue siendo legítimo pedir desde el wizard:
+ *
+ *   · DRAFT / IN_PROGRESS — avanzar o retroceder en el formulario.
+ *   · PENDING_REVIEW       — "ya lo envié, revísenlo".
+ *   · NEEDS_CHANGES        — pedir ajustes; solo restrict, no abre permisos.
+ *
+ * `APPROVED`, `ACTIVE`, `TESTING`, `PAUSED`, `BLOCKED` y `ARCHIVED` NO entran:
+ * los decide Upway en `/api/health/approvals` y `/api/health/activate`.
+ */
+export const CLIENT_SETTLEABLE_STATUSES: ReadonlySet<HealthOnboardingStatus> = new Set<
+  HealthOnboardingStatus
+>(['DRAFT', 'IN_PROGRESS', 'PENDING_REVIEW', 'NEEDS_CHANGES']);
+
 export function getHealthStatusForStage(step: string): HealthOnboardingStatus {
   switch (step) {
     case 'go-live':

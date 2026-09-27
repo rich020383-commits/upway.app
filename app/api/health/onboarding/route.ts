@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getHealthStatusForStage, onboardingStages } from '@/lib/health/onboarding';
-import { getHealthSession, getHealthSessionForOnboarding } from '@/lib/session';
+import { CLIENT_SETTLEABLE_STATUSES, getHealthStatusForStage, onboardingStages, type HealthOnboardingStatus } from '@/lib/health/onboarding';
+import { getHealthSession } from '@/lib/session';
 
 const DEFAULT_CLINIC_ID = 'demo-clinic';
 const DEFAULT_ORGANIZATION_SLUG = 'demo-health-organization';
@@ -170,11 +170,30 @@ export async function POST(request: NextRequest) {
         100
     );
 
-    const status = String(body.status ?? getHealthStatusForStage(normalizedStep));
+    // 🔒 El `status` NUNCA se toma tal cual del cuerpo.
+    //
+    // AUDITORÍA (pase 2, máquina de estados): antes era
+    // `String(body.status ?? getHealthStatusForStage(step))`, y el cuerpo lo
+    // controla el cliente. Lo único protegido era ACTIVE (línea siguiente), así
+    // que cualquier clínica autenticada podía mandarse `{"status":"APPROVED"}`,
+    // escribirse APPROVED a sí misma y desbloquear con eso el gate de voz
+    // (`lib/case-access.ts` concede canClone/canProvision/canCall justo en
+    // APPROVED): clonar una voz —que guarda biometría y cuesta plata en el
+    // proveedor—, encender un asistente y hacer llamadas reales, todo sin
+    // aprobación comercial ni pago. El candado estaba puesto, pero en la puerta
+    // equivocada: el que se podía abrir a pulso era el estado que lo satisface.
+    //
+    // El estado se deriva en el servidor. El cliente solo puede pedir avance y
+    // revisión; el resto lo decide Upway (/api/health/approvals,
+    // /api/health/activate). NEEDS_CHANGES sí se admite porque solo restricts —
+    // pedir cambios sobre lo propio no abre ningún permiso.
+    const pedido = String(body.status) as HealthOnboardingStatus;
+    const status = CLIENT_SETTLEABLE_STATUSES.has(pedido)
+      ? pedido
+      : getHealthStatusForStage(normalizedStep);
 
-    // 🔒 El go-live real exige aprobación explícita del responsable clínico.
-    // Nunca confiar en el cliente: si el status es ACTIVE sin approval=true,
-    // se degrada a NEEDS_CHANGES en lugar de activar.
+    // Se mantiene el freno de ACTIVE como segunda barrera: aunque hoy el cliente
+    // no puede enviarlo, el go-live exige aprobación clínica explícita.
     const hasClinicalApproval = formData.approval === true;
     const finalStatus =
       status === 'ACTIVE' && !hasClinicalApproval ? 'NEEDS_CHANGES' : status;
