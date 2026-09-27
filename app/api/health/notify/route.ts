@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendHealthOnboardingEmail } from '@/lib/email';
+import { getHealthSession } from '@/lib/session';
+import { checkRateLimit, rateLimitHeaders, type RateLimitRule } from '@/lib/rate-limit';
 import {
   sendActivationReceivedEmail,
   sendInternalActivationAlert,
@@ -7,6 +9,13 @@ import {
 } from '@/lib/activation';
 
 export const runtime = 'nodejs';
+
+/**
+ * Cuota de notificaciones por usuario. Enviar es lo caro aquí (SMTP y buzones),
+ * así que se limita aunque la sesión sea válida: una sesión comprometida no
+ * debe poder inundar el buzón de activación ni los correos de los clientes.
+ */
+const NOTIFY_RATE_RULE: RateLimitRule = { limit: 5, windowMs: 60_000 };
 
 /** Referencia legible del caso de onboarding (se usa también en el ACK al cliente). */
 function buildOnboardingCaseRef(): string {
@@ -18,8 +27,39 @@ function str(value: unknown): string {
 }
 
 export async function POST(request: NextRequest) {
-  // Nota: la autenticación la cubre el middleware (proxy.ts) para /health/*.
-  // Validación anti-abuso básica por origen:
+  // 🔒 AUDITORÍA (pase 3, tenancy): esta ruta NO estaba autenticada.
+  //
+  // El comentario de aquí decía "la autenticación la cubre el middleware
+  // (proxy.ts) para /health/*", pero proxy.ts hace justo lo contrario: deja pasar
+  // /api/health/* sin sesión a propósito ("Permitir rutas API de health sin
+  // sesión"). Y el único otro filtro, el de origen, no sirve como control de
+  // acceso: se salta cuando no hay cabecera Origin (cualquier script o curl) y la
+  // lista incluye `https://${host}`, que sale del header Host del cliente.
+  //
+  // El resultado era un endpoint público que envía correo usando la cuenta de
+  // Upway: el ACK va a `formData.contactEmail`, o sea a una dirección que elige
+  // quien llama, con el nombre y la clínica que también elige. Eso es un relay de
+  // correo abierto (phishing con remitente legítimo) más inundación del buzón
+  // interno de activación. Sin sesión y sin cuota, era abusable sin límite.
+  //
+  // Ahora exige sesión —la página /health/onboarding ya la tiene y manda
+  // credentials— y limita por usuario, no por IP: `x-forwarded-for` lo falsifica
+  // quien llama, así que la IP no serviría como clave (ver lib/rate-limit.ts).
+  const { context, error: sessionError } = await getHealthSession(request);
+  if (sessionError) return sessionError;
+
+  const rate = checkRateLimit(`health-notify:${context.user ?? 'anon'}`, NOTIFY_RATE_RULE);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      {
+        error: 'Demasiadas notificaciones seguidas. Espera un minuto antes de reintentar.',
+        retryAfterSeconds: rate.retryAfterSeconds,
+      },
+      { status: 429, headers: rateLimitHeaders(rate) },
+    );
+  }
+
+  // El origen se conserva como defensa anti-CSRF, NO como autenticación.
   const origin = request.headers.get('origin') ?? '';
   const host = request.headers.get('host') ?? '';
   const allowedOrigins = [

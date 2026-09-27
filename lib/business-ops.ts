@@ -357,12 +357,34 @@ export async function createAppointmentFromLead(params: {
     throw new Error('clienteTelefono is required');
   }
 
-  let lead = params.leadId ? await prisma.lead.findUnique({ where: { id: params.leadId } }) : null;
+  // El lead y la conversación se resuelven DENTRO del tenant, nunca por id suelto.
+  //
+  // AUDITORÍA (pase 3, tenancy): esto era `lead.findUnique({ id: params.leadId })`,
+  // sin tiendaId. Un `leadId` de otra tienda se colaba en la cita creada aquí, y
+  // al confirmar, `confirmAppointment` mutaba ese lead ajeno (estado,
+  // lastContactAt) y le colgaba actividad y recordatorios encima. Como
+  // LeadActivity y LeadReminder no tienen columna de tenant (heredan la del
+  // lead), eso escribía en el timeline de otro cliente: no solo era una fuga,
+  // era una escritura cruzada entre inquilinos.
+  let lead = params.leadId
+    ? await prisma.lead.findFirst({ where: { id: params.leadId, tiendaId: params.tiendaId } })
+    : null;
+
+  // Si el body trae un lead explícito y no pertenece a esta tienda, es un
+  // error de verdad (o un intento de acceso cruzado): se dice, en vez de crear
+  // en silencio un lead duplicado que esconde lo que pasó.
+  if (params.leadId && !lead) {
+    throw new Error('Lead no encontrado para esta tienda');
+  }
 
   if (!lead && params.conversationId) {
-    const conversation = await prisma.conversation.findUnique({ where: { id: params.conversationId } });
+    const conversation = await prisma.conversation.findFirst({
+      where: { id: params.conversationId, tiendaId: params.tiendaId },
+    });
     if (conversation) {
-      lead = await prisma.lead.findUnique({ where: { id: conversation.leadId ?? '' } });
+      lead = await prisma.lead.findFirst({
+        where: { id: conversation.leadId ?? '', tiendaId: params.tiendaId },
+      });
     }
   }
 
@@ -383,11 +405,23 @@ export async function createAppointmentFromLead(params: {
     });
   }
 
+  // El `conversationId` que queda en la cita también tiene que ser de esta
+  // tienda. Antes se guardaba el que viniera en el cuerpo, sin comprobar nada, y
+  // dejaba una cita de este inquilino apuntando a una conversación del otro.
+  let conversacionValida: string | null = null;
+  if (params.conversationId) {
+    const conversacion = await prisma.conversation.findFirst({
+      where: { id: params.conversationId, tiendaId: params.tiendaId },
+      select: { id: true },
+    });
+    conversacionValida = conversacion?.id ?? null;
+  }
+
   const appointment = await prisma.cita.create({
     data: {
       tiendaId: params.tiendaId,
       leadId: lead.id,
-      conversationId: params.conversationId ?? null,
+      conversationId: conversacionValida,
       assignedToUserId: params.assignedToUserId ?? null,
       clienteNombre: params.clienteNombre,
       clienteTelefono: normalizedPhone,
@@ -464,10 +498,14 @@ export async function confirmAppointment(params: {
   });
 
   if (appointment.leadId) {
-    await prisma.lead.update({
-      where: { id: appointment.leadId },
+    // Defensa en profundidad: aunque la cita sea de esta tienda, el lead que se
+    // actualiza abajo se acota también por tiendaId. LeadActivity y LeadReminder
+    // heredan el tenant del lead, así que un lead equivocado contaminaría el
+    // timeline del otro cliente.
+    await prisma.lead.updateMany({
+      where: { id: appointment.leadId, tiendaId: params.tiendaId },
       data: { estado: LeadStatus.APPOINTMENT_BOOKED, lastContactAt: now },
-    }).catch(() => undefined);
+    });
 
     await createLeadPipelineActivity({
       leadId: appointment.leadId,
