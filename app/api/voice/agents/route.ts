@@ -6,7 +6,7 @@ import { getSessionUser } from '@/lib/session';
 import { upsertAssistantForTienda, getTelnyxConfig, isTelnyxVoiceReady, missingTelnyxVoiceEnv, telnyxNotReadyMessage, updateAssistantVoice } from '@/lib/telnyx/client';
 import { isValidVoiceValue } from '@/lib/telnyx/voices';
 import { checkVoiceRateLimit, voiceRateLimitResponse } from '@/lib/telnyx/rate-limit';
-import { buildVoiceGreeting } from '@/lib/telnyx/voice-consent';
+import { buildVoiceGreeting, buildAgentInstructions } from '@/lib/telnyx/voice-consent';
 import { voiceCapabilityDenied } from '@/lib/voice-access';
 
 export const maxDuration = 30;
@@ -74,7 +74,12 @@ export async function POST(req: NextRequest) {
     const telnyxRes = await upsertAssistantForTienda({
       name: `${nombre} · ${tienda.nombre}`.slice(0, 60),
       greeting,
-      instructions: `(Negocio: ${tienda.nombre} | Nicho: ${nicho} | TiendaId: ${tienda.id})\n${reglas}`,
+      instructions: buildAgentInstructions({
+        businessName: tienda.nombre,
+        nicho,
+        tiendaId: tienda.id,
+        reglas,
+      }),
       voice: vozFinal,
     });
     const assistantId: string | undefined =

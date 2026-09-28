@@ -63,24 +63,68 @@ REGLAS:
 - Usa "whatsapp" SOLO cuando el dueño pida explícitamente enviar/escribir/mensajear al lead. El mensaje debe sonar humano, breve y sin emojis excesivos.`;
 
 function buildProviders() {
-  const make = (name: string, apiKey: string | undefined, baseURL: string, model: string) => ({
+  const make = (key: string, name: string, apiKey: string | undefined, baseURL: string, model: string) => ({
+    key,
     name,
     model,
     client: apiKey ? new OpenAI({ apiKey, baseURL }) : null,
   });
   return [
-    make('Groq 🚀', process.env.GROQ_API_KEY, 'https://api.groq.com/openai/v1', 'openai/gpt-oss-20b'),
-    make('SambaNova ⚡', process.env.SAMBANOVA_API_KEY, 'https://api.sambanova.ai/v1', 'Meta-Llama-3.1-8B-Instruct'),
-    make('Mistral 🔥', process.env.MISTRAL_API_KEY, 'https://api.mistral.ai/v1', 'mistral-small-latest'),
-    make('OpenRouter 🃏', process.env.OPENROUTER_API_KEY, 'https://openrouter.ai/api/v1', 'openrouter/free'),
+    make('groq', 'Groq 🚀', process.env.GROQ_API_KEY, 'https://api.groq.com/openai/v1', 'openai/gpt-oss-20b'),
     make(
+      'sambanova',
+      'SambaNova ⚡',
+      process.env.SAMBANOVA_API_KEY,
+      'https://api.sambanova.ai/v1',
+      'Meta-Llama-3.1-8B-Instruct'
+    ),
+    make('mistral', 'Mistral 🔥', process.env.MISTRAL_API_KEY, 'https://api.mistral.ai/v1', 'mistral-small-latest'),
+    make('openrouter', 'OpenRouter 🃏', process.env.OPENROUTER_API_KEY, 'https://openrouter.ai/api/v1', 'openrouter/free'),
+    make(
+      'kimi',
       'Kimi ✨',
       process.env.KIMI_API_KEY,
       process.env.KIMI_API_URL || 'https://api.moonshot.ai/v1',
       process.env.KIMI_MODEL || 'moonshot-v1-8k'
     ),
-    make('Cerebras ⚡', process.env.CEREBRAS_API_KEY, 'https://api.cerebras.ai/v1', 'llama-3.3-70b'),
+    make('cerebras', 'Cerebras ⚡', process.env.CEREBRAS_API_KEY, 'https://api.cerebras.ai/v1', 'llama-3.3-70b'),
   ];
+}
+
+/**
+ * Proveedor del Autopiloto: FIJO, y por tanto declarable.
+ *
+ * Antes `planWithLlm` recorria la lista y se quedaba con el primero que
+ * respondiera. Eso hacia el destino de los datos INDETERMINADO en runtime: la
+ * clinica autorizaba "Groq" en el DPA y la instruccion terminaba en Mistral.
+ * El parágrafo 4 del contrato de encargo (autorizacion previa de
+ * subencargados) era inaplicable contra una lista que cambia por llamada.
+ *
+ * Ahora manda uno solo, el de `AUTOPILOT_PROVIDER`. La cascada queda como
+ * opt-in para desarrollo y NO debe activarse en produccion con datos de
+ * clientes: es exactamente el comportamiento que el DPA no puede declarar.
+ *
+ * Esto no resuelve residencia: todos estos proveedores son externos y
+ * procesan fuera de Colombia. Resolver eso es self-hosting, no configuracion.
+ */
+function selectProviders() {
+  const todos = buildProviders();
+  const fijado = (process.env.AUTOPILOT_PROVIDER ?? 'groq').toLowerCase();
+  const pin = todos.find((p) => p.key === fijado);
+  if (!pin) {
+    // El mensaje NO lleva la lista de proveedores: `POST /api/business/autopilot`
+    // devuelve `error.message` al cliente, y nombrar los proveedores en la cara
+    // del cliente rompe el mismo invariante que protege el diagnóstico de voz
+    // (ver lib/confidentiality.test.ts). El detalle va al log del servidor.
+    console.error(
+      `[autopilot] AUTOPILOT_PROVIDER="${fijado}" no existe. Validos: ${todos
+        .map((p) => p.key)
+        .join(', ')}`
+    );
+    throw new Error('El Autopiloto no esta disponible ahora mismo.');
+  }
+  if (process.env.AUTOPILOT_ALLOW_FALLBACK === 'true') return todos.filter((p) => p.client);
+  return pin.client ? [pin] : [];
 }
 
 /** Contexto que se envía al LLM: estado real de la operación. */
@@ -155,7 +199,7 @@ function extractJson(text: string): AutopilotPlan | null {
 }
 
 async function planWithLlm(instruction: string, context: string): Promise<{ plan: AutopilotPlan; provider: string } | null> {
-  for (const provider of buildProviders()) {
+  for (const provider of selectProviders()) {
     if (!provider.client) continue;
     try {
       const completion = await Promise.race([

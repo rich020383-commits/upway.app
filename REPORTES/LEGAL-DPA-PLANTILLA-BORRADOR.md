@@ -23,14 +23,37 @@ Pacientes del Responsable: tipo y numero de documento, nombres y apellidos, fech
 7. Cumplir politicas del Responsable en tiempo y alcance del encargo.
 
 ## 4. Subencargados (autorizacion previa)
-El Responsable AUTORIZA los siguientes subencargados y su ubicacion:
 
-| Subencargado | Servicio | Pais/region |
-|---|---|---|
-| Telnyx | Telefonía/WhatsApp | [___] |
-| [Proveedor LLM/Whisper] | Transcripcion e interpretacion | [___] |
-| Aiven | PostgreSQL | [___] |
-| [Render/Vercel] | Hosting | [___] |
+El Responsable AUTORIZA los siguientes subencargados y su ubicacion. La lista
+es **cerrada**: el destino de cada dato esta fijado en codigo, no se decide en
+runtime.
+
+| Subencargado | Servicio | Que dato toca | Pais/region |
+|---|---|---|---|
+| Telnyx | Telefonia + ASR + LLM + TTS del asistente de voz | Audio de la llamada y su transcripcion | Colocado junto a los PoP de Telefonia de Telnyx; confirmar por escrito el PoP exacto del trafico colombiano |
+| [Proveedor del Autopiloto] | Planeacion de operaciones (acciones de CRM) | Instruccion del dueno y estado de la operacion | [___] |
+| Render | Hosting de la aplicacion | Todo lo anterior en reposo | [___] |
+| [Aiven / Neon] | PostgreSQL | Todo lo anterior en reposo | [___] |
+
+**Por que la lista es cerrada y no una cascada.** El Autopiloto recorria antes
+seis proveedores (Groq, SambaNova, Mistral, OpenRouter, Kimi, Cerebras) y se
+quedaba con el primero que respondiera. Eso hacia el destino **indeterminado
+en runtime**: la clinica autorizaba un proveedor y la instruccion terminaba en
+otro, de modo que esta autorizacion previa no era exigible. Hoy el proveedor
+esta fijado en codigo (`AUTOPILOT_PROVIDER`) y la cascada es opt-in de
+desarrollo.
+
+**Lo que NO resuelve.** Fijar un proveedor hace el tratamiento determinista y
+declarable, pero **no** cambia la residencia: estos proveedores procesan fuera
+de Colombia. Conservar el dato dentro del pais requiere autoalojamiento del
+modelo, no configuracion.
+
+**Aparte, y esto ya estaba construido:** la identidad conforme (tipo y numero de
+documento, fecha de nacimiento, municipio) **no transita por ningun modelo**.
+Se captura por catalogo cerrado o digito a digito, y la certificacion es
+determinista sin llamar a ningun servicio externo
+(`lib/health/identity/conformingRecord.ts`). El dato mas sensible del producto
+no sale a un tercero porque no llega a existir una llamada a un tercero.
 
 Cualquier nuevo subencargado requiere aprobacion previa y escrita del Responsable (max. [15] dias para responder). Los subencargados quedan sujetos a obligaciones equivalentes. Transferencias internacionales solo conforme art. 26 Ley 1581 y con medidas equivalentes.
 
