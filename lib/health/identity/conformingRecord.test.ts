@@ -239,6 +239,30 @@ describe('buildConformingIdentity — registro conforme', () => {
     expect(r.report.issues.some((i) => i.field === 'sexCode')).toBe(true);
   });
 
+  // Antes solo se validaba la FORMA del codigo. Con el catalogo del DANE
+  // cargado, un municipio inexistente dentro de un departamento valido ya no
+  // pasa: sin esto se certificaba, se hasheaba y se mandaba al IHCE.
+  it('rechaza un municipio que no existe en el catalogo del DANE', () => {
+    const r = validateMunicipalityCode('05999');
+    expect(r.valid).toBe(false);
+    if (!r.valid) expect(r.message).toMatch(/no existe en el catalogo DIVIPOLA/i);
+  });
+
+  it('rechaza en el registro completo un municipio inexistente', () => {
+    const r = buildConformingIdentity({ ...VALID_INPUT, municipalityCode: '05999' }, NOW);
+    expect(r.ok).toBe(false);
+    expect(r.report.issues.some((i) => i.field === 'municipalityCode')).toBe(true);
+  });
+
+  it('acepta un municipio real y devuelve su nombre oficial', () => {
+    const r = validateMunicipalityCode('11001');
+    expect(r.valid).toBe(true);
+    if (r.valid) {
+      expect(r.departmentCode).toBe('11');
+      expect(r.municipalityName).toBe('Bogotá, D.C.');
+    }
+  });
+
   it('exige municipio DIVIPOLA valido', () => {
     const r = buildConformingIdentity({ ...VALID_INPUT, municipalityCode: 'Bogota' }, NOW);
     expect(r.ok).toBe(false);

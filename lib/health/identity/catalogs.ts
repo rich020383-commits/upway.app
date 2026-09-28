@@ -17,6 +17,8 @@
  * de entrada, el prestador transmite el RDA.
  */
 
+import { MUNICIPALITY_NAMES, isKnownMunicipality } from './divipola';
+
 /** Tipo de documento de identificacion - catalogo cerrado, nunca texto libre. */
 export type DocumentTypeCode =
   | 'CC' // Cedula de ciudadania
@@ -400,9 +402,10 @@ export function validateBirthDate(
 // Departamento = 2 digitos. Municipio = 5 digitos (2 de departamento + 3).
 //
 // Los 33 codigos de departamento son estables y completos aqui.
-// El catalogo completo de MUNICIPIOS (1.103) debe cargarse desde el archivo
-// oficial DIVIPOLA del DANE antes de produccion; este modulo solo valida la
-// forma y la coherencia departamental, que ya elimina la mayoria de errores.
+// El catalogo de MUNICIPIOS viene generado desde el archivo oficial del DANE
+// en `divipola.ts` (ver scripts/cargar-divipola.mjs). Con ese catalogo ya se
+// comprueba la EXISTENCIA del municipio, no solo la forma: sin el, un codigo
+// como 05999 pasaba el filtro y se certificaba igual.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const DEPARTMENTS = [
@@ -450,12 +453,27 @@ export function getDepartment(code: string | null | undefined): { code: string; 
 }
 
 export type MunicipalityValidation =
-  | { valid: true; code: string; departmentCode: string; departmentName: string }
+  | {
+      valid: true;
+      code: string;
+      departmentCode: string;
+      departmentName: string;
+      municipalityName: string;
+    }
   | { valid: false; message: string };
 
 /**
- * Valida un codigo DIVIPOLA de municipio por forma y coherencia departamental.
- * No confirma que el municipio exista: para eso, cargue el catalogo DANE.
+ * Valida un codigo DIVIPOLA de municipio: forma, coherencia departamental Y
+ * existencia en el catalogo oficial del DANE.
+ *
+ * La comprobacion de existencia es la que hace que esto sirva para un registro
+ * conforme. Antes solo se miraba la forma, asi que cualquier cosa que
+ * terminara en tres digitos dentro de un departamento valido pasaba el filtro:
+ * un municipio inexistente quedaba certificado, hasheado y enviado al IHCE del
+ * cliente. Un registro que certifica un lugar que no existe no tiene valor
+ * probatorio.
+ *
+ * El catalogo vive en `divipola.ts` y se regenera desde el DANE.
  */
 export function validateMunicipalityCode(code: string | null | undefined): MunicipalityValidation {
   if (!code) {
@@ -478,8 +496,20 @@ export function validateMunicipalityCode(code: string | null | undefined): Munic
   if (normalized.slice(2) === '000') {
     return { valid: false, message: 'El municipio no puede terminar en 000: ese es el codigo del departamento.' };
   }
+  if (!isKnownMunicipality(normalized)) {
+    return {
+      valid: false,
+      message: `El municipio ${normalized} no existe en el catalogo DIVIPOLA del DANE. Verificalo con el paciente.`,
+    };
+  }
 
-  return { valid: true, code: normalized, departmentCode, departmentName: department.name };
+  return {
+    valid: true,
+    code: normalized,
+    departmentCode,
+    departmentName: department.name,
+    municipalityName: MUNICIPALITY_NAMES[normalized],
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
