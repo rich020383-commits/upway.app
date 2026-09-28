@@ -1,11 +1,18 @@
 ﻿'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { MessageCircle, Phone, Sparkles, Calendar, Bell, Users, Shield, ShieldCheck, RefreshCw, ClipboardCheck, BadgeCheck, CalendarDays, ArrowRight, Headphones, Home as HomeIcon } from 'lucide-react';
+import { MessageCircle, Phone, Sparkles, Calendar, Bell, Users, Shield, ShieldCheck, Database, RefreshCw, ClipboardCheck, BadgeCheck, CalendarDays, ArrowRight, Headphones, Home as HomeIcon } from 'lucide-react';
 import Footer from '@/components/Footer';
 import SophieChatButton from '@/components/sophie-chat-button';
+
+/* El logo animado es el splash de arranque de la app, no un adorno de la
+   página: se marca en sessionStorage para que solo aparezca al iniciar. La `v1`
+   permite invalidar la preferencia si algún día cambia el video. Se comparte
+   con la landing de salud a propósito: es la misma animación de arranque, no
+   dos predecibles distintas. */
+const SPLASH_KEY = 'upway:splash:v1';
 
 const UpwayLogo = ({ className = '' }: { className?: string }) => (
   <div className={`inline-flex items-center px-4 py-2 rounded-2xl bg-black shadow-lg overflow-hidden ${className}`}>
@@ -23,11 +30,12 @@ const UpwayLogo = ({ className = '' }: { className?: string }) => (
    la raíz respondiera "¿tu operación es salud?" en el primer pantallazo y dejara
    a Center e Inmobiliaria como apéndice de una página de salud.
 
-   Son SEIS, no nueve. Eran nueve tarjetas (tres filas) y las tres últimas
-   repetían en otra forma lo que ya dicen el bloque de dolor/cura y las
-   verticales. "Entrega del dato" y "Lo puedes auditar" siguen siendo
-   diferenciadores reales — sobre todo en salud: si se quieren recuperar, esas
-   dos son las que vuelven primero. */
+   Son OCHO. Bajaron a seis y se recuperaron "Entrega del dato" y "Lo
+   puedes auditar" porque las dos son diferenciadores reales —en salud
+   son el argumento entero: entrega estructurada al HIS y trazabilidad
+   con usuario, rol, fecha y hora—. Lo que sigue fuera es "Aprende de
+   tu operación", que era la más floja: repetía lo que ya dicen las
+   tres verticales al hablar de sus catálogos y sus reglas. */
 const capacidad = [
   {
     title: 'Atiende la línea',
@@ -58,6 +66,16 @@ const capacidad = [
     title: 'Escala a tu equipo',
     text: 'Cuando el caso lo pide, pasa la llamada a tu personal con el contexto y los datos ya capturados, según el protocolo que definas.',
     icon: Users,
+  },
+  {
+    title: 'Entrega el dato',
+    text: 'Cada atención sale estructurada, validada y auditable hacia tu sistema. Tu equipo deja de retranscribir.',
+    icon: Database,
+  },
+  {
+    title: 'Lo puedes auditar',
+    text: 'Usuario, rol, fecha y hora en cada consulta. El agente no improvisa respuestas que no estén en lo que le definiste.',
+    icon: ShieldCheck,
   },
 ];
 
@@ -115,8 +133,53 @@ export default function Home() {
   const [imagenesCaidas, setImagenesCaidas] = useState<Record<string, boolean>>({});
   const heroVideoRef = useRef<HTMLVideoElement | null>(null);
 
-  // Apaga el splash en pantallas grandes (>= 768px)
-  const shouldSkipSplash = typeof window !== 'undefined' && window.innerWidth >= 768;
+  /* El logo animado es un splash de ARRANQUE, no un adorno de la página. Antes
+     `showSplash` arrancaba en `true`, así que se repetía en CADA visita a la
+     raíz. Se marca `upway:splash:v1` en sessionStorage y no vuelve a aparecer
+     en la sesión: es la MISMA clave que usa /salud, para que abrir la portada
+     y luego caer a salud no dispare dos animaciones seguidas.
+
+     Se lee con useSyncExternalStore y no con useState + useEffect porque
+     sessionStorage no existe en el servidor: leerlo al inicializar daría
+     mismatch de hidratación. El tercer argumento (getServerSnapshot) es el
+     que React usa durante la hidratación, así que servidor y cliente arrancan
+     de acuerdo en "ya visto" y no se pinta nada hasta resolver el valor real.
+  */
+  const yaVistoElSplash = useSyncExternalStore(
+    // No hay nada que escuchar: la decisión se toma una vez al abrir la página.
+    () => () => {},
+    () => {
+      // En escritorio el splash nunca se ha mostrado (se corta en >= 768px).
+      if (window.innerWidth >= 768) return true;
+      try {
+        return window.sessionStorage.getItem(SPLASH_KEY) === '1';
+      } catch {
+        // Sin sessionStorage (modo privado, cookies bloqueadas) se muestra.
+        return false;
+      }
+    },
+    // Servidor e hidratación: siempre "ya visto", o sea, no se pinta nada.
+    () => true
+  );
+
+  // Marca la sesión. Va en un efecto y no dentro de getSnapshot porque
+  // getSnapshot tiene que ser puro: escribir ahí puede dispararse dos veces.
+  useEffect(() => {
+    if (yaVistoElSplash) return;
+    try {
+      window.sessionStorage.setItem(SPLASH_KEY, '1');
+    } catch {
+      /* si no se puede guardar, se repetirá la próxima vez: no es grave */
+    }
+  }, [yaVistoElSplash]);
+
+  /**
+   * Si el splash está en pantalla. Los efectos de bloqueo de scroll y de fondo
+   * negro dependen de ESTE valor y no de `showSplash`: si dependieran de
+   * `showSplash` seguirían bloqueando la página los cinco segundos completos
+   * en cada visita, con la pantalla ya oculta y el fondo en negro.
+   */
+  const splashActivo = !yaVistoElSplash && showSplash;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -137,12 +200,6 @@ export default function Home() {
     mediaQuery.addListener(updateBreakpoint);
     return () => mediaQuery.removeListener(updateBreakpoint);
   }, [isMobile]);
-
-  useEffect(() => {
-    if (!shouldSkipSplash) return;
-    const id = requestAnimationFrame(() => setShowSplash(false));
-    return () => cancelAnimationFrame(id);
-  }, [shouldSkipSplash]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !heroVideoRef.current) return;
@@ -211,7 +268,7 @@ export default function Home() {
    * desplazamiento de la página por el borde inferior del celular.
    */
   useEffect(() => {
-    if (!showSplash || typeof document === 'undefined') return;
+    if (!splashActivo || typeof document === 'undefined') return;
 
     const html = document.documentElement;
     const body = document.body;
@@ -225,7 +282,7 @@ export default function Home() {
       html.style.overflow = prevHtmlOverflow;
       body.style.overflow = prevBodyOverflow;
     };
-  }, [showSplash]);
+  }, [splashActivo]);
 
   /**
    * 🖤 Blindaje anti-línea-blanca: mientras el splash está visible, el
@@ -236,7 +293,7 @@ export default function Home() {
    * y manda la clase del theme).
    */
   useEffect(() => {
-    if (!showSplash || typeof document === 'undefined') return;
+    if (!splashActivo || typeof document === 'undefined') return;
     const html = document.documentElement;
     const body = document.body;
     const prevHtml = html.style.backgroundColor;
@@ -247,7 +304,7 @@ export default function Home() {
       html.style.backgroundColor = prevHtml;
       body.style.backgroundColor = prevBody;
     };
-  }, [showSplash]);
+  }, [splashActivo]);
 
   /**
    * ⏱️ Red de seguridad del splash: si el video no dispara `onEnded`
@@ -255,7 +312,7 @@ export default function Home() {
    * la pantalla se cierra igual. Nadie se queda en negro.
    */
   useEffect(() => {
-    if (!showSplash || shouldSkipSplash) return;
+    if (!splashActivo) return;
 
     const id = window.setTimeout(() => {
       setFadeOut(true);
@@ -263,7 +320,7 @@ export default function Home() {
     }, 5000);
 
     return () => window.clearTimeout(id);
-  }, [showSplash, shouldSkipSplash]);
+  }, [splashActivo]);
 
   const handleVideoEnd = () => {
     setFadeOut(true);
@@ -280,7 +337,7 @@ export default function Home() {
           colapsarse la barra al deslizar, aparecía un desplazamiento de la
           página por el borde inferior. El `style` inline deja el fallback a
           `h-screen` (100vh) en navegadores que aún no entienden dvh. */}
-      {showSplash && (
+      {splashActivo && (
         <div
           style={{
             // +2mm por cada lado: sella la costura de sub-píxel entre el
