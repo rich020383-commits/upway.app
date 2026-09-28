@@ -10,7 +10,7 @@
  * Qué produce
  * -----------
  *   public/verticales/{salud,center,inmobiliaria}.jpg   840x420  (tarjetas 2:1)
- *   public/sectores/{clinicas,eps,ips,centros-de-salud,consultorios}.jpg
+ *   public/sectores/{clinicas,eps,ips,centros-de-salud,consultorios}-v2.jpg
  *                                                          440x280  (tarjetas 220/140)
  *
  * Por qué un script y no un recorte manual
@@ -60,9 +60,16 @@ const RECORTE = [
   { entrada: 'inmobiliaria-new.png', salida: 'inmobiliaria.jpg', dir: VERTICALES_DIR, w: 840, h: 420 },
 
   // --- Sectores de Health ------------------------------------------------
+  // El sufijo -v2 NO es decorativo: estas cinco rutas ya existían con fotos
+  // viejas de baja resolución. Sobrescribir el archivo dejando el mismo
+  // nombre deja la URL idéntica, así que el navegador, el CDN y el
+  // optimizador de /_next/image siguen sirviendo la versión vieja —que es
+  // justo lo que pasó: en producción se veían pixeladas—. Cambiar el nombre
+  // es lo que invalida la caché. La próxima versión del arte repite el
+  // truco: -v3, -v4, ...
   {
     entrada: 'clinica-new.png',
-    salida: 'clinicas.jpg',
+    salida: 'clinicas-v2.jpg',
     dir: SECTORES_DIR,
     w: 440,
     h: 280,
@@ -71,23 +78,42 @@ const RECORTE = [
     // lateral de servicios, igual que en las otras cuatro piezas de sector.
     extract: { left: 270, top: 315, width: 940, height: 598 },
   },
-  { entrada: 'centromedico-new.png', salida: 'centros-de-salud.jpg', dir: SECTORES_DIR, w: 440, h: 280 },
-  { entrada: 'eps-new.png', salida: 'eps.jpg', dir: SECTORES_DIR, w: 440, h: 280 },
-  { entrada: 'ips-new.png', salida: 'ips.jpg', dir: SECTORES_DIR, w: 440, h: 280 },
-  { entrada: 'consultorio-new.png', salida: 'consultorios.jpg', dir: SECTORES_DIR, w: 440, h: 280 },
+  { entrada: 'centromedico-new.png', salida: 'centros-de-salud-v2.jpg', dir: SECTORES_DIR, w: 440, h: 280 },
+  { entrada: 'eps-new.png', salida: 'eps-v2.jpg', dir: SECTORES_DIR, w: 440, h: 280 },
+  { entrada: 'ips-new.png', salida: 'ips-v2.jpg', dir: SECTORES_DIR, w: 440, h: 280 },
+  { entrada: 'consultorio-new.png', salida: 'consultorios-v2.jpg', dir: SECTORES_DIR, w: 440, h: 280 },
 ];
+
+/**
+ * Busca el original en `public/` y, si ya no está, en la reserva.
+ *
+ * Al terminar la primera corrida los PNG salen de `public/` (todo lo que está
+ * ahí se publica) y quedan en `.audit-assets/`. Sin este fallback el script
+ * solo podría correr una vez por cada arte, y volver a recortar era
+ * manual. La reserva es la fuente de verdad para las corridas siguientes.
+ *
+ * Devuelve de dónde vino el archivo porque moverlo a la reserva solo tiene
+ * sentido si venía de `public/`.
+ */
+function localizar(entrada) {
+  const enPublic = path.join(PUBLIC_DIR, entrada);
+  if (existsSync(enPublic)) return { ruta: enPublic, desdePublic: true };
+  const enReserva = path.join(RESERVA_DIR, entrada);
+  if (existsSync(enReserva)) return { ruta: enReserva, desdePublic: false };
+  return null;
+}
 
 async function main() {
   /* Se validan TODOS los orígenes antes de generar nada: si falta uno, es
      preferible no escribir ninguna salida a dejar el árbol a medias con
      tres verticales viejas y cinco nuevas. */
-  const faltantes = RECORTE.filter((t) => !existsSync(path.join(PUBLIC_DIR, t.entrada)));
+  const faltantes = RECORTE.filter((t) => localizar(t.entrada) === null);
   if (faltantes.length > 0) {
-    console.error('✗ Faltan los siguientes artes de origen en public/:');
+    console.error('✗ Faltan los siguientes artes de origen:');
     for (const t of faltantes) console.error(`   ${t.entrada}`);
     console.error(
-      `\nSe procesan una sola vez: al terminar los originales se apartan a ${RESERVA_DIR}/.` +
-        `\nPara volver a recortar, copiálos de ahí a public/ y vuelve a correr el script.`
+      `\nSe buscan en public/ y en ${RESERVA_DIR}/.` +
+        `\nSi el arte es nuevo, déjalo en public/ y vuelve a correr el script.`
     );
     process.exit(1);
   }
@@ -99,7 +125,7 @@ async function main() {
   const resumen = [];
 
   for (const t of RECORTE) {
-    const origen = path.join(PUBLIC_DIR, t.entrada);
+    const { ruta: origen, desdePublic } = localizar(t.entrada);
 
     let imagen = sharp(origen);
     if (t.extract) imagen = imagen.extract(t.extract);
@@ -111,9 +137,12 @@ async function main() {
       .toFile(destino);
 
     // El original sale de `public/` (todo lo que está ahí se publica) y queda
-    // en la carpeta ignorada por si hay que volver a recortar.
-    await copyFile(origen, path.join(RESERVA_DIR, t.entrada));
-    await unlink(origen);
+    // en la carpeta ignorada por si hay que volver a recortar. Si ya venía de
+    // la reserva, se queda donde está.
+    if (desdePublic) {
+      await copyFile(origen, path.join(RESERVA_DIR, t.entrada));
+      await unlink(origen);
+    }
 
     const meta = await sharp(destino).metadata();
     resumen.push(`   ${t.salida.padEnd(22)} ${meta.width}x${meta.height}`);

@@ -698,7 +698,7 @@ export default function Home() {
             <Link href="/login?segment=health" className="block overflow-hidden bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
               <div className="relative -mx-[20px] -mt-[20px] mb-[16px] aspect-[220/140] overflow-hidden bg-[#eaf4fb]">
                 <Image
-                  src="/sectores/clinicas.jpg"
+                  src="/sectores/clinicas-v2.jpg"
                   alt="Clínicas atendidas por Upway Health"
                   width={220}
                   height={140}
@@ -715,7 +715,7 @@ export default function Home() {
             <Link href="/login?segment=health" className="block overflow-hidden bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
               <div className="relative -mx-[20px] -mt-[20px] mb-[16px] aspect-[220/140] overflow-hidden bg-[#eaf4fb]">
                 <Image
-                  src="/sectores/ips.jpg"
+                  src="/sectores/ips-v2.jpg"
                   alt="IPS atendidas por Upway Health"
                   width={220}
                   height={140}
@@ -732,7 +732,7 @@ export default function Home() {
             <Link href="/login?segment=health" className="block overflow-hidden bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
               <div className="relative -mx-[20px] -mt-[20px] mb-[16px] aspect-[220/140] overflow-hidden bg-[#eaf4fb]">
                 <Image
-                  src="/sectores/eps.jpg"
+                  src="/sectores/eps-v2.jpg"
                   alt="EPS atendidas por Upway Health"
                   width={220}
                   height={140}
@@ -749,7 +749,7 @@ export default function Home() {
             <Link href="/login?segment=health" className="block overflow-hidden bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
               <div className="relative -mx-[20px] -mt-[20px] mb-[16px] aspect-[220/140] overflow-hidden bg-[#eaf4fb]">
                 <Image
-                  src="/sectores/centros-de-salud.jpg"
+                  src="/sectores/centros-de-salud-v2.jpg"
                   alt="Centros de salud atendidos por Upway Health"
                   width={220}
                   height={140}
@@ -766,7 +766,7 @@ export default function Home() {
             <Link href="/login?segment=health" className="block overflow-hidden bg-white border border-[#e0edf6] rounded-[17px] p-[20px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee] hover:shadow-[0_12px_30px_#153f6820]">
               <div className="relative -mx-[20px] -mt-[20px] mb-[16px] aspect-[220/140] overflow-hidden bg-[#eaf4fb]">
                 <Image
-                  src="/sectores/consultorios.jpg"
+                  src="/sectores/consultorios-v2.jpg"
                   alt="Consultorios atendidos por Upway Health"
                   width={220}
                   height={140}
