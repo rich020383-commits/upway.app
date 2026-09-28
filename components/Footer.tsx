@@ -44,7 +44,14 @@ export default function Footer() {
               Industrias
             </h4>
             <ul className="space-y-3 text-sm">
-              <li><Link href="/precios" className="hover:text-blue-400 transition-colors">Clínicas y Salud</Link></li>
+              {/* El orden sigue el de las verticales en la portada: Health,
+                  Center, Inmobiliaria. Antes faltaba Center, así que esta
+                  columna solo mostraba dos de las tres. "Clínicas y Salud"
+                  además apuntaba a /precios en vez de a /salud: los otros dos
+                  enlazan a su landing, así que era el único que se saltaba el
+                  paso por la vertical. */}
+              <li><Link href="/salud" className="hover:text-blue-400 transition-colors">Clínicas y Salud</Link></li>
+              <li><Link href="/center" className="hover:text-blue-400 transition-colors">Call Center</Link></li>
               <li><Link href="/inmobiliarias" className="hover:text-blue-400 transition-colors">Inmobiliarias</Link></li>
             </ul>
           </div>
