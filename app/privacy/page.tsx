@@ -66,7 +66,7 @@ export default function PrivacyPolicyPage() {
               </p>
               <ul className="list-disc pl-6 space-y-2 text-slate-400 mt-3">
                 <li><strong>Aislamiento de Infraestructura:</strong> Los datos de pacientes se almacenan en arquitecturas de bases de datos compartimentadas (Multi-tenant lógicos mediante identificadores únicos de clínica) o contenedores dedicados.</li>
-                <li><strong>Cero Entrenamiento Externo:</strong> Upway garantiza que la información clínica y personal recolectada por nuestros clientes <strong>NO</strong> se utiliza para entrenar inteligencias artificiales públicas ni se comparte con corporaciones de terceros sin acuerdos de confidencialidad médica (BAA) cuando aplique.</li>
+                <li><strong>Entrenamiento de modelos:</strong> Upway no utiliza la información clínica ni la de nuestros clientes para entrenar modelos de inteligencia artificial de terceros. El proveedor de voz (Telnyx) gobierna por separado el uso de sus propias conversaciones con fines de mejora o evaluación de modelos: ese uso se excluye del encargo y queda condicionado a confirmación contractual con el proveedor. No compartimos información clínica con terceros sin acuerdo de confidencialidad y, cuando aplica, acuerdo de protección de datos (BAA).</li>
                 <li><strong>Seguridad Sensible:</strong> Aplicamos cifrado en tránsito (HTTPS/WSS) y medidas de protección avanzadas exigidas por las regulaciones locales (Ley 1581) e internacionales.</li>
               </ul>
             </section>
@@ -85,9 +85,26 @@ export default function PrivacyPolicyPage() {
             </section>
 
             <section className="space-y-3">
-              <h2 className="text-xl font-semibold text-white">4. Integración con Meta y Voz (Telnyx)</h2>
+              <h2 className="text-xl font-semibold text-white">4. Integración de la Voz y Terceros (Telnyx)</h2>
               <p>
-                Upway utiliza canales de comunicación avalados por Meta y procesadores de voz (Telnyx), modelos de lenguaje (Google Gemini y Groq), cobros (Bold) y envío de correo (Zoho), siempre bajo contratos de encargo del tratamiento. Prohibimos a nuestros clientes el uso de técnicas de extracción de datos (scraping). La clínica cliente se compromete a notificar a sus pacientes que las interacciones de voz y texto serán procesadas por sistemas automatizados.
+                La atención por voz y el procesamiento de inteligencia artificial de Upway Health se realizan
+                <strong> íntegramente dentro de la infraestructura de Telnyx</strong> (telefonía, transcripción, modelo de
+                lenguaje y síntesis de voz), bajo contrato de encargo del tratamiento. Cobros con <strong>Bold</strong> y
+                envío de correo con <strong>Zoho</strong>. El módulo de planeación de operaciones de la vertical de
+                negocios emplea un proveedor de modelo de lenguaje fijado por configuración y, si se activan cascadas de
+                respaldo, los proveedores alternativos que se declaren en el contrato de encargo. Upway no ofrece
+                mensajería de terceros como canal de sus verticales: el canal oficial es la voz con IA sobre línea
+                telefónica. Prohibimos a nuestros clientes el uso de técnicas de extracción de datos (scraping). La
+                clínica cliente se compromete a notificar a sus pacientes que las interacciones de voz y texto serán
+                procesadas por sistemas automatizados.
+              </p>
+              <p className="text-slate-400 mt-2">
+                <strong>Ubicación del procesamiento:</strong> el audio y su transcripción se procesan en la
+                infraestructura de Telnyx y <strong>no ofrecemos garantía de que el procesamiento en vivo ocurra en un
+                país determinado</strong>. El almacenamiento en reposo de grabaciones y transcripciones queda en la
+                región que fijamos en nuestra cuenta de Telnyx, que a la fecha es Estados Unidos. La identidad conforme
+                (tipo y número de documento, fecha de nacimiento y municipio) se captura por catálogo cerrado o dígito a
+                dígito y se certifica de forma determinista, sin tránsito por ningún modelo de lenguaje.
               </p>
             </section>
 
