@@ -33,16 +33,18 @@ function PlanCard({ plan, featured = false }: { plan: Plan; featured?: boolean }
       )}
       <h3 className="font-display text-[20px] font-extrabold tracking-[-0.5px]">{plan.name}</h3>
       <p className={`mt-1 text-[12px] leading-[1.6] ${featured ? 'text-white/80' : 'text-[#55718f]'}`}>{plan.tagline}</p>
+      {/* Titular = total con IVA (lo que se paga). Antes era la base y el
+          total iba en letra chica debajo. */}
       <div className="mt-[18px] flex items-baseline gap-2">
-        <span className="font-display text-[30px] font-extrabold tracking-[-1px]">{cop(plan.monthlyCOP)}</span>
-        <span className={`text-[12px] font-semibold ${featured ? 'text-white/70' : 'text-[#7b93ab]'}`}>/mes + IVA</span>
+        <span className="font-display text-[30px] font-extrabold tracking-[-1px]">{cop(withIVA(plan.monthlyCOP))}</span>
+        <span className={`text-[12px] font-semibold ${featured ? 'text-white/70' : 'text-[#7b93ab]'}`}>/mes</span>
       </div>
       <p className={`mt-1 text-[11px] ${featured ? 'text-white/60' : 'text-[#7b93ab]'}`}>
-        Total con IVA 19%: {cop(withIVA(plan.monthlyCOP))}
+        IVA 19% incluido · base sin IVA {cop(plan.monthlyCOP)}
       </p>
       {plan.setupCOP > 0 && (
         <p className={`mt-1 text-[11px] font-semibold ${featured ? 'text-[#50e1d5]' : 'text-[#0d8a88]'}`}>
-          Implementación única: {cop(plan.setupCOP)}
+          Implementación única: {cop(withIVA(plan.setupCOP))}
         </p>
       )}
       <ul className={`mt-[18px] flex-1 space-y-2 border-t pt-[16px] text-[12px] leading-[1.55] ${featured ? 'border-white/20' : 'border-[#e8f0f8]'}`}>
@@ -60,7 +62,7 @@ function PlanCard({ plan, featured = false }: { plan: Plan; featured?: boolean }
         </li>
         <li className="flex gap-2">
           <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#0ba9a9]" />
-          Minuto adicional: {cop(plan.overageCOP)}
+          Minuto adicional: {cop(withIVA(plan.overageCOP))} (IVA incluido)
         </li>
         {plan.features.map((f) => (
           <li key={f} className="flex gap-2">
@@ -85,7 +87,7 @@ function PlanCard({ plan, featured = false }: { plan: Plan; featured?: boolean }
 const faqs = [
   {
     q: '¿Qué pasa si me quedo sin minutos?',
-    a: `El minuto adicional se cobra a ${cop(DEFAULT_OVERAGE_COP)} COP, sin interrupciones: Sophie sigue atendiendo y el consumo se refleja en tu panel con trazabilidad.`,
+    a: `El minuto adicional se cobra a ${cop(withIVA(DEFAULT_OVERAGE_COP))} COP con IVA incluido, sin interrupciones: Sophie sigue atendiendo y el consumo se refleja en tu panel con trazabilidad.`,
   },
   {
     q: '¿Necesito cambiar de proveedor telefónico?',

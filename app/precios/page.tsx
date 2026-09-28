@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ALL_HEALTH_PLANS, formatCOP, planCommercialSummary } from '@/lib/health/plans-enterprise';
+import { ALL_HEALTH_PLANS, formatCOP } from '@/lib/health/plans-enterprise';
 import {
   withIVA,
   FACILITY_TYPE_OPTIONS,
@@ -24,7 +24,6 @@ function FacilityBadge({ type }: { type: string }) {
 }
 
 function PlanCard({ plan, featured = false }: { plan: typeof ALL_HEALTH_PLANS[number]; featured?: boolean }) {
-  const summary = planCommercialSummary(plan);
   const isCustom = plan.monthlyCOP === 0;
   return (
     <div id={plan.id} className={`relative flex flex-col rounded-[24px] border p-6 transition-all hover:-translate-y-1 hover:shadow-xl ${featured ? 'border-[#1b5ed6] bg-gradient-to-br from-[#0f172a] to-[#1b3a5f] text-white shadow-2xl' : 'border-slate-200 bg-white shadow-md'}`}>
@@ -43,11 +42,18 @@ function PlanCard({ plan, featured = false }: { plan: typeof ALL_HEALTH_PLANS[nu
           <span className={`text-3xl font-black ${featured ? 'text-white' : 'text-slate-900'}`}>A cotizar</span>
         ) : (
           <>
+            {/* Precio de venta al público. El titular es el TOTAL con IVA, que
+                es lo que el cliente paga de verdad, y la base gravable queda
+                debajo en letra chica. Antes el titular era la base y el total
+                iba en una línea de texto pequeño: la tarjeta se leía más
+                barata de lo que es. */}
             <div className="flex items-baseline gap-2">
-              <span className={`text-3xl font-black ${featured ? 'text-white' : 'text-slate-900'}`}>{summary.monthlyLabel}</span>
+              <span className={`text-3xl font-black ${featured ? 'text-white' : 'text-slate-900'}`}>
+                {formatCOP(withIVA(plan.monthlyCOP))}
+              </span>
               <span className="text-sm text-slate-500">/mes</span>
             </div>
-            <p className="mt-1 text-xs text-slate-400">+ IVA 19% ({formatCOP(withIVA(plan.monthlyCOP))} total)</p>
+            <p className="mt-1 text-xs text-slate-400">IVA 19% incluido · base sin IVA {formatCOP(plan.monthlyCOP)}</p>
           </>
         )}
       </div>
@@ -55,7 +61,7 @@ function PlanCard({ plan, featured = false }: { plan: typeof ALL_HEALTH_PLANS[nu
         <div className="flex items-center gap-2"><span>{plan.includedNumbers} número{plan.includedNumbers > 1 ? 's' : ''}</span></div>
         <div className="flex items-center gap-2"><span>{plan.includedMinutes.toLocaleString('es-CO')} min/mes</span></div>
         <div className="flex items-center gap-2"><span>Hasta {plan.concurrentCalls} simultaneas</span></div>
-        {plan.overageCOP > 0 && <div className="flex items-center gap-2"><span>Overage: ${plan.overageCOP.toLocaleString('es-CO')} COP/min</span></div>}
+        {plan.overageCOP > 0 && <div className="flex items-center gap-2"><span>Overage: ${withIVA(plan.overageCOP).toLocaleString('es-CO')} COP/min (IVA incluido)</span></div>}
         <div className="flex items-center gap-2"><span>Grabacion: {plan.recordingRetention}</span></div>
       </div>
       <ul className="mb-6 flex-1 space-y-2">
@@ -69,14 +75,14 @@ function PlanCard({ plan, featured = false }: { plan: typeof ALL_HEALTH_PLANS[nu
         <div className={`mb-6 rounded-xl border p-3 text-xs ${featured ? 'border-white/20 bg-white/10' : 'border-emerald-200 bg-emerald-50/60'}`}>
           <p className={`font-bold ${featured ? 'text-white' : 'text-emerald-900'}`}>Adicional por sede: {IDENTITY_MODULE_LABEL}</p>
           <p className={`mt-1 ${featured ? 'text-slate-300' : 'text-slate-600'}`}>{IDENTITY_MODULE_DESCRIPTION}</p>
-          <p className={`mt-2 font-bold ${featured ? 'text-emerald-300' : 'text-emerald-700'}`}>+ {formatCOP(IDENTITY_MODULE_COP)}/sede/mes + IVA</p>
+          <p className={`mt-2 font-bold ${featured ? 'text-emerald-300' : 'text-emerald-700'}`}>+ {formatCOP(withIVA(IDENTITY_MODULE_COP))}/sede/mes · IVA incluido</p>
         </div>
       )}
       <div className="mt-auto space-y-3">
         <Link href="/login?segment=health" className={`block rounded-full py-3 text-center text-sm font-bold transition-all ${featured ? 'bg-white text-[#0f172a] hover:bg-slate-100' : 'bg-[#1b5ed6] text-white hover:bg-[#1548a8]'}`}>
           {isCustom ? 'Contactar ventas' : 'Empezar ahora'}
         </Link>
-        {plan.setupCOP > 0 && <p className="text-center text-xs text-slate-400">Setup: {formatCOP(plan.setupCOP)} + IVA</p>}
+        {plan.setupCOP > 0 && <p className="text-center text-xs text-slate-400">Setup: {formatCOP(withIVA(plan.setupCOP))} (IVA incluido)</p>}
       </div>
       {plan.requiresTelnyxApproval && (
         <div className={`mt-4 rounded-xl p-3 text-xs ${featured ? 'bg-white/10 text-slate-200' : 'bg-amber-50 text-amber-700'}`}>
@@ -117,8 +123,8 @@ export default function PreciosPage() {
             <p className="mt-2 text-xs text-slate-500">Disponible sobre cualquier plan. Se activa con contrato de encargo de datos (DPA) firmado: asi de serios somos con la Ley 1581.</p>
           </div>
           <div className="mt-4 text-center md:mt-0">
-            <p className="text-2xl font-black text-emerald-700">{formatCOP(IDENTITY_MODULE_COP)}</p>
-            <p className="text-xs text-slate-500">por sede/mes + IVA</p>
+            <p className="text-2xl font-black text-emerald-700">{formatCOP(withIVA(IDENTITY_MODULE_COP))}</p>
+            <p className="text-xs text-slate-500">por sede/mes · IVA 19% incluido</p>
           </div>
         </div>
         {customPlans.length > 0 && (

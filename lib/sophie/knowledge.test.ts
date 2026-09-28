@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { FORBIDDEN_COST_PATTERNS, KNOWLEDGE } from './knowledge';
 import { formatCOP } from '@/lib/health/plans-enterprise';
-import { IDENTITY_MODULE_COP, IVA_RATE } from '@/lib/health/plans';
+import { IDENTITY_MODULE_COP, IVA_RATE, withIVA } from '@/lib/health/plans';
 import { OVERAGE_COP } from '@/lib/pricing/rules';
 
 describe('corpus de conocimiento de Sophie', () => {
@@ -18,14 +18,19 @@ describe('corpus de conocimiento de Sophie', () => {
 
   it('incluye los precios generados desde el código canónico', () => {
     const serialized = JSON.stringify(KNOWLEDGE);
-    expect(serialized).toContain(formatCOP(429000)); // Health: Consultorio 600
-    expect(serialized).toContain(formatCOP(1199000)); // Health: Clínica Pro 1.800
-    expect(serialized).toContain(formatCOP(14490000)); // Health: IPS Enterprise
-    expect(serialized).toContain(formatCOP(399000)); // Inmobiliaria: Starter
-    expect(serialized).toContain(formatCOP(699000)); // Center: Línea
-    expect(serialized).toContain(formatCOP(IDENTITY_MODULE_COP)); // Módulo identidad
-    // El minuto adicional aparece como precio público en el corpus.
-    expect(serialized).toContain(`${formatCOP(OVERAGE_COP)}/min`);
+    // El corpus publica el precio con IVA incluido, que es como lo muestra el
+    // sitio. Las bases se comprueban aparte en la línea del minuto adicional:
+    // Sophie debe poder desglosar el total cuando le preguntan.
+    expect(serialized).toContain(formatCOP(withIVA(429000))); // Health: Consultorio 600
+    expect(serialized).toContain(formatCOP(withIVA(1199000))); // Health: Clínica Pro 1.800
+    expect(serialized).toContain(formatCOP(withIVA(14490000))); // Health: IPS Enterprise
+    expect(serialized).toContain(formatCOP(withIVA(399000))); // Inmobiliaria: Starter
+    expect(serialized).toContain(formatCOP(withIVA(699000))); // Center: Línea
+    expect(serialized).toContain(formatCOP(withIVA(IDENTITY_MODULE_COP))); // Módulo identidad
+    // El minuto adicional aparece como precio público en el corpus, y su base
+    // queda a la vista para el desglose.
+    expect(serialized).toContain(`${formatCOP(withIVA(OVERAGE_COP))}/min`);
+    expect(serialized).toContain(`base ${formatCOP(OVERAGE_COP)}/min`);
     expect(IVA_RATE).toBe(0.19);
   });
 

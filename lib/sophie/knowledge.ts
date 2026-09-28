@@ -17,6 +17,7 @@ import {
   IDENTITY_MODULE_COP,
   IDENTITY_MODULE_LABEL,
   IDENTITY_MODULE_DESCRIPTION,
+  withIVA,
 } from '@/lib/health/plans';
 import { INMOBILIARIA_PLANS } from '@/lib/inmobiliaria/plans';
 import { CENTER_PLANS } from '@/lib/center/plans';
@@ -54,7 +55,11 @@ function planLine(p: PlanLike): string {
     return `- ${p.name}: a cotizar con el equipo (volumen desde ${num(p.includedMinutes)} min/mes).`;
   }
   const retention = p.recordingRetention ? ` · grabación ${p.recordingRetention}` : '';
-  return `- ${p.name}: ${fmt(p.monthlyCOP)}/mes sin IVA · implementación única ${fmt(p.setupCOP)} · ${num(p.includedMinutes)} min incluidos · ${p.includedNumbers} número(s) dedicado(s) · ${p.concurrentCalls} llamadas simultáneas · minuto adicional ${fmt(p.overageCOP)}/min${retention} · ideal para: ${p.bestFor}`;
+  // Las cifras van con IVA incluido porque es lo que muestra el sitio y lo que
+  // se cobra de verdad. La base queda entre paréntesis para que Sophie pueda
+  // desglosarla si le preguntan. Con el titular en la base, el bot anunciaba
+  // un precio más bajo que el de la web.
+  return `- ${p.name}: ${fmt(withIVA(p.monthlyCOP))}/mes con IVA incluido (base ${fmt(p.monthlyCOP)}) · implementación única ${fmt(withIVA(p.setupCOP))} con IVA · ${num(p.includedMinutes)} min incluidos · ${p.includedNumbers} número(s) dedicado(s) · ${p.concurrentCalls} llamadas simultáneas · minuto adicional ${fmt(withIVA(p.overageCOP))}/min con IVA${retention} · ideal para: ${p.bestFor}`;
 }
 
 const healthLines = ALL_HEALTH_PLANS.map(planLine).join('\n');
@@ -68,8 +73,8 @@ const CURATED: KnowledgeChunk[] = [
     tags: ['precio', 'precios', 'tarifa', 'tarifas', 'costo', 'cuanto cuesta', 'cuánto vale', 'cotizacion', 'cotización', 'iva', 'contrato', 'descuento', 'piloto', 'vigencia', 'renovacion'],
     source: 'docs/upway-politica-precios.md + lib/pricing/rules.ts',
     content: [
-      'Todos los precios de Upway están en pesos colombianos (COP) y se expresan SIN IVA; el IVA en Colombia es 19% y se adiciona al facturar.',
-      `Minuto adicional (el minuto que excede lo incluido): ${fmt(OVERAGE_COP)}/min, la misma tarifa en todos los planes y verticales.`,
+      'Todos los precios publicados en upway.app ya incluyen IVA: el número que ve el cliente es el total que realmente paga. El IVA en Colombia es 19% y la base gravable aparece debajo del total en las páginas de planes.',
+      `Minuto adicional (el minuto que excede lo incluido): ${fmt(withIVA(OVERAGE_COP))}/min con IVA incluido (base ${fmt(OVERAGE_COP)}/min), la misma tarifa en todos los planes y verticales.`,
       'La tarifa final vigente aplica desde el 1 de octubre de 2026 para activaciones nuevas.',
       'Los clientes activados antes del 1-oct-2026 conservan su tarifa hasta la renovación de su contrato.',
       'Volumen fuera de los planes publicados (desde ~60.000 min/mes, redes o EPS) y licitaciones: se cotiza con el equipo (no hay precio publicado).',
@@ -102,7 +107,7 @@ const CURATED: KnowledgeChunk[] = [
     title: 'Módulo Identidad Conforme (Res. 866/2021)',
     tags: ['identidad', 'conforme', 'resolucion 866', 'confirmacion', 'dato', 'paciente', 'modulo', 'documento', 'seguridad', 'salud'],
     source: 'lib/health/plans.ts',
-    content: `${IDENTITY_MODULE_LABEL}: adicional de ${fmt(IDENTITY_MODULE_COP)} COP por sede y mes (sin IVA). ${IDENTITY_MODULE_DESCRIPTION} Solo aplica en la vertical de salud.`,
+    content: `${IDENTITY_MODULE_LABEL}: adicional de ${fmt(withIVA(IDENTITY_MODULE_COP))} COP por sede y mes con IVA incluido (base ${fmt(IDENTITY_MODULE_COP)} COP). ${IDENTITY_MODULE_DESCRIPTION} Solo aplica en la vertical de salud.`,
   },
   {
     id: 'capacidades',

@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 export const metadata = {
   title: 'Precios — Upway Center',
   description:
-    'Planes de Upway Center desde $699.000/mes. Minutos de voz con agente IA 24/7, implementación única y minuto adicional a $690. Precios vigentes desde el 1 de octubre de 2026.',
+    'Planes de Upway Center desde $831.810/mes con IVA incluido. Minutos de voz con agente IA 24/7, implementación única y minuto adicional a $821. Precios vigentes desde el 1 de octubre de 2026.',
 };
 
 const cop = (n: number) => '$' + n.toLocaleString('es-CO');
@@ -182,17 +182,19 @@ export default function CenterPreciosPage() {
                   <p className={`mt-1 text-[12px] leading-[1.6] ${featured ? 'text-white/80' : 'text-[#55718f]'}`}>
                     {plan.ideal}
                   </p>
+                  {/* Titular = total con IVA (lo que se paga). Antes era la base
+                      y el total iba en letra chica debajo. */}
                   <div className="mt-[18px] flex items-baseline gap-2">
-                    <span className="font-display text-[30px] font-extrabold tracking-[-1px]">{cop(plan.precio)}</span>
+                    <span className="font-display text-[30px] font-extrabold tracking-[-1px]">{conIVA(plan.precio)}</span>
                     <span className={`text-[12px] font-semibold ${featured ? 'text-white/70' : 'text-[#7b93ab]'}`}>
-                      /mes + IVA
+                      /mes
                     </span>
                   </div>
                   <p className={`mt-1 text-[11px] ${featured ? 'text-white/60' : 'text-[#7b93ab]'}`}>
-                    Total con IVA 19%: {conIVA(plan.precio)}
+                    IVA 19% incluido · base sin IVA {cop(plan.precio)}
                   </p>
                   <p className={`mt-1 text-[11px] font-semibold ${featured ? 'text-[#50e1d5]' : 'text-[#0d8a88]'}`}>
-                    Implementación única: {cop(plan.setup)}
+                    Implementación única: {conIVA(plan.setup)}
                   </p>
                   <ul
                     className={`mt-[18px] flex-1 space-y-2 border-t pt-[16px] text-[12px] leading-[1.55] ${
@@ -210,7 +212,7 @@ export default function CenterPreciosPage() {
                     </li>
                     <li className="flex gap-2">
                       <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#0ba9a9]" />
-                      Minuto adicional: {cop(overageCOP)}
+                      Minuto adicional: {conIVA(overageCOP)} (IVA incluido)
                     </li>
                     {plan.incluye.map((f) => (
                       <li key={f} className="flex gap-2">
@@ -256,8 +258,8 @@ export default function CenterPreciosPage() {
               <Clock className="mb-3 h-5 w-5 text-[#0ba9a9]" />
               <h3 className="text-[13px] font-bold text-[#0d3168]">Minuto adicional</h3>
               <p className="mt-[8px] text-[12px] leading-[1.65] text-[#55718f]">
-                {cop(overageCOP)} COP por minuto cuando se agotan los incluidos, sin cortar la operación y con el consumo
-                reflejado en tu reporte.
+                {conIVA(overageCOP)} COP por minuto con IVA incluido cuando se agotan los incluidos, sin cortar la operación
+                y con el consumo reflejado en tu reporte.
               </p>
             </div>
             <div className="rounded-[17px] border border-[#e0edf6] bg-white p-[20px] shadow-[0_8px_25px_#153f6810]">
