@@ -102,9 +102,17 @@ export default function PrivacyPolicyPage() {
 
           {/* Pie de página informativo */}
           <div className="mt-12 pt-6 border-t border-white/10 flex items-center justify-between text-xs text-slate-500 flex-wrap gap-4">
+            {/* Nada de "soberanía de datos": Telnyx confirmó que no existe
+                garantía de región de procesamiento, que no hay región en
+                América Latina y que el almacenamiento en reposo queda en US
+                por omisión (y es un ajuste irreversible). Afirmar soberanía
+                sería una representación que el proveedor no respalda y que su
+                propia documentación desaconseja. Se afirma lo que sí se
+                puede demostrar: cifrado, auditoría de accesos y el aviso de
+                consentimiento de la Ley 1581. */}
             <span className="flex items-center gap-1.5 text-emerald-400">
               <CheckCircle2 className="h-4 w-4" />
-              Soberanía de Datos y Cumplimiento Ley 1581 de 2012
+              Cifrado, auditoría de accesos y trazabilidad · Ley 1581 de 2012
             </span>
             <span>© 2026 {LEGAL_ENTITY} Todos los derechos reservados.</span>
           </div>
