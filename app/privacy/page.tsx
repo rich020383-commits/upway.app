@@ -92,9 +92,14 @@ export default function PrivacyPolicyPage() {
                 lenguaje y síntesis de voz), bajo contrato de encargo del tratamiento. Cobros con <strong>Bold</strong> y
                 envío de correo con <strong>Zoho</strong>. El módulo de planeación de operaciones de la vertical de
                 negocios emplea un proveedor de modelo de lenguaje fijado por configuración y, si se activan cascadas de
-                respaldo, los proveedores alternativos que se declaren en el contrato de encargo. Upway no ofrece
-                mensajería de terceros como canal de sus verticales: el canal oficial es la voz con IA sobre línea
-                telefónica. Prohibimos a nuestros clientes el uso de técnicas de extracción de datos (scraping). La
+                respaldo, los proveedores alternativos que se declaren en el contrato de encargo. <strong>No
+                ofrecemos mensajería de terceros como canal de salud</strong>: el canal oficial es la voz con IA
+                sobre línea telefónica. La razón es de arquitectura, no de preferencia — en un canal de mensajería
+                el contenido de la conversación lo procesa la plataforma, fuera de Colombia y bajo términos que solo
+                ella modifica, lo que interpone un intermediario más entre la clínica y el dato del paciente. En voz
+                la cadena es Upway y un solo proveedor de telefonía, y los términos (retención, ubicación del
+                procesamiento y exclusión de entrenamiento) se acuerdan por contrato. Prohibimos a nuestros clientes
+                el uso de técnicas de extracción de datos (scraping). La
                 clínica cliente se compromete a notificar a sus pacientes que las interacciones de voz y texto serán
                 procesadas por sistemas automatizados.
               </p>

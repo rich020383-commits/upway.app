@@ -809,6 +809,57 @@ export default function Home() {
           </div>
         </section>
 
+        {/* POR QUÉ VOZ Y NO MENSAJERÍA.
+            Decisión de arquitectura, no de moda. En mensajería el contenido de
+            cada conversación lo procesa la plataforma, fuera de Colombia y bajo
+            términos que solo ella modifica. En voz la cadena es Upway y un solo
+            proveedor de telefonía, con contrato y subencargados declarados.
+            Va solo en Health: en las otras verticales no hay dato clínico y la
+            comparación no se sostiene. */}
+        <section className="max-w-[1180px] mx-[15px] md:mx-auto mb-[30px] md:mb-[50px] p-[26px] md:p-[36px] rounded-[24px] border border-[#0b6a72]/25 bg-[linear-gradient(150deg,#f2fbfa_0%,#eef6ff_100%)]">
+          <div className="max-w-[820px]">
+            <div className="text-[#0b858d] font-bold text-[12px] mb-[10px] uppercase tracking-[0.14em]">
+              Por qué voz y no mensajería
+            </div>
+            <h3 className="text-[19px] md:text-[23px] leading-[1.28] font-extrabold text-[#0d3168] mb-[10px]">
+              Lo que un paciente le dice a su clínica sobre su salud no tiene por qué pasar por la red social
+              más grande del mundo.
+            </h3>
+            <p className="text-[12px] leading-[1.65] text-[#55718f]">
+              No usamos mensajería de terceros con datos de pacientes, y no es una decisión de moda: es de
+              arquitectura. Una cadena más corta es una cadena con menos donde el dato puede filtrarse.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-[18px] mt-[24px] text-[#0d3168]">
+            <div>
+              <span className="block text-[18px] mb-1 text-[#079fa0]">◈</span>
+              <h4 className="text-[13px] font-bold mb-[4px]">Un intermediario menos</h4>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">
+                En mensajería, el contenido de la conversación lo procesa la plataforma. En voz, la cadena
+                es Upway y un solo proveedor de telefonía, con subencargados declarados en nuestra política
+                de privacidad.
+              </p>
+            </div>
+            <div>
+              <span className="block text-[18px] mb-1 text-[#079fa0]">◇</span>
+              <h4 className="text-[13px] font-bold mb-[4px]">Términos que se negocian</h4>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">
+                Con una plataforma, el contrato lo hace la plataforma. Con un proveedor directo, la
+                retención, la ubicación del procesamiento y la exclusión de entrenamiento se acuerdan por
+                escrito.
+              </p>
+            </div>
+            <div>
+              <span className="block text-[18px] mb-1 text-[#079fa0]">◉</span>
+              <h4 className="text-[13px] font-bold mb-[4px]">La identidad no pasa por ningún modelo</h4>
+              <p className="text-[11px] leading-[1.5] text-[#55718f]">
+                Tipo y número de documento, fecha de nacimiento y municipio se capturan por catálogo cerrado
+                y se certifican de forma determinista: no transitan por un modelo de lenguaje.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* CTA CONTACTO */}
         <section id="contacto" className="py-[48px] px-5 md:px-[8%] flex flex-col md:flex-row items-center justify-between bg-[linear-gradient(110deg,#103d79,#0b858d)] text-white gap-8">
           <div>
