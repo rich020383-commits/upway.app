@@ -7,6 +7,11 @@ import { upsertAssistantForTienda, getTelnyxConfig, isTelnyxVoiceReady, missingT
 import { isValidVoiceValue } from '@/lib/telnyx/voices';
 import { checkVoiceRateLimit, voiceRateLimitResponse } from '@/lib/telnyx/rate-limit';
 import { buildVoiceGreeting, buildAgentInstructions } from '@/lib/telnyx/voice-consent';
+import {
+  evaluarGastoVoz,
+  avisarGastoVoz,
+  UPWAY_INTERNAL_REVIEW_EMAIL,
+} from '@/lib/telnyx/spend-guard';
 import { voiceCapabilityDenied } from '@/lib/voice-access';
 
 export const maxDuration = 30;
@@ -62,6 +67,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { error: telnyxNotReadyMessage(missingTelnyxVoiceEnv()) },
       { status: 503 }
+    );
+  }
+
+  // Freno de gasto ANTES de encender o ampliar una línea. Se comprueba aquí y
+  // no sobre el tráfico en vivo a propósito: si el consumo se descontrola, el
+  // daño de colgarle el servicio a un cliente que paga es mayor que el gasto.
+  // Aquí se impide que el problema crezca y la decisión queda en una persona.
+  const gasto = await evaluarGastoVoz(tienda.id);
+  if (gasto.state !== 'ok') {
+    void avisarGastoVoz(gasto, tienda.nombre, UPWAY_INTERNAL_REVIEW_EMAIL);
+  }
+  if (gasto.state === 'bloquea') {
+    return NextResponse.json(
+      {
+        error:
+          'No se activó la línea por consumo de voz elevado este mes. Nuestro equipo ya fue notificado y lo revisa contigo.',
+      },
+      { status: 429 }
     );
   }
 

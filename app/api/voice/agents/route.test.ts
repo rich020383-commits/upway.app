@@ -17,6 +17,20 @@ vi.mock('@/lib/telnyx/client', () => ({
   missingTelnyxVoiceEnv: vi.fn(() => []),
   telnyxNotReadyMessage: vi.fn(() => 'La voz de Upway todavía no está disponible.'),
 }));
+// El freno de gasto tiene su propio archivo de pruebas; aquí solo se fija su
+// contrato con la ruta: por defecto deja pasar.
+vi.mock('@/lib/telnyx/spend-guard', () => ({
+  evaluarGastoVoz: vi.fn(async () => ({
+    state: 'ok',
+    spentUSD: 0,
+    warnUSD: 500,
+    blockUSD: 2000,
+    totalUSD: 0,
+    motivo: null,
+  })),
+  avisarGastoVoz: vi.fn(async () => undefined),
+  UPWAY_INTERNAL_REVIEW_EMAIL: 'activacionplan@upway.business',
+}));
 
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/session';
@@ -27,6 +41,10 @@ import {
   upsertAssistantForTienda,
 } from '@/lib/telnyx/client';
 import { POST } from './route';
+import { evaluarGastoVoz, avisarGastoVoz } from '@/lib/telnyx/spend-guard';
+
+const mockedEvaluarGasto = evaluarGastoVoz as unknown as Mock;
+const mockedAvisar = avisarGastoVoz as unknown as Mock;
 
 const mockedSession = getSessionUser as unknown as Mock;
 const mockedTiendaFind = prisma.tienda.findFirst as unknown as Mock;
@@ -161,5 +179,25 @@ describe('POST /api/voice/agents — el paso que enciende la voz', () => {
     const res = await POST(post(body));
     expect(res.status).toBe(429);
     expect(res.headers.get('Retry-After')).toBeTruthy();
+  });
+
+  // El freno de gasto impide ENCENDER lineas nuevas cuando el consumo se
+  // dispara, pero nunca toca las llamadas en curso: colgarle el servicio a
+  // un cliente que paga por un error nuestro seria peor que el gasto.
+  it('no enciende la linea si el consumo del mes supero el tope', async () => {
+    mockedEvaluarGasto.mockResolvedValueOnce({
+      state: 'bloquea',
+      spentUSD: 2500,
+      warnUSD: 500,
+      blockUSD: 2000,
+      totalUSD: 2500,
+      motivo: 'tope superado',
+    });
+    const res = await POST(post(body));
+    expect(res.status).toBe(429);
+    expect(mockedUpsert).not.toHaveBeenCalled();
+    expect(mockedAvisar).toHaveBeenCalled();
+    // El mensaje al cliente no revela cifras internas.
+    expect(JSON.stringify(await res.json())).not.toMatch(/2500|2000/);
   });
 });
