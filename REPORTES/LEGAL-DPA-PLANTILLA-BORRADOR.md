@@ -8,10 +8,10 @@
 **Fecha:** [___]
 
 ## 1. Objeto
-El Responsable encarga al Encargado el tratamiento de datos personales de pacientes para: (a) captura de datos de identidad conforme para la IHCE (Res. 1888/2025); (b) programacion y confirmacion de citas por voz y WhatsApp; (c) [verificacion de aseguramiento, si se habilita]. El Encargado SOLO trata datos bajo instruccion documentada del Responsable.
+El Responsable encarga al Encargado el tratamiento de datos personales de pacientes para: (a) captura de datos de identidad conforme para la IHCE (Res. 1888/2025); (b) programacion y confirmacion de citas por voz sobre linea telefonica; (c) [verificacion de aseguramiento, si se habilita]. El Encargado SOLO trata datos bajo instruccion documentada del Responsable.
 
 ## 2. Datos y titulares
-Pacientes del Responsable: tipo y numero de documento, nombres y apellidos, fecha de nacimiento, sexo, municipio (DIVIPOLA), telefono/WhatsApp, y datos de salud derivados de la programacion. [Habilitar opcional: estado de afiliacion en regimen.]
+Pacientes del Responsable: tipo y numero de documento, nombres y apellidos, fecha de nacimiento, sexo, municipio (DIVIPOLA), telefono, y datos de salud derivados de la programacion. [Habilitar opcional: estado de afiliacion en regimen.]
 
 ## 3. Obligaciones del Encargado
 1. Tratar con fines exclusivos del encargo (art. 19 Ley 1581). Prohibido usar datos para otras finalidades.
@@ -80,8 +80,10 @@ RESPONSABLE: [___] — ENCARGADO: [___]
 **Llamada saliente:**
 > "Hola, llamo de parte de [Clinica]. Esta llamada es grabada. Sus datos son tratados por Upway como encargado de [Clinica], con fines de programacion de citas y atencion en salud. Puede ejercer sus derechos escribiendo a [correo PQR de la Clinica]. ¿Continuamos?"
 
-**WhatsApp (primer contacto):**
-> "Para ayudarte con tu cita, [Clinica] usa Upway para tomar tus datos y agendar. Tus datos se tratan segun la politica de [Clinica] ([link]) y puedes solicitar su actualizacion o eliminacion respondiendo este mensaje. ¿Nos confirmas tus datos?"
+**Llamada entrante (el canal oficial):**
+> "Le atiende el asistente virtual de [Clinica]. Esta llamada es grabada. Sus datos son tratados por Upway como encargado de [Clinica], con fines de programacion de citas y atencion en salud. Puede ejercer sus derechos escribiendo a [correo PQR de la Clinica]. ¿Continuamos?"
+
+> **Nota (sep-2026):** se retiro de este anexo el guion de primer contacto por WhatsApp. El canal oficial de Upway es la voz con IA sobre linea telefonica y la politica publica ya declara que no se ofrece mensajeria de terceros como canal de salud. Dejar aqui un guion de WhatsApp contradiria esa declaracion en el mismo paquete que firma el cliente.
 
 **Reglas duras:**
 1. Nunca pedir un dato de identidad ANTES del aviso.

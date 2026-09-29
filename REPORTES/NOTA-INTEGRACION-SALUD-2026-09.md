@@ -366,7 +366,7 @@ Upway tiene exactamente **dos interfaces**, y ninguna más. Eso es lo que mantie
 
 | Actor | ¿Upway se conecta? | Cómo | Obligación que asume |
 |---|---|---|---|
-| **Paciente** | ✅ Sí | Voz (número fijo) + WhatsApp | Consentimiento y tratamiento de datos |
+| **Paciente** | ✅ Sí | Voz (número fijo) — canal oficial | Consentimiento y tratamiento de datos |
 | **HIS/HCE del cliente** | ✅ Sí | API saliente (M2M) | Entrega conforme y trazable |
 | **Profesional de salud** | ❌ Indirecto | Recibe el dato ya en su HCE | Ninguna |
 | **EPS / ADRES** | ❌ No | — | Ninguna (no somos prestador, no hay CUCON) |
@@ -380,7 +380,7 @@ Upway tiene exactamente **dos interfaces**, y ninguna más. Eso es lo que mantie
 
 | Capacidad | Estado real | Evidencia |
 |---|---|---|
-| Entrada voz/WhatsApp | ✅ Parcial | `lib/whatsapp.ts`, `app/api/voice/webhooks/route.ts`, `app/api/simulador/route.ts` |
+| Entrada de voz (canal oficial de salud) | ✅ Parcial | `app/api/voice/webhooks/route.ts`, `app/api/simulador/route.ts`. `lib/whatsapp.ts` existe en el repo pero **no alimenta el canal de salud** |
 | Validador determinista | ✅ Construido | `lib/health/identity/conformingRecord.ts` (36 tests) |
 | **Entidad de paciente durable** | ❌ **NO EXISTE** | No hay `model Patient` en `prisma/schema.prisma`. La identidad son strings denormalizados en `AgendaAppointment` (`patientName`, `patientPhone`, `patientEmail`, `patientDocument`) y `WaitlistEntry` |
 | **Auth máquina-a-máquina** | ❌ **NO EXISTE** | No hay modelo de API key / OAuth client. Solo `Account` (tokens OAuth de usuario) y `VerificationToken` (verificación de email) |

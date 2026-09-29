@@ -62,7 +62,7 @@ export default function PrivacyPolicyPage() {
                 2. Upway Health y Privacidad de Datos Medicos (Ley 1581 y normativa colombiana)
               </h2>
               <p className="text-slate-300 mt-2">
-                En nuestra vertical de salud (<strong>Upway Health</strong>), procesamos información de pacientes (chats, notas de voz, agendas) <strong>estrictamente en calidad de Encargados del Tratamiento</strong>.
+                En nuestra vertical de salud (<strong>Upway Health</strong>), procesamos información de pacientes (llamadas, transcripciones y agendas) <strong>estrictamente en calidad de Encargados del Tratamiento</strong>.
               </p>
               <ul className="list-disc pl-6 space-y-2 text-slate-400 mt-3">
                 <li><strong>Aislamiento de Infraestructura:</strong> Los datos de pacientes se almacenan en arquitecturas de bases de datos compartimentadas (Multi-tenant lógicos mediante identificadores únicos de clínica) o contenedores dedicados.</li>
@@ -100,7 +100,7 @@ export default function PrivacyPolicyPage() {
                 la cadena es Upway y un solo proveedor de telefonía, y los términos (retención, ubicación del
                 procesamiento y exclusión de entrenamiento) se acuerdan por contrato. Prohibimos a nuestros clientes
                 el uso de técnicas de extracción de datos (scraping). La
-                clínica cliente se compromete a notificar a sus pacientes que las interacciones de voz y texto serán
+                clínica cliente se compromete a notificar a sus pacientes que las interacciones de voz serán
                 procesadas por sistemas automatizados.
               </p>
               <p className="text-slate-400 mt-2">

@@ -18,7 +18,7 @@
 
 ## 3. Finalidades sobre datos de pacientes (encargo)
 1. Capturar, validar y estructurar identidad del paciente para la IHCE (Res. 1888/2025).
-2. Programar, confirmar, reagendar y cancelar citas por voz y WhatsApp por instruccion del responsable.
+2. Programar, confirmar, reagendar y cancelar citas por voz sobre linea telefonica por instruccion del responsable.
 3. Verificar aseguramiento solo si el responsable lo habilita por escrito y existe base legal.
 4. Grabar/transcribir llamadas como control de calidad y evidencia de autorizacion.
 5. **Prohibido:** diagnostico, prescripcion, decision clinica, marketing con datos de pacientes, o uso para fines distintos del encargo.
