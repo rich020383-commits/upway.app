@@ -23,6 +23,18 @@ export const BRAND_NAME = 'Upway';
 /** Razón social vigente (titular del RUT y de la cuenta de Bold). */
 export const LEGAL_ENTITY = 'BARAKAH TECH HUB S.A.S.';
 
+/**
+ * NIT de la sociedad (certificado de existencia y representación legal de la
+ * Cámara de Comercio de Bogotá).
+ *
+ * Va en privacidad y términos porque la política debe identificar al
+ * responsable del tratamiento: razón social sola no basta en una due diligence
+ * de salud. El NIT NO cambia con una reforma estatutaria — va atado a la
+ * sociedad, no al nombre—, así que esta constante sobrevive a un futuro
+ * cambio de razón social.
+ */
+export const LEGAL_NIT = '902080128-8';
+
 /** Razón social objetivo una vez registrado el cambio en Cámara de Comercio. */
 export const LEGAL_ENTITY_FUTURE = 'Upway Business Group S.A.S.';
 

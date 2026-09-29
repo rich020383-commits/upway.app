@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ShieldCheck, Lock, FileText, CheckCircle2, Activity } from 'lucide-react';
-import { LEGAL_ENTITY } from '@/lib/legal';
+import { LEGAL_ENTITY, LEGAL_NIT } from '@/lib/legal';
 
 export default function PrivacyPolicyPage() {
   return (
@@ -32,7 +32,7 @@ export default function PrivacyPolicyPage() {
                 Política de Privacidad Integral
               </h1>
               <p className="text-sm text-slate-400">
-                Upway ({LEGAL_ENTITY}) — Última actualización: 31 de agosto de 2026
+                Upway ({LEGAL_ENTITY} — NIT {LEGAL_NIT}) — Última actualización: 31 de agosto de 2026
               </p>
             </div>
           </div>
@@ -131,7 +131,7 @@ export default function PrivacyPolicyPage() {
               <CheckCircle2 className="h-4 w-4" />
               Cifrado, auditoría de accesos y trazabilidad · Ley 1581 de 2012
             </span>
-            <span>© 2026 {LEGAL_ENTITY} Todos los derechos reservados.</span>
+            <span>© 2026 {LEGAL_ENTITY} · NIT {LEGAL_NIT} Todos los derechos reservados.</span>
           </div>
 
         </div>

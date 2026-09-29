@@ -3,7 +3,7 @@
 import React from 'react';
 import { ShieldCheck, ArrowLeft, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
-import { LEGAL_ENTITY } from '@/lib/legal';
+import { LEGAL_ENTITY, LEGAL_NIT } from '@/lib/legal';
 
 export default function TerminosPage() {
   return (
@@ -32,7 +32,7 @@ export default function TerminosPage() {
           <div className="prose prose-invert max-w-none prose-slate relative z-10 font-body">
 
             <p className="lead text-lg text-slate-300 mb-8 font-medium">
-              Bienvenido a Upway (incluyendo sus verticales <strong className="text-white">Upway Business</strong> y <strong className="text-[#00D1FF]">Upway Health</strong>). Los presentes Términos regulan el acceso a la infraestructura SaaS operada por <strong className="text-white">{LEGAL_ENTITY}</strong>
+              Bienvenido a Upway (incluyendo sus verticales <strong className="text-white">Upway Business</strong> y <strong className="text-[#00D1FF]">Upway Health</strong>). Los presentes Términos regulan el acceso a la infraestructura SaaS operada por <strong className="text-white">{LEGAL_ENTITY}</strong> (NIT {LEGAL_NIT})
             </p>
             <p className="mb-8 leading-relaxed">
               Al registrarse o utilizar nuestra plataforma de inteligencia artificial y automatización omnicanal, el usuario (en adelante, &quot;el Cliente&quot; o &quot;la Clínica&quot;) acepta someterse a estos términos.
