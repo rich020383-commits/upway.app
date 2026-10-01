@@ -38,7 +38,7 @@ Conocer, actualizar, rectificar; prueba de autorizacion; ser informado; revocar/
 - Incidentes: notificar al responsable en [48] horas, con alcance y medidas.
 
 ## 7. Subencargados y transferencia internacional (art. 26)
-Declarados en el DPA (Telnyx, proveedor LLM, Aiven, hosting). Cambios se comunican con [15] dias. Vinculados por clausulas equivalentes. Transferencias conforme art. 26 Ley 1581.
+Declarados en el DPA (Telnyx y sus subencargados declarados, proveedor LLM, Aiven, hosting). Los cambios se comunican con **[7] dias** para que el Responsable objete: el Encargado solo recibe 10 dias de su proveedor, no puede trasladar un plazo mayor. Vinculados por clausulas equivalentes. Transferencias conforme art. 26 Ley 1581.
 
 ## 8. Conservacion y eliminacion
 Mientras dure el encargo + plazos legales del responsable. Al terminar: devolucion o eliminacion certificada en [30] dias.

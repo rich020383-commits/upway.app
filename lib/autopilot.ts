@@ -97,8 +97,9 @@ function buildProviders() {
  * Antes `planWithLlm` recorria la lista y se quedaba con el primero que
  * respondiera. Eso hacia el destino de los datos INDETERMINADO en runtime: la
  * clinica autorizaba "Groq" en el DPA y la instruccion terminaba en Mistral.
- * El parágrafo 4 del contrato de encargo (autorizacion previa de
- * subencargados) era inaplicable contra una lista que cambia por llamada.
+ * El párrafo 4 del contrato de encargo (consentimiento general con derecho
+ * de objeción en plazo corto) era inaplicable contra una lista que cambia
+ * por llamada: no habría a quién notificar dentro del plazo de objeción.
  *
  * Ahora manda uno solo, el de `AUTOPILOT_PROVIDER`. La cascada queda como
  * opt-in para desarrollo y NO debe activarse en produccion con datos de
