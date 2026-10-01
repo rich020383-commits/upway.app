@@ -116,6 +116,11 @@ export type CenterPlan = {
   recordingRetention: string;
   features: string[];
   bestFor: string;
+  /**
+   * Notas internas de precio y de operacion. **Nunca se renderizan**: al
+   * cliente van `tagline`, `features` y `bestFor`. Ver `plan-copy.test.ts`.
+   */
+  internalNotes?: string[];
   autoActivatable: boolean;
 };
 
@@ -223,7 +228,7 @@ export const CENTER_PLANS: CenterPlan[] = [
     id: 'empresa-custom',
     name: 'Empresa (Custom)',
     serviceLine: 'soporte-tecnico',
-    tagline: '60k-200k min: cotizacion por volumen (deal desk).',
+    tagline: 'Volumen alto con cotizacion a medida: de 60.000 a 200.000 min/mes.',
     monthlyCOP: 0,
     setupCOP: 0,
     includedMinutes: 60000,
@@ -233,12 +238,18 @@ export const CENTER_PLANS: CenterPlan[] = [
     requiresTelnyxApproval: true,
     recordingRetention: '1 año (a confirmar)',
     features: [
+      'Cotizacion a medida segun volumen (desde 60.000 min/mes)',
+      'Hasta 10 numeros dedicados',
+      'Tablero por sede/linea y export de casos (API/webhook/CSV)',
+      'Implementacion multi-sede acompanada',
+    ],
+    bestFor: 'Operaciones grandes fuera de la escalera estandar.',
+    internalNotes: [
       'Piso de cotizacion: costo / (1 - 0.30) — nunca por debajo de $550 COP/min',
       'Incluye la misma tarifa unica de minuto adicional para volumen extra',
       'Simultaneidad >40 exige ampliar capacidad del proveedor antes de firmar',
       'No auto-activar: deal desk + cotizacion',
     ],
-    bestFor: 'Operaciones grandes fuera de la escalera estandar.',
     autoActivatable: false,
   },
 ];

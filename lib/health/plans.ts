@@ -53,6 +53,14 @@ export type HealthPlan = {
   recordingRetention: string;
   features: string[];
   bestFor: string;
+  /**
+   * Notas internas de precio y de operacion. **Nunca se renderizan**: al
+   * cliente van `tagline`, `features` y `bestFor`, y Sophie arma su linea
+   * con esos tres. Aqui vive lo que solo debe leer Upway (piso de precio,
+   * formula de margen, instrucciones de deal desk). `plan-copy.test.ts`
+   * falla si alguna de estas frases se cuela a la superficie publica.
+   */
+  internalNotes?: string[];
   /** Si false, no se puede auto-activar: cotizacion + ampliar capacidad del proveedor. */
   autoActivatable: boolean;
 };
