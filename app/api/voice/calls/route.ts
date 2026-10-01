@@ -6,6 +6,7 @@ import { createOutboundCall, isTelnyxCallReady, missingTelnyxCallEnv, telnyxNotR
 import { checkVoiceRateLimit, voiceRateLimitResponse } from '@/lib/telnyx/rate-limit';
 import { CALL_CONSENT_REQUIRED_MESSAGE } from '@/lib/telnyx/voice-consent';
 import { voiceCapabilityDenied } from '@/lib/voice-access';
+import { capacidadDe, mensajeDeBloqueo } from '@/lib/voice/concurrency';
 
 export const maxDuration = 30;
 
@@ -55,6 +56,31 @@ export async function POST(req: NextRequest) {
       { status: 503 }
     );
   }
+  // Tope de llamadas simultaneas del plan. Se decide ANTES de marcar, porque
+  // cada intento aqui es dinero y una llamada real a un telefono: si el tenant
+  // ya esta en su tope, no se marca. La alerta previa se emite aunque todavia
+  // quepa holgura, para no llegar al bloqueo sin aviso.
+  const capacidad = await capacidadDe(tienda.id);
+  if (capacidad.alerta) {
+    console.warn('[capacidad] cerca del tope de simultaneas', {
+      tiendaId: tienda.id,
+      activas: capacidad.activas,
+      limite: capacidad.limite,
+      pct: capacidad.pct,
+    });
+  }
+  if (capacidad.bloqueado) {
+    console.warn('[capacidad] llamada bloqueada por tope de simultaneas', {
+      tiendaId: tienda.id,
+      activas: capacidad.activas,
+      limite: capacidad.limite,
+    });
+    return NextResponse.json(
+      { error: mensajeDeBloqueo(capacidad), capacidad },
+      { status: 429 },
+    );
+  }
+
   try {
     const res = await createOutboundCall({
       to: parsed.data.to,

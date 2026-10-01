@@ -14,16 +14,7 @@ import {
   UPWAY_INTERNAL_REVIEW_EMAIL,
   getAppBaseUrl,
 } from '@/lib/activation';
-
-function parseSessionForm(notes: string | null | undefined): Record<string, unknown> {
-  if (!notes) return {};
-  try {
-    const parsed = JSON.parse(notes);
-    return parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : {};
-  } catch {
-    return {};
-  }
-}
+import { parseSessionForm } from '@/lib/health/session-form';
 
 /**
  * Modelo white-glove IPS:

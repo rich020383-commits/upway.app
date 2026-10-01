@@ -19,6 +19,14 @@ vi.mock('@/lib/telnyx/client', () => ({
   telnyxNotReadyMessage: vi.fn(),
   createOutboundCall: vi.fn(),
 }));
+// El tope de simultaneas tiene su propia bateria en
+// `lib/voice/concurrency.test.ts`; aqui solo importa que el gate exista y que
+// corte. No se mockea `@/lib/prisma.llamadaLog.count` para no acoplar este
+// archivo al esquema.
+vi.mock('@/lib/voice/concurrency', () => ({
+  capacidadDe: vi.fn(),
+  mensajeDeBloqueo: vi.fn(() => 'Tope de llamadas simultaneas alcanzado (0/0).'),
+}));
 
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/session';
@@ -28,6 +36,7 @@ import {
   missingTelnyxCallEnv,
   telnyxNotReadyMessage,
 } from '@/lib/telnyx/client';
+import { capacidadDe } from '@/lib/voice/concurrency';
 import { POST } from './route';
 
 const mockedSession = getSessionUser as unknown as Mock;
@@ -37,6 +46,18 @@ const mockedCallReady = isTelnyxCallReady as unknown as Mock;
 const mockedMissing = missingTelnyxCallEnv as unknown as Mock;
 const mockedNotReady = telnyxNotReadyMessage as unknown as Mock;
 const mockedCall = createOutboundCall as unknown as Mock;
+const mockedCapacidad = capacidadDe as unknown as Mock;
+
+/** Estado con holgura: la mayoria de los casos no deberia tocar el tope. */
+const SIN_TOPE = {
+  activas: 0,
+  limite: 2,
+  holgura: 2,
+  bloqueado: false,
+  alerta: false,
+  umbralAlerta: 1,
+  pct: 0,
+};
 
 const TIENDA = {
   id: 'tienda-1',
@@ -69,6 +90,7 @@ beforeEach(() => {
         : `La voz de Upway todavía no está disponible. (${missing.length} faltantes)`
   );
   mockedCall.mockResolvedValue({ data: { id: 'call-1' } });
+  mockedCapacidad.mockResolvedValue(SIN_TOPE);
 });
 
 describe('POST /api/voice/calls — sesión, ownership, consentimiento y cuota', () => {
@@ -149,6 +171,39 @@ describe('POST /api/voice/calls — sesión, ownership, consentimiento y cuota',
       expect.objectContaining({ data: expect.objectContaining({ tiendaId: 'tienda-1' }) })
     );
     expect((await res.json()).ok).toBe(true);
+  });
+
+  it('NO marca si el tenant ya esta en su tope de simultaneas (429)', async () => {
+    mockedCapacidad.mockResolvedValue({
+      ...SIN_TOPE,
+      activas: 2,
+      holgura: 0,
+      bloqueado: true,
+      alerta: true,
+      pct: 100,
+    });
+    const res = await POST(request(validBody));
+    expect(res.status).toBe(429);
+    const body = await res.json();
+    expect(body.capacidad).toMatchObject({ activas: 2, limite: 2, bloqueado: true });
+    // La razon: marcar cuesta dinero y es una llamada real a un telefono.
+    expect(mockedCall).not.toHaveBeenCalled();
+    expect(mockedLogCreate).not.toHaveBeenCalled();
+  });
+
+  it('con la alerta encendida pero con holgura, deja pasar', async () => {
+    // El aviso previo NO debe comportarse como un bloqueo: si lo fuera, el
+    // umbral de alerta seria inutil o cortaria llamadas que si caben.
+    mockedCapacidad.mockResolvedValue({
+      ...SIN_TOPE,
+      activas: 1,
+      holgura: 1,
+      alerta: true,
+      pct: 50,
+    });
+    const res = await POST(request(validBody));
+    expect(res.status).toBe(200);
+    expect(mockedCall).toHaveBeenCalledTimes(1);
   });
 
   it('devuelve 429 al agotar la ventana de llamadas', async () => {
