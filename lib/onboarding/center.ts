@@ -1,4 +1,5 @@
 import { STANDARD_CENTER_PLANS } from '@/lib/center/plans';
+import { VOICE_CLONE_MODULE_COP } from '@/lib/pricing/rules';
 import type { OnboardingConfig, WizardStage } from './types';
 
 /**
@@ -52,6 +53,23 @@ export const CENTER_STAGES: readonly WizardStage[] = [
     intro:
       'Precios finales en COP, con implementación única. Algunos planes requieren aprobación de la operadora telefónica; te avisamos al momento de activar.',
     plans: STANDARD_CENTER_PLANS,
+    // Add-on de voz propia: select y no checkbox porque el motor de wizard
+    // (`parseWizardAnswers`) solo admite strings. `required: false` es
+    // obligatorio: stageErrors exige todo campo sin esa marca y el test de
+    // onboarding fija que la etapa de plan pase con solo `planId`.
+    fields: [
+      {
+        id: 'vozPropia',
+        label: 'Voz propia (clon de voz) — adicional por sede',
+        kind: 'select',
+        required: false,
+        options: [
+          'No, usar el catálogo de voces incluido',
+          `Sí, voz propia: +$${VOICE_CLONE_MODULE_COP.toLocaleString('es-CO')}/sede/mes + IVA`,
+        ],
+        help: 'El agente atiende con la voz de una persona real. Solo puede autorizarla su titular (el texto se graba) y se revoca desde el panel.',
+      },
+    ],
   },
   {
     id: 'servicio',

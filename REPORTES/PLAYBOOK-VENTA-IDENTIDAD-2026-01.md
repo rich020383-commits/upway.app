@@ -397,17 +397,17 @@ Tres anclas en esa frase:
 |---|---|
 | **5. Auth máquina-a-máquina (`ApiClient`)** | ✅ **CERRADO** — `lib/health/identity/apiKeys.ts` (sha256 + `timingSafeEqual`), `app/api/health/api-clients`, `GET /api/v1/identity/...` |
 | **Documentación de integración** | ✅ **CERRADA** — `docs/INTEGRACION-API-IDENTIDAD.md` (8 secciones, checklist de 5 pasos) |
-| **1. Aplicar la migración de identidad** | ❌ **BLOQUEADA** — la base Neon excedió su cuota. El SQL está en el repo y es revisable, **no se ha tocado la base** |
+| **1. Aplicar la migración de identidad** | 🟠 **Por verificar en Aiven** — la app ya no usa Neon (migró a Aiven por `lib/database-url.ts`). El SQL está en el repo. `prisma migrate status` no corre desde este entorno (P1001) |
 | **2. Integración al intake de voz** | ❌ Pendiente — conectar el validador a `lib/whatsapp.ts` y `app/api/simulador/route.ts` |
 | **3. Borde de la API de agenda** | ❌ Pendiente — exigir `documentType` en `app/api/health/agenda/route.ts` |
 | **4. Tablero de conformidad** | ❌ Pendiente |
 
-> ⚠️ **Esto es lo que te impide facturar HOY:** la migración de identidad **no está aplicada**. Sin `PatientIdentity` viva en la base, el registro no se guarda. **El primer bloqueo operativo es liberar la cuota de Neon o mover la base.**
+> ⚠️ **Esto es lo que hay que verificar antes de facturar:** si la migración de identidad **ya quedó aplicada en Aiven**. Neon ya no es el problema (la app migró a Aiven); **el bloqueador ahora es no poder comprobarlo desde este entorno** (P1001). Sin `PatientIdentity` viva, el registro no se guarda.
 
 ### 8.3 El orden real de los bloqueos
 
 ```
-1. Neon (cuota) ──► 2. RNBD ante la SIC ──► 3. Migración aplicada
+1. Verificar migración en Aiven ──► 2. RNBD ante la SIC ──► 3. Integrar intake
    bloquea todo        bloquea la venta        bloquea la operación
                                          ──► 4. Integrar al intake
                                                bloquea la demo real
@@ -425,7 +425,7 @@ Tres anclas en esa frase:
 
 | Día | Acción | Resultado |
 |---|---|---|
-| 1-2 | **Liberar Neon** (subir plan o mover base) | Migración aplicable |
+| 1-2 | **Verificar la migración en Aiven** (`prisma migrate status` desde un entorno con acceso) | Tablas vivas confirmadas |
 | 1 | **Aplicar la migración** `20260919_identity_conforming_record/` | Tablas vivas |
 | 2-4 | **RNBD ante la SIC** | Puede tratar datos legalmente |
 | 3-4 | **Contraste de catálogos vs Anexo Técnico SISPRO** | Catálogos certificados |
@@ -505,7 +505,7 @@ PROMOCIONAR Mensaje: "deje de perder pacientes porque nadie contestó".
             Canales: producto vivo → LinkedIn → contadores de salud →
             proveedores de HCE → directorios → ferias.
 
-BLOQUEOS    1) Neon en cuota  2) RNBD ante la SIC  3) migración aplicada
+BLOQUEOS    1) verificar migración en Aiven  2) RNBD ante la SIC  3) contraste SISPRO
             4) integrar intake  5) contraste SISPRO
             → NINGUNO es código nuevo.
 

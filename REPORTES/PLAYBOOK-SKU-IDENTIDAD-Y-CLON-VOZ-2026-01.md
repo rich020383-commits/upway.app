@@ -166,7 +166,7 @@ Esto es lo que **ningún competidor de voz** te puede contestar: tú vendes la c
 | 7 | El HIS guarda `evidenceRef` junto a su paciente | ✅ en la respuesta |
 | 8 | Revisión mensual en `/health/identity` (KPIs) | ✅ consola |
 
-> **Lo que faltó en todo el flujo:** `1` (papel), `2` (papel), `6` (cuota de Neon). **Cero código nuevo.**
+> **Lo que faltó en todo el flujo:** `1` (papel), `2` (papel) y `6` (verificar migración en Aiven). **Cero código nuevo.**
 
 ---
 
@@ -243,7 +243,7 @@ Anclas: **rechazo de RIPS** (dolor con fecha) · **catálogo cerrado** (Res. 866
 | # | Bloqueo | Severidad | Solución |
 |---|---|---|---|
 | 1 | **RNBD ante la SIC** | 🔴 Sin esto no puedes vender el tratamiento de datos | Trámite |
-| 2 | **Migración de identidad sin aplicar** (Neon en cuota) | 🔴 **El registro no se guarda** | Liberar cuota y correr `20260919_identity_conforming_record/` |
+| 2 | **Migración de identidad: ¿aplicada en Aiven?** | 🟠 No verificable desde el repo | `npx prisma migrate status` (da P1001: Aiven inaccesible desde este entorno — verificar desde Render o con IP permitida) |
 | 3 | **Tres versiones del precio / IVA** | 🟠 Te hace mandar presupuestos distintos | Alinear comentario, `planQuote` y Sophie |
 | 4 | **Precio por consulta B2B2B inexistente** | 🟠 El canal de escala no puede cotizar | Definir modelo |
 | 5 | **Contraste de catálogos vs SISPRO** | 🟡 Sin certificación | Comparar contra el Anexo Técnico vigente |
@@ -542,7 +542,7 @@ Anclas: **su voz** (emoción) · **permiso grabado** (cumplimiento) · **revocac
 | **Ciclo** | Semanas | **Días** (preview → cierre) |
 | **Mejor canal** | Contadores / auditores de salud | **Upsell post-preview** |
 | **Mejor demo** | Consola `/health/identity` + `curl` con `integrityVerified` | **2 min: su propia voz** |
-| **Bloqueo rojo** | RNBD + migración Neon | **No tiene precio** |
+| **Bloqueo rojo** | RNBD ante la SIC | **No tiene precio** |
 | **Comprador** | Comité / técnico | **Dueño, en persona** |
 
 > **La lectura final:** identidad conforme es tu **venta de fondo** — racional, duradera, con contratos y comité. El clon de voz es tu **venta rápida** — emocional, de días, sin comité y con la mejor demo que tienes. **Y el clon es el único que hoy nadie puede comprar porque nadie sabe cuánto cuesta.**
