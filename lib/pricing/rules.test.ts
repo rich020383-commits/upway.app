@@ -15,11 +15,15 @@ import {
   LEGACY_TARIFFS,
   MAX_STEP_RATE_VS_OVERAGE,
   OVERAGE_COP,
+  PRICE_ROUNDING_COP,
+  VOICE_CLONE_MODULE_COP,
+  VOICE_CLONE_MODULE_ID,
+  VOICE_CLONE_MODULE_LABEL,
   PLANNING_UTILIZATION,
   resolveContractTariff,
   type TariffPlan,
 } from './rules';
-import { HEALTH_PLANS } from '@/lib/health/plans';
+import { HEALTH_PLANS, IDENTITY_MODULE_COP } from '@/lib/health/plans';
 import { HEALTH_PLANS_ENTERPRISE } from '@/lib/health/plans-enterprise';
 import { INMOBILIARIA_PLANS } from '@/lib/inmobiliaria/plans';
 
@@ -45,6 +49,34 @@ describe('Costos reales y tarifa unica de minuto adicional', () => {
   it('el piso de deal desk deja al menos 30% de margen', () => {
     const margin = (DEAL_DESK_FLOOR_PER_MIN_COP - COST_PER_MIN_COP) / DEAL_DESK_FLOOR_PER_MIN_COP;
     expect(margin).toBeGreaterThanOrEqual(0.3);
+  });
+});
+
+describe('ADD-ON CLON DE VOZ (voz propia) — precio de venta', () => {
+  it('precio cerrado, multiplo de 1.000 (R7) y por sede', () => {
+    expect(VOICE_CLONE_MODULE_COP).toBe(190000);
+    expect(VOICE_CLONE_MODULE_COP % PRICE_ROUNDING_COP).toBe(0);
+  });
+
+  it('cubre el costo de sintesis del plan de entrada con >= 70% de margen', () => {
+    // Sintesis premium sobre el motor base: ~$67 COP/min. En un plan de 600 min
+    // eso son ~$40.200/mes de costo incremental que el add-on debe absorber.
+    const COSTO_SINTESIS_600_COP = 600 * 67;
+    const margenPct = Math.round(
+      ((VOICE_CLONE_MODULE_COP - COSTO_SINTESIS_600_COP) / VOICE_CLONE_MODULE_COP) * 100
+    );
+    expect(margenPct).toBeGreaterThanOrEqual(70);
+  });
+
+  it('queda por debajo del modulo de identidad: es el add-on de entrada', () => {
+    expect(VOICE_CLONE_MODULE_COP).toBeLessThan(IDENTITY_MODULE_COP);
+  });
+
+  it('expone id y etiqueta estables: son contrato de catálogo', () => {
+    // El id viaja a BD y a contratos: cambiarlo rompe el mapeo de add-ons ya
+    // facturados. La etiqueta es lo que el cliente ve en la propuesta.
+    expect(VOICE_CLONE_MODULE_ID).toBe('voz-propia');
+    expect(VOICE_CLONE_MODULE_LABEL.length).toBeGreaterThan(0);
   });
 });
 

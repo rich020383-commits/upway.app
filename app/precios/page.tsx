@@ -7,6 +7,7 @@ import {
   IDENTITY_MODULE_LABEL,
   IDENTITY_MODULE_DESCRIPTION,
 } from '@/lib/health/plans';
+import { VOICE_CLONE_MODULE_COP, VOICE_CLONE_MODULE_LABEL, VOICE_CLONE_MODULE_DESCRIPTION } from '@/lib/pricing/rules';
 
 export const metadata = {
   title: 'Planes Upway Health - Clinicas, IPS y EPS | Upway',
@@ -124,6 +125,17 @@ export default function PreciosPage() {
           </div>
           <div className="mt-4 text-center md:mt-0">
             <p className="text-2xl font-black text-emerald-700">{formatCOP(withIVA(IDENTITY_MODULE_COP))}</p>
+            <p className="text-xs text-slate-500">por sede/mes · IVA 19% incluido</p>
+          </div>
+        </div>
+        <div className="mt-6 rounded-[24px] border border-sky-200 bg-sky-50/70 p-6 md:flex md:items-center md:gap-6">
+          <div className="flex-1">
+            <h2 className="text-lg font-black text-sky-900">Adicional por sede: {VOICE_CLONE_MODULE_LABEL}</h2>
+            <p className="mt-1 text-sm text-slate-600">{VOICE_CLONE_MODULE_DESCRIPTION}</p>
+            <p className="mt-2 text-xs text-slate-500">Disponible sobre cualquier plan. La voz la autoriza su titular con el texto grabado, y se revoca desde el panel.</p>
+          </div>
+          <div className="mt-4 text-center md:mt-0">
+            <p className="text-2xl font-black text-sky-700">{formatCOP(withIVA(VOICE_CLONE_MODULE_COP))}</p>
             <p className="text-xs text-slate-500">por sede/mes · IVA 19% incluido</p>
           </div>
         </div>

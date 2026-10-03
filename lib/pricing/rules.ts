@@ -74,6 +74,34 @@ export const HUMAN_TIER1_BILLABLE_USD_HOUR = 14;
 /** Minuto humano facturado en COP: $14/h ÷ 60 × TRM. */
 export const HUMAN_BILLABLE_MIN_COP = Math.round((HUMAN_TIER1_BILLABLE_USD_HOUR / 60) * TRM_COP_PER_USD);
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ADD-ON DE VENTA: CLON DE VOZ (voz propia del agente)
+//
+// SKU TRANSVERSAL: aplica a Health, Center e Inmobiliaria (a cualquier plan que
+// lleve agente de voz), por eso vive AQUI y no en lib/health/plans.ts — ese
+// archivo es exclusivo de la vertical de salud (ver IDENTITY_MODULE_COP).
+//
+// MODELO DE COBRO: mensual por sede, el mismo mecanismo que el modulo de
+// identidad conforme. NO se cobra por uso: la sintesis varia con el consumo del
+// cliente y haria la factura impredecible. El add-on fijo absorbe esa variacion.
+//
+// COSTO DE CREAR EL CLON: $0. Confirmado en producción (4 clones creados sin
+//   descuento en la cuenta) y consistente con la tarifa publica del proveedor
+//   ("Voice Design Lab included", "$0 platform fee"). El costo real es solo el
+//   de uso.
+// COSTO DE USO (no publicar: ver FORBIDDEN_COST_PATTERNS en sophie/knowledge):
+//   La voz clonada usa el motor premium de sintesis, ~10x la tarifa base.
+//   Estimado sobre la tarifa publica: ~$67 COP/min extra frente al motor base,
+//   o sea ~$40.200/mes en un plan de 600 min. Este precio lo cubre con holgura.
+//
+// REGLA DE PRECIO: multiplo de $1.000 (R7) para poder decirlo en voz alta.
+// ─────────────────────────────────────────────────────────────────────────────
+export const VOICE_CLONE_MODULE_COP = 190000;
+export const VOICE_CLONE_MODULE_ID = 'voz-propia';
+export const VOICE_CLONE_MODULE_LABEL = 'Clon de voz (voz propia del agente)';
+export const VOICE_CLONE_MODULE_DESCRIPTION =
+  'El agente atiende con la voz de una persona real, con la autorizacion grabada del titular y revocacion efectiva.';
+
 /** Modelo de costo usado por la matematica de planes (permite probar sensibilidad de TRM). */
 export type CostModel = { costPerMinCOP: number; costPerNumberCOP: number };
 

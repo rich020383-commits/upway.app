@@ -22,7 +22,7 @@ import {
 import { INMOBILIARIA_PLANS } from '@/lib/inmobiliaria/plans';
 import { CENTER_PLANS } from '@/lib/center/plans';
 import { VERTICALS } from '@/lib/verticals';
-import { OVERAGE_COP } from '@/lib/pricing/rules';
+import { OVERAGE_COP, VOICE_CLONE_MODULE_COP } from '@/lib/pricing/rules';
 
 export type KnowledgeChunk = {
   id: string;
@@ -78,7 +78,7 @@ const CURATED: KnowledgeChunk[] = [
       'La tarifa final vigente aplica desde el 1 de octubre de 2026 para activaciones nuevas.',
       'Los clientes activados antes del 1-oct-2026 conservan su tarifa hasta la renovación de su contrato.',
       'Volumen fuera de los planes publicados (desde ~60.000 min/mes, redes o EPS) y licitaciones: se cotiza con el equipo (no hay precio publicado).',
-      'No hay descuentos sobre el minuto adicional ni sobre el módulo de identidad conforme; consulte al equipo por pilotos y condiciones especiales.',
+      'No hay descuentos sobre el minuto adicional, sobre el módulo de identidad conforme ni sobre el clon de voz; consulte al equipo por pilotos y condiciones especiales.',
     ].join('\n'),
   },
   {
@@ -188,6 +188,8 @@ const CURATED: KnowledgeChunk[] = [
       'La voz propia se crea de dos formas: subiendo una muestra de audio de 5 a 60 segundos, o describiendo la voz con un texto. En ambos casos se registra la autorización de quien autoriza.',
       'La voz es un dato biométrico sensible: solo la puede autorizar la persona cuya voz es, y la autorización queda con evidencia registrada (hash del audio y del texto leído) sin que Upway guarde el audio.',
       'El cliente puede revocar una voz cuando quiera desde el mismo panel: la revocación es efectiva y elimina la voz del servicio.',
+      `Crear la voz propia es un adicional de ${fmt(withIVA(VOICE_CLONE_MODULE_COP))} COP por sede y mes con IVA incluido (base ${fmt(VOICE_CLONE_MODULE_COP)} COP); las voces del catálogo incluido no tienen ese adicional.`,
+      'El adicional de voz propia no tiene descuentos y se cobra por sede, igual que el módulo de identidad conforme.',
       'Las instrucciones del agente (qué debe resolver, con qué criterios califica y qué nunca debe prometer) son editables por el cliente en cualquier momento.',
     ].join('\n'),
   },

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { FORBIDDEN_COST_PATTERNS, KNOWLEDGE } from './knowledge';
 import { formatCOP } from '@/lib/health/plans-enterprise';
 import { IDENTITY_MODULE_COP, IVA_RATE, withIVA } from '@/lib/health/plans';
-import { OVERAGE_COP } from '@/lib/pricing/rules';
+import { OVERAGE_COP, VOICE_CLONE_MODULE_COP } from '@/lib/pricing/rules';
 
 describe('corpus de conocimiento de Sophie', () => {
   it('chunks con id único y campos completos', () => {
@@ -27,6 +27,9 @@ describe('corpus de conocimiento de Sophie', () => {
     expect(serialized).toContain(formatCOP(withIVA(399000))); // Inmobiliaria: Starter
     expect(serialized).toContain(formatCOP(withIVA(699000))); // Center: Línea
     expect(serialized).toContain(formatCOP(withIVA(IDENTITY_MODULE_COP))); // Módulo identidad
+    // El add-on de voz propia se publica igual: total con IVA y base a la vista.
+    expect(serialized).toContain(formatCOP(withIVA(VOICE_CLONE_MODULE_COP))); // Add-on voz propia
+    expect(serialized).toContain(`base ${formatCOP(VOICE_CLONE_MODULE_COP)}`);
     // El minuto adicional aparece como precio público en el corpus, y su base
     // queda a la vista para el desglose.
     expect(serialized).toContain(`${formatCOP(withIVA(OVERAGE_COP))}/min`);

@@ -11,6 +11,7 @@ import {
   type OnboardingStage,
 } from '@/lib/health/onboarding';
 import { FACILITY_TYPE_OPTIONS, IDENTITY_MODULE_COP, IDENTITY_MODULE_LABEL, type FacilityType } from '@/lib/health/plans';
+import { VOICE_CLONE_MODULE_COP, VOICE_CLONE_MODULE_LABEL } from '@/lib/pricing/rules';
 import { getHealthPlan, estimateMinutesFromVolume, formatCOP } from '@/lib/health/plans-enterprise';
 import { PlanPicker } from '@/components/health/plan-picker';
 import PremiumProgress from '@/components/health/premium-progress';
@@ -52,6 +53,8 @@ type OnboardingForm = {
   webhook: string;
   /** Add-on modulo de identidad conforme (Res. 866/2021) elegido por el cliente. */
   withIdentityModule: boolean;
+  /** Add-on de voz propia (clon de voz con autorizacion del titular). */
+  withVoiceClone: boolean;
   approval: boolean;
 };
 
@@ -89,6 +92,7 @@ const initialForm: OnboardingForm = {
   legacyMessaging: '',
   webhook: '',
   withIdentityModule: false,
+  withVoiceClone: false,
   approval: false, // Debe empezar desmarcado
 };
 // 🔥 Ayuda contextual por campo: explica qué se pide y por qué importa, para
@@ -125,6 +129,7 @@ const fieldHelp: Partial<Record<keyof OnboardingForm, string>> = {
   channel: 'Voz dedicada 24/7 e integraciones incluidas. Por politica interna de Upway el canal oficial es la voz IA sobre linea telefonica.',
   legacyMessaging: 'Canales de mensajeria de terceros: no disponibles (politica interna de Upway).',
   withIdentityModule: 'Add-on por sede/mes: el agente pide el documento con catalogo cerrado (Res. 866/2021), lo confirma digito a digito y entrega el registro con evidencia.',
+  withVoiceClone: 'Add-on por sede/mes: el agente atiende con la voz de una persona real. Solo puede autorizarla su titular (el texto se graba) y se revoca desde el panel. La voz es una aproximacion de la voz original, no una copia.',
   webhook: 'Integraciones a conectar (agenda, CRM). Upway las implementa.',
 };
 function FieldHint({ text }: { text?: string }) {
@@ -199,6 +204,7 @@ const parseStoredForm = (input: unknown): Partial<OnboardingForm> => {
     legacyMessaging: '',
     webhook: typeof source.webhook === 'string' ? source.webhook : initialForm.webhook,
     withIdentityModule: typeof source.withIdentityModule === 'boolean' ? source.withIdentityModule : initialForm.withIdentityModule,
+    withVoiceClone: typeof source.withVoiceClone === 'boolean' ? source.withVoiceClone : initialForm.withVoiceClone,
     approval: typeof source.approval === 'boolean' ? source.approval : initialForm.approval,
   };
 };
@@ -388,6 +394,7 @@ function PlanReviewBox({ form }: { form: OnboardingForm }) {
       <div style={{ fontSize: 13, color: '#cbd5e1' }}>
         {plan ? `${plan.name} · ${formatCOP(plan.monthlyCOP)}/mes · setup ${formatCOP(plan.setupCOP)}` : 'Sin plan elegido (elige en paso Plan y volumen).'}
         {form.withIdentityModule && plan ? ` + ${formatCOP(IDENTITY_MODULE_COP)} identidad` : ''}
+        {form.withVoiceClone && plan ? ` + ${formatCOP(VOICE_CLONE_MODULE_COP)} voz propia` : ''}
       </div>
       <div style={{ fontSize: 13, color: '#cbd5e1' }}>
         ~{mins.toLocaleString('es-CO')} min/mes estimados · {form.dailyCalls || '?'} llamadas/dia · NIT {form.nit || 'pendiente'} · contacto {form.contactName || 'pendiente'}
@@ -421,6 +428,15 @@ function ReviewSummary({ form, onChange }: {
           </span>
         </label>
         <FieldHint text={fieldHelp.withIdentityModule} />
+      </div>
+      <div style={{ display: 'grid', gap: 8, background: '#f8fbff', border: '1px solid #dfe9ff', borderRadius: 14, padding: 16 }}>
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, color: '#1b3558', fontWeight: 700, cursor: 'pointer' }}>
+          <input type="checkbox" checked={form.withVoiceClone} onChange={(event) => onChange('withVoiceClone', event.target.checked)} />
+          <span>
+            Contratar {VOICE_CLONE_MODULE_LABEL} (+ {formatCOP(VOICE_CLONE_MODULE_COP)}/sede/mes + IVA)
+          </span>
+        </label>
+        <FieldHint text={fieldHelp.withVoiceClone} />
       </div>
       <div style={{ display: 'grid', gap: 8 }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#1b3558', fontWeight: 700, cursor: 'pointer' }}>

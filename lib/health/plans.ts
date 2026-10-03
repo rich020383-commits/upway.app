@@ -106,11 +106,13 @@ export const withIVA = (baseCOP: number) => baseCOP + ivaDe(baseCOP);
 // los minutos, por eso es la linea que sostiene el margen cuando el cliente
 // crece (el margen de voz a uso completo baja de 37.3% a 32.3% al subir de plan).
 //
-// Se cobra por sede y mes, sin IVA, como adicional al plan base.
+// Se cobra por sede y mes como adicional al plan base. IDENTITY_MODULE_COP es
+// la BASE gravable: planQuote() le suma el IVA (19%) encima, igual que a los planes.
 // ─────────────────────────────────────────────────────────────────────────────
 export const IDENTITY_MODULE_COP = 290000;
 /**
- * Precio FINAL por sede y mes (+ IVA). No es descuento de lanzamiento.
+ * BASE gravable por sede y mes; con IVA queda en `totalConIvaCOP` (planQuote()).
+ * No es descuento de lanzamiento.
  * Es software puro (margen cercano al 100%), y por eso es la linea que sostiene
  * el margen blended cuando el cliente crece. Se revisa solo por (a) IPC acumulado
  * o (b) cambios del catalogo / anexo tecnico de MinSalud que obliguen a re-certificar.
