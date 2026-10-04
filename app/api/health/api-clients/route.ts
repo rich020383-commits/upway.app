@@ -4,6 +4,7 @@ import { getHealthSession } from '@/lib/session';
 import { enforceHealthAccess } from '@/lib/health/access';
 import { withTenantScope } from '@/lib/health/tenant';
 import { generateApiKey } from '@/lib/health/identity/apiKeys';
+import { isDeliverableHandoffUrl } from '@/lib/health/identity/handoff';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -22,9 +23,13 @@ const apiClient = (prisma as unknown as { apiClient: ApiClientDelegate }).apiCli
 /**
  * Gestion de llaves de API del cliente (integracion maquina-a-maquina).
  *
- * GET    /api/health/api-clients          → lista llaves (sin exponer secretos)
+ * GET    /api/health/api-clients          → lista llaves (sin exponer secretos;
+ *                                           incluye handoffUrl y la ultima
+ *                                           entrega push al HIS del cliente)
  * POST   /api/health/api-clients          → crea una llave. Devuelve el texto en
- *                                           claro UNA sola vez: no se puede recuperar.
+ *                                           claro UNA sola vez: no se puede
+ *                                           recuperar. `handoffUrl` (HTTPS,
+ *                                           opcional) habilita la entrega push.
  * DELETE /api/health/api-clients?id=...   → revoca la llave (no se borra).
  *
  * Alcance: solo la organizacion de la sesion. La llave hereda ese alcance y por
@@ -45,7 +50,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const clients = await apiClient.findMany({
+  const rawClients = (await apiClient.findMany({
     where: { organizationId },
     select: {
       id: true,
@@ -54,10 +59,33 @@ export async function GET(request: NextRequest) {
       isActive: true,
       lastUsedAt: true,
       revokedAt: true,
+      handoffUrl: true,
       createdAt: true,
+      handoffs: {
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+        select: { status: true, attempts: true, deliveredAt: true, lastError: true, createdAt: true },
+      },
     },
     orderBy: { createdAt: 'desc' },
-  });
+  })) as Array<
+    Record<string, unknown> & {
+      handoffs?: Array<{
+        status: string;
+        attempts: number;
+        deliveredAt: Date | null;
+        lastError: string | null;
+        createdAt: Date;
+      }>;
+    }
+  >;
+
+  // Se aplana la ultima entrega push para que el panel muestre su estado sin
+  // tener que interpretar la relacion de Prisma.
+  const clients = rawClients.map(({ handoffs, ...rest }) => ({
+    ...rest,
+    lastHandoff: handoffs?.[0] ?? null,
+  }));
 
   return NextResponse.json(
     withTenantScope({ ok: true, clients }, { organizationId, clinicId, role })
@@ -79,9 +107,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let body: { name?: unknown };
+  let body: { name?: unknown; handoffUrl?: unknown };
   try {
-    body = (await request.json()) as { name?: unknown };
+    body = (await request.json()) as { name?: unknown; handoffUrl?: unknown };
   } catch {
     return NextResponse.json({ error: 'JSON invalido' }, { status: 400 });
   }
@@ -94,6 +122,20 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Webhook opcional del HIS/HCE (entrega push, Patron 3). Vacio = la llave
+  // solo sirve para consulta pull en /api/v1/identity.
+  const rawHandoffUrl = typeof body.handoffUrl === 'string' ? body.handoffUrl.trim() : '';
+  if (rawHandoffUrl && !isDeliverableHandoffUrl(rawHandoffUrl)) {
+    return NextResponse.json(
+      {
+        error:
+          'La URL de webhook debe ser HTTPS (ej. https://su-his.co/webhooks/upway). Dejala vacia si solo usara consulta pull.',
+      },
+      { status: 400 }
+    );
+  }
+  const handoffUrl = rawHandoffUrl || null;
+
   const { key, keyHash, keyPrefix, lastFour } = generateApiKey();
 
   const created = await apiClient.create({
@@ -103,9 +145,10 @@ export async function POST(request: NextRequest) {
       name,
       keyHash,
       keyPrefix,
+      handoffUrl,
       createdByUserId: user.id,
     },
-    select: { id: true, name: true, keyPrefix: true, createdAt: true },
+    select: { id: true, name: true, keyPrefix: true, handoffUrl: true, createdAt: true },
   });
 
   // La llave en claro se devuelve UNA vez y no se persiste en ningun lado.

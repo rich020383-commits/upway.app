@@ -31,10 +31,9 @@ services:
       # dejar una variable que, si queda vieja, apunte a una base inexistente.
       - key: DATABASE_URL
         sync: false
-      # (Opcional) CA de Aiven para verificacion estricta del certificado en el
-      # listener LISTEN/NOTIFY. Ver lib/listener.ts.
-      - key: DATABASE_CA_CERT
-        sync: false
+      # DATABASE_CA_CERT retirada (2026-10): referenciaba lib/listener.ts, que no
+      # existe en el proyecto. La verificacion TLS de Aiven viaja en la propia URL
+      # (sslmode=require, junto con connection_limit=5&pool_timeout=20).
       - key: META_VERIFY_TOKEN
         sync: false
       - key: WHATSAPP_TOKEN
@@ -70,6 +69,12 @@ services:
       - key: TELNYX_PUBLIC_KEY
         sync: false
       - key: TELNYX_AI_ASSISTANT_ID
+        sync: false
+      # Secreto servidor-a-servidor del webhook tool de agenda (TELNYX_TOOL_SECRET).
+      - key: TELNYX_TOOL_SECRET
+        sync: false
+      # Secreto del drenaje de entregas push al HIS (POST /api/health/identity/handoffs).
+      - key: CRON_SECRET
         sync: false
       - key: NEXT_PUBLIC_APP_URL
         sync: false

@@ -7,10 +7,13 @@
  */
 
 import {
+  DOCUMENT_RULES,
   validateRequiredDocumentType,
   normalizeDocumentNumber,
   isValidDocumentTypeCode,
   getDocumentRule,
+  SEX_TO_ADMINISTRATIVE_GENDER,
+  SEX_TO_BIOLOGICAL_GENDER_GROUP,
 } from './catalogs';
 import { describe, expect, it } from 'vitest';
 
@@ -41,12 +44,18 @@ describe('validateRequiredDocumentType (borde de la API de agenda)', () => {
     expect(libre.ok).toBe(false);
   });
 
-  it('el mensaje de rechazo lista los codigos validos para guiar al panel', () => {
+  it('el mensaje de rechazo lista TODO el catalogo vigente (ValueSet RDA)', () => {
     const result = validateRequiredDocumentType('DNI');
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.message).toContain('CC');
-      expect(result.message).toContain('PA');
+      for (const code of [
+        'CC', 'CE', 'TI', 'RC', 'CN', 'PA', 'CD', 'DE', 'SC', 'PE',
+        'PT', 'PPT', 'PC', 'RUT', 'SI', 'MS', 'AS',
+      ]) {
+        expect(result.message).toContain(code);
+      }
+      // NU no existe en la ValueSet: nunca debe aparecer como valido.
+      expect(result.message).not.toContain('NU');
     }
   });
 });
@@ -73,6 +82,13 @@ describe('isValidDocumentTypeCode / getDocumentRule (guardas del catalogo)', () 
   it('acepta solo los codigos del catalogo cerrado', () => {
     expect(isValidDocumentTypeCode('CC')).toBe(true);
     expect(isValidDocumentTypeCode('AS')).toBe(true);
+    expect(isValidDocumentTypeCode('DE')).toBe(true); // Documento Extranjero
+    expect(isValidDocumentTypeCode('PC')).toBe(true); // PEP-TUTOR
+    expect(isValidDocumentTypeCode('SI')).toBe(true); // Sin identificacion
+    expect(isValidDocumentTypeCode('RUT')).toBe(true);
+    expect(isValidDocumentTypeCode('PPT')).toBe(true);
+    expect(isValidDocumentTypeCode('CN')).toBe(true);
+    expect(isValidDocumentTypeCode('NU')).toBe(false); // retirado: no esta en la ValueSet
     expect(isValidDocumentTypeCode('DNI')).toBe(false);
     expect(isValidDocumentTypeCode('')).toBe(false);
     expect(isValidDocumentTypeCode(null)).toBe(false);
@@ -83,5 +99,46 @@ describe('isValidDocumentTypeCode / getDocumentRule (guardas del catalogo)', () 
     expect(cc?.code).toBe('CC');
     expect(cc?.hint.length).toBeGreaterThan(0);
     expect(getDocumentRule('XX')).toBeNull();
+  });
+});
+
+describe('catalogo de documento — ValueSet oficial RDA (17 codigos)', () => {
+  const OFFICIAL = [
+    'CC', 'CE', 'TI', 'RC', 'CN', 'PA', 'CD', 'DE', 'SC', 'PE',
+    'PT', 'PPT', 'PC', 'RUT', 'SI', 'MS', 'AS',
+  ];
+
+  it('cubre exactamente los codigos de ColombianPersonIdentifierCodes', () => {
+    const codes = DOCUMENT_RULES.map((r) => r.code).sort();
+    expect(codes).toEqual([...OFFICIAL].sort());
+  });
+
+  it('incluye DE (Documento Extranjero) y PC (PEP-TUTOR), antes ausentes', () => {
+    expect(isValidDocumentTypeCode('DE')).toBe(true);
+    expect(isValidDocumentTypeCode('PC')).toBe(true);
+  });
+
+  it('SI es "Sin identificacion" (no el provisional "codigo SI")', () => {
+    expect(getDocumentRule('SI')?.label).toBe('Sin identificacion');
+  });
+});
+
+describe('sexo — mapeo a los code systems del RDA', () => {
+  it('M/F/I/N mapean 1 a 1 a AdministrativeGender', () => {
+    expect(SEX_TO_ADMINISTRATIVE_GENDER).toEqual({
+      M: 'male',
+      F: 'female',
+      I: 'other',
+      N: 'unknown',
+    });
+  });
+
+  it('M/F/I mapean al genero biologico colombiano (01/02/03)', () => {
+    expect(SEX_TO_BIOLOGICAL_GENDER_GROUP.M).toEqual({ code: '01', display: 'Hombre' });
+    expect(SEX_TO_BIOLOGICAL_GENDER_GROUP.F).toEqual({ code: '02', display: 'Mujer' });
+    expect(SEX_TO_BIOLOGICAL_GENDER_GROUP.I).toEqual({
+      code: '03',
+      display: 'Indeterminado o Intersexual',
+    });
   });
 });

@@ -194,7 +194,7 @@ Para los **+120 proveedores de HCE**:
 | White-label: **ellos** ponen la llave en **su** producto | Tú no vendes al IPS, **ellos** venden |
 | **Tú no heredas la obligación del RDA** | Ellos siguen siendo el HIS |
 
-> **Esta es la oferta más rentable del playbook:** costo de adquisición casi nulo, y tu producto ya está **documentado** y con **checklist de integración de 5 pasos**.
+> **Esta es la oferta más rentable del playbook:** costo de adquisición casi nulo, y tu producto ya está **documentado** y con **checklist de integración de 6 pasos**.
 
 ---
 
@@ -396,8 +396,8 @@ Tres anclas en esa frase:
 | Pendiente (nota sep-2026) | Estado hoy |
 |---|---|
 | **5. Auth máquina-a-máquina (`ApiClient`)** | ✅ **CERRADO** — `lib/health/identity/apiKeys.ts` (sha256 + `timingSafeEqual`), `app/api/health/api-clients`, `GET /api/v1/identity/...` |
-| **Documentación de integración** | ✅ **CERRADA** — `docs/INTEGRACION-API-IDENTIDAD.md` (8 secciones, checklist de 5 pasos) |
-| **1. Aplicar la migración de identidad** | 🟠 **Por verificar en Aiven** — la app ya no usa Neon (migró a Aiven por `lib/database-url.ts`). El SQL está en el repo. `prisma migrate status` no corre desde este entorno (P1001) |
+| **Documentación de integración** | ✅ **CERRADA** — `docs/INTEGRACION-API-IDENTIDAD.md` (8 secciones, checklist de 6 pasos, §6.1 con webhook push: payload versionado, idempotencia y reintentos) |
+| **1. Aplicar la migración de identidad** | ✅ **CERRADO (2026-10)** — verificado contra Aiven: 7/7 migraciones aplicadas (`prisma migrate status`), cero drift (`migrate diff` vacío). Se sumó `20260928_api_client_handoff_webhook` (entrega push al HIS) |
 | **2. Integración al intake de voz** | ❌ Pendiente — conectar el validador a `lib/whatsapp.ts` y `app/api/simulador/route.ts` |
 | **3. Borde de la API de agenda** | ❌ Pendiente — exigir `documentType` en `app/api/health/agenda/route.ts` |
 | **4. Tablero de conformidad** | ❌ Pendiente |

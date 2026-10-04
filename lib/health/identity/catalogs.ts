@@ -9,12 +9,17 @@
  * Fuente normativa:
  * - Resolucion 866 de 2021 (MinSalud) - codificacion del conjunto de datos
  *   minimos de la IHCE: tipo de documento, sexo y municipio.
+ * - Guia de Implementacion FHIR RDA Colombia (IG minsalud.fhir.co.rda / IHCE):
+ *   ValueSet ColombianPersonIdentifierCodes (17 tipos de documento) y ValueSet
+ *   ColombianGenderGroupCodes (genero biologico). Canonico:
+ *   https://fhir.minsalud.gov.co/rda/ValueSet/ColombianPersonIdentifierCodes
  * - DANE - DIVIPOLA: departamento = 2 digitos, municipio = 3 digitos.
  *
- * IMPORTANTE: los codigos de tipo de documento y sexo deben contrastarse contra
- * el Anexo Tecnico vigente publicado en el micrositio SISPRO antes de pasar a
- * produccion. Este modulo NO transmite nada a la IHCE: Upway certifica el dato
- * de entrada, el prestador transmite el RDA.
+ * CONTRASTE VIGENTE (ver REPORTES/CONTRASTE-CATALOGOS-ANEXO-TECNICO.md):
+ * DOCUMENT_RULES cubre los 17 codigos del ValueSet oficial. Repetir el contraste
+ * cada vez que MinSalud publique version nueva del anexo.
+ * Este modulo NO transmite nada a la IHCE: Upway certifica el dato de entrada,
+ * el prestador transmite el RDA.
  */
 
 import { MUNICIPALITY_NAMES, isKnownMunicipality } from './divipola';
@@ -28,12 +33,14 @@ export type DocumentTypeCode =
   | 'CN' // Certificado de nacido vivo
   | 'PA' // Pasaporte
   | 'CD' // Carne diplomatico
-  | 'SC' // Salvoconducto
+  | 'DE' // Documento Extranjero
+  | 'SC' // Salvoconducto de permanencia
   | 'PE' // Permiso especial de permanencia
-  | 'PT' // Permiso por proteccion temporal
-  | 'PPT' // Permiso proteccion temporal (PPT nominal)
+  | 'PT' // Permiso Temporal de Permanencia
+  | 'PPT' // Permiso por proteccion temporal
+  | 'PC' // PEP-TUTOR
   | 'RUT' // Registro unico tributario (extranjeros con actividad)
-  | 'SI' // Codigo SI del anexo (verificar etiqueta contra Anexo Tecnico)
+  | 'SI' // Sin identificacion
   | 'MS' // Menor sin identificacion (asignado por la IPS)
   | 'AS'; // Adulto sin identificacion (asignado por la IPS)
 
@@ -118,8 +125,17 @@ export const DOCUMENT_RULES: readonly DocumentRule[] = [
     hint: 'Deletree el carne y confirme la relectura.',
   },
   {
+    code: 'DE',
+    label: 'Documento Extranjero',
+    pattern: /^[A-Z0-9-]{4,20}$/,
+    minLength: 4,
+    maxLength: 20,
+    ipsAssigned: false,
+    hint: 'Documento del pais de origen. Deletree letras y numeros y confirme la relectura.',
+  },
+  {
     code: 'SC',
-    label: 'Salvoconducto',
+    label: 'Salvoconducto de permanencia',
     pattern: /^[A-Z0-9]{4,20}$/,
     minLength: 4,
     maxLength: 20,
@@ -137,7 +153,7 @@ export const DOCUMENT_RULES: readonly DocumentRule[] = [
   },
   {
     code: 'PT',
-    label: 'Permiso por proteccion temporal',
+    label: 'Permiso Temporal de Permanencia',
     pattern: /^[A-Z0-9]{4,20}$/,
     minLength: 4,
     maxLength: 20,
@@ -146,12 +162,21 @@ export const DOCUMENT_RULES: readonly DocumentRule[] = [
   },
   {
     code: 'PPT',
-    label: 'Permiso proteccion temporal',
+    label: 'Permiso por proteccion temporal',
     pattern: /^[A-Z0-9]{4,20}$/,
     minLength: 4,
     maxLength: 20,
     ipsAssigned: false,
     hint: 'Deletree el permiso y confirme la relectura.',
+  },
+  {
+    code: 'PC',
+    label: 'PEP-TUTOR',
+    pattern: /^[A-Z0-9-]{4,20}$/,
+    minLength: 4,
+    maxLength: 20,
+    ipsAssigned: false,
+    hint: 'Documento del tutor del titular de un PPT. Deletree y confirme la relectura.',
   },
   {
     code: 'RUT',
@@ -164,7 +189,7 @@ export const DOCUMENT_RULES: readonly DocumentRule[] = [
   },
   {
     code: 'SI',
-    label: 'Documento codigo SI',
+    label: 'Sin identificacion',
     pattern: /^[A-Z0-9-]{4,20}$/,
     minLength: 4,
     maxLength: 20,
@@ -276,6 +301,40 @@ export const SEX_OPTIONS = [
   { code: 'I', label: 'Indeterminado / intersexual' },
   { code: 'N', label: 'No informa' },
 ] as const;
+
+/**
+ * Mapeo del codigo interno de Upway (transporte y almacenamiento) a los code
+ * systems oficiales del RDA Colombia. `sexCode` NO es un codigo del RDA: es la
+ * representacion de Upway. El prestador debe traducirlo al construir el Patient.
+ *
+ * - Patient.gender usa AdministrativeGender (FHIR, binding required):
+ *   male | female | other | unknown, cardinalidad 0..1.
+ * - Patient.extension:ExtensionBiologicalGender usa ColombianGenderGroup
+ *   (binding required): 01 Hombre | 02 Mujer | 03 Indeterminado o Intersexual,
+ *   cardinalidad 1..1.
+ *
+ * Solo M, F e I tienen equivalente biologico; N (no informa) no existe en
+ * ColombianGenderGroup, por lo que el prestador debe resolverlo con
+ * AdministrativeGender=unknown.
+ */
+export const SEX_TO_ADMINISTRATIVE_GENDER: Record<
+  SexCode,
+  'male' | 'female' | 'other' | 'unknown'
+> = {
+  M: 'male',
+  F: 'female',
+  I: 'other',
+  N: 'unknown',
+};
+
+export const SEX_TO_BIOLOGICAL_GENDER_GROUP: Record<
+  Exclude<SexCode, 'N'>,
+  { code: '01' | '02' | '03'; display: string }
+> = {
+  M: { code: '01', display: 'Hombre' },
+  F: { code: '02', display: 'Mujer' },
+  I: { code: '03', display: 'Indeterminado o Intersexual' },
+};
 
 const SEX_CODES = new Set<string>(SEX_OPTIONS.map((s) => s.code));
 
@@ -537,6 +596,7 @@ export function validateRequiredDocumentType(
     ok: false,
     message:
       `El tipo de documento "${normalized}" no pertenece al catalogo cerrado de la ` +
-      'Resolucion 866 de 2021. Codigos validos: CC, CE, TI, RC, NU, PA, CD, SC, PE, PT, DE, MS, AS.',
+      'Resolucion 866 de 2021 / ValueSet ColombianPersonIdentifierCodes. Codigos validos: ' +
+      'CC, CE, TI, RC, CN, PA, CD, DE, SC, PE, PT, PPT, PC, RUT, SI, MS, AS.',
   };
 }

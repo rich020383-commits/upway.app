@@ -10,6 +10,16 @@ type ApiKeyRow = {
   isActive: boolean;
   lastUsedAt: string | null;
   revokedAt: string | null;
+  /** Webhook HTTPS del HIS para la entrega push (null = solo consulta pull). */
+  handoffUrl: string | null;
+  /** Ultima entrega push registrada para esta llave, si existe. */
+  lastHandoff: {
+    status: string;
+    attempts: number;
+    deliveredAt: string | null;
+    lastError: string | null;
+    createdAt: string;
+  } | null;
   createdAt: string;
 };
 
@@ -18,12 +28,35 @@ function formatDate(value: string | null): string {
   return new Date(value).toLocaleString('es-CO');
 }
 
+const HANDOFF_STATUS_LABELS: Record<string, string> = {
+  DELIVERED: 'entregada',
+  PENDING: 'pendiente de reintento',
+  FAILED: 'fallida',
+  SKIPPED: 'omitida',
+};
+
+/** Resumen legible del webhook de una llave (null si no tiene configurado). */
+function webhookSummary(row: ApiKeyRow): string | null {
+  if (!row.handoffUrl) return null;
+  let host = row.handoffUrl;
+  try {
+    host = new URL(row.handoffUrl).host;
+  } catch {
+    // URL heredada no parseable: se muestra tal cual.
+  }
+  const status = row.lastHandoff
+    ? `ultima entrega: ${HANDOFF_STATUS_LABELS[row.lastHandoff.status] ?? row.lastHandoff.status.toLowerCase()}`
+    : 'sin entregas todavia';
+  return `Webhook ${host} · ${status}`;
+}
+
 export function ApiKeysPanel() {
   const [keys, setKeys] = useState<ApiKeyRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [name, setName] = useState('');
+  const [handoffUrl, setHandoffUrl] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
   const [freshKey, setFreshKey] = useState<string | null>(null);
 
@@ -56,12 +89,13 @@ export function ApiKeysPanel() {
       const res = await fetch('/api/health/api-clients', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim() }),
+        body: JSON.stringify({ name: name.trim(), handoffUrl: handoffUrl.trim() || null }),
       });
       const data = await res.json();
       if (res.ok) {
         setFreshKey(data.key ?? null);
         setName('');
+        setHandoffUrl('');
         setFeedback('Llave creada. Copiala ahora: no se puede recuperar.');
         await loadKeys();
       } else {
@@ -120,6 +154,9 @@ export function ApiKeysPanel() {
           <p className="mt-1 text-sm text-slate-500">
             Su HIS/HCE consulta el registro conforme del paciente con una llave propia.
             Cada llave queda atada a esta organizacion: nunca ve datos de otra IPS.
+            Si contrato la entrega en tiempo real, registre ademas la URL HTTPS del
+            webhook de su sistema al crear la llave: Upway entrega ahi el registro
+            certificado sin que usted tenga que consultar.
           </p>
         </div>
         <div className="shrink-0 rounded-2xl bg-slate-900 p-3 text-white">
@@ -132,7 +169,14 @@ export function ApiKeysPanel() {
           value={name}
           onChange={(event) => setName(event.target.value)}
           placeholder='Nombre de la llave (ej. "HIS produccion")'
-          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-slate-400"
+          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-slate-400 sm:flex-1"
+        />
+        <input
+          value={handoffUrl}
+          onChange={(event) => setHandoffUrl(event.target.value)}
+          placeholder="URL de webhook HTTPS (opcional, entrega push)"
+          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-slate-400 sm:flex-1"
+          inputMode="url"
         />
         <button
           type="button"
@@ -179,7 +223,9 @@ export function ApiKeysPanel() {
         </p>
       ) : (
         <div className="divide-y divide-slate-100">
-          {keys.map((key) => (
+          {keys.map((key) => {
+            const webhook = webhookSummary(key);
+            return (
             <div key={key.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
@@ -199,6 +245,15 @@ export function ApiKeysPanel() {
                 <div className="mt-1 text-xs text-slate-500">
                   {key.keyPrefix}... · creada {formatDate(key.createdAt)} · ultimo uso {formatDate(key.lastUsedAt)}
                 </div>
+                {webhook ? (
+                  <div
+                    className={`mt-0.5 text-xs ${
+                      key.lastHandoff?.status === 'FAILED' ? 'text-rose-600' : 'text-slate-500'
+                    }`}
+                  >
+                    {webhook}
+                  </div>
+                ) : null}
               </div>
               {key.revokedAt ? null : (
                 <button
@@ -216,7 +271,8 @@ export function ApiKeysPanel() {
                 </button>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

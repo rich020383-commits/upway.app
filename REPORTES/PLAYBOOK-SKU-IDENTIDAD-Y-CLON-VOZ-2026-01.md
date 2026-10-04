@@ -14,7 +14,7 @@ No es "un checkbox". Son cinco cosas construidas y probadas:
 
 | # | Pieza | Qué hace | Archivo |
 |---|---|---|---|
-| 1 | **Catálogos cerrados** | Tipo de documento (`CC, CE, TI, RC, NU, PA, CD, SC, PE, PT, DE, MS, AS`), sexo (`M, F, I, N`), municipio **DIVIPOLA de 5 dígitos**. **Nunca texto libre.** | `lib/health/identity/catalogs.ts` |
+| 1 | **Catálogos cerrados** | Tipo de documento (`CC, CE, TI, RC, CN, PA, CD, DE, SC, PE, PT, PPT, PC, RUT, SI, MS, AS`), sexo (`M, F, I, N`), municipio **DIVIPOLA de 5 dígitos**. **Nunca texto libre.** | `lib/health/identity/catalogs.ts` |
 | 2 | **Validador determinista** | Validación separada del LLM: nombres separados, fecha, DIVIPOLA, rango de fecha. **Si no se entiende un dato de identidad, se vuelve a preguntar — nunca se infiere.** | `lib/health/identity/conformingRecord.ts` (**36 tests**) |
 | 3 | **Certificación + reporte** | Genera el registro conforme con `completenessPct`, `issues`, `confirmedAt`, `certifiedAt`, `retentionMode` y **hash SHA-256 de integridad** | `lib/health/identity/persistence.ts` (**30 tests**) |
 | 4 | **Consola de evidencia** | `/health/identity` — **% conforme, % confirmado por el paciente, entregas al HIS, integridad del hash** recálculado contra la fila | `app/api/health/identity/console/route.ts` + `app/health/identity/page.tsx` |
@@ -34,7 +34,7 @@ No es "un checkbox". Son cinco cosas construidas y probadas:
 - Catálogos cerrados
 - Tres formas de integración: **API (pull) / Webhook (push) / Export manual**
 - Responsabilidades Ley 1581 + DPA
-- **Checklist de integración de 5 pasos**
+- **Checklist de integración de 6 pasos** (incluye verificación del webhook push)
 
 > **Punto de venta técnico:** le entregas al equipo del cliente **una guía que ya puede seguir sin ti**. Eso acorta la venta a nivel de TI.
 

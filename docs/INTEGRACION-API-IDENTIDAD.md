@@ -128,15 +128,17 @@ Notas de campos:
 
 ## 5. Catálogos (nunca texto libre)
 
-**Tipo de documento:** `CC`, `CE`, `TI`, `RC`, `NU`, `PA`, `CD`, `SC`, `PE`, `PT`,
-`DE`, `MS`, `AS`.
+**Tipo de documento:** `CC`, `CE`, `TI`, `RC`, `CN`, `PA`, `CD`, `DE`, `SC`, `PE`,
+`PT`, `PPT`, `PC`, `RUT`, `SI`, `MS`, `AS`.
 
 **Sexo:** `M`, `F`, `I` (indeterminado), `N` (no declarado).
 
 **Municipio:** código DIVIPOLA de 5 dígitos (2 de departamento + 3 de municipio).
 
-Los códigos de tipo de documento y sexo se contrastan contra el Anexo Técnico
-vigente en el micrositio SISPRO antes de producción.
+Estos catálogos están contrastados contra el **ValueSet oficial del RDA
+(IHCE/SISPRO)**: `ColombianPersonIdentifierCodes` (17 tipos de documento) y
+`ColombianGenderGroupCodes` (género biológico). El contraste vigente está en
+`REPORTES/CONTRASTE-CATALOGOS-ANEXO-TECNICO.md`.
 
 ---
 
@@ -145,11 +147,66 @@ vigente en el micrositio SISPRO antes de producción.
 | Modo | Cómo funciona | Cuándo usarlo |
 |---|---|---|
 | **API (pull)** | Su sistema consulta el endpoint cuando lo necesita | Es el modo recomendado |
-| **Webhook (push)** | Upway envía el registro al endpoint que usted expone | Si necesita tiempo real |
+| **Webhook (push)** | Upway envía el registro al endpoint HTTPS que usted registra con su llave | Si necesita tiempo real |
 | **Export manual** | Archivo para cargue puntual | Solo migración o contingencia, nunca operación |
 
 El modo contratado se registra en el onboarding (campo *"Cómo consumirá su sistema
-el dato del paciente"*).
+el dato del paciente"*). Ese campo es comercial: la configuración técnica del push
+se hace al crear la llave de API, registrando su **URL de webhook** (ver abajo).
+
+### 6.1 Webhook (push): cómo se configura
+
+- Al crear la llave en `/health/settings` registre también la URL HTTPS de su
+  endpoint. Sin URL, la llave solo funciona para consulta pull.
+- Upway entrega un `POST` con el registro conforme cuando el paciente queda
+  certificado, y de nuevo cuando el paciente confirma sus datos (lectura
+  dígito a dígito). Máximo dos eventos por versión del registro.
+- Header `X-Upway-Idempotency-Key`: si su sistema ya procesó ese valor, responda
+  `2xx` y descarte el cuerpo — es un reintento del mismo evento. Un dato
+  actualizado genera una clave nueva.
+- Su endpoint debe responder `2xx` en menos de 5 segundos. Los `4xx` (salvo
+  `408`/`429`) son rechazos definitivos: no se reintentan y quedan visibles en
+  el log de entregas de la llave (estado, intentos, último error). Los `5xx`,
+  `429`, `408` y los timeouts se reintentan con espera creciente (hasta 3
+  reintentos).
+
+Cuerpo del evento:
+
+```json
+{
+  "event": "identity.certified",
+  "version": "2026-10-v1",
+  "delivery": {
+    "idempotencyKey": "push:llave:registro:hash:marca",
+    "attempt": 1,
+    "certifiedAt": "2026-10-01T12:00:00.000Z"
+  },
+  "patient": {
+    "evidenceRef": "cm...",
+    "documentType": "CC",
+    "documentNumber": "15802345",
+    "givenNames": ["Juan"],
+    "familyNames": ["Perez"],
+    "birthDate": "1971-08-08",
+    "sexCode": "M",
+    "municipalityCode": "11001",
+    "departmentCode": "11",
+    "phoneE164": "+573001112233",
+    "email": "juan@example.com"
+  },
+  "certification": {
+    "conforming": true,
+    "completenessPct": 100,
+    "confirmedAt": null,
+    "recordHash": "sha256-hex",
+    "payloadVersion": "v1"
+  }
+}
+```
+
+`confirmedAt` viaja `null` en el primer evento (certificación) y con la fecha de
+confirmación del paciente en el segundo. `patient.evidenceRef` es el mismo valor
+del pull: guárdelo junto al identificador de su paciente.
 
 ---
 
@@ -167,10 +224,14 @@ El registro es **dato personal de salud**. En consecuencia:
 
 ## 8. Checklist de integración
 
-1. Crear la llave en `/health/settings` y guardarla en su bóveda de secretos.
+1. Crear la llave en `/health/settings` y guardarla en su bóveda de secretos. Si
+   contrató la entrega en tiempo real, registre ahí mismo la URL HTTPS de su webhook.
 2. Consumir `GET /api/v1/identity/{documentType}/{documentNumber}` en un ambiente de
    pruebas con un paciente de prueba.
 3. Verificar los tres casos: `200` con `conforming: true`, `404` sin registro y `401`
    con llave inválida.
-4. Guardar `evidenceRef` junto al identificador de su paciente.
-5. Confirmar con Upway el modo de integración y firmar el DPA.
+4. (Push) Confirmar que su endpoint recibe el `POST` con el header
+   `X-Upway-Idempotency-Key`, responde `2xx` y aparece como "entregada" en el log de
+   la llave.
+5. Guardar `evidenceRef` junto al identificador de su paciente.
+6. Confirmar con Upway el modo de integración y firmar el DPA.

@@ -1206,9 +1206,13 @@ model IdentityConfirmation {
 /// Entrega del registro conforme al HIS/HCE del cliente.
 /// match-or-create: Upway entrega la clave de match y NO crea pacientes
 /// por su cuenta; el HIS busca y decide si actualiza o crea.
+/// Cubre los dos sentidos: pull (el HIS consulta /api/v1/identity) y push
+/// (Upway entrega al handoffUrl de la llave; lo drena /api/health/identity/handoffs).
 model IdentityHandoff {
   id             String                @id @default(cuid())
   identityId     String
+  /// Llave del cliente a la que pertenece una entrega push. Null en pull.
+  apiClientId    String?
   targetSystem   String
   /// Id del paciente en el sistema destino, devuelto por el HIS.
   targetRef      String?
@@ -1217,14 +1221,19 @@ model IdentityHandoff {
   idempotencyKey String                @unique
   attempts       Int                   @default(0)
   lastError      String?               @db.Text
+  /// Proximo reintento programado (solo push; espera creciente). Null = ya.
+  nextAttemptAt  DateTime?
   deliveredAt    DateTime?
   createdAt      DateTime              @default(now())
   updatedAt      DateTime              @updatedAt
 
-  identity PatientIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  identity  PatientIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  apiClient ApiClient?      @relation(fields: [apiClientId], references: [id], onDelete: SetNull)
 
   @@index([identityId, status])
   @@index([status, createdAt])
+  @@index([status, nextAttemptAt])
+  @@index([apiClientId, createdAt])
 }
 
 /// Cliente maquina-a-maquina: el HIS/HCE del cliente que consume el registro
@@ -1239,6 +1248,9 @@ model ApiClient {
   keyHash         String    @unique
   /// Prefijo publico para identificar la llave en logs y soporte.
   keyPrefix       String
+  /// URL HTTPS del HIS/HCE para la entrega push del registro conforme
+  /// (handoff, Patron 3 del doc de integracion). Null = solo consulta pull.
+  handoffUrl      String?
   isActive        Boolean   @default(true)
   lastUsedAt      DateTime?
   revokedAt       DateTime?
@@ -1248,6 +1260,7 @@ model ApiClient {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   clinic       Clinic?      @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  handoffs     IdentityHandoff[]
 
   @@index([organizationId, isActive])
 }

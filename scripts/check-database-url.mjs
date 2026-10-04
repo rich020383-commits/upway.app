@@ -36,8 +36,17 @@ const CLAVES = ['DATABASE_URL', 'AIVEN_DATABASE_URL', 'POSTGRES_URL', 'DIRECT_UR
  */
 const ORIGEN = new Map();
 
+/**
+ * Variables definidas A LA VEZ en el entorno del proceso y en el archivo, con
+ * valores DISTINTOS. Es el fallo mas caro de diagnosticar: dotenv nunca
+ * sobreescribe una variable ya presente, asi que Prisma usa la del entorno y el
+ * .env que acabas de editar se ignora en silencio (sintoma tipico: P1000 con una
+ * contrasena que "sabes" que es correcta).
+ */
+export const CONFLICTOS = [];
+
 /** Carga .env/.env.local a process.env sin dependencias (solo si existe). */
-function cargarEnvLocal() {
+export function cargarEnvLocal() {
   for (const archivo of ['.env', '.env.local']) {
     if (!existsSync(archivo)) continue;
     for (const linea of readFileSync(archivo, 'utf8').split(/\r?\n/)) {
@@ -45,6 +54,10 @@ function cargarEnvLocal() {
       if (!m) continue;
       const [, k, v] = m;
       if (process.env[k] !== undefined) {
+        const enArchivo = v.replace(/^["']|["']$/g, '').trim();
+        if (enArchivo && enArchivo !== process.env[k]) {
+          CONFLICTOS.push({ clave: k, archivo, enProceso: process.env[k], enArchivo });
+        }
         if (!ORIGEN.has(k)) ORIGEN.set(k, 'entorno del proceso (el .env no se usa para esta)');
         continue; // el entorno real manda
       }
@@ -67,11 +80,32 @@ export function resolverUrl(env = process.env) {
   return null;
 }
 
+/**
+ * Avisos de CONFLICTO relevantes para la conexion (solo las variables de CLAVES).
+ * Los usan `diag-db-connectivity.mjs` y `verify-db-schema.mjs` para no arrancar
+ * diagnosticando una URL que el usuario no esta editando.
+ * @returns {string[]}
+ */
+export function avisosDeConflicto() {
+  return CONFLICTOS.filter((c) => CLAVES.includes(c.clave)).map(
+    (c) =>
+      `CONFLICTO en ${c.clave}: el entorno del proceso (${mascara(contrasenaDe(c.enProceso))}) y ` +
+      `${c.archivo} (${mascara(contrasenaDe(c.enArchivo))}) tienen valores DISTINTOS. ` +
+      `Gana el entorno: mientras esa variable exista, editar ${c.archivo} no cambia nada.`
+  );
+}
+
 /** `abcd1234` -> `ab****34`. Nunca se imprime la contrasena completa. */
 function mascara(pass) {
   if (!pass) return '(sin contrasena)';
   if (pass.length <= 4) return '*'.repeat(pass.length);
   return `${pass.slice(0, 2)}${'*'.repeat(Math.max(4, pass.length - 4))}${pass.slice(-2)}`;
+}
+
+/** Contrasena de una URL, solo para enmascararla en los mensajes. */
+function contrasenaDe(url) {
+  const m = /:\/\/[^:/?#@]*:([^@?#]*)@/.exec(url ?? '');
+  return m ? m[1] : '';
 }
 
 /**
@@ -285,6 +319,7 @@ function main() {
   const r = diagnosticarDatabaseUrl(hallado.valor);
   const origen = ORIGEN.get(hallado.clave) ?? 'entorno del proceso';
   console.log(`[database-url] Variable usada: ${hallado.clave} (origen: ${origen})`);
+  for (const aviso of avisosDeConflicto()) console.error(`[database-url] ${aviso}`);
   if (r.resumen) {
     console.log('[database-url] Analisis:');
     for (const [k, v] of Object.entries(r.resumen)) console.log(`  - ${k.padEnd(11)} ${v}`);

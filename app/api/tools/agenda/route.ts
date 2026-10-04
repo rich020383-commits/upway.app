@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { after } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { verifySharedSecret } from '@/lib/webhook-verify';
 import {
@@ -17,6 +18,7 @@ import {
   buildPatientIdentityData,
   type IdentityRetentionMode,
 } from '@/lib/health/identity/persistence';
+import { pushIdempotencyKey } from '@/lib/health/identity/handoff';
 import { prisma } from '@/lib/prisma';
 import {
   addToWaitlist,
@@ -85,6 +87,57 @@ function scopeFrom(request: NextRequest, body: ToolBody): AgendaScope | null {
 
 function speakOnly(message: string, status = 200) {
   return NextResponse.json({ ok: false, speak: message }, { status });
+}
+
+/**
+ * Encola la entrega push del registro conforme al HIS/HCE del cliente
+ * (Patron 3 — ver docs/INTEGRACION-API-IDENTIDAD.md §6) para cada llave
+ * activa con handoffUrl de la organizacion.
+ *
+ * Idempotente: la clave incluye recordHash y la marca de confirmacion, asi
+ * que los reintentos de la misma version no duplican filas (skipDuplicates);
+ * un dato actualizado o confirmado genera una entrega nueva. Corre en
+ * `after()`: nunca bloquea ni retrasa la respuesta al agente.
+ */
+async function queuePushHandoffs(identity: {
+  id: string;
+  organizationId: string;
+  recordHash: string;
+  confirmedAt: Date | null;
+}): Promise<void> {
+  try {
+    const apiClient = (
+      prisma as unknown as {
+        apiClient: {
+          findMany: (args: Record<string, unknown>) => Promise<Array<{ id: string; name: string }>>;
+        };
+      }
+    ).apiClient;
+
+    const clients = await apiClient.findMany({
+      where: {
+        organizationId: identity.organizationId,
+        isActive: true,
+        revokedAt: null,
+        handoffUrl: { not: null },
+      },
+      select: { id: true, name: true },
+    });
+    if (!clients.length) return;
+
+    await prisma.identityHandoff.createMany({
+      data: clients.map((client) => ({
+        identityId: identity.id,
+        apiClientId: client.id,
+        targetSystem: client.name,
+        status: 'PENDING' as const,
+        idempotencyKey: pushIdempotencyKey(client.id, identity),
+      })),
+      skipDuplicates: true,
+    });
+  } catch (error) {
+    console.error('[tools:agenda] no se pudo encolar la entrega push al HIS:', error);
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -465,6 +518,7 @@ export async function POST(request: NextRequest) {
           // paciente releyo el guion y confirmo. method por defecto es
           // DIGIT_BY_DIGIT_READBACK; una fila por confirmacion.
           if (persisted && body.identityConfirmed === true) {
+            const confirmedAt = new Date();
             await prisma.identityConfirmation.create({
               data: {
                 identityId: persisted.id,
@@ -478,8 +532,27 @@ export async function POST(request: NextRequest) {
             });
             await prisma.patientIdentity.update({
               where: { id: persisted.id },
-              data: { confirmedAt: new Date() },
+              data: { confirmedAt },
             });
+            // Entrega push al HIS del cliente con la version confirmada.
+            after(() =>
+              queuePushHandoffs({
+                id: persisted.id,
+                organizationId,
+                recordHash: identityData.recordHash,
+                confirmedAt,
+              })
+            );
+          } else if (persisted) {
+            // Version certificada (el paciente aun no confirma): entrega inmediata.
+            after(() =>
+              queuePushHandoffs({
+                id: persisted.id,
+                organizationId,
+                recordHash: identityData.recordHash,
+                confirmedAt: null,
+              })
+            );
           }
 
           identityPersisted = true;
@@ -578,10 +651,20 @@ export async function POST(request: NextRequest) {
             conversationId: text(body, 'conversationId'),
           },
         });
+        const confirmedAt = new Date();
         await prisma.patientIdentity.update({
           where: { id: stored.id },
-          data: { confirmedAt: new Date() },
+          data: { confirmedAt },
         });
+        // Entrega push al HIS del cliente con la version confirmada.
+        after(() =>
+          queuePushHandoffs({
+            id: stored.id,
+            organizationId: stored.organizationId,
+            recordHash: stored.recordHash,
+            confirmedAt,
+          })
+        );
         return NextResponse.json({
           ok: true,
           speak: 'Listo. Quedó registrada la confirmación de sus datos. ¿En qué más le puedo ayudar?',

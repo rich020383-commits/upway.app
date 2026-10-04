@@ -114,6 +114,7 @@ export async function GET(
       where: { idempotencyKey: `v1:${client.id}:${identity.id}` },
       create: {
         identityId: identity.id,
+        apiClientId: client.id,
         targetSystem: client.name,
         status: 'DELIVERED',
         idempotencyKey: `v1:${client.id}:${identity.id}`,
@@ -121,6 +122,7 @@ export async function GET(
         deliveredAt: new Date(),
       },
       update: {
+        apiClientId: client.id,
         status: 'DELIVERED',
         attempts: { increment: 1 },
         lastError: null,
