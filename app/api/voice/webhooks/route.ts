@@ -73,18 +73,39 @@ async function directionOfCall(clientState: string | null): Promise<'inbound' | 
   return tienda ? 'outbound' : 'inbound';
 }
 
+/**
+ * Decodifica TELNYX_PUBLIC_KEY tolerando los dos formatos del portal (base64
+ * —el típico— y hex de 32 bytes) y el prefijo `TELNYX_PUBLIC_KEY=` que queda
+ * cuando se pega la línea completa del .env dentro del valor en Render.
+ *
+ * AUDITORÍA: el código original hacía `Buffer.from(publicKey, 'hex')` sobre
+ * una clave base64 → devolvía 0 bytes → libsodium lanzaba, el catch devolvía
+ * false y TODOS los webhooks de voz terminaban en 401 "Firma de voz inválida":
+ * LlamadaLog quedaba siempre vacío y la telemetría de llamadas se perdía.
+ */
+function decodeTelnyxPublicKey(raw: string): Buffer {
+  const clean = raw.trim().replace(/^TELNYX_PUBLIC_KEY=/, '');
+  const asBase64 = Buffer.from(clean, 'base64');
+  if (asBase64.length === 32) return asBase64;
+  return Buffer.from(clean, 'hex');
+}
+
 async function verifyTelnyx(req: NextRequest, raw: string): Promise<boolean> {
   const publicKey = process.env.TELNYX_PUBLIC_KEY;
   const signature = req.headers.get('telnyx-signature-ed25519');
   const timestamp = req.headers.get('telnyx-timestamp');
   // Sin public key configurada no podemos verificar: en prod se rechaza.
   if (!publicKey || !signature || !timestamp) return process.env.NODE_ENV !== 'production';
+  const key = decodeTelnyxPublicKey(publicKey);
+  if (key.length !== 32) {
+    console.error('[telnyx] TELNYX_PUBLIC_KEY inválida: se esperaba base64 o hex de 32 bytes.');
+    return false;
+  }
   try {
     const sodium = await import('libsodium-wrappers');
     await sodium.ready;
     const msg = Buffer.from(`${timestamp}|${raw}`);
     const sig = Buffer.from(signature, 'hex');
-    const key = Buffer.from(publicKey, 'hex');
     return Boolean(sodium.crypto_sign_verify_detached(sig, msg, key));
   } catch (err) {
     console.error('[telnyx] verify error', err);

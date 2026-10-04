@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { Mock } from 'vitest';
 import { NextRequest } from 'next/server';
 
@@ -8,6 +8,15 @@ vi.mock('@/lib/prisma', () => ({
     llamadaLog: { upsert: vi.fn() },
   },
 }));
+// La build ESM publicada de libsodium-wrappers 0.7.16 importa un
+// './libsodium.mjs' que no viene en el tarball: en vitest eso revienta al
+// importar. La ruta CJS sí funciona (es la que Next usa en producción), así
+// que el módulo se mockea apuntando a esa build — misma API, mismos datos.
+vi.mock('libsodium-wrappers', async () => {
+  const { createRequire } = await import('node:module');
+  const requireCjs = createRequire(import.meta.url);
+  return requireCjs('libsodium-wrappers') as unknown as typeof import('libsodium-wrappers');
+});
 // Solo se tapan las consultas de entorno. `decodeClientState` se usa el de
 // verdad a propósito: es lógica pura y lo que se quiere probar es que de verdad
 // decodifique, no que un mock devuelva lo que le pedimos.
@@ -126,5 +135,83 @@ describe('POST /api/voice/webhooks — call.hangup', () => {
     const res = await POST(requestWith(sinEstado));
     expect(res.status).toBe(200);
     expect(mockedLlamadaUpsert).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * Firma Ed25519 REAL generada en el test (misma primitiva que usa la ruta).
+ * Cubre la auditoría del fix: la clave del portal Telnyx viene en base64 y el
+ * código la decodificaba como hex → Buffer de 0 bytes → TODOS los webhooks de
+ * voz terminaban en 401 y LlamadaLog nunca registraba un evento.
+ */
+describe('POST /api/voice/webhooks — verificación de firma Ed25519', () => {
+  const TS = '1767139200';
+  const RAW = JSON.stringify({ data: { event_type: 'call.test' } });
+  const originalKey = process.env.TELNYX_PUBLIC_KEY;
+
+  let sodium: typeof import('libsodium-wrappers');
+  let keys: { publicKey: Uint8Array; privateKey: Uint8Array };
+
+  function firmar(raw: string): string {
+    const msg = Buffer.from(`${TS}|${raw}`);
+    return Buffer.from(sodium.crypto_sign_detached(msg, keys.privateKey)).toString('hex');
+  }
+
+  function firmadaRequest(raw: string, firma: string) {
+    return new NextRequest('https://upway.business/api/voice/webhooks', {
+      method: 'POST',
+      body: raw,
+      headers: { 'telnyx-signature-ed25519': firma, 'telnyx-timestamp': TS },
+    });
+  }
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    sodium = await import('libsodium-wrappers');
+    await sodium.ready;
+    keys = sodium.crypto_sign_keypair();
+  });
+
+  afterEach(() => {
+    if (originalKey === undefined) delete process.env.TELNYX_PUBLIC_KEY;
+    else process.env.TELNYX_PUBLIC_KEY = originalKey;
+  });
+
+  it('acepta la clave en base64 (formato del portal)', async () => {
+    process.env.TELNYX_PUBLIC_KEY = Buffer.from(keys.publicKey).toString('base64');
+    const res = await POST(firmadaRequest(RAW, firmar(RAW)));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ received: true, type: 'call.test' });
+  });
+
+  it('acepta la clave en hex', async () => {
+    process.env.TELNYX_PUBLIC_KEY = Buffer.from(keys.publicKey).toString('hex');
+    const res = await POST(firmadaRequest(RAW, firmar(RAW)));
+    expect(res.status).toBe(200);
+  });
+
+  it('tolera el prefijo TELNYX_PUBLIC_KEY= pegado desde el .env', async () => {
+    process.env.TELNYX_PUBLIC_KEY = `TELNYX_PUBLIC_KEY=${Buffer.from(keys.publicKey).toString('base64')}`;
+    const res = await POST(firmadaRequest(RAW, firmar(RAW)));
+    expect(res.status).toBe(200);
+  });
+
+  it('rechaza una firma que no corresponde al cuerpo (401)', async () => {
+    process.env.TELNYX_PUBLIC_KEY = Buffer.from(keys.publicKey).toString('base64');
+    const res = await POST(firmadaRequest(RAW, firmar('otro-cuerpo')));
+    expect(res.status).toBe(401);
+  });
+
+  it('rechaza una clave que no mide 32 bytes sin lanzar (401)', async () => {
+    process.env.TELNYX_PUBLIC_KEY = 'esto-no-es-una-clave';
+    const res = await POST(firmadaRequest(RAW, firmar(RAW)));
+    expect(res.status).toBe(401);
+  });
+
+  it('con firma válida pasa la auth aunque el JSON esté malo (400)', async () => {
+    process.env.TELNYX_PUBLIC_KEY = Buffer.from(keys.publicKey).toString('base64');
+    const roto = '{"data":';
+    const res = await POST(firmadaRequest(roto, firmar(roto)));
+    expect(res.status).toBe(400);
   });
 });
