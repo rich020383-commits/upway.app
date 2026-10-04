@@ -71,5 +71,17 @@ export function verifyBoldSignature(rawBody: string, signatureHeader: string | n
  */
 export function verifySharedSecret(receivedSecret: string | null, expectedSecret: string): boolean {
   if (!receivedSecret || !expectedSecret) return false;
-  return timingSafeEqualHex(receivedSecret, expectedSecret);
+  // Normalizar ambos extremos. El 90% de los secretos de este proyecto se
+  // configuran copiando la línea del .env o un bloque de un chat, y un salto de
+  // línea o un espacio al final sobrevive en el dashboard de Render (y
+  // `printenv` no lo delata porque termina la línea igual). El resultado era un
+  // 401 eterno e imposible de resolver desde el cliente: las cabeceras HTTP
+  // recortan ese whitespace al transmitirse, así que NINGÚN valor enviado
+  // podía coincidir con el almacenado (20 chars válidos vs 21 almacenados).
+  // Comparar el valor normalizado hace la verificación estable ante cualquier
+  // ruido de pegado, sin reducir la entropía efectiva del secreto.
+  const received = receivedSecret.trim();
+  const expected = expectedSecret.trim();
+  if (!received || !expected) return false;
+  return timingSafeEqualHex(received, expected);
 }

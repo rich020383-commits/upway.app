@@ -54,7 +54,7 @@ async function drain(req: NextRequest): Promise<NextResponse> {
     // (solo la longitud — nada reversible ni del secreto). Sin esta señal, un
     // 401 es indistinguible de "el deploy no aplicó las env vars".
     return NextResponse.json(
-      { error: 'No autorizado', expectedLength: secret.length },
+      { error: 'No autorizado', expectedLength: secret.trim().length },
       { status: 401 }
     );
   }

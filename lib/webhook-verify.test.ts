@@ -78,6 +78,22 @@ describe('verifySharedSecret', () => {
   it('rejects wrong-length secrets without throwing', () => {
     expect(verifySharedSecret('short', SECRET)).toBe(false);
   });
+
+  it('acepta el secreto aunque el valor almacenado traiga salto de linea final', () => {
+    // El caso real de Render: CRON_SECRET se pego con un \n al final (21 chars
+    // almacenados para 20 utiles). Las cabeceras HTTP recortan ese \n al
+    // enviarse, asi que sin normalizar el match es imposible -> 401 eterno.
+    expect(verifySharedSecret(SECRET, `${SECRET}\n`)).toBe(true);
+  });
+
+  it('acepta el secreto aunque cualquiera de los dos lados traiga espacios sobrantes', () => {
+    expect(verifySharedSecret(SECRET, ` ${SECRET} `)).toBe(true);
+    expect(verifySharedSecret(`  ${SECRET}\r\n`, SECRET)).toBe(true);
+  });
+
+  it('sigue rechazando un secreto equivocado aunque el esperado traiga basura', () => {
+    expect(verifySharedSecret('wrong', `${SECRET}\n`)).toBe(false);
+  });
 });
 describe('verifyBoldSignature', () => {
   const signBoldHash = (body: string, secret: string) =>
