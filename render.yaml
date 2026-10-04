@@ -74,6 +74,9 @@ services:
       - key: TELNYX_TOOL_SECRET
         sync: false
       # Secreto del drenaje de entregas push al HIS (POST /api/health/identity/handoffs).
+      # IMPORTANTE: Render NO recarga las env vars en el proceso vivo al hacer Save;
+      # hay que disparar un Manual Deploy para que el valor nuevo tome efecto
+      # (si no, el endpoint sigue respondiendo 401 con el valor viejo).
       - key: CRON_SECRET
         sync: false
       - key: NEXT_PUBLIC_APP_URL
