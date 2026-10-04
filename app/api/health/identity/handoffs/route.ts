@@ -49,7 +49,14 @@ async function drain(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Drenaje no configurado' }, { status: 503 });
   }
   if (!verifySharedSecret(providedSecret(req), secret)) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    // Diagnóstico de soporte: la longitud del valor esperado permite distinguir
+    // si el proceso tiene el secreto vigente o uno heredado de un deploy anterior
+    // (solo la longitud — nada reversible ni del secreto). Sin esta señal, un
+    // 401 es indistinguible de "el deploy no aplicó las env vars".
+    return NextResponse.json(
+      { error: 'No autorizado', expectedLength: secret.length },
+      { status: 401 }
+    );
   }
 
   const organizationId = req.nextUrl.searchParams.get('organizationId')?.trim() || null;
