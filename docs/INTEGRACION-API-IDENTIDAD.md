@@ -220,6 +220,42 @@ El registro es **dato personal de salud**. En consecuencia:
 - Cada consulta queda registrada con fecha y llave usada: no consulte registros que
   su sistema no necesite.
 
+### 7.1 Límites de garantía de Upway (léalo antes de ofrecer el servicio)
+
+Upway certifica **el proceso de captura**, no **la existencia** del documento.
+
+**Lo que Upway garantía (verificable en la respuesta):**
+
+- El dato pasó por **catálogo cerrado** (Res. 866/2021): no hubo texto libre en tipo
+  de documento, sexo ni municipio.
+- El titular **lo confirmó dígito a dígito** durante la llamada (`confirmedAt`).
+- El registro **no fue alterado** después de certificarse (`integrityVerified` =
+  hash SHA-256).
+- La evidencia es trazable (`evidenceRef`): fecha, llave usada y hash.
+
+**Lo que Upway NO garantiza:**
+
+- Que el documento exista en **Registraduría Nacional** ni que corresponda a la
+  persona que lo dictó.
+- Que la persona exista en **BDUA/ADRES** o que tenga aseguramiento vigente.
+- Que nombre, fecha de nacimiento o municipio coincidan con registros oficiales
+  externos.
+- **Firma electrónica con valor legal** (Ley 527): el hash SHA-256 evidencia
+  integridad del registro, no la identidad de quien lo creó. La no-repudación
+  completa requiere un proveedor de firma certificado, que Upway no opera.
+- Validación biométrica (rostro o huella).
+
+**Por qué no lo garantiza:** la verificación contra Registraduría ni ADRES no está
+disponible como API pública de esas entidades. Upway no simula una validación que
+no realiza; cualquier tercero que la afirme estaría apoyándose en un intermediario
+que no es el Gobierno.
+
+**En qué se traduce esto para usted:** el registro aporta **evidencia auditable de
+un proceso de captura conforme**. La validación cruzada contra fuentes oficiales
+sigue siendo responsabilidad del prestador en su HIS (por eso se entrega la clave
+`documentType + documentNumber`). Si necesita más, se acuerda por escrito en el
+DPA como fase futura con convenio directo — no forma parte de este servicio.
+
 ---
 
 ## 8. Checklist de integración

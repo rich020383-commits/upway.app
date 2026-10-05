@@ -235,6 +235,7 @@ Anclas: **rechazo de RIPS** (dolor con fecha) · **catálogo cerrado** (Res. 866
 | 4 | **"¿Dónde queda mi dato?"** | *"`retentionMode: TRANSIENT` — por defecto no lo custodiamos. Si quiere custodia, firmamos acuerdo. Usted guarda `evidenceRef`."* |
 | 5 | **"¿Por qué por sede?"** | *"Porque la sede es la unidad que opera y factura. Una clínica con 3 sedes paga 3 — es el mismo KPI que usted audita por sede."* |
 | 6 | **"Es caro para 'solo un módulo'"** | *"Es ~100% de margen para mí porque es software, pero para usted **es la mitad del costo de un auditor** y está 24/7. Y el rango de §4.5 va hasta $350.000."* |
+| 7 | **"¿Valida contra Registraduría o ADRES?"** | *"No, y se lo digo antes de que lo pregunte en su auditoría: certificamos el **proceso** — catálogo cerrado, confirmación del titular dígito a dígito e integridad verificable con hash. La verificación contra entidades del Estado no tiene API pública; quien la promete está agregando un intermediario que no es el Gobierno. La validación cruzada es de su HIS, por eso le entregamos la clave y `evidenceRef`."* |
 
 ---
 
