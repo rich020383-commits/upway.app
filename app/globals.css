@@ -520,4 +520,112 @@ p {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+
+/* ═══════════════════════════════════════════════════════════════════
+   LANDED PREMIUM — micro-interacciones de bajo costo de renderizado
+   ═══════════════════════════════════════════════════════════════════
+
+   Regla de oro: TODO anima con transform/opacity. Nunca backdrop-filter
+   (apagado en móvil desde la auditoría de rendimiento), nunca filter en
+   movimiento, nunca top/left en RAF. La fluidez del scroll tiene prioridad
+   sobre cualquier adorno. */
+
+/* Aurora del hero: dos manchas de gradiente que respiran con translate3d.
+   El gradiente ya es difuso de fábrica — no hace falta filter: blur, que en
+   movimiento repinta el frame completo. */
+.upway-aurora {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.upway-aurora span {
+  position: absolute;
+  display: block;
+  border-radius: 9999px;
+  will-change: transform;
+}
+
+.upway-aurora span:nth-child(1) {
+  width: min(46vw, 520px);
+  aspect-ratio: 1;
+  top: -8%;
+  left: -6%;
+  background: radial-gradient(closest-side, rgba(17, 180, 176, 0.16), transparent 72%);
+  animation: upway-drift-a 16s ease-in-out infinite alternate;
+}
+
+.upway-aurora span:nth-child(2) {
+  width: min(52vw, 600px);
+  aspect-ratio: 1;
+  bottom: -14%;
+  right: -8%;
+  background: radial-gradient(closest-side, rgba(12, 55, 117, 0.12), transparent 72%);
+  animation: upway-drift-b 20s ease-in-out infinite alternate;
+}
+
+@keyframes upway-drift-a {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(6%, 8%, 0) scale(1.12); }
+}
+
+@keyframes upway-drift-b {
+  from { transform: translate3d(0, 0, 0) scale(1.08); }
+  to   { transform: translate3d(-7%, -6%, 0) scale(1); }
+}
+
+/* Textura de ruido sutil: SVG estático en data-URI. Cero animación, cero
+   repintado — solo cambia la percepción de la superficie (efecto "papel
+   mate" de las marcas premium). */
+.upway-noise::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  background-size: 140px 140px;
+}
+
+
+/* Movimiento reducido: la aurora se congela en su primera posición (sigue
+   estando, no desaparece el diseño) y la barra del splash deja de latir. */
+@media (prefers-reduced-motion: reduce) {
+  .upway-aurora span {
+    animation: none !important;
+  }
+}
+
+/* View Transitions API (estándar del navegador, NO dependencia): cuando el
+   navegador la soporta, cada navegación a otra página de UPWAY funde la
+   anterior. Los navegadores sin soporte ignoran el bloque completo — degradable
+   por diseño. Solo aplica a navegación completa (mismos orígenes). */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: upway-vt-out 0.16s ease-out both;
+}
+
+::view-transition-new(root) {
+  animation: upway-vt-in 0.24s ease-out both;
+}
+
+@keyframes upway-vt-out {
+  to { opacity: 0; transform: translateY(-4px); }
+}
+
+@keyframes upway-vt-in {
+  from { opacity: 0; transform: translateY(6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+}
+
 }

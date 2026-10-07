@@ -6,6 +6,9 @@ import Image from 'next/image';
 import { MessageCircle, Phone, Sparkles, Calendar, Bell, Users, Shield, ShieldCheck, Database, RefreshCw, ClipboardCheck, BadgeCheck, CalendarDays, ArrowRight, Headphones, Home as HomeIcon } from 'lucide-react';
 import Footer from '@/components/Footer';
 import SophieChatButton from '@/components/sophie-chat-button';
+import ScrambleText from '@/components/landing/scramble-text';
+import CountUp from '@/components/landing/count-up';
+import VoiceDemo from '@/components/landing/voice-demo';
 
 /* El logo animado es el splash de arranque de la app, no un adorno de la
    página: se marca en sessionStorage para que solo aparezca al iniciar. La `v1`
@@ -571,11 +574,18 @@ export default function Home() {
             operación es salud?", dejando a las otras dos como apéndice. El peso
             visual del hero lo carga el titular y el bloque de dolor/cura que va
             justo antes de las tarjetas. */}
-        <section id="inicio" className="max-w-[900px] mx-auto pt-[45px] md:pt-[70px] pb-[35px] px-5 text-center bg-[radial-gradient(circle_at_50%_0%,_#e8fbfa,_transparent_55%)]">
-          <div className="flex flex-col items-center">
+        <section id="inicio" className="relative overflow-hidden max-w-[900px] mx-auto pt-[45px] md:pt-[70px] pb-[35px] px-5 text-center bg-[radial-gradient(circle_at_50%_0%,_#e8fbfa,_transparent_55%)]">
+          {/* Aurora: dos manchas de gradiente que respiran con transform (nunca
+              filter). Solo adornan — el contenido va encima y sigue legible. */}
+          <div className="upway-aurora" aria-hidden="true">
+            <span />
+            <span />
+          </div>
+          <div className="relative flex flex-col items-center">
             <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">♥ &nbsp; La línea de atención de tu negocio, con IA</div>
             <h1 className="font-display text-[35px] md:text-[52px] leading-[1.06] tracking-[-2px] md:tracking-[-2.6px] m-0 mb-[22px] font-extrabold">
-              Atiende, agenda y confirma con quien te llama.<br />
+              <ScrambleText text="Atiende, agenda y confirma con quien te llama." />
+              <br />
               <em className="not-italic text-[#11b4b0]">Las 24 horas, sin perder un dato.</em>
             </h1>
             <p className="text-[16px] leading-[1.65] text-[#49698f] max-w-[600px]">
@@ -595,12 +605,75 @@ export default function Home() {
                 Descubre cómo funciona
               </a>
             </div>
-            <div className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-[20px] text-[#315982] text-[10px] font-semibold uppercase tracking-wide mt-2">
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-[20px] text-[#315982] text-[12px] font-semibold uppercase tracking-wide mt-2">
               <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Phone className="h-3.5 w-3.5" /> Voz IA 24/7</span>
               <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Calendar className="h-3.5 w-3.5" /> Agenda propia</span>
               <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Shield className="h-3.5 w-3.5" /> Datos correctos la primera vez</span>
               <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Users className="h-3.5 w-3.5" /> Trazabilidad completa</span>
             </div>
+          </div>
+        </section>
+
+        {/* CIFRAS VERIFICADAS + DEMO DE VOZ EN VIVO
+            El escaparate: el visitante elige voz, escribe y escucha el producto
+            sin registrarse. Las cifras son datos reales del proyecto (catálogo
+            verificado contra la API, catálogo DANE cargado, catálogo RDA
+            oficial), no adornos de marketing: si mañana cambian, cambian los
+            números de esta banda. */}
+        <section
+          id="prueba"
+          className="upway-noise relative mx-[15px] my-[55px] max-w-[1180px] overflow-hidden rounded-[28px] border border-[#e0edf6] bg-gradient-to-b from-[#f7fdff] to-white px-5 py-10 shadow-[0_24px_60px_rgba(15,31,54,0.07)] md:mx-auto md:my-[70px] md:rounded-[36px] md:px-12 md:py-14"
+        >
+          <div className="relative text-center">
+            <div className="text-[13px] font-bold uppercase tracking-widest text-[#0ba9a9]">
+              Escúchalo ahora
+            </div>
+            <h2 className="font-display mb-3 text-[30px] font-extrabold leading-[1.1] tracking-[-1.5px] text-[#0d3168] md:text-[42px]">
+              Elige una voz y pídele que hable.
+            </h2>
+            <p className="mx-auto max-w-[640px] text-[16px] leading-relaxed text-[#49698f]">
+              Es la misma síntesis de voz que corre en la línea de tus clientes.
+              Escribe tu propia frase: en treinta segundos sabrás si suena a
+              producto o a juguete.
+            </p>
+          </div>
+
+          {/* Banda de cifras: el número ES el argumento. CountUp anima una vez
+              al entrar y termina siempre en el valor real del HTML. */}
+          <div className="relative my-8 grid grid-cols-1 gap-4 border-y border-[#e0edf6] py-6 sm:grid-cols-3">
+            {[
+              {
+                n: 1000,
+                suf: '+',
+                label: 'voces de catálogo disponibles',
+                nota: 'con voces en español y colombianas',
+              },
+              {
+                n: 1122,
+                suf: '',
+                label: 'municipios validados con el DANE',
+                nota: 'catálogo oficial cargado y verificado',
+              },
+              {
+                n: 17,
+                suf: '',
+                label: 'tipos de documento oficiales',
+                nota: 'según el catálogo normativo del IHCE',
+              },
+            ].map((c) => (
+              <div key={c.label} className="text-center">
+                <div className="font-display text-[38px] font-extrabold leading-none tracking-tight text-[#0c3775] md:text-[44px]">
+                  <CountUp to={c.n} />
+                  <span className="text-[#11b4b0]">{c.suf}</span>
+                </div>
+                <div className="mt-2 text-[15px] font-bold text-[#31547f]">{c.label}</div>
+                <div className="text-[13px] text-[#7b93ab]">{c.nota}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="relative">
+            <VoiceDemo />
           </div>
         </section>
 
