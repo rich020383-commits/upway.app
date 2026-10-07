@@ -1,0 +1,40 @@
+# Upway — Tracker de Referidos
+
+## Mecanica del referido
+
+- **Acreditable:** el referido inicia contacto directo (email/tel propio o del referido) y ese referido firma contrato en ≤30 días.
+- **Recompensa:**
+  - Cliente referido: 1 mes gratis (o trayecto a mitad de precio).
+  - Referidor: 2 meses gratis en la próxima renovación.
+- **Contador:** solo se registra desde la pantalla del CRM y el admin de cuenta.
+- **Límite:** un mismo referido puede vincularse una sola vez.
+
+## Orden de prioridad (por margen)
+
+1. Cliente con plan de salud en Consultorio/Pro (masa media 100+ datos/semana).
+2. Cliente que ya compró Identidad Conforme (sugiere a centros vecinos).
+3. Cliente con múltiples sedes.
+4. Aliados que venden otro plan a la misma vertical.
+5. Clientes de cohorte antigua reiniciando renovación.
+
+## Código de conducta
+
+- No usar redes sociales de Upway para promocionar.
+- El referido debe darse a conocer a su cliente/paciente con buena fama.
+- Si el referido pide, se adjunta script de 3 líneas (no folleto).
+- No se refiere a su propio equipo.
+
+## Tabla de seguimiento
+
+| Nombre | Tipo | Público | Propuesta | ¿Firmó? | ¿Quién? | Próximo | Estado |
+|---|---|---|---|---|---|---|---|
+| | | | | | | | |
+
+## Métricas
+
+| Meta | Valor |
+|---|---|
+| Referidores activos en mes | 5 |
+| Referidos con contrato en 30 días | 4 |
+| Rebaja de TAC por referido | 0 |
+| Ratio referido/contrato | ≥80 % |

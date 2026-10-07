@@ -1,0 +1,57 @@
+# Upway — Tracker de Leads (Paso 9 · SKU Identidad + Clon de Voz)
+
+Chile: pestañas 2026-09–2026-10. Columnas mínimas por lead; `fecha_próximo_contacto` siempre la siguiente jornada.
+
+## Columnas
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| lead_id | texto | `L-001`… `L-099` |
+| nombre | texto | |
+| email | texto | |
+| tel | texto | |
+| dueño | texto | |
+| segmento | dropdown | Clinica, Centro Salud, UPS/ESTAB, Group Practice, Inmobiliaria, Aliado, Payor |
+| pain | texto | 30–60 palabras |
+| presupuesto_arpa | texto | ej. `2.500.000`, `>5.000.000` |
+| primera_demo | fecha | Fecha de la 1.ª demo |
+| contacto | texto | Quién le habla |
+| fuente | dropdown | LinkedIn, Referido, Evento, Web, Email, Boral |
+| funnel | dropdown | L1 Leads → L2 Filtros → L3 Mentión → L4 Demo → L5 Firma |
+| estado | dropdown | Nuevo, Contactado, Demo, Cotización, Cerrada |
+| fecha_próximo_contacto | fecha | Siempre +1 jornada |
+| observación | texto | Último contacto, resultado, próximo paso |
+
+## Filtros de entrada (2 de 3)
+
+1. Gasto en cobranza/operaciones ≥ 3 misiones/mes o 200+ pacientes/mes.
+2. Decisiones dobles o acceso directo a dirección/contabilidad.
+3. Está probando soluciones de telefonia/voz.
+
+## KPIs por semana
+
+| Meta | L1–L4 | L5–L8 | L9–L12 |
+|---|---|---|---|
+| Leads cargados | 10 | 25 | 40 |
+| Mensajes enviados | 30 | 60 | 70 |
+| Respuestas/enganches | 4 | 6 | 8 |
+| Demos citadas | 1 | 1 | 2 |
+| Prospectos para firma (identidad) | 1 | 1 | 1 |
+
+## Tablero de readines
+
+```
+L1: ___/10   L2: ___/25   L3: ___/40   Demos: ___/2   Cerradas: ___/1
+```
+
+## Plantillas de contacto
+
+- **A — Entrada:** “Hola [nombre], soy [nombre] de Upway. Construimos [beneficio 1] + [beneficio 2] para [segmento] — ¿tienes 10 min la semana que viene para ver cómo funciona con [referencia]?”
+- **B — Re-engagement (D4):** “[Nombre], no me hice caso la vez pasada. Te escribo porque [dato específico] me llamó la atención y pienso que encontramos un shortcut para [problema]. ¿Hay 3 min con alguien que decida sobre cobranza/telefonia?”
+- **C — Después de demo:** “Gracias por el tiempo. Resumen: [1 línea de evidencia]. Próximo: demo en vivo con tu agenda + precios por sede, o responder [duda 1–2] en 24h.”
+
+## Reglas
+
+- 1 mensaje + 1 respuesta, luego re-engagement el D4 (sin blast).
+- `fecha_próximo_contacto` se actualiza a la próxima jornada cada vez que se contacta, sin excepción.
+- Cada lead que avanza debe ir con un propietario asignado (quién habla, qué le dice).
