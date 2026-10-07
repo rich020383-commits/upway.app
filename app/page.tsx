@@ -106,7 +106,7 @@ const verticales = [
     href: '/salud',
     loginHref: '/login?segment=health',
     insignia: true,
-    imagen: '/verticales/salud.jpg',
+    imagen: '/salud-upway.png',
   },
   {
     id: 'center',
@@ -114,7 +114,7 @@ const verticales = [
     href: '/center',
     loginHref: '/login?segment=center',
     insignia: false,
-    imagen: '/verticales/center.jpg',
+    imagen: '/center-upway.png',
   },
   {
     id: 'inmobiliaria',
@@ -122,7 +122,7 @@ const verticales = [
     href: '/inmobiliarias',
     loginHref: '/login?segment=inmobiliaria',
     insignia: false,
-    imagen: '/verticales/inmobiliaria.jpg',
+    imagen: '/inmo-upway.png',
   },
 ];
 
@@ -847,7 +847,7 @@ export default function Home() {
                       quality={90}
                       sizes="(max-width: 1024px) 92vw, 440px"
                       onError={() => setImagenesCaidas((prev) => ({ ...prev, [v.id]: true }))}
-                      className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                      className="h-full w-full object-contain transition duration-500 group-hover:scale-[1.03]"
                     />
                   ) : (
                     <div className="grid h-full w-full place-items-center bg-[linear-gradient(135deg,#0d3168,#0b6a72)]">

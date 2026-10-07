@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upway — Identidad Conforme + Clon de Voz</title>
+<style>
+  :root {
+    --navy: #0d3168;
+    --navy-2: #0c3775;
+    --teal: #0ba9a9;
+    --teal-2: #0c6b7a;
+    --green: #50e1d5;
+    --ink: #0f172a;
+    --muted: #475569;
+    --line: #e0edf6;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.55; padding: 32px 20px 48px; }
+  .page { max-width: 860px; margin: 0 auto; background: var(--card); border-radius: var(--radius); box-shadow: 0 10px 40px rgba(15,23,42,.08); padding: 40px 44px 36px; }
+  header { border-bottom: 3px solid var(--teal); padding-bottom: 18px; margin-bottom: 22px; }
+  h1 { font-size: 22px; color: var(--navy); letter-spacing: .01em; }
+  .sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .kicker { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--teal); margin-bottom: 10px; }
+  .sku { border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin-bottom: 16px; background: #fcfdff; position: relative; }
+  .sku.identidad { border-left: 5px solid var(--teal); }
+  .sku.clonvoz { border-left: 5px solid var(--navy); }
+  .sku .top { display: flex; justify-content: space-between; align-items: baseline; }
+  .sku h2 { font-size: 16px; color: var(--navy); }
+  .sku .price { font-size: 19px; font-weight: 800; color: var(--navy); }
+  .sku .price small { font-size: 13px; font-weight: 600; color: var(--muted); }
+  .sku .meta { font-size: 12.5px; color: var(--muted); margin-top: 6px; line-height: 1.6; }
+  .sku.identidad .meta { border-top: 1px dashed var(--line); padding-top: 8px; margin-top: 8px; }
+  .sku .badge { position: absolute; top: -12px; right: 12px; background: var(--teal); color: #03343b; font-size: 10px; font-weight: 800; letter-spacing: .08em; padding: 3px 8px; border-radius: 999px; }
+  .rules { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0; }
+  .rules .r { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 12px; }
+  .rules .r b { display: block; color: var(--navy); font-size: 12.5px; margin-bottom: 3px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="kicker">Upway · Productos modulares</div>
+    <h1>Identidad Conforme + Clon de Voz</h1>
+    <div class="sub">SKU individuales para clínicas y centros de salud · Vigencia 22-sep-2026 · tarifa final 01-oct-2026</div>
+  </header>
+
+  <div class="sku identidad">
+    <div class="top"><h2>Identidad Conforme</h2><span class="badge">precio final</span></div>
+    <div class="price">$290.000 <small>COP / sede / mes</small></div>
+    <div class="meta">Validación de identidad de la persona que entra a la unidad, conforme a la regulación vigente (documento + datos del usuario, catalogo cerrado). SaaS multi-tenant: <b>el cliente no instala nada</b>; solo consume la API. Acredita identidad conforme. ARPA +67,6 % en Consultorio; margen ~100 %.</div>
+  </div>
+
+  <div class="sku clonvoz">
+    <div class="top"><h2>Clon de Voz</h2><span class="badge">pendiente de fijar</span></div>
+    <div class="price">Sobre costo real <small>$0,1225/min inbound</small></div>
+    <div class="meta">Agente de voz que atiende la línea 24/7: entiende lo que le piden, agenda citas sobre tu agenda, sostiene varias llamadas y retoma el hilo de cada conversación. Demo en vivo con voces colombianas (no se filtra idioma).</div>
+  </div>
+
+  <div class="rules">
+    <div class="r"><b>¿Cómo se compra?</b><br>Identidad: num. sedes × $290.000. Clon de voz: junto al plan de voz (overage único $690/min).</div>
+    <div class="r"><b>¿Lo cambias?</b><br>No. El modulo de identidad solo cae en piloto a mitad de precio (1 mes).</div>
+    <div class="r"><b>¿Quién firma?</b><br>Firma digital Ley 527 + facturación RFC/SIC/RNBD (tarea operativa, no de código).</div>
+    <div class="r"><b>¿Qué precio?</b><br>Contacto tarifario: contacto@upway.business.</div>
+  </div>
