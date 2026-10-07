@@ -622,10 +622,11 @@ export default function Home() {
             números de esta banda. */}
         <section
           id="prueba"
-          className="upway-noise relative mx-[15px] my-[55px] max-w-[1180px] overflow-hidden rounded-[28px] border border-[#e0edf6] bg-gradient-to-b from-[#f7fdff] to-white px-5 py-10 shadow-[0_24px_60px_rgba(15,31,54,0.07)] md:mx-auto md:my-[70px] md:rounded-[36px] md:px-12 md:py-14"
+          className="upway-noise upway-demo-frame relative mx-[15px] my-[55px] max-w-[1180px] overflow-hidden rounded-[28px] bg-gradient-to-b from-[#f7fdff] to-white px-5 py-10 md:mx-auto md:my-[70px] md:rounded-[36px] md:px-12 md:py-14"
         >
           <div className="relative text-center">
-            <div className="text-[13px] font-bold uppercase tracking-widest text-[#0ba9a9]">
+            <div className="flex items-center justify-center gap-2 text-[13px] font-bold uppercase tracking-widest text-[#0ba9a9]">
+              <span className="upway-live-dot inline-block h-2 w-2 rounded-full bg-[#11b4b0]" aria-hidden="true" />
               Escúchalo ahora
             </div>
             <h2 className="font-display mb-3 text-[30px] font-extrabold leading-[1.1] tracking-[-1.5px] text-[#0d3168] md:text-[42px]">
@@ -674,6 +675,38 @@ export default function Home() {
 
           <div className="relative">
             <VoiceDemo />
+          </div>
+        </section>
+
+        {/* ANTES / DESPUÉS — el video del "mientras dormías": llamadas perdidas
+            de la noche → red de llamadas → el cliente dormido con 500 llamadas
+            atendidas. Nativo, con controles y SIN autoplay (regla de la casa);
+            preload=metadata + póster para que el scroll no arrastre 3.7 MB. */}
+        <section id="mientras" className="max-w-[1180px] mx-[15px] md:mx-auto my-[55px] md:my-[70px]">
+          <div className="text-center">
+            <div className="text-[13px] font-bold uppercase tracking-widest text-[#0ba9a9]">
+              Mientras tú dormías
+            </div>
+            <h2 className="font-display mb-3 text-[30px] font-extrabold leading-[1.1] tracking-[-1.5px] text-[#0d3168] md:text-[42px]">
+              <span className="text-[#e2555f]">Llamadas perdidas</span> a las 3&nbsp;a.&nbsp;m. →{' '}
+              <span className="text-[#11b4b0]">500 atendidas</span> mientras dormías.
+            </h2>
+            <p className="mx-auto max-w-[640px] text-[16px] leading-relaxed text-[#49698f]">
+              Antes y después de poner a Upway en la línea: mientras tú duermes, el
+              agente contesta, agenda y deja todo listo para la mañana.
+            </p>
+          </div>
+          <div className="upway-demo-frame relative mt-7 overflow-hidden rounded-[28px] bg-black md:rounded-[36px]">
+            <video
+              controls
+              preload="metadata"
+              playsInline
+              poster="/antes-despues-poster.jpg"
+              className="block w-full"
+              src="/antes-despues-720.mp4"
+            >
+              Tu navegador no puede reproducir este video. Escríbenos y te lo contamos.
+            </video>
           </div>
         </section>
 

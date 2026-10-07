@@ -218,16 +218,20 @@ export default function VoiceDemo() {
               type="button"
               onClick={() => !ocupado && setSelected(v)}
               aria-pressed={activa}
-              className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[13px] font-semibold transition ${
+              className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-[14px] font-bold transition ${
                 activa
-                  ? 'border-[#0ba9a9] bg-[#e7fbfa] text-[#0d8a88] shadow-sm'
-                  : 'border-[#e0edf6] bg-white text-[#49698f] hover:border-[#9fe0dc] hover:bg-[#f7fdff]'
+                  ? 'border-[#0ba9a9] bg-gradient-to-b from-[#11b4b0] to-[#0d8a88] text-white shadow-[0_8px_20px_-6px_rgba(11,169,169,0.55)] scale-[1.04]'
+                  : 'border-[#e0edf6] bg-white text-[#49698f] shadow-sm hover:-translate-y-0.5 hover:border-[#9fe0dc] hover:bg-[#f7fdff] hover:shadow-[0_8px_18px_-10px_rgba(15,31,54,0.35)]'
               }`}
             >
-              {activa && <Volume2 className="h-3.5 w-3.5" />}
+              {activa && <Volume2 className="h-4 w-4" />}
               {v.label}
               {lang && (
-                <span className="rounded-full bg-[#eef5ff] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#7b93ab]">
+                <span
+                  className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                    activa ? 'bg-white/25 text-white' : 'bg-[#eef5ff] text-[#7b93ab]'
+                  }`}
+                >
                   {lang}
                 </span>
               )}
@@ -272,8 +276,16 @@ export default function VoiceDemo() {
         </button>
       </div>
 
-      {/* Waveform: barras del audio real mientras suena. */}
-      <div className="mt-3 flex h-14 items-center justify-center rounded-[14px] border border-[#e0edf6] bg-[#f9fcff] px-3">
+      {/* Waveform: barras del audio real mientras suena. Con audio activo el
+          marco se enciende (aro estático + fondo degradado): es la señal de
+          que está pasando algo, sin animar bordes en lazo. */}
+      <div
+        className={`mt-3 flex h-14 items-center justify-center rounded-[14px] border px-3 transition ${
+          playing
+            ? 'border-[#0ba9a9]/50 bg-gradient-to-b from-[#f7fdff] to-[#e7fbfa] shadow-[0_0_0_4px_rgba(11,169,169,0.16)]'
+            : 'border-[#e0edf6] bg-[#f9fcff]'
+        }`}
+      >
         <canvas ref={canvasRef} width={720} height={44} className="h-11 w-full max-w-[560px]" />
       </div>
 

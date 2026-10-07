@@ -588,6 +588,42 @@ p {
   background-size: 140px 140px;
 }
 
+/* Marco premium de la demo de voz: aro de degradado (teal → azul profundo)
+   + brillo exterior suave. Todo estático: box-shadow + un pseudo-elemento
+   con gradiente y mask — cero filter, cero repintado en scroll. Contenido
+   interno va con `relative` (ya lo tiene) para quedar encima del aro. */
+.upway-demo-frame {
+  position: relative;
+  box-shadow:
+    0 32px 70px -30px rgba(11, 169, 169, 0.5),
+    0 16px 36px -22px rgba(12, 55, 117, 0.38);
+}
+
+.upway-demo-frame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(135deg, #11b4b0 0%, #0c3775 48%, #9fe0dc 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Punto "en vivo" del encabezado de la demo: solo opacity (nunca box-shadow
+   ni filter en lazo). Con prefers-reduced-motion queda fijo a 1. */
+.upway-live-dot {
+  animation: upway-live-blink 1.7s ease-in-out infinite;
+}
+
+@keyframes upway-live-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
 
 /* Movimiento reducido: la aurora se congela en su primera posición (sigue
    estando, no desaparece el diseño) y la barra del splash deja de latir. */
