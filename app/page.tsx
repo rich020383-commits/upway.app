@@ -130,11 +130,8 @@ export default function Home() {
   const [showSplash, setShowSplash] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [heroVideoReady, setHeroVideoReady] = useState(false);
-  const [heroVideoLoaded, setHeroVideoLoaded] = useState(false);
-  const [splashVideoLoaded, setSplashVideoLoaded] = useState(false);
-  const [imagenesCaidas, setImagenesCaidas] = useState<Record<string, boolean>>({});
   const heroVideoRef = useRef<HTMLVideoElement | null>(null);
+  const [splashVideoLoaded, setSplashVideoLoaded] = useState(false);
 
   /* El logo animado es un splash de ARRANQUE, no un adorno de la página. Antes
      `showSplash` arrancaba en `true`, así que se repetía en CADA visita a la
@@ -356,28 +353,23 @@ export default function Home() {
           <img
             src="/icon-512.png"
             alt="Upway"
-            className={`absolute w-[64px] h-[64px] transition-opacity duration-300 ${
-              splashVideoLoaded ? 'opacity-0' : 'opacity-100'
-            }`}
+            className={`absolute w-[64px] h-[64px] transition-opacity duration-300 ${splashVideoLoaded ? 'opacity-0' : 'opacity-100'}`}
           />
-          {/* Logo animado: el archivo original es vertical 720×1280 (9:16).
-              En pantalla completa el viewport es más alto, así que `object-cover`
-              ampliaba el video para llenar la altura y recortaba los costados:
-              por eso "UPWAY BUSINESS" quedaba incompleto. `object-contain`
-              conserva el cuadro 9:16 completo y lo centra sin deformarlo. El
-              contenedor negro llena el espacio restante, así que la experiencia
-              sigue viéndose de borde a borde. No se modifica ni recomprime el MP4. */}
-          <video
-            src="/logo-animado.mp4"
-            autoPlay
-            muted
-            playsInline
-            preload="metadata"
-            onLoadedData={() => setSplashVideoLoaded(true)}
-            className={`absolute inset-0 h-full w-full bg-black object-contain object-center transition-opacity duration-300 ${
-              splashVideoLoaded ? 'opacity-100' : 'opacity-0'
-            }`}
-          />
+           {/* Logo animado: archivo vertical 720×1280 (9:16). En móvil se reproduce
+               automáticamente. `object-contain` conserva el 9:16 completo sin recortar.
+               El fondo negro cubre el espacio restante. */}
+           <video
+             src="/logo-animado.mp4"
+             autoPlay
+             muted
+             loop
+             playsInline
+             preload="metadata"
+             onLoadedData={() => setSplashVideoLoaded(true)}
+             className={`absolute inset-0 h-full w-full object-contain object-center bg-black transition-opacity duration-500 md:hidden ${
+               splashVideoLoaded ? 'opacity-100' : 'opacity-0'
+             }`}
+           />
         </div>
       )}
 
