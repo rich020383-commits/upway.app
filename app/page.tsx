@@ -325,13 +325,6 @@ export default function Home() {
     return () => window.clearTimeout(id);
   }, [splashActivo]);
 
-  const handleVideoEnd = () => {
-    setFadeOut(true);
-    setTimeout(() => {
-      setShowSplash(false);
-    }, 500);
-  };
-
   return (
     <>
       {/* PANTALLA DE CARGA (SPLASH SCREEN) - SOLO MÓVIL
@@ -379,10 +372,8 @@ export default function Home() {
             autoPlay
             muted
             playsInline
-            preload="auto"
+            preload="metadata"
             onLoadedData={() => setSplashVideoLoaded(true)}
-            onError={handleVideoEnd}
-            onEnded={handleVideoEnd}
             className={`absolute inset-0 h-full w-full bg-black object-contain object-center transition-opacity duration-300 ${
               splashVideoLoaded ? 'opacity-100' : 'opacity-0'
             }`}
