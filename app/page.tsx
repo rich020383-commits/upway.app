@@ -15,7 +15,7 @@ import VoiceDemo from '@/components/landing/voice-demo';
    permite invalidar la preferencia si algún día cambia el video. Se comparte
    con la landing de salud a propósito: es la misma animación de arranque, no
    dos predecibles distintas. */
-const SPLASH_KEY = 'upway:splash:v1';
+const SPLASH_KEY = 'upway:splash:v2';
 
 const UpwayLogo = ({ className = '' }: { className?: string }) => (
   <div className={`inline-flex items-center px-4 py-2 rounded-2xl bg-black shadow-lg overflow-hidden ${className}`}>
@@ -130,8 +130,12 @@ export default function Home() {
   const [showSplash, setShowSplash] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const heroVideoRef = useRef<HTMLVideoElement | null>(null);
+  const [heroVideoReady, setHeroVideoReady] = useState(false);
+  const [heroVideoLoaded, setHeroVideoLoaded] = useState(false);
   const [splashVideoLoaded, setSplashVideoLoaded] = useState(false);
+  const [imagenesCaidas, setImagenesCaidas] = useState<Record<string, boolean>>({});
+  const heroVideoRef = useRef<HTMLVideoElement | null>(null);
+  const splashVideoRef = useRef<HTMLVideoElement | null>(null);
 
   /* El logo animado es un splash de ARRANQUE, no un adorno de la página. Antes
      `showSplash` arrancaba en `true`, así que se repetía en CADA visita a la
@@ -322,6 +326,24 @@ export default function Home() {
     return () => window.clearTimeout(id);
   }, [splashActivo]);
 
+  /**
+   * Refuerzo de autoplay: en algunos móviles el atributo `autoPlay` se evalúa
+   * antes de que React asigne `muted` en la hidratación y el navegador bloquea
+   * el arranque. Un `play()` explícito al activarse el splash cubre ese caso;
+   * si el navegador aún lo rechaza, queda el fallback ícono + texto hasta que
+   * la red de seguridad (5 s) cierre la pantalla.
+   */
+  useEffect(() => {
+    if (!splashActivo) return;
+    const video = splashVideoRef.current;
+    if (!video) return;
+    video.muted = true;
+    const attempt = video.play();
+    if (attempt && typeof attempt.catch === 'function') {
+      attempt.catch(() => { /* autoplay bloqueado: se ve el fallback */ });
+    }
+  }, [splashActivo]);
+
   return (
     <>
       {/* PANTALLA DE CARGA (SPLASH SCREEN) - SOLO MÓVIL
@@ -347,26 +369,40 @@ export default function Home() {
             fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
         >
-          {/* Icono de inicio: se ve mientras el video carga y se funde en el
-              logo animado (icon-512.png — el mismo del launcher PWA). */}
-          {/* eslint-disable-next-line @next/next/no-img-element -- splash: PNG local pequeño que debe pintar en el primer frame, sin pasar por /_next/image */}
-          <img
-            src="/icon-512.png"
-            alt="Upway"
-            className={`absolute w-[64px] h-[64px] transition-opacity duration-300 ${splashVideoLoaded ? 'opacity-0' : 'opacity-100'}`}
-          />
-           {/* Logo animado: archivo vertical 720×1280 (9:16). En móvil se reproduce
-               automáticamente. `object-contain` conserva el 9:16 completo sin recortar.
-               El fondo negro cubre el espacio restante. */}
+          {/* Fallback mientras carga el video: ícono + texto de marca. Es el
+              mismo texto que trae el video ("UPWAY BUSINESS"), para que el
+              arranque nunca se vea sin logo ni leyenda si la red está lenta.
+              Se oculta en cuanto el video tiene primer cuadro listo. */}
+          <div
+            className={`absolute flex flex-col items-center gap-3 transition-opacity duration-300 ${
+              splashVideoLoaded ? 'opacity-0' : 'opacity-100'
+            }`}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- splash: PNG local pequeño que debe pintar en el primer frame, sin pasar por /_next/image */}
+            <img src="/icon-512.png" alt="Upway" className="w-[64px] h-[64px]" />
+            <span className="text-[13px] font-semibold tracking-[0.35em] text-white">
+              UPWAY BUSINESS
+            </span>
+          </div>
+           {/* Logo animado: archivo vertical 720×1280 (9:16). `preload="auto"`
+               descarga el primer cuadro de inmediato — con "metadata" el evento
+               `loadeddata` no llegaba a tiempo y el video quedaba invisible
+               tras el ícono. `onCanPlay`/`onPlaying` refuerzan la señal de
+               "listo" y el `play()` explícito cubre móviles que ignoran el
+               autoplay del atributo. `object-contain` conserva el 9:16
+               completo sin recortar; el fondo negro llena el resto. */}
            <video
+             ref={splashVideoRef}
              src="/logo-animado.mp4"
              autoPlay
              muted
              loop
              playsInline
-             preload="metadata"
+             preload="auto"
              onLoadedData={() => setSplashVideoLoaded(true)}
-             className={`absolute inset-0 h-full w-full object-contain object-center bg-black transition-opacity duration-500 md:hidden ${
+             onCanPlay={() => setSplashVideoLoaded(true)}
+             onPlaying={() => setSplashVideoLoaded(true)}
+             className={`absolute inset-0 h-full w-full object-contain object-center bg-black transition-opacity duration-500 ${
                splashVideoLoaded ? 'opacity-100' : 'opacity-0'
              }`}
            />

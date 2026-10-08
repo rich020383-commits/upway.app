@@ -10,7 +10,7 @@ import SophieChatButton from '@/components/sophie-chat-button';
 /* El logo animado es el splash de arranque de la app, no un adorno de la
    página: se marca en sessionStorage para que solo aparezca al iniciar. La `v1`
    permite invalidar la preferencia si algún día cambia el video. */
-const SPLASH_KEY = 'upway:splash:v1';
+const SPLASH_KEY = 'upway:splash:v2';
 
 const UpwayLogo = ({ className = '' }: { className?: string }) => (
   <div className={`inline-flex items-center px-4 py-2 rounded-2xl bg-black shadow-lg overflow-hidden ${className}`}>
@@ -239,16 +239,20 @@ export default function Home() {
             fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
         >
-          {/* Icono de inicio: se ve mientras el video carga y se funde en el
-              logo animado (icon-512.png — el mismo del launcher PWA). */}
-          {/* eslint-disable-next-line @next/next/no-img-element -- splash: PNG local pequeño que debe pintar en el primer frame, sin pasar por /_next/image */}
-          <img
-            src="/icon-512.png"
-            alt="Upway"
-            className={`absolute w-[46vw] max-w-[260px] transition-opacity duration-300 ${
+          {/* Fallback mientras carga el video: ícono + texto de marca ("UPWAY
+              BUSINESS", el mismo que trae el video) para que el arranque nunca
+              se vea sin logo ni leyenda. Se oculta con el primer cuadro. */}
+          <div
+            className={`absolute flex flex-col items-center gap-4 transition-opacity duration-300 ${
               splashVideoLoaded ? 'opacity-0' : 'opacity-100'
             }`}
-          />
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- splash: PNG local pequeño que debe pintar en el primer frame, sin pasar por /_next/image */}
+            <img src="/icon-512.png" alt="Upway" className="w-[46vw] max-w-[260px]" />
+            <span className="text-[13px] font-semibold tracking-[0.35em] text-white">
+              UPWAY BUSINESS
+            </span>
+          </div>
           {/* Logo animado: el archivo original es vertical 720×1280 (9:16).
               En pantalla completa el viewport es más alto, así que `object-cover`
               ampliaba el video para llenar la altura y recortaba los costados:
@@ -263,6 +267,8 @@ export default function Home() {
             playsInline
             preload="auto"
             onLoadedData={() => setSplashVideoLoaded(true)}
+            onCanPlay={() => setSplashVideoLoaded(true)}
+            onPlaying={() => setSplashVideoLoaded(true)}
             onError={handleVideoEnd}
             onEnded={handleVideoEnd}
             className={`absolute inset-0 h-full w-full bg-black object-contain object-center transition-opacity duration-300 ${
