@@ -353,7 +353,7 @@ export default function Home() {
             width: 'calc(100% + 4mm)',
             height: 'calc(100dvh + 4mm)',
           }}
-          className={`fixed z-[9999] flex h-screen w-full items-center justify-center overflow-hidden overscroll-contain bg-black transition-opacity duration-500 md:hidden ${
+          className={`fixed z-[9999] flex h-[calc(100dvh+4mm)] items-center justify-center overflow-hidden bg-black transition-opacity duration-500 md:hidden ${
             fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
         >
@@ -363,7 +363,7 @@ export default function Home() {
           <img
             src="/icon-512.png"
             alt="Upway"
-            className={`absolute w-[46vw] max-w-[260px] transition-opacity duration-300 ${
+            className={`absolute w-[64px] h-[64px] transition-opacity duration-300 ${
               splashVideoLoaded ? 'opacity-0' : 'opacity-100'
             }`}
           />
@@ -847,7 +847,7 @@ export default function Home() {
                       quality={90}
                       sizes="(max-width: 1024px) 92vw, 440px"
                       onError={() => setImagenesCaidas((prev) => ({ ...prev, [v.id]: true }))}
-                      className="h-full w-full object-contain transition duration-500 group-hover:scale-[1.03]"
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                     />
                   ) : (
                     <div className="grid h-full w-full place-items-center bg-[linear-gradient(135deg,#0d3168,#0b6a72)]">
