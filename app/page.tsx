@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
+import { useState, useEffect, useRef, useCallback, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MessageCircle, Phone, Sparkles, Calendar, Bell, Users, Shield, ShieldCheck, Database, RefreshCw, ClipboardCheck, BadgeCheck, CalendarDays, ArrowRight, Headphones, Home as HomeIcon } from 'lucide-react';
@@ -16,6 +16,24 @@ import VoiceDemo from '@/components/landing/voice-demo';
    con la landing de salud a propósito: es la misma animación de arranque, no
    dos predecibles distintas. */
 const SPLASH_KEY = 'upway:splash:v2';
+
+/* ¿Corre dentro de la app instalada (WebAPK de Android desde Chrome o "Agregar
+   a inicio" en iOS)? El manifest arranca en modo `fullscreen` — sin barra del
+   sistema, como app nativa — y en ese contexto el splash es el ARRANQUE de la
+   app: se muestra en cada apertura. En navegador normal se respeta el
+   sessionStorage (una vez por pestaña); en la app, el sistema puede reanudar
+   la tarea con el sessionStorage vivo y saltarse el splash, así que ahí se
+   ignora la marca. `fullscreen` va primero porque es el modo del manifest;
+   F11 en escritorio también lo activa, pero allí el corte de >= 768px manda
+   antes. */
+function esAppInstalada(): boolean {
+  return (
+    window.matchMedia('(display-mode: fullscreen)').matches ||
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: window-controls-overlay)').matches ||
+    (window.navigator as { standalone?: boolean }).standalone === true
+  );
+}
 
 const UpwayLogo = ({ className = '' }: { className?: string }) => (
   <div className={`inline-flex items-center px-4 py-2 rounded-2xl bg-black shadow-lg overflow-hidden ${className}`}>
@@ -155,6 +173,8 @@ export default function Home() {
     () => {
       // En escritorio el splash nunca se ha mostrado (se corta en >= 768px).
       if (window.innerWidth >= 768) return true;
+      // App instalada: el splash acompaña SIEMPRE el arranque de la app.
+      if (esAppInstalada()) return false;
       try {
         return window.sessionStorage.getItem(SPLASH_KEY) === '1';
       } catch {
@@ -310,21 +330,26 @@ export default function Home() {
     };
   }, [splashActivo]);
 
+  /** Cierra el splash con el fundido de 500 ms. Lo usan `onEnded` del video
+      (la animación dura 4 s y al terminar pasa a la landing sin esperar el
+      tope) y la red de seguridad de abajo. */
+  const cerrarSplash = useCallback(() => {
+    setFadeOut(true);
+    window.setTimeout(() => setShowSplash(false), 500);
+  }, []);
+
   /**
    * ⏱️ Red de seguridad del splash: si el video no dispara `onEnded`
    * (autoplay bloqueado, ahorro de datos, red lenta o códec no soportado),
-   * la pantalla se cierra igual. Nadie se queda en negro.
+   * la pantalla se cierra igual a los 5 s. Nadie se queda en negro.
    */
   useEffect(() => {
     if (!splashActivo) return;
 
-    const id = window.setTimeout(() => {
-      setFadeOut(true);
-      window.setTimeout(() => setShowSplash(false), 500);
-    }, 5000);
+    const id = window.setTimeout(cerrarSplash, 5000);
 
     return () => window.clearTimeout(id);
-  }, [splashActivo]);
+  }, [splashActivo, cerrarSplash]);
 
   /**
    * Refuerzo de autoplay: en algunos móviles el atributo `autoPlay` se evalúa
@@ -396,12 +421,12 @@ export default function Home() {
              src="/logo-animado.mp4"
              autoPlay
              muted
-             loop
              playsInline
              preload="auto"
              onLoadedData={() => setSplashVideoLoaded(true)}
              onCanPlay={() => setSplashVideoLoaded(true)}
              onPlaying={() => setSplashVideoLoaded(true)}
+             onEnded={cerrarSplash}
              className={`absolute inset-0 h-full w-full object-contain object-center bg-black transition-opacity duration-500 ${
                splashVideoLoaded ? 'opacity-100' : 'opacity-0'
              }`}
