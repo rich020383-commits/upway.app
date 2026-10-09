@@ -416,19 +416,38 @@ export default function Home() {
             <UpwayLogo />
           </a>
           <div className="flex items-center gap-3">
-            <nav className="hidden md:flex items-center gap-[22px] text-[13px] font-medium text-[#31547f] xl:gap-[30px]">
+            <nav className="hidden md:flex items-center gap-[14px] text-[13px] font-medium text-[#31547f] lg:gap-[22px] xl:gap-[30px]">
             <a href="#capacidad" className="hover:text-[#103a77] transition">Solución</a>
-            <a href="#verticales" className="hover:text-[#103a77] transition">Verticales</a>
+            <Link href="/salud" className="hover:text-[#103a77] transition">Health</Link>
+            <Link href="/center" className="hover:text-[#103a77] transition">Center</Link>
+            <Link href="/inmobiliarias" className="hover:text-[#103a77] transition">Inmobiliaria</Link>
             <a href="#por-que" className="hover:text-[#103a77] transition">Beneficios</a>
             <Link href="/precios" className="hover:text-[#103a77] transition">Precios</Link>
             <a href="#contacto" className="hover:text-[#103a77] transition">Contacto</a>
           </nav>
-            <a
-              href="#verticales"
-              className="inline-flex md:hidden items-center gap-1.5 rounded-full border border-[#0ba9a9] bg-white px-3 py-[8px] text-[11px] font-bold text-[#0d3168]"
-            >
-              Verticales
-            </a>
+            {/* Verticales en móvil: tres píldoras compactas en vez de una sola
+                "Verticales". En pantallas de 360–390px caben con el logo y el
+                CTA: labels cortos, texto 10px y padding mínimo. */}
+            <div className="flex md:hidden items-center gap-1.5">
+              <Link
+                href="/salud"
+                className="rounded-full border border-[#0ba9a9] bg-white px-2.5 py-[7px] text-[10px] font-bold text-[#0d3168]"
+              >
+                Health
+              </Link>
+              <Link
+                href="/center"
+                className="rounded-full border border-[#0ba9a9] bg-white px-2.5 py-[7px] text-[10px] font-bold text-[#0d3168]"
+              >
+                Center
+              </Link>
+              <Link
+                href="/inmobiliarias"
+                className="rounded-full border border-[#0ba9a9] bg-white px-2.5 py-[7px] text-[10px] font-bold text-[#0d3168]"
+              >
+                Inmobiliaria
+              </Link>
+            </div>
             <a
               href="#contacto"
               className="hidden sm:inline-flex items-center justify-center rounded-full bg-[#0c3775] px-[23px] py-[10px] md:py-[14px] text-[11px] md:text-[13px] font-bold text-white hover:bg-[#092a5c] transition shadow-md"
