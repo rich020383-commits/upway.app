@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ShieldCheck, Lock, FileText, CheckCircle2, Activity } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Lock, FileText, CheckCircle2, Activity, Globe } from 'lucide-react';
 import { LEGAL_ENTITY, LEGAL_NIT } from '@/lib/legal';
 
 export default function PrivacyPolicyPage() {
@@ -32,7 +32,7 @@ export default function PrivacyPolicyPage() {
                 Política de Privacidad Integral
               </h1>
               <p className="text-sm text-slate-400">
-                Upway ({LEGAL_ENTITY} — NIT {LEGAL_NIT}) — Última actualización: 31 de agosto de 2026
+                Upway ({LEGAL_ENTITY} — NIT {LEGAL_NIT}) — Última actualización: 10 de octubre de 2026
               </p>
             </div>
           </div>
@@ -110,6 +110,61 @@ export default function PrivacyPolicyPage() {
                 región que fijamos en nuestra cuenta de Telnyx, que a la fecha es Estados Unidos. La identidad conforme
                 (tipo y número de documento, fecha de nacimiento y municipio) se captura por catálogo cerrado o dígito a
                 dígito y se certifica de forma determinista, sin tránsito por ningún modelo de lenguaje.
+              </p>
+            </section>
+
+            <section className="space-y-3">
+              <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                <Globe className="h-5 w-5 text-blue-400" />
+                4. Subprocesadores de IA y Transferencias Internacionales (Ley 1581, art. 26)
+              </h2>
+              <p className="text-slate-300 mt-2">
+                El canal de voz se opera sobre la infraestructura de <strong>Telnyx Inc.</strong> (Chicago, EE.&nbsp;UU.),
+                quien para prestar los servicios de IA se apoya en los subprocesadores que declara
+                públicamente en{' '}
+                <a
+                  href="https://telnyx.com/legal/subprocessors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-cyan-400 underline font-medium"
+                >
+                  telnyx.com/legal/subprocessors
+                </a>{' '}
+                (lista consultada el 10 de octubre de 2026). En cumplimiento del deber de información
+                del art. 26 de la Ley 1581 de 2012, declaramos que el audio, sus transcripciones y los
+                textos de la conversación pueden ser procesados por:
+              </p>
+              <ul className="list-disc pl-6 space-y-1 text-slate-400 text-sm">
+                <li><strong>Deepgram, Inc.</strong> — reconocimiento de voz (STT) — Estados Unidos.</li>
+                <li><strong>Google LLC</strong> — reconocimiento y síntesis de voz — Estados Unidos.</li>
+                <li><strong>OpenAI, L.L.C.</strong> — modelos de lenguaje — Estados Unidos.</li>
+                <li><strong>Anthropic PBC</strong> — modelos de lenguaje — Estados Unidos.</li>
+                <li><strong>Groq LLC</strong> — inferencia de modelos de lenguaje — Estados Unidos.</li>
+                <li><strong>Eleven Labs Inc.</strong> — síntesis de voz — Estados Unidos.</li>
+                <li><strong>Nanonoble Pte. Ltd. (MiniMax)</strong> — síntesis de voz — <strong>Singapur</strong>.</li>
+                <li><strong>Cartesia AI, Inc.</strong> — síntesis y clonación de voz — Estados Unidos.</li>
+                <li><strong>Amazon Web Services</strong> (Polly) y <strong>Microsoft</strong> (Azure) — síntesis de voz — Estados Unidos.</li>
+                <li><strong>ResetData Pty Ltd</strong> — infraestructura de inferencia — <strong>Australia</strong>.</li>
+                <li><strong>VSHosting s.r.o.</strong> — infraestructura de inferencia y embeddings — <strong>República Checa</strong>.</li>
+                <li><strong>Hydra Host, Inc.</strong> y <strong>Deep Infra Inc.</strong> — infraestructura de inferencia — Estados Unidos.</li>
+                <li><strong>Hamsa AI, Inc.</strong> — voz en árabe en despliegue propio, con acceso incidentales de soporte — Estados Unidos.</li>
+              </ul>
+              <p className="text-slate-400 mt-2 text-sm">
+                Estos subprocesadores tratan datos personales <strong>fuera de Colombia</strong>{' '}
+                (principales países: Estados Unidos, Singapur, Australia y República Checa). La
+                identidad conforme del paciente (tipo y número de documento, fecha de nacimiento y
+                municipio) <strong>no transita por estos servicios</strong>: se certifica de forma
+                determinista en nuestra infraestructura, como se describe en la sección anterior.
+              </p>
+              <p className="text-slate-400 mt-2 text-sm">
+                Telnyx puede modificar su lista de subprocesadores conforme a su DPA (Sección 8A);
+                Upway <strong>monitorea los cambios de esa lista</strong> y, ante una modificación
+                relevante para el encargo de una clínica, la informa a la Responsable del tratamiento
+                dentro del plazo de objeción de 10 días que el DPA otorga al cliente. Esta declaración
+                cubre la cadena de encargado → sub-encargados internacionales; la clínica Responsable
+                conserva el deber de informar a sus titulares conforme al art. 26, y Telnyx no ofrece
+                términos específicos bajo la Ley 1581, por lo que las obligaciones de transferencia
+                internacional se documentan y gestionan del lado de Upway y de la clínica.
               </p>
             </section>
 
