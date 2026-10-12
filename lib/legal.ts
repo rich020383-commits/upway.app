@@ -7,11 +7,20 @@
  * razón social (declarar una sociedad que aún no existe en Cámara de Comercio
  * genera un descuadre legal y con la facturación de Bold).
  *
- * Cambio pendiente: el nombre definitivo ya está DECIDIDO — "Upway Business
- * S.A.S." (sin "Group", decisión 2026-10-10). Cuando se registre en Cámara de
- * Comercio y se reciba el certificado, basta actualizar LEGAL_ENTITY aquí: el
- * sitio, los correos, la privacidad y los términos lo toman de esta constante,
- * así que NO hay que buscar y reemplazar en 6 archivos.
+ * Decisión 2026-10-10: se MANTIENE "BARAKAH TECH HUB S.A.S." — no existe
+ * obligación legal de que la razón social coincida con la marca, y cambiarla
+ * en pleno lanzamiento metía 2-4 semanas de fricción (DIAN presencial,
+ * numeración de facturación, Bold, banco) con riesgo de retener pagos sin
+ * beneficio operativo. Para la objeción de "marca vs sociedad" en clientes
+ * grandes basta una carta de autorización de uso de marca + la marca UPWAY
+ * registrada en la SIC a nombre de la sociedad vigente.
+ *
+ * Gatillo para retomar el cambio (ahí sí conviene): ronda de inversión,
+ * adquisición, u otra circunstancia estratégica. Si llega, el trámite es:
+ * reforma estatutaria en Cámara → certificado → DIAN (presencial) →
+ * numeración → Bold → banco → actualizar LEGAL_ENTITY aquí. El sitio, los
+ * correos, la privacidad y los términos toman esta constante, así que NO hay
+ * que buscar y reemplazar en 6 archivos.
  *
  * Regla de estilo: la MARCA visible para el cliente siempre es "Upway";
  * la razón social aparece solo donde se requiere identificación legal
