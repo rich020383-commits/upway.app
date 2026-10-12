@@ -8,6 +8,7 @@ import {
   IDENTITY_MODULE_DESCRIPTION,
 } from '@/lib/health/plans';
 import { VOICE_CLONE_MODULE_COP, VOICE_CLONE_MODULE_LABEL, VOICE_CLONE_MODULE_DESCRIPTION } from '@/lib/pricing/rules';
+import { LEGAL_ENTITY } from '@/lib/legal';
 
 export const metadata = {
   title: 'Planes Upway Health - Clinicas, IPS y EPS | Upway',
@@ -159,7 +160,7 @@ export default function PreciosPage() {
           </div>
         </div>
       </section>
-      <footer className="border-t border-slate-200 py-8 text-center text-xs text-slate-400">Upway Business Group S.A.S - Bogota, Colombia</footer>
+      <footer className="border-t border-slate-200 py-8 text-center text-xs text-slate-400">{LEGAL_ENTITY} · Marca Upway — Bogotá, Colombia</footer>
     </div>
   );
 }

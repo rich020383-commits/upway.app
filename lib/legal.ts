@@ -7,10 +7,11 @@
  * razón social (declarar una sociedad que aún no existe en Cámara de Comercio
  * genera un descuadre legal y con la facturación de Bold).
  *
- * Cambio pendiente: cuando se registre el cambio de razón social a
- * "Upway Business Group S.A.S." en Cámara de Comercio, basta actualizar
- * LEGAL_ENTITY aquí: el sitio, los correos, la privacidad y los términos lo toman
- * de esta constante, así que NO hay que buscar y reemplazar en 6 archivos.
+ * Cambio pendiente: el nombre definitivo ya está DECIDIDO — "Upway Business
+ * S.A.S." (sin "Group", decisión 2026-10-10). Cuando se registre en Cámara de
+ * Comercio y se reciba el certificado, basta actualizar LEGAL_ENTITY aquí: el
+ * sitio, los correos, la privacidad y los términos lo toman de esta constante,
+ * así que NO hay que buscar y reemplazar en 6 archivos.
  *
  * Regla de estilo: la MARCA visible para el cliente siempre es "Upway";
  * la razón social aparece solo donde se requiere identificación legal
@@ -35,8 +36,9 @@ export const LEGAL_ENTITY = 'BARAKAH TECH HUB S.A.S.';
  */
 export const LEGAL_NIT = '902080128-8';
 
-/** Razón social objetivo una vez registrado el cambio en Cámara de Comercio. */
-export const LEGAL_ENTITY_FUTURE = 'Upway Business Group S.A.S.';
+/** Razón social objetivo una vez registrado el cambio en Cámara de Comercio.
+ *  Nombre decidido: "Upway Business S.A.S." (sin "Group"). */
+export const LEGAL_ENTITY_FUTURE = 'Upway Business S.A.S.';
 
 /** Pie de página legal estándar para correos y sitio. */
 export const LEGAL_FOOTER = `${LEGAL_ENTITY} · Marca ${BRAND_NAME}`;
