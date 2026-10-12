@@ -7,20 +7,18 @@
  * razón social (declarar una sociedad que aún no existe en Cámara de Comercio
  * genera un descuadre legal y con la facturación de Bold).
  *
- * Decisión 2026-10-10: se MANTIENE "BARAKAH TECH HUB S.A.S." — no existe
- * obligación legal de que la razón social coincida con la marca, y cambiarla
- * en pleno lanzamiento metía 2-4 semanas de fricción (DIAN presencial,
- * numeración de facturación, Bold, banco) con riesgo de retener pagos sin
- * beneficio operativo. Para la objeción de "marca vs sociedad" en clientes
- * grandes basta una carta de autorización de uso de marca + la marca UPWAY
- * registrada en la SIC a nombre de la sociedad vigente.
+ * Plan 2026-10-10: se procede con el cambio de razón social a "Upway Business
+ * S.A.S." (decisión del socio, aprovechando que aún NO hay clientes ni cobros
+ * en curso: la transición es gratis ahora y cada vez será más cara). Mientras
+ * no exista el certificado de existencia con el nombre nuevo, esta constante
+ * NO se toca — declarar el nombre antes del certificado descuadra términos,
+ * privacidad y facturación de Bold.
  *
- * Gatillo para retomar el cambio (ahí sí conviene): ronda de inversión,
- * adquisición, u otra circunstancia estratégica. Si llega, el trámite es:
- * reforma estatutaria en Cámara → certificado → DIAN (presencial) →
- * numeración → Bold → banco → actualizar LEGAL_ENTITY aquí. El sitio, los
- * correos, la privacidad y los términos toman esta constante, así que NO hay
- * que buscar y reemplazar en 6 archivos.
+ * Secuencia: acta socio única → inscripción Cámara → certificado → DIAN →
+ * numeración → Bold → banco → SIC (marca UPWAY a nombre del nombre final) →
+ * actualizar LEGAL_ENTITY aquí. El sitio, los correos, la privacidad y los
+ * términos toman esta constante, así que NO hay que buscar y reemplazar en
+ * 6 archivos. NIT sin cambios: va atado a la sociedad.
  *
  * Regla de estilo: la MARCA visible para el cliente siempre es "Upway";
  * la razón social aparece solo donde se requiere identificación legal
@@ -45,8 +43,8 @@ export const LEGAL_ENTITY = 'BARAKAH TECH HUB S.A.S.';
  */
 export const LEGAL_NIT = '902080128-8';
 
-/** Razón social objetivo una vez registrado el cambio en Cámara de Comercio.
- *  Nombre decidido: "Upway Business S.A.S." (sin "Group"). */
+/** Razón social objetivo del cambio en curso (cita en Cámara 2026-10-14).
+ *  Una vez inscrito y con certificado, copiar este valor a LEGAL_ENTITY. */
 export const LEGAL_ENTITY_FUTURE = 'Upway Business S.A.S.';
 
 /** Pie de página legal estándar para correos y sitio. */
