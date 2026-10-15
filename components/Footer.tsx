@@ -24,7 +24,7 @@ export default function Footer() {
             marca más ancha (1.4fr). Antes era `md:grid-cols-4` fijo: a 768px
             las 4 columnas quedaban apretadas y los correos @upway.business
             se salían de su celda. */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr] gap-x-10 gap-y-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1fr_1fr_1fr_1fr gap-x-12 gap-y-12">
           <div className="space-y-5">
             {/* Logo con el mismo ajuste al marco que el hero (app/page.tsx
                 UpwayLogo) y las verticales: px-4 py-2 + h-7→md:h-8. Antes era
@@ -123,7 +123,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
+        <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-center items-center gap-4 text-sm">
           <p>© {new Date().getFullYear()} {LEGAL_ENTITY} Todos los derechos reservados.</p>
           <p className="text-slate-500">Hecho en Bogotá, Colombia 🇨🇴</p>
         </div>
