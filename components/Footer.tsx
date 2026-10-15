@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Mail } from 'lucide-react';
+import { Linkedin, Mail } from 'lucide-react';
 import {
   LEGAL_ENTITY,
   CONTACT_EMAIL_SALES,
@@ -30,8 +30,8 @@ export default function Footer() {
                 UpwayLogo) y las verticales: px-4 py-2 + h-7→md:h-8. Antes era
                 px-5 py-3 con h-7 fijo: el logo quedaba pequeño dentro de su
                 propio marco. Se conserva el gradiente propio del footer. */}
-            <div className="inline-flex items-center px-5 py-3 rounded-2xl bg-gradient-to-r from-[#0f172a] to-[#1b3a5f] shadow-lg border border-white/10 overflow-hidden">
-              <Image src="/upway.png" alt="Upway Business" width={1000} height={667} quality={90} sizes="160px" className="h-8 w-auto object-contain md:h-10" />
+            <div className="inline-flex items-center px-6 py-4 rounded-2xl bg-gradient-to-r from-[#0f172a] to-[#1b3a5f] shadow-lg border border-white/10 overflow-hidden">
+              <Image src="/upway.png" alt="Upway Business" width={1000} height={667} quality={90} sizes="192px" className="h-12 w-auto object-contain md:h-16" />
             </div>
             <p className="text-sm leading-relaxed">Potenciando empresas mediante Inteligencia Artificial estratégica.</p>
             {/* Canales de contacto por rol: siempre visibles en el pie de todas
@@ -61,7 +61,7 @@ export default function Footer() {
             </div>
             <div className="flex gap-3">
               <a href="https://www.linkedin.com/in/sophia-de-belfort-990164431" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn de Upway Business" className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#1b5ed6] flex items-center justify-center transition-all hover:-translate-y-0.5">
-                <span className="text-xs font-bold">Li</span>
+                <Linkedin className="w-4 h-4" aria-hidden />
               </a>
             </div>
           </div>
