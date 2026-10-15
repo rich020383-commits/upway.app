@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Mail } from 'lucide-react';
+import { Linkedin, Mail } from 'lucide-react';
 import {
   LEGAL_ENTITY,
   CONTACT_EMAIL_SALES,
@@ -20,36 +20,51 @@ export default function Footer() {
       </div>
 
       <div className="mx-auto max-w-7xl px-6 pt-16 pb-[calc(env(safe-area-inset-bottom)+6rem)]">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-          <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-[#0f172a] to-[#1b3a5f] shadow-lg border border-white/10 overflow-hidden">
-              <Image src="/upway.png" alt="Upway Business" width={100} height={28} className="h-7 w-auto object-contain" />
+        {/* Grid: 1 col en móvil, 2 en tablet y 4 en desktop con la columna de
+            marca más ancha (1.4fr). Antes era `md:grid-cols-4` fijo: a 768px
+            las 4 columnas quedaban apretadas y los correos @upway.business
+            se salían de su celda. */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr] gap-x-10 gap-y-12">
+          <div className="space-y-5">
+            {/* Logo con el mismo ajuste al marco que el hero (app/page.tsx
+                UpwayLogo) y las verticales: px-4 py-2 + h-7→md:h-8. Antes era
+                px-5 py-3 con h-7 fijo: el logo quedaba pequeño dentro de su
+                propio marco. Se conserva el gradiente propio del footer. */}
+            <div className="inline-flex items-center px-4 py-2 rounded-2xl bg-gradient-to-r from-[#0f172a] to-[#1b3a5f] shadow-lg border border-white/10 overflow-hidden">
+              <Image src="/upway.png" alt="Upway Business" width={1000} height={667} quality={90} sizes="160px" className="h-7 w-auto object-contain md:h-8" />
             </div>
             <p className="text-sm leading-relaxed">Potenciando empresas mediante Inteligencia Artificial estratégica.</p>
             {/* Canales de contacto por rol: siempre visibles en el pie de todas
                 las páginas. Corresponden a los buzones reales del dominio
-                (ventas y soporte son buzones propios, no alias). */}
-            <ul className="space-y-2 text-sm">
-              <li>
-                <a href={`mailto:${CONTACT_EMAIL_SALES}`} className="inline-flex items-center gap-2 hover:text-blue-400 transition-colors">
-                  <Mail className="w-4 h-4 text-blue-400" aria-hidden />
-                  {CONTACT_EMAIL_SALES}
-                </a>
-              </li>
-              <li>
-                <a href={`mailto:${CONTACT_EMAIL_SUPPORT}`} className="inline-flex items-center gap-2 hover:text-blue-400 transition-colors">
-                  <Mail className="w-4 h-4 text-emerald-400" aria-hidden />
-                  {CONTACT_EMAIL_SUPPORT}
-                </a>
-              </li>
-            </ul>
-            <div className="flex gap-3 pt-2">
-              <a href="https://www.linkedin.com/in/sophia-de-belfort-990164431" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn de Upway Health" className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#1b5ed6] flex items-center justify-center transition-all hover:-translate-y-0.5">
-                <span className="text-xs font-bold">Li</span>
+                (ventas y soporte son buzones propios, no alias). El encabezado
+                "Contacto" sigue el mismo patrón (punto + título) de las otras
+                tres columnas — antes los correos aparecían sin título. */}
+            <div>
+              <h4 className="text-white font-semibold mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#1b5ed6]" />
+                Contacto
+              </h4>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <a href={`mailto:${CONTACT_EMAIL_SALES}`} className="inline-flex items-center gap-2 hover:text-blue-400 transition-colors">
+                    <Mail className="w-4 h-4 text-blue-400" aria-hidden />
+                    {CONTACT_EMAIL_SALES}
+                  </a>
+                </li>
+                <li>
+                  <a href={`mailto:${CONTACT_EMAIL_SUPPORT}`} className="inline-flex items-center gap-2 hover:text-blue-400 transition-colors">
+                    <Mail className="w-4 h-4 text-emerald-400" aria-hidden />
+                    {CONTACT_EMAIL_SUPPORT}
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div className="flex gap-3">
+              <a href="https://www.linkedin.com/in/sophia-de-belfort-990164431" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn de Upway Business" className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#1b5ed6] flex items-center justify-center transition-all hover:-translate-y-0.5">
+                <Linkedin className="w-4 h-4" aria-hidden />
               </a>
             </div>
           </div>
-          
           <div>
             <h4 className="text-white font-semibold mb-6 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#1b5ed6]" />
