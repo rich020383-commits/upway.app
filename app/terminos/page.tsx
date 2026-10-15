@@ -3,7 +3,7 @@
 import React from 'react';
 import { ShieldCheck, ArrowLeft, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
-import { LEGAL_ENTITY, LEGAL_NIT } from '@/lib/legal';
+import { LEGAL_ENTITY, LEGAL_NIT, CONTACT_EMAIL_LEGAL } from '@/lib/legal';
 
 export default function TerminosPage() {
   return (
@@ -22,7 +22,7 @@ export default function TerminosPage() {
             </div>
             <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight font-display">Términos y Condiciones</h1>
           </div>
-          <p className="text-slate-500 text-sm font-mono tracking-widest">ÚLTIMA ACTUALIZACIÓN: 31 DE AGOSTO DE 2026</p>
+          <p className="text-slate-500 text-sm font-mono tracking-widest">ÚLTIMA ACTUALIZACIÓN: 14 DE OCTUBRE DE 2026</p>
         </div>
 
         {/* Contenido Legal */}
@@ -88,8 +88,8 @@ export default function TerminosPage() {
               <p className="text-slate-400 text-sm mb-4">
                 Para requerimientos corporativos, DPA (Contrato de Encargo) o consultas sobre el SLA:
               </p>
-              <a href="mailto:legal@upway.business" className="inline-flex items-center gap-2 text-[#00D1FF] hover:text-white transition-colors font-mono font-bold tracking-wide">
-                legal@upway.business
+              <a href={`mailto:${CONTACT_EMAIL_LEGAL}`} className="inline-flex items-center gap-2 text-[#00D1FF] hover:text-white transition-colors font-mono font-bold tracking-wide">
+                {CONTACT_EMAIL_LEGAL}
               </a>
             </div>
 

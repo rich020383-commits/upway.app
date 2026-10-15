@@ -1,6 +1,13 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { LEGAL_ENTITY } from '@/lib/legal';
+import { Mail } from 'lucide-react';
+import {
+  LEGAL_ENTITY,
+  CONTACT_EMAIL_SALES,
+  CONTACT_EMAIL_SUPPORT,
+  CONTACT_EMAIL_LEGAL,
+  CONTACT_EMAIL_PRIVACY,
+} from '@/lib/legal';
 
 export default function Footer() {
   return (
@@ -19,6 +26,23 @@ export default function Footer() {
               <Image src="/upway.png" alt="Upway Business" width={100} height={28} className="h-7 w-auto object-contain" />
             </div>
             <p className="text-sm leading-relaxed">Potenciando empresas mediante Inteligencia Artificial estratégica.</p>
+            {/* Canales de contacto por rol: siempre visibles en el pie de todas
+                las páginas. Corresponden a los buzones reales del dominio
+                (ventas y soporte son buzones propios, no alias). */}
+            <ul className="space-y-2 text-sm">
+              <li>
+                <a href={`mailto:${CONTACT_EMAIL_SALES}`} className="inline-flex items-center gap-2 hover:text-blue-400 transition-colors">
+                  <Mail className="w-4 h-4 text-blue-400" aria-hidden />
+                  {CONTACT_EMAIL_SALES}
+                </a>
+              </li>
+              <li>
+                <a href={`mailto:${CONTACT_EMAIL_SUPPORT}`} className="inline-flex items-center gap-2 hover:text-blue-400 transition-colors">
+                  <Mail className="w-4 h-4 text-emerald-400" aria-hidden />
+                  {CONTACT_EMAIL_SUPPORT}
+                </a>
+              </li>
+            </ul>
             <div className="flex gap-3 pt-2">
               <a href="https://www.linkedin.com/in/sophia-de-belfort-990164431" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn de Upway Health" className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#1b5ed6] flex items-center justify-center transition-all hover:-translate-y-0.5">
                 <span className="text-xs font-bold">Li</span>
@@ -68,6 +92,18 @@ export default function Footer() {
                 </Link>
               </li>
               <li><Link href="/terminos" className="hover:text-blue-400 transition-colors">Términos de servicio</Link></li>
+              <li>
+                <a href={`mailto:${CONTACT_EMAIL_LEGAL}`} className="inline-flex items-center gap-2 hover:text-blue-400 transition-colors">
+                  <Mail className="w-4 h-4 text-amber-400" aria-hidden />
+                  {CONTACT_EMAIL_LEGAL}
+                </a>
+              </li>
+              <li>
+                <a href={`mailto:${CONTACT_EMAIL_PRIVACY}`} className="inline-flex items-center gap-2 hover:text-blue-400 transition-colors">
+                  <Mail className="w-4 h-4 text-amber-400" aria-hidden />
+                  {CONTACT_EMAIL_PRIVACY}
+                </a>
+              </li>
             </ul>
           </div>
         </div>

@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ShieldCheck, Lock, FileText, CheckCircle2, Activity, Globe } from 'lucide-react';
-import { LEGAL_ENTITY, LEGAL_NIT } from '@/lib/legal';
+import { LEGAL_ENTITY, LEGAL_NIT, CONTACT_EMAIL_PRIVACY } from '@/lib/legal';
 
 export default function PrivacyPolicyPage() {
   return (
@@ -32,7 +32,7 @@ export default function PrivacyPolicyPage() {
                 Política de Privacidad Integral
               </h1>
               <p className="text-sm text-slate-400">
-                Upway ({LEGAL_ENTITY} — NIT {LEGAL_NIT}) — Última actualización: 10 de octubre de 2026
+                Upway ({LEGAL_ENTITY} — NIT {LEGAL_NIT}) — Última actualización: 14 de octubre de 2026
               </p>
             </div>
           </div>
@@ -173,6 +173,19 @@ export default function PrivacyPolicyPage() {
               <p>
                 Los administradores tienen control total sobre sus integraciones. Si un paciente final desea ejercer su derecho de eliminación de historia o chats (Habeas Data), debe solicitarlo directamente a la Clínica (el Responsable). Upway proveerá a la Clínica las herramientas tecnológicas para ejecutar dicha eliminación de nuestra infraestructura de inmediato.
               </p>
+              {/* Canal ARCO propio de Upway como Responsable de sus bases
+                  comerciales (clientes, usuarios y contactos). No confundir con
+                  el canal de la clínica, que es el Responsable de los datos de
+                  paciente según el DPA. */}
+              <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                <p className="text-slate-300">
+                  Para datos por los que <strong>Upway es Responsable</strong> (datos de clientes, usuarios de la plataforma y contactos comerciales), los titulares pueden ejercer sus derechos de acceso, rectificación, actualización y supresión escribiendo a nuestro canal de protección de datos:{' '}
+                  <a href={`mailto:${CONTACT_EMAIL_PRIVACY}`} className="font-medium text-blue-400 hover:text-blue-300 underline underline-offset-4 transition-colors">
+                    {CONTACT_EMAIL_PRIVACY}
+                  </a>
+                  . Atendemos las solicitudes conforme a los plazos de la Ley 1581 de 2012.
+                </p>
+              </div>
             </section>
 
           </div>

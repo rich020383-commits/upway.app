@@ -1,0 +1,133 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<title>Contrato de Encargo (DPA) — Upway Business / Barakah Tech Hub S.A.S.</title>
+<!--[if gte mso 9]><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->
+<style>
+@page WordSection1 { size: 21.0cm 29.7cm; mso-page-orientation: portrait; margin: 1.8cm 1.8cm 2.0cm 1.8cm; }
+div.WordSection1 { page: WordSection1; }
+body { font-family: Georgia, 'Times New Roman', serif; font-size: 11pt; line-height: 1.5; color: #111; }
+h1 { font-size: 14pt; text-align: center; text-transform: uppercase; margin: 14pt 0 2pt; }
+h2 { font-size: 12pt; margin: 16pt 0 6pt; border-bottom: 1pt solid #999; }
+p.sub { text-align: center; font-size: 10pt; color: #444; margin: 0; }
+p.ref { text-align: center; font-size: 8.5pt; color: #666; margin: 0 0 12pt; }
+.aviso { background: #f2f2f2; padding: 8pt; margin: 6pt 0; }
+</style>
+</head>
+<body lang="ES-CO" class="WordSection1">
+
+<table cellspacing="0" cellpadding="6" border="0" style="border-collapse:collapse;">
+  <tr>
+    <td style="border-bottom:3pt solid #1b5ed6; width:45%;">
+      <span style="font-family:Arial,sans-serif;font-size:26pt;font-weight:bold;color:#1b5ed6;">upway</span><br>
+      <span style="font-family:Arial,sans-serif;font-size:8pt;letter-spacing:4pt;color:#333;">B U S I N E S S</span>
+    </td>
+    <td style="border-bottom:3pt solid #1b5ed6; text-align:right;font-family:Arial,sans-serif;font-size:8pt;color:#444;">
+      <b style="font-size:9pt;color:#111;">BARAKAH TECH HUB S.A.S.</b><br>
+      NIT 902-080.128-8 · Matrícula mercantil 04121788<br>
+      Calle 17 2 05, Barrio Las Aguas — Bogotá D.C., Colombia<br>
+      Tel. 311 677 8098 · legal@upway.business<br>
+      Marca en uso: UPWAY BUSINESS
+    </td>
+  </tr>
+</table>
+
+<h1>Contrato Especial de Encargo para el Tratamiento de Datos Personales</h1>
+<p class="sub">Con fundamento en el artículo 18 de la Ley 1581 de 2012 y los artículos 19 y 27 del Decreto 1074 de 2015</p>
+<p class="ref">Documento: DPA-ENC-2026-001 · Versión 1.0</p>
+
+<table cellspacing="0" cellpadding="6" border="1" style="border-collapse:collapse;font-size:10pt;">
+  <tr><td><b>RESPONSABLE DEL TRATAMIENTO:</b> [RAZÓN SOCIAL DE LA CLÍNICA/IPS], identificada con NIT [___], con domicilio en [dirección, ciudad] ("el Responsable").<br><br>
+  <b>ENCARGADO DEL TRATAMIENTO:</b> <b>BARAKAH TECH HUB S.A.S.</b>, identificada con NIT <b>902080128-8</b>, matrícula mercantil <b>04121788</b> de la Cámara de Comercio de Bogotá, con domicilio en Calle 17 2 05, Barrio Las Aguas, Bogotá D.C., operando comercialmente bajo la marca <b>UPWAY BUSINESS</b> ("el Encargado").<br><br>
+  <b>FECHA DE CELEBRACIÓN:</b> [___] de [___] de 2026.</td></tr>
+</table>
+
+<h2>1. Objeto</h2>
+<p>El Responsable encarga al Encargado el tratamiento de datos personales de sus pacientes para las siguientes finalidades exclusivas: (a) captura de datos de identidad conforme para interoperabilidad con su historia clínica electrónica; (b) programación, confirmación y recordatorio de citas por voz sobre línea telefónica mediante asistente virtual; y (c) [verificación de aseguramiento, si se habilita contractualmente]. El Encargado tratará los datos únicamente bajo instrucción documentada del Responsable y con fines estrictamente vinculados al presente encargo.</p>
+
+<h2>2. Datos y titulares</h2>
+<p>Son titulares de los datos los pacientes del Responsable. Las categorías de datos tratadas son: tipo y número de documento, nombres y apellidos, fecha de nacimiento, sexo, municipio de residencia (código DIVIPOLA), número telefónico de contacto y datos de salud derivados exclusivamente de la gestión de citas. [Habilitar opcionalmente: estado de afiliación a régimen de seguridad social, previa autorización expresa.]</p>
+
+<h2>3. Obligaciones del Encargado</h2>
+<ol>
+<li>Tratar los datos con fines exclusivos del encargo, conforme al artículo 19 de la Ley 1581 de 2012. Queda prohibido usar los datos para finalidades distintas a las aquí pactadas.</li>
+<li>Garantizar la seguridad y confidencialidad del tratamiento y reportar al Responsable cualquier contacto no autorizado, acceso indebido o uso contrario a la ley o al contrato.</li>
+<li>Mantener los archivos y reportes de seguridad y someter el tratamiento a auditoría, a costos del Responsable, con una frecuencia mínima de [anual].</li>
+<li>Registrar los incidentes de seguridad y notificar al Responsable dentro de las [48] horas siguientes a su confirmación, con alcance, afectados y medidas adoptadas. El cómputo del plazo inicia cuando el Encargado confirma el incidente.</li>
+<li>Permitir la auditoría de accesos a datos clínicos (usuario, rol, fecha y hora).</li>
+<li>Garantizar los derechos de los titulares y habilitar canal de peticiones, quejas y reclamos, derivando al Responsable aquellas solicitudes que deban resolverse por ser él quien mantiene la relación con el titular.</li>
+<li>Cumplir las políticas de seguridad y privacidad del Responsable dentro del tiempo y alcance del encargo.</li>
+</ol>
+
+<h2>4. Subencargados (consentimiento general con derecho de objeción)</h2>
+<p>El Responsable otorga <b>consentimiento general</b> para los subencargados declarados a continuación, sin necesidad de aprobación previa específica por cada alta. Régimen: derecho de objeción por escrito dentro de los [7] días hábiles siguientes al aviso del Encargado — plazo que no podrá exceder los 10 días que el Encargado tiene frente a sus propios proveedores.</p>
+<table cellspacing="0" cellpadding="5" border="1" style="border-collapse:collapse;font-size:9.5pt;">
+  <tr>
+    <th style="background:#eaeaea;text-align:left;">Subencargado</th>
+    <th style="background:#eaeaea;text-align:left;">Servicio</th>
+    <th style="background:#eaeaea;text-align:left;">Datos que trata</th>
+    <th style="background:#eaeaea;text-align:left;">País / región</th>
+  </tr>
+  <tr><td>Telnyx LLC</td><td>Telefonía en la nube, transcripción (ASR), síntesis de voz (TTS) e inteligencia artificial del asistente</td><td>Audio de la llamada y su transcripción</td><td>Estados Unidos (instalaciones primarias)</td></tr>
+  <tr><td>Sub-procesadores de Telnyx (lista pública: telnyx.com/legal/subprocessors)</td><td>Modelos de IA, ASR y TTS contratados por Telnyx</td><td>Mismo audio y transcripción</td><td>Diversos — la lista vigente los identifica; el Encargado permanece suscrito al mecanismo de aviso</td></tr>
+  <tr><td>[Render Inc.]</td><td>Alojamiento de la aplicación</td><td>Datos en reposo</td><td>[___]</td></tr>
+  <tr><td>[Aiven Oy]</td><td>Servicio de base de datos PostgreSQL</td><td>Datos en reposo</td><td>[___]</td></tr>
+</table>
+<p>La identidad conforme (tipo y número de documento, fecha de nacimiento, municipio) <b>no es procesada por modelos de inteligencia artificial de terceros</b>: se captura mediante catálogos cerrados y se certifica de forma determinista dentro de la plataforma. Cualquier nuevo subencargado será informado previamente al Responsable, quien podrá objetarlo dentro del plazo señalado. Los subencargados quedan sujetos a obligaciones de tratamiento equivalentes a las del presente contrato.</p>
+
+<h2>5. Transferencias internacionales</h2>
+<p>El Responsable autoriza las transferencias y transmisiones internacionales de datos estrictamente necesarias para el encargo, conforme al artículo 26 de la Ley 1581 de 2012, advirtiendo que algunos subencargados procesan fuera de Colombia. El Encargado se obliga a mantener medidas de seguridad equivalentes y a mantener vigentes los mecanismos contractuales de transferencia con sus proveedores, y a mantener al Responsable informado de los cambios de la lista de subencargados.</p>
+
+<h2>6. Seguridad</h2>
+<p>El Encargado aplica, como mínimo: TLS 1.2 o superior en tránsito; cifrado en reposo; control de acceso por roles con autenticación individual; y aislamiento lógico por cliente, sin consultas cruzadas entre Responsables. Las medidas técnicas y organizativas se encuentran implementadas <b>antes</b> de la transmisión de cualquier dato sensible, en cumplimiento de las exigencias del contrato de telefonía subyacente. Las medidas detalladas se describen en el anexo técnico de seguridad [anexo separado, si el Responsable lo solicita].</p>
+
+<h2>7. Datos sensibles</h2>
+<p>Las partes reconocen que los datos de salud tienen el carácter de sensibles. El Encargado los tratará exclusivamente con la autorización del titular capturada en el propio canal telefónico y con evidencia de dicha autorización conservada bajo registro de integridad. Queda expresamente prohibida la adopción de decisiones clínicas automatizadas: el asistente únicamente ejecuta los protocolos y reglas que el Responsable le haya definido.</p>
+
+<h2>8. Terminación, devolución y eliminación</h2>
+<p>Culminado el contrato o terminado el encargo, el Encargado devolverá o eliminará —a elección del Responsable— la totalidad de los datos personales objeto del tratamiento, con certificación escrita de la eliminación efectiva, dentro de los [30] días siguientes a la solicitud. Solo podrá retener los datos que la ley le imponga conservar, los cuales quedarán sujetos al mismo régimen de confidencialidad.</p>
+
+<h2>9. Responsabilidad, ley aplicable y controversias</h2>
+<p>El Encargado responde ante el Responsable por el incumplimiento de las obligaciones del presente encargo. Las obligaciones ante la Superintendencia Nacional de Salud, el Ministerio de Salud y los titulares se asumirán conforme al rol de cada parte en el tratamiento. Ley aplicable: colombiana. Controversias: [ciudad y sede arbitral / juzgados competentes de Bogotá D.C.].</p>
+
+<h2>10. Firmas</h2>
+<p>En señal de aceptación, las partes firman el presente contrato por conducto de sus representantes legales, en dos ejemplares de igual valor y contenido.</p>
+
+<table cellspacing="0" cellpadding="4" border="0" style="border-collapse:collapse;font-size:10pt;width:100%;">
+  <tr>
+    <td style="width:50%; vertical-align:bottom; padding-right:20pt;">
+      <br><br><br><br>
+      <div style="border-top:1pt solid #000; padding-top:4pt;"><b>RESPONSABLE</b><br>
+      [RAZÓN SOCIAL DE LA CLÍNICA/IPS]<br>
+      NIT [___]<br>
+      Representante legal: [___]<br>
+      C.C. [___]</div>
+    </td>
+    <td style="width:50%; vertical-align:bottom; padding-left:20pt;">
+      <br><br><br><br>
+      <div style="border-top:1pt solid #000; padding-top:4pt;"><b>ENCARGADO</b><br>
+      BARAKAH TECH HUB S.A.S.<br>
+      NIT 902080128-8<br>
+      Representante legal: Mia Sophia De Belfort Salvatore<br>
+      C.C. 1.095.910.112</div>
+    </td>
+  </tr>
+</table>
+
+<h2>ANEXO 1 — Aviso de privacidad en el canal telefónico</h2>
+<p style="font-size:9.5pt;color:#444;">El siguiente aviso se incluye al inicio de toda llamada, <b>antes</b> de solicitar cualquier dato de identidad, y su transcripción con marca de tiempo se conserva como evidencia de la autorización.</p>
+
+<p><b>Llamada saliente:</b></p>
+<p class="aviso">«Hola, llamo de parte de [Clínica]. Esta llamada es grabada. Sus datos son tratados por Upway Business como encargado de [Clínica], con fines de programación de citas y atención en salud. Puede ejercer sus derechos escribiendo a [correo PQR de la Clínica]. ¿Continuamos?»</p>
+
+<p><b>Llamada entrante:</b></p>
+<p class="aviso">«Le atiende el asistente virtual de [Clínica]. Esta llamada es grabada. Sus datos son tratados por Upway Business como encargado de [Clínica], con fines de programación de citas y atención en salud. Puede ejercer sus derechos escribiendo a [correo PQR de la Clínica]. ¿Continuamos?»</p>
+
+<p style="font-size:9.5pt;"><b>Reglas operativas:</b> (1) nunca solicitar un dato de identidad antes del aviso; (2) si el titular niega la autorización, no capturar datos y ofrecer atención presencial; (3) conservar marca de tiempo y transcripción del aviso como evidencia; (4) el enlace a la política de tratamiento del Responsable apunta al sitio de la clínica, no del Encargado.</p>
+
+<p style="font-size:8.5pt;color:#555;text-align:center;border-top:2pt solid #1b5ed6;padding-top:8pt;margin-top:20pt;">BARAKAH TECH HUB S.A.S. · NIT 902-080.128-8 · Matrícula mercantil 04121788 · Bogotá D.C., Colombia · Marca en uso: UPWAY BUSINESS (verticales: salud y negocios)<br>
+Tel. 311 677 8098 · Este documento es un anexo del contrato comercial entre las partes y se rige por la ley colombiana.<br>
+Plantilla v1 — octubre 2026 · Sujeta a revisión jurídica antes de su firma por un cliente.</p>
+
+</body>
+</html>

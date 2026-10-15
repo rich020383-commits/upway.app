@@ -6,7 +6,7 @@
 
 ## 1. Identificacion
 - Razon social: [___] · NIT: [___] · Domicilio: [___]
-- Canal de PQR: [correo/formulario] · Contacto proteccion de datos: privacidad@upway.co [definir]
+- Canal de PQR: [correo/formulario] · Contacto proteccion de datos: privacidad@upway.business (definido 2026-10-14; alias de admin@upway.business)
 
 ## 2. Bases de datos que declara (RNBD)
 
