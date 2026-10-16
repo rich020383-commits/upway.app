@@ -57,7 +57,7 @@ export default function Footer() {
               Plataforma
             </h4>
             <ul className="space-y-2.5 text-sm">
-              <li><Link href="/login" className="hover:text-blue-400 transition-colors">Iniciar SesiÃ³n</Link></li>
+              <li><Link href="/login" className="hover:text-blue-400 transition-colors">Iniciar Sesión</Link></li>
               <li><Link href="/register" className="hover:text-blue-400 transition-colors">Crear Cuenta</Link></li>
               <li><Link href="/precios" className="hover:text-blue-400 transition-colors">Planes y Precios</Link></li>
             </ul>
@@ -68,7 +68,7 @@ export default function Footer() {
               Industrias
             </h4>
             <ul className="space-y-2.5 text-sm">
-              <li><Link href="/salud" className="hover:text-blue-400 transition-colors">ClÃ­nicas y Salud</Link></li>
+              <li><Link href="/salud" className="hover:text-blue-400 transition-colors">Clínicas y Salud</Link></li>
               <li><Link href="/center" className="hover:text-blue-400 transition-colors">Call Center</Link></li>
               <li><Link href="/inmobiliarias" className="hover:text-blue-400 transition-colors">Inmobiliarias</Link></li>
             </ul>
@@ -80,7 +80,7 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2.5 text-sm">
               <li><Link href="/privacy" className="hover:text-blue-400 transition-colors">Privacidad</Link></li>
-              <li><Link href="/terminos" className="hover:text-blue-400 transition-colors">TÃ©rminos de servicio</Link></li>
+              <li><Link href="/terminos" className="hover:text-blue-400 transition-colors">Términos de servicio</Link></li>
               <li><a href={`mailto:${CONTACT_EMAIL_LEGAL}`} className="inline-flex items-center gap-2 hover:text-blue-400 transition-colors">
                 <Mail className="w-4 h-4 text-amber-400" aria-hidden />
                 {CONTACT_EMAIL_LEGAL}
@@ -93,8 +93,8 @@ export default function Footer() {
           </div>
         </div>
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm pb-8">
-          <p>Â© {new Date().getFullYear()} {LEGAL_ENTITY} Todos los derechos reservados.</p>
-          <p className="text-slate-500">Hecho en BogotÃ¡, Colombia</p>
+          <p>© {new Date().getFullYear()} {LEGAL_ENTITY} Todos los derechos reservados.</p>
+          <p className="text-slate-500">Hecho en Bogotá, Colombia</p>
         </div>
       </div>
     </footer>

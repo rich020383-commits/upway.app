@@ -1077,7 +1077,7 @@ export default function Home() {
             <input name="nombre" required placeholder="Tu nombre" className="rounded-full px-4 py-2.5 text-[13px] text-[#0d3168] bg-white/95 border border-white/40 placeholder:text-[#7b93ab] outline-none focus:ring-2 focus:ring-[#50e1d5]" />
             <input name="institucion" placeholder="Institución, empresa o agencia" className="rounded-full px-4 py-2.5 text-[13px] text-[#0d3168] bg-white/95 border border-white/40 placeholder:text-[#7b93ab] outline-none focus:ring-2 focus:ring-[#50e1d5]" />
             <input name="telefono" required inputMode="tel" placeholder="Teléfono de contacto" className="rounded-full px-4 py-2.5 text-[13px] text-[#0d3168] bg-white/95 border border-white/40 placeholder:text-[#7b93ab] outline-none focus:ring-2 focus:ring-[#50e1d5]" />
-            <button type="submit" className="rounded-full font-bold text-[13px] bg-white text-[#123e77] hover:bg-slate-100 transition px-[23px] py-[14px]">
+            <button type="submit" className="rounded-full font-bold text-[13px] bg-white text-[#123e77] hover:bg-white/90 transition px-[23px] py-[14px]">
               Solicita una demo gratuita →
             </button>
             <a href="tel:+576019177737" className="text-center text-[11px] text-[#50e1d5] hover:underline">

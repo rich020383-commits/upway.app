@@ -90,7 +90,7 @@ export default function LiveDemoPanel({ sessionId }: DemoPanelProps) {
               {messages.length} turnos
             </span>
           </div>
-          <div className="h-[400px] overflow-y-auto rounded-[20px] border border-[#0d3168]/20 bg-[#0f172a]/50 p-4 md:p-6 text-slate-300 text-sm leading-relaxed shadow-[0_4px_12px_rgba(13,49,104,0.2)]">
+          <div className="h-[400px] overflow-y-auto rounded-[20px] border border-[#0d3168]/20 bg-[#0f172a]/50 p-4 md:p-6 text-[#a8c4d9] text-sm leading-relaxed shadow-[0_4px_12px_rgba(13,49,104,0.2)]">
             {messages.length === 0 ? (
               <p className="text-[#7b93ab] text-center mt-10 italic">
                 La transcripción aparecerá aquí cuando llames al <span className="font-mono text-[#11b4b0]">601 9177737</span>.
@@ -104,14 +104,14 @@ export default function LiveDemoPanel({ sessionId }: DemoPanelProps) {
                     <div
                       className={`max-w-[80%] rounded-lg p-2.5 text-sm break-words ${
                         esUsuario
-                          ? 'bg-blue-600/30 text-blue-100 border border-blue-500/30 ml-2 rounded-tr-none'
+                          ? 'bg-[#11b4b0]/30 text-white border border-[#11b4b0]/30 ml-2 rounded-tr-none'
                           : esTool
-                            ? 'bg-slate-800/50 text-slate-300 border border-slate-700 rounded-bl-none text-[11px] uppercase tracking-wider mb-0.5'
-                            : 'bg-slate-800/60 text-slate-200 border border-slate-700/60 rounded-tl-none'
+                            ? 'bg-[#0d3168]/10 text-[#a8c4d9] border border-[#0d3168]/30 rounded-bl-none text-[11px] uppercase tracking-wider mb-0.5'
+                            : 'bg-[#0d3168]/20 text-[#a8c4d9] border border-[#0d3168]/30/60 rounded-tl-none'
                       }`}
                     >
                       {esTool && (
-                        <span className="block text-[10px] text-slate-500 mb-0.5">⚡ {m.text}</span>
+                        <span className="block text-[10px] text-[#7b93ab] mb-0.5">⚡ {m.text}</span>
                       )}
                       {m.text}
                       {m.at && (
@@ -137,7 +137,7 @@ export default function LiveDemoPanel({ sessionId }: DemoPanelProps) {
               <User className="w-5 h-5 text-[#11b4b0]" />
               <div>
                 <div className="text-xs text-[#7b93ab] uppercase tracking-wider">Cliente</div>
-                <div className="text-sm font-medium text-slate-200">{lead?.nombre ?? '—'}</div>
+                <div className="text-sm font-medium text-[#a8c4d9]">{lead?.nombre ?? '—'}</div>
               </div>
             </div>
             <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#0f172a]/30 border border-[#0d3168]/30">
@@ -158,7 +158,7 @@ export default function LiveDemoPanel({ sessionId }: DemoPanelProps) {
               <Clock className="w-5 h-5 text-[#0d3168]" />
               <div>
                 <div className="text-xs text-[#7b93ab] uppercase tracking-wider">Dolor operativo</div>
-                <div className="text-sm font-medium text-slate-200 capitalize">{lead?.dolor ?? '—'}</div>
+                <div className="text-sm font-medium text-[#a8c4d9] capitalize">{lead?.dolor ?? '—'}</div>
               </div>
             </div>
             <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#0f172a]/30 border border-[#0d3168]/30">
@@ -184,7 +184,7 @@ export default function LiveDemoPanel({ sessionId }: DemoPanelProps) {
                 <div className="text-xs text-[#7b93ab] uppercase tracking-wider mb-1">
                   Últimos mensajes del asistente
                 </div>
-                <ul className="text-xs text-slate-300 space-y-1">
+                <ul className="text-xs text-[#a8c4d9] space-y-1">
                   {lead.mensajesCapturados.slice(-3).map((m, i) => (
                     <li key={i} className="italic text-[#a8c4d9]">
                       “{m}”
@@ -200,7 +200,7 @@ export default function LiveDemoPanel({ sessionId }: DemoPanelProps) {
                 <CheckCircle className="w-5 h-5 text-[#11b4b0]" />
                 <h4 className="text-sm font-bold text-white">Demo completada</h4>
               </div>
-              <p className="text-sm text-emerald-200">
+              <p className="text-sm text-[#a8c4d9]">
                 Sophie capturó los datos de la llamada. En una implementación real,{' '}
                 <span className="font-semibold">estos datos se envían automáticamente a tu equipo comercial</span>
                 para que lo contacten.
