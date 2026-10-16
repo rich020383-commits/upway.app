@@ -226,6 +226,14 @@ export async function hangupCall(callControlId: string) {
   return telnyxFetch(`/calls/${callControlId}/actions/hangup`, { method: 'POST', body: '{}' });
 }
 
+/** Engancha un AI Assistant a una llamada entrante existente (Call Control v2). */
+export async function startAssistantOnCall(callControlId: string, assistantId: string) {
+  return telnyxFetch(`/calls/${encodeURIComponent(callControlId)}/actions`, {
+    method: 'POST',
+    body: JSON.stringify({ assistant: { id: assistantId } }),
+  });
+}
+
 /** Crea/actualiza un AI Assistant de Telnyx para una tienda. */
 export async function upsertAssistantForTienda(opts: {
   name: string;

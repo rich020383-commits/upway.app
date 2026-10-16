@@ -4,9 +4,11 @@ import { estimateCallCosts } from '@/lib/telnyx/costs';
 import {
   decodeClientState,
   getConversationMessages,
+  getTelnyxConfig,
   missingTelnyxCallEnv,
   missingTelnyxVoiceEnv,
   normalizeApiMessages,
+  startAssistantOnCall,
 } from '@/lib/telnyx/client';
 import {
   associateCall,
@@ -211,6 +213,15 @@ export async function POST(req: NextRequest) {
       if (convId) {
         associateCall(sesionEspera.sid, p.call_control_id ?? '', convId);
         startPolling(sesionEspera.sid);
+      }
+      // Iniciar el assistant de Sophie en esta llamada entrante (demo en vivo).
+      try {
+        const cfg = getTelnyxConfig();
+        if (cfg.assistantId && p.call_control_id) {
+          await startAssistantOnCall(p.call_control_id, cfg.assistantId);
+        }
+      } catch (err) {
+        console.warn('[demo] no se pudo iniciar assistant en la llamada', err);
       }
     }
 
