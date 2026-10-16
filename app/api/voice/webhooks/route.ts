@@ -1,7 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { estimateCallCosts } from '@/lib/telnyx/costs';
-import { decodeClientState, missingTelnyxCallEnv, missingTelnyxVoiceEnv } from '@/lib/telnyx/client';
+import {
+  decodeClientState,
+  getConversationMessages,
+  missingTelnyxCallEnv,
+  missingTelnyxVoiceEnv,
+  normalizeApiMessages,
+} from '@/lib/telnyx/client';
+import {
+  associateCall,
+  createSession,
+  endSession,
+  getPublicSnapshot,
+  getSession,
+  listSessionIds,
+  setDuration,
+  setMessages,
+  setStatus,
+  startPolling,
+} from '@/lib/demo/store';
+import { extractLeadData } from '@/lib/demo/extract';
+import { maskPhone } from '@/lib/demo/store';
 
 // POST /api/voice/webhooks — receptor Call Control v2 (API v2 en tu captura).
 // Telnyx firma con Ed25519: cabeceras `telnyx-signature-ed25519` + `telnyx-timestamp`.
@@ -168,6 +188,71 @@ export async function POST(req: NextRequest) {
         where: { id: tiendaId },
         data: { isTelnyxActive: true },
       }).catch(() => undefined);
+    }
+
+    // ── Demo en vivo: emparejar llamada entrante con sesión de demo ──
+    // El visitante registró su celular y llamó al número demo. Telnyx nos
+    // dice quién llama en `payload.from`; si coincide con una sesión
+    // `waiting`, la pasamos a `live` y arrancamos el polling del transcript.
+    const fromRaw = p.from ?? '';
+    const sesionEspera = listSessionIds()
+      .map((sid) => ({ sid, s: getSession(sid) }))
+      .find((x) => x.s && x.s.status === 'waiting' && x.s.phone === fromRaw);
+
+    if (sesionEspera?.s && type === 'call.initiated') {
+      setStatus(sesionEspera.sid, 'live');
+      // Si Telnyx ya envió conversation_id en el mismo evento, lo asociamos.
+      const convId = (p as any)?.conversation_id ?? null;
+      if (convId) {
+        associateCall(sesionEspera.sid, p.call_control_id ?? '', convId);
+        startPolling(sesionEspera.sid);
+      }
+    }
+
+    // Cuando el asistente crea la conversación, guardamos el conversationId
+    // y arrancamos polling (si aún no está corriendo).
+    if (type === 'call.conversation.created') {
+      const convId = (p as any)?.conversation_id ?? (p as any)?.conversationId ?? null;
+      const ccId = p.call_control_id ?? '';
+      // Buscar la sesión por conversationId o por call_control_id.
+      let sidDemo: string | null = null;
+      for (const sId of listSessionIds()) {
+        const s = getSession(sId);
+        if (s && (s.conversationId === convId || s.conversationId === ccId)) {
+          sidDemo = sId;
+          break;
+        }
+      }
+      if (!sidDemo) {
+        // Intento por número: si la llamada entrante coincide con una sesión waiting.
+        const s2 = listSessionIds()
+          .map((sId) => ({ sId, s: getSession(sId) }))
+          .find((x) => x.s && x.s.status === 'waiting' && x.s.phone === fromRaw);
+        if (s2?.s) {
+          sidDemo = s2.sId;
+          associateCall(sidDemo, ccId, convId ?? null);
+          setStatus(sidDemo, 'live');
+        }
+      }
+      if (sidDemo && convId) {
+        associateCall(sidDemo, ccId, convId);
+        setStatus(sidDemo, 'live');
+        startPolling(sidDemo);
+      }
+    }
+
+    // Cuando la conversación termina, finalizamos la sesión de demo.
+    if ((type === 'call.conversation.ended' || type === 'call.hangup' || type === 'call.hangup.final') && !tiendaId) {
+      const ccId = p.call_control_id ?? '';
+      for (const sId of listSessionIds()) {
+        const s = getSession(sId);
+        if (s && s.conversationId === ccId) {
+          endSession(sId);
+          const dur = minutesOfCall(event);
+          if (dur > 0) setDuration(sId, Math.round(dur * 60));
+          break;
+        }
+      }
     }
   } catch (err) {
     console.error('[telnyx] webhook persist failed', err);
