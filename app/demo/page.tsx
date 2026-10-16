@@ -62,7 +62,7 @@ export default function DemoPage() {
   };
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-12">
+    <main className="min-h-screen bg-[#0b0f19] px-4 py-12 flex flex-col items-center">
       {/* Paso 1: Ingresar celular */}
       {step === 'ingresar' && (
         <section className="mb-10 rounded-[24px] border border-[#0d3168]/30 bg-gradient-to-br from-[#0d3168]/10 to-[#132642]/20 p-8 md:p-12 shadow-[0_10px_30px_rgba(13,49,104,0.35)]">

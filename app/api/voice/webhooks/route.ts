@@ -196,9 +196,13 @@ export async function POST(req: NextRequest) {
     // dice quién llama en `payload.from`; si coincide con una sesión
     // `waiting`, la pasamos a `live` y arrancamos el polling del transcript.
     const fromRaw = p.from ?? '';
+    // Normalizamos el número del llamante para que coincida con el de la sesión
+    // (Telnyx puede enviar +57312..., 57312..., o 312...; la sesión guarda E.164).
+    const fromNorm = normalizePhone(fromRaw ?? '');
+
     const sesionEspera = listSessionIds()
       .map((sid) => ({ sid, s: getSession(sid) }))
-      .find((x) => x.s && x.s.status === 'waiting' && x.s.phone === fromRaw);
+      .find((x) => x.s && x.s.status === 'waiting' && x.s.phone === fromNorm);
 
     if (sesionEspera?.s && type === 'call.initiated') {
       setStatus(sesionEspera.sid, 'live');
@@ -224,11 +228,11 @@ export async function POST(req: NextRequest) {
           break;
         }
       }
-      if (!sidDemo) {
+      if (!sidDemo && fromNorm) {
         // Intento por número: si la llamada entrante coincide con una sesión waiting.
         const s2 = listSessionIds()
           .map((sId) => ({ sId, s: getSession(sId) }))
-          .find((x) => x.s && x.s.status === 'waiting' && x.s.phone === fromRaw);
+          .find((x) => x.s && x.s.status === 'waiting' && x.s.phone === fromNorm);
         if (s2?.s) {
           sidDemo = s2.sId;
           associateCall(sidDemo, ccId, convId ?? null);

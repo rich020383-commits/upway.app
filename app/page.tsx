@@ -286,7 +286,7 @@ export default function Home() {
   }, []);
 
   /**
-   * 🔒 Bloquea el scroll del documento mientras el splash está visible.
+   * ?? Bloquea el scroll del documento mientras el splash está visible.
    * Sin esto, al deslizar durante la animación el navegador colapsaba la
    * barra de direcciones y el splash (anclado al viewport) dejaba ver el
    * desplazamiento de la página por el borde inferior del celular.
@@ -309,7 +309,7 @@ export default function Home() {
   }, [splashActivo]);
 
   /**
-   * 🖤 Blindaje anti-línea-blanca: mientras el splash está visible, el
+   * ?? Blindaje anti-línea-blanca: mientras el splash está visible, el
    * documento detrás (html + body) se tiñe de negro. Cualquier costura de
    * sub-píxel, hueco de composición del video o redondeo del viewport asoma
    * NEGRO — el blanco de la página ya no puede aparecer por ningún borde.
@@ -339,7 +339,7 @@ export default function Home() {
   }, []);
 
   /**
-   * ⏱️ Red de seguridad del splash: si el video no dispara `onEnded`
+   * ?? Red de seguridad del splash: si el video no dispara `onEnded`
    * (autoplay bloqueado, ahorro de datos, red lenta o códec no soportado),
    * la pantalla se cierra igual a los 5 s. Nadie se queda en negro.
    */
@@ -477,7 +477,7 @@ export default function Home() {
               href="#contacto"
               className="hidden sm:inline-flex items-center justify-center rounded-full bg-[#0c3775] px-[23px] py-[10px] md:py-[14px] text-[11px] md:text-[13px] font-bold text-white hover:bg-[#092a5c] transition shadow-md"
             >
-              Solicita una demo →
+              Solicita una demo ?
             </a>
           </div>
         </header>
@@ -645,7 +645,7 @@ export default function Home() {
             <span />
           </div>
           <div className="relative flex flex-col items-center">
-            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">♥ &nbsp; La línea de atención de tu negocio, con IA</div>
+            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">? &nbsp; La línea de atención de tu negocio, con IA</div>
             <h1 className="font-display text-[35px] md:text-[52px] leading-[1.06] tracking-[-2px] md:tracking-[-2.6px] m-0 mb-[22px] font-extrabold">
               <ScrambleText text="Atiende, agenda y confirma con quien te llama." />
               <br />
@@ -660,7 +660,7 @@ export default function Home() {
               <a
                 href="#contacto"
                 className="inline-flex items-center justify-center rounded-full bg-[#0c3775] px-[23px] py-[14px] text-[13px] font-bold text-white hover:bg-[#092a5c] hover:shadow-[0_22px_48px_rgba(12,55,117,0.42)] transition">
-                Solicita una demo gratuita →
+                Solicita una demo gratuita ?
               </a>
               <a
                 href="#verticales"
@@ -760,7 +760,7 @@ export default function Home() {
         </section>
 
         {/* ANTES / DESPUÉS — el video del "mientras dormías": llamadas perdidas
-            de la noche → red de llamadas → el cliente dormido con 500 llamadas
+            de la noche ? red de llamadas ? el cliente dormido con 500 llamadas
             atendidas. Nativo, con controles y SIN autoplay (regla de la casa);
             preload=metadata + póster para que el scroll no arrastre 3.7 MB. */}
         <section id="mientras" className="max-w-[1180px] mx-[15px] md:mx-auto my-[55px] md:my-[70px]">
@@ -769,7 +769,7 @@ export default function Home() {
               Mientras tú dormías
             </div>
             <h2 className="font-display mb-3 text-[30px] font-extrabold leading-[1.1] tracking-[-1.5px] text-[#0d3168] md:text-[42px]">
-              <span className="text-[#e2555f]">Llamadas perdidas</span> a las 3&nbsp;a.&nbsp;m. →{' '}
+              <span className="text-[#e2555f]">Llamadas perdidas</span> a las 3&nbsp;a.&nbsp;m. ?{' '}
               <span className="text-[#11b4b0]">500 atendidas</span> mientras dormías.
             </h2>
             <p className="mx-auto max-w-[640px] text-[16px] leading-relaxed text-[#49698f]">
@@ -849,7 +849,7 @@ export default function Home() {
                   ].map((d) => (
                     <li key={d} className="flex items-start gap-[11px] text-[13px] leading-[1.6] text-[#5b6f86]">
                       <span className="mt-[5px] grid h-[16px] w-[16px] shrink-0 place-items-center rounded-full bg-[#fbeaea] text-[10px] font-black text-[#c96a6a]">
-                        ✕
+                        ?
                       </span>
                       {d}
                     </li>
@@ -876,7 +876,7 @@ export default function Home() {
                   ].map((c) => (
                     <li key={c} className="flex items-start gap-[11px] text-[13px] leading-[1.6] text-white/90">
                       <span className="mt-[5px] grid h-[16px] w-[16px] shrink-0 place-items-center rounded-full bg-white/20 text-[9px] font-black text-white">
-                        ✓
+                        ?
                       </span>
                       {c}
                     </li>
@@ -1045,53 +1045,13 @@ export default function Home() {
               Tu operación merece una <em className="not-italic text-[#50e1d5]">comunicación más inteligente.</em>
             </h2>
           </div>
-          <form
-            className="shrink-0 w-full max-w-[340px] flex flex-col gap-2"
-            onSubmit={async (event) => {
-              event.preventDefault();
-              const formData = new FormData(event.currentTarget);
-              const nombre = String(formData.get("nombre") ?? "").trim();
-              const institucion = String(formData.get("institucion") ?? "").trim();
-              const telefono = String(formData.get("telefono") ?? "").trim();
-
-              if (!telefono) {
-                alert("Por favor ingresa tu teléfono de contacto.");
-                return;
-              }
-
-              try {
-                const res = await fetch("/api/demo/sessions", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ phone: telefono, nombre, institucion }),
-                });
-                if (!res.ok) throw new Error("No se pudo crear la sesión de demo.");
-                const data = await res.json();
-                window.location.href = `/demo?sessionId=${data.sessionId}`;
-              } catch (err) {
-                console.error(err);
-                alert("No se pudo crear la sesión de demo. Intenta de nuevo.");
-              }
-            }}
-          >
-            <input name="nombre" required placeholder="Tu nombre" className="rounded-full px-4 py-2.5 text-[13px] text-[#0d3168] bg-white/95 border border-white/40 placeholder:text-[#7b93ab] outline-none focus:ring-2 focus:ring-[#50e1d5]" />
-            <input name="institucion" placeholder="Institución, empresa o agencia" className="rounded-full px-4 py-2.5 text-[13px] text-[#0d3168] bg-white/95 border border-white/40 placeholder:text-[#7b93ab] outline-none focus:ring-2 focus:ring-[#50e1d5]" />
-            <input name="telefono" required inputMode="tel" placeholder="Teléfono de contacto" className="rounded-full px-4 py-2.5 text-[13px] text-[#0d3168] bg-white/95 border border-white/40 placeholder:text-[#7b93ab] outline-none focus:ring-2 focus:ring-[#50e1d5]" />
-            <button type="submit" className="rounded-full font-bold text-[13px] bg-white text-[#123e77] hover:bg-white/90 transition px-[23px] py-[14px]">
-              Solicita una demo gratuita →
-            </button>
-            <a href="tel:+576019177737" className="text-center text-[11px] text-[#50e1d5] hover:underline">
-              o llama ya: +57 601 9177737 — la atiende Sophie, nuestra asistente de IA
-            </a>
-            <p className="text-center text-[11px] leading-relaxed text-white/85">
-              Es nuestro mejor ejemplo de producto: Sophie atiende 24/7 con voz humana, agenda citas en tiempo real,
-              responde consultas y prioriza según tus protocolos. ¿Un superrecepcionista o un agente completo para tu empresa? Ella hace las dos.
-            </p>
-          </form>
+          
         </section>
         <Footer />
       </main>
     </>
   );
 }
+
+
 

@@ -51,8 +51,8 @@ export default function LiveDemoPanel({ sessionId }: DemoPanelProps) {
   }, [conectar]);
 
   return (
-    <section className="max-w-5xl mx-auto px-4 py-8">
-      <div className="mb-8 rounded-[24px] border border-[#0d3168]/40 bg-gradient-to-br from-[#0d3168]/10 to-[#132642]/20 p-6 md:p-8 shadow-[0_10px_30px_rgba(13,49,104,0.35)]">
+    <section className="min-h-screen bg-[#0b0f19] px-4 py-8 flex flex-col items-center">
+      <div className="max-w-5xl w-full mb-8 rounded-[24px] border border-[#0d3168]/40 bg-gradient-to-br from-[#0d3168]/10 to-[#132642]/20 p-6 md:p-8 shadow-[0_10px_30px_rgba(13,49,104,0.35)]">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-12 h-12 rounded-full bg-[#0d3168] flex items-center justify-center shadow-[0_0_0_8px_rgba(13,49,104,0.25)]">
             <Sparkles className="w-6 h-6 text-[#11b4b0]" />
