@@ -531,10 +531,10 @@ export default function Home() {
                 </div>
                 <div className="flex shrink-0 gap-2 pt-2 sm:pt-0">
                   <a
-                    href="tel:+573126427856"
+                    href="tel:+576019177737"
                     className="btn-glow-primary inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 sm:w-auto sm:px-7 sm:py-3.5"
                   >
-                    <Phone className="h-4 w-4" /> Hablar con un asesor
+                    <Phone className="h-4 w-4" /> Hablar con Sophie
                   </a>
                 </div>
               </div>
@@ -1052,9 +1052,13 @@ export default function Home() {
             <button type="submit" className="rounded-full font-bold text-[13px] bg-white text-[#123e77] hover:bg-slate-100 transition px-[23px] py-[14px]">
               Solicita una demo gratuita →
             </button>
-            <a href="tel:+573126427856" className="text-center text-[11px] text-[#50e1d5] hover:underline">
-              o llámanos: +57 312 642 7856
+            <a href="tel:+576019177737" className="text-center text-[11px] text-[#50e1d5] hover:underline">
+              o llama ya: +57 601 9177737 — la atiende Sophie, nuestra asistente de IA
             </a>
+            <p className="text-center text-[11px] leading-relaxed text-white/85">
+              Es nuestro mejor ejemplo de producto: Sophie atiende 24/7 con voz humana, agenda citas en tiempo real,
+              responde consultas y prioriza según tus protocolos. ¿Un superrecepcionista o un agente completo para tu empresa? Ella hace las dos.
+            </p>
           </form>
                  </section>
 
