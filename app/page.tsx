@@ -660,7 +660,7 @@ export default function Home() {
               <a
                 href="#contacto"
                 className="inline-flex items-center justify-center rounded-full bg-[#0c3775] px-[23px] py-[14px] text-[13px] font-bold text-white hover:bg-[#092a5c] hover:shadow-[0_22px_48px_rgba(12,55,117,0.42)] transition">
-                Solicita una demo gratuita ?
+                Ir a la demo en vivo
               </a>
               <a
                 href="#verticales"

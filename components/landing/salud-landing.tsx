@@ -426,7 +426,7 @@ export default function Home() {
               <a
                 href="#contacto"
                 className="inline-flex items-center justify-center rounded-full bg-[#0c3775] px-[23px] py-[14px] text-[13px] font-bold text-white hover:bg-[#092a5c] hover:shadow-[0_22px_48px_rgba(12,55,117,0.42)] transition">
-                Solicita una demo gratuita →
+                Ir a la demo en vivo
               </a>
               <a
                 href="#agenda"
@@ -897,7 +897,7 @@ export default function Home() {
             <input name="institucion" placeholder="Institución o consultorio" className="rounded-full px-4 py-2.5 text-[13px] text-[#0d3168] bg-white/95 border border-white/40 placeholder:text-[#7b93ab] outline-none focus:ring-2 focus:ring-[#50e1d5]" />
             <input name="telefono" required inputMode="tel" placeholder="Teléfono de contacto" className="rounded-full px-4 py-2.5 text-[13px] text-[#0d3168] bg-white/95 border border-white/40 placeholder:text-[#7b93ab] outline-none focus:ring-2 focus:ring-[#50e1d5]" />
             <button type="submit" className="rounded-full font-bold text-[13px] bg-white text-[#123e77] hover:bg-slate-100 transition px-[23px] py-[14px]">
-              Solicita una demo gratuita →
+              Ir a la demo en vivo
             </button>
             <a href="tel:+576019177737" className="text-center text-[11px] text-[#50e1d5] hover:underline">
               o llama ya: +57 601 9177737 — la atiende Sophie, nuestra asistente de IA
