@@ -394,3 +394,8 @@ export async function updateAssistantVoice(assistantId: string, voice: string) {
     body: JSON.stringify({ voice_settings: { voice } }),
   });
 }
+
+/** GET /ai/conversations/{conversation_id}/messages — transcript del asistente. */
+export async function getConversationMessages(conversationId: string) {
+  return telnyxFetch(`/ai/conversations/${encodeURIComponent(conversationId)}/messages`);
+}

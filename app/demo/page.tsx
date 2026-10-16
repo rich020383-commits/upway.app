@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Phone from 'lucide-react/dist/lucide-react/icons/phone';
+import { Phone } from 'lucide-react';
 import LiveDemoPanel from '@/components/demo/live-demo-panel';
 
 /**
