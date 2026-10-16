@@ -15,6 +15,7 @@ import {
   getPublicSnapshot,
   getSession,
   listSessionIds,
+  normalizePhone,
   setDuration,
   setMessages,
   setStatus,

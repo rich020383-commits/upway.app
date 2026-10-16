@@ -60,7 +60,6 @@ export default function Footer() {
               <li><Link href="/login" className="hover:text-blue-400 transition-colors">Iniciar SesiÃ³n</Link></li>
               <li><Link href="/register" className="hover:text-blue-400 transition-colors">Crear Cuenta</Link></li>
               <li><Link href="/precios" className="hover:text-blue-400 transition-colors">Planes y Precios</Link></li>
-              <li><Link href="/demo" className="hover:text-blue-400 transition-colors">Demo en vivo con Sophie</Link></li>
             </ul>
           </div>
           <div className="space-y-4">

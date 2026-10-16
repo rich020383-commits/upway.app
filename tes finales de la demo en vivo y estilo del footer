@@ -1,0 +1,5 @@
+[33m07596a0[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m fix(demo): corregir import lucide y agregar getConversationMessages a client Telnyx
+[33m7441496[m feat(demo): Cerebro 3 - panel demo en vivo con Sophie
+[33m1055bb2[m feat(landing): demo Sophie en vivo con numero +57 601 9177737
+[33m025e524[m ui(footer): center logo, add icons, 4 equal columns
+[33mef48d58[m ui(footer): redesign with 4 equal columns and clean layout

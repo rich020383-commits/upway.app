@@ -741,6 +741,24 @@ export default function Home() {
           </div>
         </section>
 
+        {/* CTA: Demo en vivo con Sophie */}
+        <section className="max-w-[1180px] mx-[15px] md:mx-auto mt-[10px] mb-[10px]">
+          <div className="rounded-[28px] border border-[#e0edf6] bg-gradient-to-br from-[#0d3168] to-[#132642] p-[30px] shadow-[0_20px_40px_#153f6820] text-center">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Phone className="w-6 h-6 text-[#11b4b0]" />
+              <h2 className="font-display text-[24px] font-extrabold leading-[1.1] tracking-[-1px] text-white md:text-[32px]">
+                Prueba a Sophie en vivo
+              </h2>
+            </div>
+            <p className="text-[15px] leading-relaxed text-[#a8c4d9] max-w-[600px] mx-auto mb-8">
+              Llama al <span className="font-mono text-[#11b4b0] font-bold">+57 601 9177737</span> desde tu celular y mira cómo Sophie te atiende en tiempo real, captura tus datos y agenda tu cita.
+            </p>
+            <Link href="/demo" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#11b4b0] px-8 py-3.5 text-[15px] font-bold text-white transition hover:bg-[#0ba9a9] hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(17,180,176,0.35)]">
+              Ir a la demo en vivo <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </section>
+
         {/* ANTES / DESPUÉS — el video del "mientras dormías": llamadas perdidas
             de la noche → red de llamadas → el cliente dormido con 500 llamadas
             atendidas. Nativo, con controles y SIN autoplay (regla de la casa);
@@ -1019,7 +1037,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* CTA CONTACTO */}
+                {/* CTA CONTACTO */}
         <section id="contacto" className="py-[48px] px-5 md:px-[8%] flex flex-col md:flex-row items-center justify-between bg-[linear-gradient(110deg,#103d79,#0b858d)] text-white gap-8">
           <div>
             <small className="text-[13px] text-[#50e1d5] font-semibold block mb-2">Empieza por tu vertical</small>
@@ -1029,21 +1047,31 @@ export default function Home() {
           </div>
           <form
             className="shrink-0 w-full max-w-[340px] flex flex-col gap-2"
-            onSubmit={(event) => {
+            onSubmit={async (event) => {
               event.preventDefault();
-              const data = new FormData(event.currentTarget);
-              const nombre = String(data.get('nombre') ?? '').trim();
-              const institucion = String(data.get('institucion') ?? '').trim();
-              const telefono = String(data.get('telefono') ?? '').trim();
-              const subject = `Solicitud de demo Upway — ${institucion || nombre || 'Nueva solicitud'}`;
-              const body = [
-                `Nombre: ${nombre}`,
-                `Institución/Empresa: ${institucion}`,
-                `Teléfono: ${telefono}`,
-                '',
-                'Solicito una demo de Upway.',
-              ].join('\n');
-              window.location.href = `mailto:contacto@upway.business?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+              const formData = new FormData(event.currentTarget);
+              const nombre = String(formData.get("nombre") ?? "").trim();
+              const institucion = String(formData.get("institucion") ?? "").trim();
+              const telefono = String(formData.get("telefono") ?? "").trim();
+
+              if (!telefono) {
+                alert("Por favor ingresa tu teléfono de contacto.");
+                return;
+              }
+
+              try {
+                const res = await fetch("/api/demo/sessions", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ phone: telefono, nombre, institucion }),
+                });
+                if (!res.ok) throw new Error("No se pudo crear la sesión de demo.");
+                const data = await res.json();
+                window.location.href = `/demo?sessionId=${data.sessionId}`;
+              } catch (err) {
+                console.error(err);
+                alert("No se pudo crear la sesión de demo. Intenta de nuevo.");
+              }
             }}
           >
             <input name="nombre" required placeholder="Tu nombre" className="rounded-full px-4 py-2.5 text-[13px] text-[#0d3168] bg-white/95 border border-white/40 placeholder:text-[#7b93ab] outline-none focus:ring-2 focus:ring-[#50e1d5]" />
@@ -1060,9 +1088,7 @@ export default function Home() {
               responde consultas y prioriza según tus protocolos. ¿Un superrecepcionista o un agente completo para tu empresa? Ella hace las dos.
             </p>
           </form>
-                 </section>
-
-         {/* FOOTER */}
+        </section>
         <Footer />
       </main>
     </>

@@ -7,6 +7,8 @@ export const maxDuration = 30;
 
 const createSchema = z.object({
   phone: z.string().trim().min(8, 'Número muy corto').max(20, 'Número muy largo'),
+  nombre: z.string().trim().optional().nullable(),
+  institucion: z.string().trim().optional().nullable(),
 });
 
 const RULE = { limit: 10, windowMs: 60 * 60 * 1000 } as const; // 10 sesiones por IP y hora
@@ -29,8 +31,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { phone } = parsed.data;
-  const sesion = createSession(phone);
+  const { phone, nombre, institucion } = parsed.data;
+  const sesion = createSession(phone, nombre, institucion);
 
   return NextResponse.json(
     { sessionId: sesion.id, status: sesion.status, createdAt: sesion.createdAt },

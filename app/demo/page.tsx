@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Phone } from 'lucide-react';
 import LiveDemoPanel from '@/components/demo/live-demo-panel';
 
@@ -12,6 +12,9 @@ import LiveDemoPanel from '@/components/demo/live-demo-panel';
  * 2. Llama al +57 601 9177737 desde ese celular.
  * 3. Telnyx webhook empareja la llamada por el número del llamante.
  * 4. El panel SSE muestra el transcript y los datos que Sophie captura en vivo.
+ *
+ * Si llega con ?sessionId= en la URL (desde el formulario de contacto de la
+ * landing), salta directamente al panel y no pide volver a ingresar el celular.
  */
 export default function DemoPage() {
   const [step, setStep] = useState<'ingresar' | 'llamar' | 'panel'>('ingresar');
@@ -19,6 +22,18 @@ export default function DemoPage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Si ya viene con sessionId de la URL, ir directo al panel.
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const sid = params.get('sessionId');
+      if (sid) {
+        setSessionId(sid);
+        setStep('panel');
+      }
+    }
+  }, []);
 
   const crearSesion = async () => {
     setError(null);
@@ -50,13 +65,13 @@ export default function DemoPage() {
     <main className="max-w-3xl mx-auto px-4 py-12">
       {/* Paso 1: Ingresar celular */}
       {step === 'ingresar' && (
-        <section className="mb-10 rounded-2xl bg-gradient-to-br from-blue-900/20 to-indigo-900/30 border border-blue-500/30 p-8 md:p-12 shadow-xl">
+        <section className="mb-10 rounded-[24px] border border-[#0d3168]/30 bg-gradient-to-br from-[#0d3168]/10 to-[#132642]/20 p-8 md:p-12 shadow-[0_10px_30px_rgba(13,49,104,0.35)]">
           <div className="flex items-center gap-3 mb-4">
-            <Phone className="w-6 h-6 text-blue-400" />
+            <Phone className="w-6 h-6 text-[#11b4b0]" />
             <h1 className="text-2xl font-bold text-slate-100">Prueba la demo en vivo</h1>
           </div>
-          <p className="text-slate-300 mb-6">
-            Ingresa tu número celular y luego llama al <span className="font-mono text-blue-300">+57 601 9177737</span>.
+          <p className="text-[#a8c4d9] mb-6">
+            Ingresa tu número celular y luego llama al <span className="font-mono text-[#11b4b0] font-bold">+57 601 9177737</span>.
             Verás en esta pantalla cómo Sophie atiende, entiende tu necesidad y captura tus datos en tiempo real.
           </p>
           <form onSubmit={(e) => { e.preventDefault(); crearSesion(); }} className="space-y-3">
@@ -72,7 +87,7 @@ export default function DemoPage() {
                 disabled={loading}
               />
             </div>
-            {error && <p className="text-sm text-red-400">{error}</p>}
+            {error && <p className="text-sm text-[#e2555f]">{error}</p>}
             <button
               type="submit"
               disabled={loading || phone.length === 0}
@@ -81,7 +96,7 @@ export default function DemoPage() {
               {loading ? 'Creando sesión…' : 'Crear sesión de demo'}
             </button>
           </form>
-          <p className="mt-4 text-xs text-slate-500">
+          <p className="mt-4 text-xs text-[#7b93ab]">
             Tu número solo se usa para emparejar la llamada con esta pantalla. Nunca lo mostramos completo.
           </p>
         </section>
@@ -91,11 +106,11 @@ export default function DemoPage() {
       {step === 'llamar' && (
         <section className="rounded-2xl bg-gradient-to-br from-emerald-900/20 to-teal-900/30 border border-emerald-500/30 p-8 md:p-12 shadow-xl text-center">
           <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-6">
-            <Phone className="w-8 h-8 text-emerald-400" />
+            <Phone className="w-8 h-8 text-[#11b4b0]" />
           </div>
-          <h2 className="text-2xl font-bold text-slate-100 mb-3">Llama ahora al</h2>
-          <div className="font-mono text-3xl font-bold text-emerald-400 mb-2">+57 601 9177737</div>
-          <p className="text-slate-300 mb-8 max-w-md mx-auto">
+          <h2 className="font-display text-[24px] font-extrabold leading-[1.1] tracking-[-1px] text-white mb-3">Llama ahora al</h2>
+          <div className="font-mono text-3xl font-bold text-[#11b4b0] mb-2">+57 601 9177737</div>
+          <p className="text-[#a8c4d9] mb-8 max-w-md mx-auto">
             Desde el celular que registraste, llama a ese número. Sophie responderá y esta pantalla se actualizará en vivo con todo lo que vaya capturando.
           </p>
           <button

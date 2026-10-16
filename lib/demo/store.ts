@@ -30,6 +30,10 @@ export type DemoSession = {
   id: string;
   /** E.164 normalizado del visitante, ej. +573126427856. */
   phone: string;
+  /** Nombre del visitante (opcional, desde el formulario de la landing). */
+  nombre: string | null;
+  /** Institución/empresa del visitante (opcional, desde el formulario de la landing). */
+  institucion: string | null;
   createdAt: number;
   status: DemoSessionStatus;
   /** id de la conversación del asistente (call.conversation.created). */
@@ -117,7 +121,7 @@ export function normalizeEndedMessages(raw: unknown): DemoMessage[] {
 }
 
 /** Crea una sesión de demo para un número de visitante. */
-export function createSession(phone: string): DemoSession {
+export function createSession(phone: string, nombre?: string | null, institucion?: string | null): DemoSession {
   if (sessions.size >= MAX_SESSIONS) {
     const ahora = Date.now();
     let masViejo: string | null = null;
@@ -139,6 +143,8 @@ export function createSession(phone: string): DemoSession {
   const sesion: DemoSession = {
     id,
     phone,
+    nombre: nombre ?? null,
+    institucion: institucion ?? null,
     createdAt: Date.now(),
     status: 'waiting',
     conversationId: null,
