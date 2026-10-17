@@ -254,6 +254,15 @@ export type WebhookEventLog = {
 const WEBHOOK_LOG_MAX = 50;
 const webhookEvents: WebhookEventLog[] = [];
 
+/**
+ * Momento en que este proceso cargó el módulo (Date.now()).
+ * El log y las sesiones viven en memoria: si Render reinicia el proceso, se
+ * pierden. Este timestamp permite saber en el diagnóstico si un log vacío
+ * significa "el webhook nunca llegó" o "la instancia se reinició hace un
+ * segundo y los eventos previos se perdieron".
+ */
+export const INSTANCE_STARTED_AT = Date.now();
+
 /** Registra un evento de webhook visto (para el diagnóstico público). */
 export function logWebhookEvent(e: Omit<WebhookEventLog, 'at'>): void {
   webhookEvents.unshift({ ...e, at: Date.now() });

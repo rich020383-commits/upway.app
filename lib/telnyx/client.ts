@@ -226,9 +226,20 @@ export async function hangupCall(callControlId: string) {
   return telnyxFetch(`/calls/${callControlId}/actions/hangup`, { method: 'POST', body: '{}' });
 }
 
-/** Engancha un AI Assistant a una llamada entrante existente (Call Control v2). */
+/**
+ * Contesta una llamada entrante CON el AI Assistant enganchado desde el
+ * pickup (Call Control v2).
+ *
+ * AUDITORÍA: el endpoint era `/calls/{id}/actions` (sin el nombre de la
+ * acción), que no existe en el API — el resto del archivo sí usa el patrón
+ * correcto (`/actions/speak`, `/actions/hangup`). Telnyx exige
+ * `/actions/answer` para responder con assistant en una llamada que aún no
+ * ha sido contestada, que es exactamente el momento en que llega el webhook
+ * `call.initiated`. Con el endpoint viejo el assistant nunca se enganchaba
+ * aunque la llamada y el assistant_id estuvieran bien.
+ */
 export async function startAssistantOnCall(callControlId: string, assistantId: string) {
-  return telnyxFetch(`/calls/${encodeURIComponent(callControlId)}/actions`, {
+  return telnyxFetch(`/calls/${encodeURIComponent(callControlId)}/actions/answer`, {
     method: 'POST',
     body: JSON.stringify({ assistant: { id: assistantId } }),
   });

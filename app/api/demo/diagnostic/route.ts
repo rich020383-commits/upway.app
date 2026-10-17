@@ -3,6 +3,7 @@ import {
   listSessionIds,
   getSession,
   getRecentWebhookEvents,
+  INSTANCE_STARTED_AT,
 } from '@/lib/demo/store';
 
 export async function GET() {
@@ -43,6 +44,11 @@ export async function GET() {
     sessions,
     config,
     webhookEvents,
-    hint: 'Si "webhookEvents" está vacío tras una llamada: el webhook de Telnyx no llega (verifica en el portal: Phone Numbers -> +576019177737 -> Webhook URL = https://upway.business/api/voice/webhooks, API Version v2). Si ves "firma-rechazada-401": TELNYX_PUBLIC_KEY en Render no coincide con la del portal. Si ves "sesion-live-sin-assistant-id-env": falta TELNYX_AI_ASSISTANT_ID en Render (nadie contesta la llamada). Si ves "call-initiated-sin-sesion-coincidente": el número del llamante no coincide con el de la sesión.',
+    // El log y las sesiones viven en memoria: si la instancia arrancó hace
+    // muy poco, un log vacío puede ser "se perdió en el redeploy", no "el
+    // webhook nunca llegó".
+    instanceStartedAt: INSTANCE_STARTED_AT,
+    uptimeSec: Math.round((Date.now() - INSTANCE_STARTED_AT) / 1000),
+    hint: 'Si "webhookEvents" está vacío tras una llamada: el webhook de Telnyx no llega (verifica en el portal: Voice > Programmable Voice > tu Voice App — NO en la página del número — "Send a webhook to the URL" = https://upway.business/api/voice/webhooks, API Version v2; y el número +576019177737 debe estar asignado a esa app). Si ves "firma-rechazada-401": TELNYX_PUBLIC_KEY en Render no coincide con la del portal. Si ves "sesion-live-sin-assistant-id-env": falta TELNYX_AI_ASSISTANT_ID en Render (nadie contesta la llamada). Si ves "call-initiated-sin-sesion-coincidente": el número del llamante no coincide con el de la sesión.',
   });
 }
