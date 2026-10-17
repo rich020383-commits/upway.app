@@ -19,13 +19,18 @@ export async function GET() {
     } : null;
   }).filter(Boolean);
 
-  // Configuración mínima del webhook (SOLO booleanos: jamás secretos). Cada
-  // uno es un punto de falla distinto de la cadena demo→panel en vivo.
+  // Configuración mínima del webhook (booleanos + preview de la clave PÚBLICA;
+  // jamás secretos). Cada uno es un punto de falla distinto de la cadena
+  // demo→panel en vivo.
   const webhookEvents = getRecentWebhookEvents();
+  const publicKeyRaw = (process.env.TELNYX_PUBLIC_KEY ?? '').trim();
   const config = {
     // La firma Ed25519 se verifica con esta clave pública: si falta o no
-    // coincide con la del portal, TODO webhook muere en 401.
-    publicKeyConfigured: Boolean(process.env.TELNYX_PUBLIC_KEY?.trim()),
+    // coincide con la del portal, TODO webhook muere en 401. El preview deja
+    // comparar Render vs Portal sin adivinar: es una clave PÚBLICA, no un
+    // secreto — mostrar inicio/fin es seguro y es el diagnóstico más directo.
+    publicKeyConfigured: Boolean(publicKeyRaw),
+    publicKeyPreview: publicKeyRaw ? `${publicKeyRaw.slice(0, 10)}…${publicKeyRaw.slice(-6)}` : null,
     // Sin API key no se puede enganchar el assistant a la llamada entrante.
     apiKeyConfigured: Boolean(process.env.TELNYX_API_KEY?.trim()),
     // Sin assistant id, la sesión pasa a "live" pero nadie contesta: no hay

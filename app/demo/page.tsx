@@ -110,7 +110,7 @@ export default function DemoPage() {
                 className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#e0edf6] bg-[#f9fcff] text-[#0d3168] focus:ring-2 focus:ring-[#0ba9a9] focus:border-transparent outline-none transition-all"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                maxLength="10"
+                maxLength={10}
                 disabled={loading}
               />
             </div>

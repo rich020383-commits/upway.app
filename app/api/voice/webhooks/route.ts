@@ -3,11 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { estimateCallCosts } from '@/lib/telnyx/costs';
 import {
   decodeClientState,
-  getConversationMessages,
   getTelnyxConfig,
   missingTelnyxCallEnv,
   missingTelnyxVoiceEnv,
-  normalizeApiMessages,
   startAssistantOnCall,
 } from '@/lib/telnyx/client';
 import {
