@@ -1046,6 +1046,14 @@ export default function Home() {
             </h2>
           </div>
           
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link href="/demo" className="inline-flex items-center justify-center gap-2 rounded-full bg-white text-[#0d3168] px-6 py-3 text-[14px] font-bold transition hover:bg-[#50e1d5] hover:shadow-[0_10px_25px_rgba(255,255,255,0.3)]">
+              Probar demo en vivo <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link href="/precios" className="inline-flex items-center justify-center gap-2 rounded-full border border-white text-white px-6 py-3 text-[14px] font-bold transition hover:bg-white/10">
+              Ver planes y precios
+            </Link>
+          </div>
         </section>
         <Footer />
       </main>
