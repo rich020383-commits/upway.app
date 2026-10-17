@@ -152,9 +152,9 @@ describe('POST /api/voice/webhooks — verificación de firma Ed25519', () => {
   let sodium: typeof import('libsodium-wrappers');
   let keys: { publicKey: Uint8Array; privateKey: Uint8Array };
 
-  function firmar(raw: string): string {
+  function firmar(raw: string, encoding: 'hex' | 'base64' = 'hex'): string {
     const msg = Buffer.from(`${TS}|${raw}`);
-    return Buffer.from(sodium.crypto_sign_detached(msg, keys.privateKey)).toString('hex');
+    return Buffer.from(sodium.crypto_sign_detached(msg, keys.privateKey)).toString(encoding);
   }
 
   function firmadaRequest(raw: string, firma: string) {
@@ -182,6 +182,25 @@ describe('POST /api/voice/webhooks — verificación de firma Ed25519', () => {
     const res = await POST(firmadaRequest(RAW, firmar(RAW)));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ received: true, type: 'call.test' });
+  });
+
+  it('acepta la firma en base64 (formato REAL del webhook)', async () => {
+    // REGRESIÓN: el SDK oficial decodifica `telnyx-signature-ed25519` como
+    // base64, no hex. El código viejo hacía Buffer.from(sig, 'hex') → bytes
+    // basura → TODO webhook moría en 401 aunque la clave fuera correcta. Este
+    // test usa exactamente el formato que el proveedor envía en producción.
+    process.env.TELNYX_PUBLIC_KEY = Buffer.from(keys.publicKey).toString('base64');
+    const firmaBase64 = firmar(RAW, 'base64');
+    expect(firmaBase64).toHaveLength(88); // 64 bytes firmados = 88 chars base64
+    const res = await POST(firmadaRequest(RAW, firmaBase64));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ received: true, type: 'call.test' });
+  });
+
+  it('rechaza una firma base64 que no corresponde al cuerpo (401)', async () => {
+    process.env.TELNYX_PUBLIC_KEY = Buffer.from(keys.publicKey).toString('base64');
+    const res = await POST(firmadaRequest(RAW, firmar('otro-cuerpo', 'base64')));
+    expect(res.status).toBe(401);
   });
 
   it('acepta la clave en hex', async () => {

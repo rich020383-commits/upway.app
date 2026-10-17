@@ -26,7 +26,8 @@ import { extractLeadData } from '@/lib/demo/extract';
 import { maskPhone } from '@/lib/demo/store';
 
 // POST /api/voice/webhooks — receptor Call Control v2 (API v2 en tu captura).
-// Telnyx firma con Ed25519: cabeceras `telnyx-signature-ed25519` + `telnyx-timestamp`.
+// Firma Ed25519: cabeceras `telnyx-signature-ed25519` (BASE64, como decodifica
+// el SDK oficial) + `telnyx-timestamp`.
 // Verificación: libsodium `crypto_sign_verify_detached(timestamp + '|' + rawBody)`.
 //
 // En tu pantalla del portal (Upway voice core, dominio oficial upway.business):
@@ -112,6 +113,34 @@ function decodeTelnyxPublicKey(raw: string): Buffer {
   return Buffer.from(clean, 'hex');
 }
 
+/**
+ * Decodifica la firma Ed25519 del header `telnyx-signature-ed25519`.
+ *
+ * AUDITORÍA: el código decodificaba SIEMPRE como hex
+ * (`Buffer.from(signature, 'hex')`), pero el SDK oficial de voz decodifica la
+ * firma como BASE64 (telnyx-node, src/lib/webhooks.ts:
+ * `decodeBase64(signatureHeader)`). Con una firma base64 real, el parseo hex
+ * para en el primer carácter no-hex y produce un buffer corto basura;
+ * `crypto_sign_verify_detached` entonces devuelve false SIEMPRE, sin importar
+ * la clave pública: todo webhook moría en 401 "Firma de voz inválida" aunque
+ * la clave del portal y la de Render coincidieran. Los tests no lo veían
+ * porque firmaban en hex — se auto-confirmaban el contrato equivocado.
+ *
+ * Se aceptan los DOS formatos (base64 = el real; hex = compatibilidad) y se
+ * prueba la verificación con cada candidato de 64 bytes. Los alfabetos se
+ * solapan (0-9a-f es base64 válido), así que la DISTINGUI es la longitud:
+ * 88 chars base64 → 64 bytes; 128 chars hex → 64 bytes; un formato nunca
+ * decodifica al otro con longitud 64, así que no hay ambigüedad.
+ */
+function decodeEd25519Signature(signature: string): Buffer[] {
+  const candidatos: Buffer[] = [];
+  const comoBase64 = Buffer.from(signature, 'base64');
+  if (comoBase64.length === 64) candidatos.push(comoBase64);
+  const comoHex = Buffer.from(signature, 'hex');
+  if (comoHex.length === 64 && comoHex !== candidatos[0]) candidatos.push(comoHex);
+  return candidatos;
+}
+
 async function verifyTelnyx(req: NextRequest, raw: string): Promise<boolean> {
   const publicKey = process.env.TELNYX_PUBLIC_KEY;
   const signature = req.headers.get('telnyx-signature-ed25519');
@@ -123,12 +152,23 @@ async function verifyTelnyx(req: NextRequest, raw: string): Promise<boolean> {
     console.error('[telnyx] TELNYX_PUBLIC_KEY inválida: se esperaba base64 o hex de 32 bytes.');
     return false;
   }
+  const firmas = decodeEd25519Signature(signature);
+  if (firmas.length === 0) {
+    console.error('[telnyx] firma Ed25519 inválida: se esperaba base64 o hex de 64 bytes.');
+    return false;
+  }
   try {
     const sodium = await import('libsodium-wrappers');
     await sodium.ready;
     const msg = Buffer.from(`${timestamp}|${raw}`);
-    const sig = Buffer.from(signature, 'hex');
-    return Boolean(sodium.crypto_sign_verify_detached(sig, msg, key));
+    for (const sig of firmas) {
+      try {
+        if (sodium.crypto_sign_verify_detached(sig, msg, key)) return true;
+      } catch {
+        // Formato no válido para libsodium: se prueba el siguiente candidato.
+      }
+    }
+    return false;
   } catch (err) {
     console.error('[telnyx] verify error', err);
     return false;
