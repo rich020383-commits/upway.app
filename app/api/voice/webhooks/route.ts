@@ -105,17 +105,24 @@ async function directionOfCall(clientState: string | null): Promise<'inbound' | 
 }
 
 /**
- * Decodifica TELNYX_PUBLIC_KEY tolerando los dos formatos del portal (base64
- * —el típico— y hex de 32 bytes) y el prefijo `TELNYX_PUBLIC_KEY=` que queda
- * cuando se pega la línea completa del .env dentro del valor en Render.
+ * Decodifica TELNYX_PUBLIC_KEY tolerando los formatos del portal (base64
+ * —el típico— y hex de 32 bytes) y los residuos de copiar/pegar: el prefijo
+ * `TELNYX_PUBLIC_KEY=` del .env, comillas envolventes y espacios/saltos de
+ * línea invisibles que suelen colarse al pegar desde el portal.
  *
  * AUDITORÍA: el código original hacía `Buffer.from(publicKey, 'hex')` sobre
- * una clave base64 → devolvía 0 bytes → libsodium lanzaba, el catch devolvía
- * false y TODOS los webhooks de voz terminaban en 401 "Firma de voz inválida":
- * LlamadaLog quedaba siempre vacío y la telemetría de llamadas se perdía.
+ * una clave base64 → devolvía 0 bytes → la verificación lanzaba, el catch
+ * devolvía false y TODOS los webhooks de voz terminaban en 401 "Firma de
+ * voz inválida": LlamadaLog quedaba siempre vacío y la telemetría de
+ * llamadas se perdía.
  */
 function decodeTelnyxPublicKey(raw: string): Buffer {
-  const clean = raw.trim().replace(/^TELNYX_PUBLIC_KEY=/, '');
+  const clean = raw
+    .trim()
+    .replace(/^TELNYX_PUBLIC_KEY=/, '')
+    // Comillas simples o dobles envolventes (pegado desde .env o terminal).
+    .replace(/^['"]+|['"]+$/g, '')
+    .trim();
   const asBase64 = Buffer.from(clean, 'base64');
   if (asBase64.length === 32) return asBase64;
   return Buffer.from(clean, 'hex');
@@ -205,8 +212,13 @@ async function verifyTelnyx(req: NextRequest, raw: string): Promise<Verificacion
     // la causa más común es TELNYX_PUBLIC_KEY desalineada con la del portal.
     return { ok: false, motivo: 'firma-no-verifica (clave pública desalineada con la del portal)' };
   } catch (err) {
+    // El mensaje viaja al diagnóstico (logWebhookEvent) para que un 401 raro
+    // diga QUÉ falló (p. ej. "error:10000076:elliptic curve routines...") sin
+    // tener que leer los logs de Render. Node crypto no incluye material de
+    // la clave en sus mensajes.
     console.error('[telnyx] verify error', err);
-    return { ok: false, motivo: 'error-crypto' };
+    const detalle = err instanceof Error ? err.message.slice(0, 140) : 'sin detalle';
+    return { ok: false, motivo: `error-crypto: ${detalle}` };
   }
 }
 
