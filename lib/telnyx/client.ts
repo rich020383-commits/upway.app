@@ -403,6 +403,14 @@ export async function updateAssistantVoice(assistantId: string, voice: string) {
   });
 }
 
+/** Engancha un AI Assistant a una llamada entrante existente (Call Control v2). */
+export async function startAssistantOnCall(callControlId: string, assistantId: string) {
+  return telnyxFetch(`/calls/${encodeURIComponent(callControlId)}/actions`, {
+    method: 'POST',
+    body: JSON.stringify({ assistant: { id: assistantId } }),
+  });
+}
+
 /** GET /ai/conversations/{conversation_id}/messages — transcript del asistente. */
 export async function getConversationMessages(conversationId: string) {
   return telnyxFetch(`/ai/conversations/${encodeURIComponent(conversationId)}/messages`);
