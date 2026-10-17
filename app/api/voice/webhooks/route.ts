@@ -17,6 +17,7 @@ import {
   getPublicSnapshot,
   getSession,
   listSessionIds,
+  logWebhookEvent,
   normalizePhone,
   setDuration,
   setMessages,
@@ -139,17 +140,29 @@ async function verifyTelnyx(req: NextRequest, raw: string): Promise<boolean> {
 export async function POST(req: NextRequest) {
   const raw = await req.text();
   if (!(await verifyTelnyx(req, raw))) {
+    // Rastro para /api/demo/diagnostic: sin este log un 401 se ve igual que
+    // "el webhook nunca llegó" (sesión stuck en waiting). Firma rechazada =
+    // TELNYX_PUBLIC_KEY desalineada entre el portal y Render.
+    logWebhookEvent({ type: 'unknown', fromMasked: null, outcome: 'firma-rechazada-401', sid: null });
     return NextResponse.json({ error: 'Firma de voz inválida' }, { status: 401 });
   }
   let event: TelnyxEvent;
   try {
     event = JSON.parse(raw);
   } catch {
+    logWebhookEvent({ type: 'unknown', fromMasked: null, outcome: 'json-invalido-400', sid: null });
     return NextResponse.json({ error: 'JSON inválido' }, { status: 400 });
   }
 
   const type = event.data?.event_type ?? 'unknown';
   const p = event.data?.payload ?? {};
+  const fromRaw = p.from ?? '';
+  const fromNorm = normalizePhone(fromRaw ?? '');
+  const fromMasked = fromNorm ? maskPhone(fromNorm) : null;
+  // Resultado del evento para el log del diagnóstico (/api/demo/diagnostic).
+  // Se recalcula en cada rama del handler y se registra UNA sola vez al final.
+  let outcome = 'procesado';
+  let logSid: string | null = null;
   // `client_state` viaja en Base-64: se decodifica para recuperar el tiendaId.
   const tiendaId = decodeClientState(p.client_state);
 
@@ -197,10 +210,8 @@ export async function POST(req: NextRequest) {
     // El visitante registró su celular y llamó al número demo. Telnyx nos
     // dice quién llama en `payload.from`; si coincide con una sesión
     // `waiting`, la pasamos a `live` y arrancamos el polling del transcript.
-    const fromRaw = p.from ?? '';
-    // Normalizamos el número del llamante para que coincida con el de la sesión
-    // (Telnyx puede enviar +57312..., 57312..., o 312...; la sesión guarda E.164).
-    const fromNorm = normalizePhone(fromRaw ?? '');
+    // (`fromRaw`/`fromNorm` se declaran arriba, junto al parseo, para poder
+    // registrarlos en el log del diagnóstico también en eventos no matcheados.)
 
     const sesionEspera = listSessionIds()
       .map((sid) => ({ sid, s: getSession(sid) }))
@@ -208,6 +219,8 @@ export async function POST(req: NextRequest) {
 
     if (sesionEspera?.s && type === 'call.initiated') {
       setStatus(sesionEspera.sid, 'live');
+      logSid = sesionEspera.sid;
+      outcome = 'sesion-live';
       // Si Telnyx ya envió conversation_id en el mismo evento, lo asociamos.
       const convId = (p as any)?.conversation_id ?? null;
       if (convId) {
@@ -219,10 +232,20 @@ export async function POST(req: NextRequest) {
         const cfg = getTelnyxConfig();
         if (cfg.assistantId && p.call_control_id) {
           await startAssistantOnCall(p.call_control_id, cfg.assistantId);
+          outcome = 'sesion-live-assistant-enganchado';
+        } else {
+          outcome = cfg.assistantId
+            ? 'sesion-live-sin-call-control-id'
+            : 'sesion-live-sin-assistant-id-env';
         }
       } catch (err) {
         console.warn('[demo] no se pudo iniciar assistant en la llamada', err);
+        outcome = 'sesion-live-error-al-iniciar-assistant';
       }
+    } else if (type === 'call.initiated') {
+      // Llamada entrante que NO coincide con ninguna sesión waiting: o el
+      // número del llamante no coincide o nadie creó sesión. Dato clave.
+      outcome = fromNorm ? 'call-initiated-sin-sesion-coincidente' : 'call-initiated-sin-from-valido';
     }
 
     // Cuando el asistente crea la conversación, guardamos el conversationId
@@ -255,6 +278,12 @@ export async function POST(req: NextRequest) {
         setStatus(sidDemo, 'live');
         startPolling(sidDemo);
       }
+      if (sidDemo) {
+        logSid = sidDemo;
+        outcome = convId ? 'conversacion-creada' : 'conversacion-creada-sin-conv-id';
+      } else {
+        outcome = 'conversacion-creada-sin-sesion-coincidente';
+      }
     }
 
     // Cuando la conversación termina, finalizamos la sesión de demo.
@@ -264,6 +293,8 @@ export async function POST(req: NextRequest) {
         const s = getSession(sId);
         if (s && s.conversationId === ccId) {
           endSession(sId);
+          logSid = sId;
+          outcome = 'sesion-finalizada';
           const dur = minutesOfCall(event);
           if (dur > 0) setDuration(sId, Math.round(dur * 60));
           break;
@@ -272,7 +303,12 @@ export async function POST(req: NextRequest) {
     }
   } catch (err) {
     console.error('[telnyx] webhook persist failed', err);
+    outcome = 'error-de-persistencia';
   }
+
+  // Rastro único por evento para /api/demo/diagnostic: el diagnóstico así
+  // distingue "el webhook nunca llegó" de "llegó pero falló algo interno".
+  logWebhookEvent({ type, fromMasked, outcome, sid: logSid });
 
   // Responder 200 rápido: Telnyx reintenta si tardas >10s (tu "Custom webhook timeout: 10").
   return NextResponse.json({ received: true, type });

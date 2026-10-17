@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
-import { listSessionIds, getSession, getPublicSnapshot } from '@/lib/demo/store';
+import {
+  listSessionIds,
+  getSession,
+  getRecentWebhookEvents,
+} from '@/lib/demo/store';
 
 export async function GET() {
   const ids = listSessionIds();
@@ -15,9 +19,25 @@ export async function GET() {
     } : null;
   }).filter(Boolean);
 
+  // Configuración mínima del webhook (SOLO booleanos: jamás secretos). Cada
+  // uno es un punto de falla distinto de la cadena demo→panel en vivo.
+  const webhookEvents = getRecentWebhookEvents();
+  const config = {
+    // La firma Ed25519 se verifica con esta clave pública: si falta o no
+    // coincide con la del portal, TODO webhook muere en 401.
+    publicKeyConfigured: Boolean(process.env.TELNYX_PUBLIC_KEY?.trim()),
+    // Sin API key no se puede enganchar el assistant a la llamada entrante.
+    apiKeyConfigured: Boolean(process.env.TELNYX_API_KEY?.trim()),
+    // Sin assistant id, la sesión pasa a "live" pero nadie contesta: no hay
+    // conversación, no hay transcript, no hay datos.
+    assistantIdConfigured: Boolean(process.env.TELNYX_AI_ASSISTANT_ID?.trim()),
+  };
+
   return NextResponse.json({
     total: sessions.length,
     sessions,
-    hint: 'Si ves sesiones con status "waiting" y llamaste pero no cambia a "live", el webhook de Telnyx no está llegando a este endpoint. Verifica en el portal de Telnyx: Phone Numbers -> +576019177737 -> Webhook URL debe ser https://upway.business/api/voice/webhooks',
+    config,
+    webhookEvents,
+    hint: 'Si "webhookEvents" está vacío tras una llamada: el webhook de Telnyx no llega (verifica en el portal: Phone Numbers -> +576019177737 -> Webhook URL = https://upway.business/api/voice/webhooks, API Version v2). Si ves "firma-rechazada-401": TELNYX_PUBLIC_KEY en Render no coincide con la del portal. Si ves "sesion-live-sin-assistant-id-env": falta TELNYX_AI_ASSISTANT_ID en Render (nadie contesta la llamada). Si ves "call-initiated-sin-sesion-coincidente": el número del llamante no coincide con el de la sesión.',
   });
 }

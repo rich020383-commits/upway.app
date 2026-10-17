@@ -225,6 +225,46 @@ export function listSessionIds(): string[] {
   return Array.from(sessions.keys());
 }
 
+/* ==========================================================================
+ * LOG DE EVENTOS DE WEBHOOK (diagnóstico /demo/diagnostic)
+ * --------------------------------------------------------------------------
+ * La cadena de la demo tiene varios puntos de falla silenciosos: el webhook
+ * no llega, la firma se rechaza (401), el número no coincide o falta el
+ * assistant. Sin rastro, todo se ve igual "sesión stuck en waiting". Este
+ * buffer guarda los últimos eventos vistos (tipo + resultado + sesión
+ * emparejada, teléfono SIEMPRE enmascarado) para que el diagnóstico diga
+ * exactamente en qué paso se rompe la cadena. Es el mismo criterio de vida
+ * en memoria que las sesiones: se pierde al reiniciar el proceso.
+ * ========================================================================== */
+
+export type WebhookEventLog = {
+  /** Momento en milisegundos (Date.now()). */
+  at: number;
+  /** event_type de Telnyx o 'unknown' si la firma se rechazó antes de parsear. */
+  type: string;
+  /** Teléfono del llamante enmascarado (nunca completo). */
+  fromMasked: string | null;
+  /** Resultado del procesamiento. */
+  outcome: string;
+  /** Id corto de la sesión emparejada, si hubo. */
+  sid: string | null;
+};
+
+/** Tope del buffer circular de eventos. */
+const WEBHOOK_LOG_MAX = 50;
+const webhookEvents: WebhookEventLog[] = [];
+
+/** Registra un evento de webhook visto (para el diagnóstico público). */
+export function logWebhookEvent(e: Omit<WebhookEventLog, 'at'>): void {
+  webhookEvents.unshift({ ...e, at: Date.now() });
+  if (webhookEvents.length > WEBHOOK_LOG_MAX) webhookEvents.length = WEBHOOK_LOG_MAX;
+}
+
+/** Últimos eventos de webhook, del más reciente al más antiguo. */
+export function getRecentWebhookEvents(): WebhookEventLog[] {
+  return [...webhookEvents];
+}
+
 type PollerState = { timer: ReturnType<typeof setInterval>; lastMessageCount: number };
 
 /** Inicia polling del transcript de Telnyx cada POLL_MS mientras la llamada viva. */
