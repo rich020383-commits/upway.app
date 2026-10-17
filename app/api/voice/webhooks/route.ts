@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createPublicKey, verify as verificarEd25519 } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import { estimateCallCosts } from '@/lib/telnyx/costs';
 import {
@@ -28,7 +29,14 @@ import { maskPhone } from '@/lib/demo/store';
 // POST /api/voice/webhooks — receptor Call Control v2 (API v2 en tu captura).
 // Firma Ed25519: cabeceras `telnyx-signature-ed25519` (BASE64, como decodifica
 // el SDK oficial) + `telnyx-timestamp`.
-// Verificación: libsodium `crypto_sign_verify_detached(timestamp + '|' + rawBody)`.
+// Verificación: node:crypto nativo sobre `timestamp + '|' + rawBody`.
+// ANTES usaba libsodium vía `await import()` dinámico: la build ESM publicada
+// de libsodium-wrappers 0.7.16 importa un './libsodium.mjs' que no viene en el
+// tarball, y con serverExternalPackages + Turbopack el import dinámico la
+// resolvía → lanzaba → TODO webhook moría en 401 'error-crypto' aunque la
+// clave y el formato de la firma fueran correctos. node:crypto (Ed25519
+// soportado nativamente desde Node 12) elimina la dependencia y su clase
+// entera de fallos de carga.
 //
 // En tu pantalla del portal (Upway voice core, dominio oficial upway.business):
 //   Webhook URL = https://upway.business/api/voice/webhooks
@@ -144,6 +152,13 @@ function decodeEd25519Signature(signature: string): Buffer[] {
 /** Resultado de la verificación: en producción, `motivo` explica el 401. */
 type VerificacionFirma = { ok: true } | { ok: false; motivo: string };
 
+/**
+ * Prefijo DER SPKI de una clave pública Ed25519 (OID 1.3.101.112 + bit string
+ * de 32 bytes). Permite envolver los 32 bytes crudos del portal en un
+ * KeyObject que node:crypto acepta para verificar.
+ */
+const ED25519_SPKI_PREFIX = Buffer.from('302a300506032b6570032100', 'hex');
+
 async function verifyTelnyx(req: NextRequest, raw: string): Promise<VerificacionFirma> {
   const publicKey = process.env.TELNYX_PUBLIC_KEY;
   const signature = req.headers.get('telnyx-signature-ed25519');
@@ -173,15 +188,18 @@ async function verifyTelnyx(req: NextRequest, raw: string): Promise<Verificacion
     return { ok: false, motivo: `firma-decodifica-${bytes}bytes (no es firma de 64)` };
   }
   try {
-    const sodium = await import('libsodium-wrappers');
-    await sodium.ready;
+    // node:crypto nativo (Ed25519): sin libsodium, sin WASM, sin import
+    // dinámico — ver comentario del encabezado del archivo.
     const msg = Buffer.from(`${timestamp}|${raw}`);
+    const claveObj = createPublicKey({
+      key: Buffer.concat([ED25519_SPKI_PREFIX, key]),
+      format: 'der',
+      type: 'spki',
+    });
     for (const sig of firmas) {
-      try {
-        if (sodium.crypto_sign_verify_detached(sig, msg, key)) return { ok: true };
-      } catch {
-        // Formato no válido para libsodium: se prueba el siguiente candidato.
-      }
+      // `null` como algoritmo: en Ed25519 el algoritmo es implícito en la
+      // clave. Longitudes ya validadas (32 y 64), así que devuelve bool.
+      if (verificarEd25519(null, msg, claveObj, sig)) return { ok: true };
     }
     // La firma ES del formato correcto pero no calza con la clave configurada:
     // la causa más común es TELNYX_PUBLIC_KEY desalineada con la del portal.
