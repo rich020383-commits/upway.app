@@ -32,7 +32,15 @@ export async function POST(req: NextRequest) {
   }
 
   const { phone, nombre, institucion } = parsed.data;
-  const sesion = createSession(phone, nombre, institucion);
+  let sesion;
+  try {
+    sesion = createSession(phone, nombre, institucion);
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Número de teléfono inválido' },
+      { status: 400, headers: rateLimitHeaders(rate) },
+    );
+  }
 
   return NextResponse.json(
     { sessionId: sesion.id, status: sesion.status, createdAt: sesion.createdAt },

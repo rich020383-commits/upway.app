@@ -122,6 +122,10 @@ export function normalizeEndedMessages(raw: unknown): DemoMessage[] {
 
 /** Crea una sesión de demo para un número de visitante. */
 export function createSession(phone: string, nombre?: string | null, institucion?: string | null): DemoSession {
+  const normalizado = normalizePhone(phone);
+  if (!normalizado) {
+    throw new Error(`Número de teléfono inválido para sesión de demo: ${phone}`);
+  }
   if (sessions.size >= MAX_SESSIONS) {
     const ahora = Date.now();
     let masViejo: string | null = null;
@@ -142,7 +146,7 @@ export function createSession(phone: string, nombre?: string | null, institucion
   const id = crypto.randomUUID();
   const sesion: DemoSession = {
     id,
-    phone,
+    phone: normalizado,
     nombre: nombre ?? null,
     institucion: institucion ?? null,
     createdAt: Date.now(),
