@@ -141,21 +141,36 @@ function decodeEd25519Signature(signature: string): Buffer[] {
   return candidatos;
 }
 
-async function verifyTelnyx(req: NextRequest, raw: string): Promise<boolean> {
+/** Resultado de la verificación: en producción, `motivo` explica el 401. */
+type VerificacionFirma = { ok: true } | { ok: false; motivo: string };
+
+async function verifyTelnyx(req: NextRequest, raw: string): Promise<VerificacionFirma> {
   const publicKey = process.env.TELNYX_PUBLIC_KEY;
   const signature = req.headers.get('telnyx-signature-ed25519');
   const timestamp = req.headers.get('telnyx-timestamp');
-  // Sin public key configurada no podemos verificar: en prod se rechaza.
-  if (!publicKey || !signature || !timestamp) return process.env.NODE_ENV !== 'production';
+  if (!publicKey || !signature || !timestamp) {
+    // Sin headers no hay nada que verificar: en dev se deja pasar; en prod el
+    // motivo dice QUÉ falta — ¿la app manda la firma v1 (API version vieja)?
+    if (process.env.NODE_ENV !== 'production') return { ok: true };
+    const motivo = !publicKey
+      ? 'clave-publica-env-ausente'
+      : !signature
+        ? req.headers.get('telnyx-signature')
+          ? 'sin-header-ed25519 (la app manda firma v1: pon Webhook API version = v2)'
+          : 'sin-header-ed25519 (sin firma Ed25519 en la petición)'
+        : 'sin-header-timestamp';
+    return { ok: false, motivo };
+  }
   const key = decodeTelnyxPublicKey(publicKey);
   if (key.length !== 32) {
     console.error('[telnyx] TELNYX_PUBLIC_KEY inválida: se esperaba base64 o hex de 32 bytes.');
-    return false;
+    return { ok: false, motivo: `clave-decodifica-${key.length}bytes (no es clave de 32)` };
   }
   const firmas = decodeEd25519Signature(signature);
   if (firmas.length === 0) {
+    const bytes = Buffer.from(signature, 'base64').length;
     console.error('[telnyx] firma Ed25519 inválida: se esperaba base64 o hex de 64 bytes.');
-    return false;
+    return { ok: false, motivo: `firma-decodifica-${bytes}bytes (no es firma de 64)` };
   }
   try {
     const sodium = await import('libsodium-wrappers');
@@ -163,25 +178,28 @@ async function verifyTelnyx(req: NextRequest, raw: string): Promise<boolean> {
     const msg = Buffer.from(`${timestamp}|${raw}`);
     for (const sig of firmas) {
       try {
-        if (sodium.crypto_sign_verify_detached(sig, msg, key)) return true;
+        if (sodium.crypto_sign_verify_detached(sig, msg, key)) return { ok: true };
       } catch {
         // Formato no válido para libsodium: se prueba el siguiente candidato.
       }
     }
-    return false;
+    // La firma ES del formato correcto pero no calza con la clave configurada:
+    // la causa más común es TELNYX_PUBLIC_KEY desalineada con la del portal.
+    return { ok: false, motivo: 'firma-no-verifica (clave pública desalineada con la del portal)' };
   } catch (err) {
     console.error('[telnyx] verify error', err);
-    return false;
+    return { ok: false, motivo: 'error-crypto' };
   }
 }
 
 export async function POST(req: NextRequest) {
   const raw = await req.text();
-  if (!(await verifyTelnyx(req, raw))) {
-    // Rastro para /api/demo/diagnostic: sin este log un 401 se ve igual que
-    // "el webhook nunca llegó" (sesión stuck en waiting). Firma rechazada =
-    // TELNYX_PUBLIC_KEY desalineada entre el portal y Render.
-    logWebhookEvent({ type: 'unknown', fromMasked: null, outcome: 'firma-rechazada-401', sid: null });
+  const verificacion = await verifyTelnyx(req, raw);
+  if (!verificacion.ok) {
+    // Rastro para /api/demo/diagnostic: el motivo dice POR QUÉ falló (¿app en
+    // API version V1, clave ausente, clave que no mide 32 bytes, o firma que
+    // no calza con la clave = desalineada portal/Render).
+    logWebhookEvent({ type: 'unknown', fromMasked: null, outcome: `401: ${verificacion.motivo}`, sid: null });
     return NextResponse.json({ error: 'Firma de voz inválida' }, { status: 401 });
   }
   let event: TelnyxEvent;
