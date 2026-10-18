@@ -292,99 +292,109 @@ export async function POST(req: NextRequest) {
       }).catch(() => undefined);
     }
 
-    // ── Demo en vivo: emparejar llamada entrante con sesión de demo ──
-    // El visitante registró su celular y llamó al número demo. Telnyx nos
-    // dice quién llama en `payload.from`; si coincide con una sesión
-    // `waiting`, la pasamos a `live` y arrancamos el polling del transcript.
-    // (`fromRaw`/`fromNorm` se declaran arriba, junto al parseo, para poder
-    // registrarlos en el log del diagnóstico también en eventos no matcheados.)
+    // ── Demo en vivo: emparejar la llamada con la sesión del visitante ──
+    // El flujo REAL de esta cuenta no emite `call.initiated` al webhook: el
+    // assistant se engancha a nivel de número y el primer evento que llega es
+    // `assistant.initialization` (con `from`). Por eso la regla es general:
+    // CUALQUIER evento que traiga `from` coincide con una sesión waiting =>
+    // pasa a `live`; y siempre que un evento traiga el conversation_id (en
+    // cualquiera de sus alias) se asocia y arranca el polling del transcript.
+    const convId =
+      (p as { conversation_id?: string }).conversation_id ??
+      (p as { conversationId?: string }).conversationId ??
+      (p as { telnyx_conversation_id?: string }).telnyx_conversation_id ??
+      (p as { conversation?: { id?: string } }).conversation?.id ??
+      null;
+    const ccId = p.call_control_id ?? '';
+    const esEventoSesion =
+      type === 'call.initiated' ||
+      type === 'call.conversation.created' ||
+      type.startsWith('assistant.');
 
-    const sesionEspera = listSessionIds()
-      .map((sid) => ({ sid, s: getSession(sid) }))
-      .find((x) => x.s && x.s.status === 'waiting' && x.s.phone === fromNorm);
+    if (esEventoSesion) {
+      // Sesión esperando que coincida por teléfono del llamante.
+      const sesionEspera = listSessionIds()
+        .map((sid) => ({ sid, s: getSession(sid) }))
+        .find((x) => x.s && x.s.status === 'waiting' && x.s.phone === fromNorm);
+      // O sesión ya viva de ESTA llamada (eventos posteriores que traigan el
+      // conversation_id u otro dato nuevo).
+      const sesionAsociada = sesionEspera
+        ? null
+        : listSessionIds()
+            .map((sid) => ({ sid, s: getSession(sid) }))
+            .find(
+              (x) =>
+                x.s &&
+                x.s.status !== 'ended' &&
+                ((convId !== null && x.s.conversationId === convId) ||
+                  (ccId !== '' && x.s.conversationId === ccId))
+            );
+      const sid = sesionEspera?.sid ?? sesionAsociada?.sid ?? null;
 
-    if (sesionEspera?.s && type === 'call.initiated') {
-      setStatus(sesionEspera.sid, 'live');
-      logSid = sesionEspera.sid;
-      outcome = 'sesion-live';
-      // Si Telnyx ya envió conversation_id en el mismo evento, lo asociamos.
-      const convId = (p as any)?.conversation_id ?? null;
-      if (convId) {
-        associateCall(sesionEspera.sid, p.call_control_id ?? '', convId);
-        startPolling(sesionEspera.sid);
-      }
-      // Iniciar el assistant de Sophie en esta llamada entrante (demo en vivo).
-      try {
-        const cfg = getTelnyxConfig();
-        if (cfg.assistantId && p.call_control_id) {
-          await startAssistantOnCall(p.call_control_id, cfg.assistantId);
-          outcome = 'sesion-live-assistant-enganchado';
+      if (sid) {
+        logSid = sid;
+        if (sesionEspera) setStatus(sid, 'live');
+        if (convId) {
+          // conversation_id real: se asocia y se enciende el polling del
+          // transcript (lo que alimenta el panel en vivo).
+          associateCall(sid, ccId, convId);
+          startPolling(sid);
+          outcome = `sesion-live-conversacion(${type})`;
         } else {
-          outcome = cfg.assistantId
-            ? 'sesion-live-sin-call-control-id'
-            : 'sesion-live-sin-assistant-id-env';
+          outcome = `sesion-live(${type})`;
         }
-      } catch (err) {
-        console.warn('[demo] no se pudo iniciar assistant en la llamada', err);
-        outcome = 'sesion-live-error-al-iniciar-assistant';
+      } else if (fromNorm) {
+        // Llamada que no coincide con ninguna sesión: dato clave del
+        // diagnóstico (¿crearon sesión? ¿el número coincide?).
+        outcome = `sin-sesion-coincidente(${type})`;
       }
-    } else if (type === 'call.initiated') {
-      // Llamada entrante que NO coincide con ninguna sesión waiting: o el
-      // número del llamante no coincide o nadie creó sesión. Dato clave.
-      outcome = fromNorm ? 'call-initiated-sin-sesion-coincidente' : 'call-initiated-sin-from-valido';
-    }
 
-    // Cuando el asistente crea la conversación, guardamos el conversationId
-    // y arrancamos polling (si aún no está corriendo).
-    if (type === 'call.conversation.created') {
-      const convId = (p as any)?.conversation_id ?? (p as any)?.conversationId ?? null;
-      const ccId = p.call_control_id ?? '';
-      // Buscar la sesión por conversationId o por call_control_id.
-      let sidDemo: string | null = null;
-      for (const sId of listSessionIds()) {
-        const s = getSession(sId);
-        if (s && (s.conversationId === convId || s.conversationId === ccId)) {
-          sidDemo = sId;
-          break;
+      // Enganchar el assistant SOLO en call.initiated sin nadie contestado:
+      // assistant.initialization significa que ya está en la llamada y
+      // volver a contestar fallaría (la llamada ya fue contestada).
+      if (sesionEspera && type === 'call.initiated') {
+        try {
+          const cfg = getTelnyxConfig();
+          if (cfg.assistantId && ccId) {
+            await startAssistantOnCall(ccId, cfg.assistantId);
+            outcome = 'sesion-live-assistant-enganchado';
+          } else {
+            outcome = cfg.assistantId
+              ? 'sesion-live-sin-call-control-id'
+              : 'sesion-live-sin-assistant-id-env';
+          }
+        } catch (err) {
+          console.warn('[demo] no se pudo iniciar assistant en la llamada', err);
+          outcome = 'sesion-live-error-al-iniciar-assistant';
         }
-      }
-      if (!sidDemo && fromNorm) {
-        // Intento por número: si la llamada entrante coincide con una sesión waiting.
-        const s2 = listSessionIds()
-          .map((sId) => ({ sId, s: getSession(sId) }))
-          .find((x) => x.s && x.s.status === 'waiting' && x.s.phone === fromNorm);
-        if (s2?.s) {
-          sidDemo = s2.sId;
-          associateCall(sidDemo, ccId, convId ?? null);
-          setStatus(sidDemo, 'live');
-        }
-      }
-      if (sidDemo && convId) {
-        associateCall(sidDemo, ccId, convId);
-        setStatus(sidDemo, 'live');
-        startPolling(sidDemo);
-      }
-      if (sidDemo) {
-        logSid = sidDemo;
-        outcome = convId ? 'conversacion-creada' : 'conversacion-creada-sin-conv-id';
-      } else {
-        outcome = 'conversacion-creada-sin-sesion-coincidente';
       }
     }
 
-    // Cuando la conversación termina, finalizamos la sesión de demo.
-    if ((type === 'call.conversation.ended' || type === 'call.hangup' || type === 'call.hangup.final') && !tiendaId) {
-      const ccId = p.call_control_id ?? '';
-      for (const sId of listSessionIds()) {
-        const s = getSession(sId);
-        if (s && s.conversationId === ccId) {
-          endSession(sId);
-          logSid = sId;
-          outcome = 'sesion-finalizada';
-          const dur = minutesOfCall(event);
-          if (dur > 0) setDuration(sId, Math.round(dur * 60));
-          break;
-        }
+    // Fin de la conversación / de la llamada: cerrar la sesión del demo.
+    // El match es por conversationId guardado; fallback por `from` (algunos
+    // eventos de cierre del asistente no traen los ids de la llamada).
+    const esCierre =
+      type === 'call.conversation.ended' ||
+      type === 'call.hangup' ||
+      type === 'call.hangup.final' ||
+      type === 'assistant.conversation.ended';
+    if (esCierre && !tiendaId) {
+      const cierre = listSessionIds()
+        .map((sId) => ({ sId, s: getSession(sId) }))
+        .find(
+          (x) =>
+            x.s &&
+            x.s.status === 'live' &&
+            ((ccId !== '' && x.s.conversationId === ccId) ||
+              (convId !== null && x.s.conversationId === convId) ||
+              (fromNorm !== null && x.s.phone === fromNorm))
+        );
+      if (cierre?.s) {
+        endSession(cierre.sId);
+        logSid = cierre.sId;
+        outcome = 'sesion-finalizada';
+        const dur = minutesOfCall(event);
+        if (dur > 0) setDuration(cierre.sId, Math.round(dur * 60));
       }
     }
   } catch (err) {
@@ -394,7 +404,15 @@ export async function POST(req: NextRequest) {
 
   // Rastro único por evento para /api/demo/diagnostic: el diagnóstico así
   // distingue "el webhook nunca llegó" de "llegó pero falló algo interno".
-  logWebhookEvent({ type, fromMasked, outcome, sid: logSid });
+  // payloadKeys = solo nombres de campos del payload (diagnostica el esquema
+  // de eventos desconocidos como assistant.* sin exponer valores).
+  logWebhookEvent({
+    type,
+    fromMasked,
+    outcome,
+    sid: logSid,
+    payloadKeys: Object.keys(p).slice(0, 24).join(','),
+  });
 
   // Responder 200 rápido: Telnyx reintenta si tardas >10s (tu "Custom webhook timeout: 10").
   return NextResponse.json({ received: true, type });

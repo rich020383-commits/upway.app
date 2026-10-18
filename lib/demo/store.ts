@@ -248,6 +248,12 @@ export type WebhookEventLog = {
   outcome: string;
   /** Id corto de la sesión emparejada, si hubo. */
   sid: string | null;
+  /**
+   * Nombres de los campos del payload (SOLO nombres, sin valores): permite
+   * ver en el diagnóstico el esquema real de un evento desconocido — p. ej.
+   * dónde viene el conversation_id — sin exponer datos del llamante.
+   */
+  payloadKeys?: string;
 };
 
 /** Tope del buffer circular de eventos. */
