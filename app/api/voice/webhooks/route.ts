@@ -312,28 +312,39 @@ export async function POST(req: NextRequest) {
       type.startsWith('assistant.');
 
     if (esEventoSesion) {
-      // Sesión esperando que coincida por teléfono del llamante.
-      const sesionEspera = listSessionIds()
+      // El orden real de eventos es: assistant.initialization PRIMERO (pasa
+      // la sesión a live SIN conversation_id) y call.conversation.created
+      // DESPUÉS trayendo el id — por eso la búsqueda cubre los TRES estados
+      // de la sesión de esta llamada, o conversation_id se perdería.
+      const todas = listSessionIds()
         .map((sid) => ({ sid, s: getSession(sid) }))
-        .find((x) => x.s && x.s.status === 'waiting' && x.s.phone === fromNorm);
-      // O sesión ya viva de ESTA llamada (eventos posteriores que traigan el
-      // conversation_id u otro dato nuevo).
-      const sesionAsociada = sesionEspera
-        ? null
-        : listSessionIds()
-            .map((sid) => ({ sid, s: getSession(sid) }))
-            .find(
-              (x) =>
-                x.s &&
-                x.s.status !== 'ended' &&
-                ((convId !== null && x.s.conversationId === convId) ||
-                  (ccId !== '' && x.s.conversationId === ccId))
-            );
-      const sid = sesionEspera?.sid ?? sesionAsociada?.sid ?? null;
+        .filter((x) => x.s && x.s.status !== 'ended');
+      // 1) Waiting con teléfono del llamante (primer evento de la llamada).
+      const porTelefono = fromNorm
+        ? todas.filter((x) => x.s && x.s.phone === fromNorm)
+        : [];
+      // 2) Ya asociada a esta conversación/llamada (eventos posteriores).
+      const porIds = todas.filter(
+        (x) =>
+          x.s &&
+          ((convId !== null && x.s.conversationId === convId) ||
+            (ccId !== '' && x.s.conversationId === ccId))
+      );
+      const sesion =
+        porTelefono.find((x) => x.s?.status === 'waiting') ??
+        porIds[0] ??
+        // 3) Live SIN conversationId todavía (vino assistant.initialization
+        //    antes y ahora llega el evento que trae el id).
+        porTelefono.find((x) => x.s?.status === 'live' && x.s.conversationId === null) ??
+        null;
+      const sid = sesion?.sid ?? null;
+      // Estado previo a mutar: solo una sesión que esperaba pasa a live y
+      // solo en su primer evento se engancha el assistant.
+      const eraEspera = sesion?.s?.status === 'waiting';
 
       if (sid) {
         logSid = sid;
-        if (sesionEspera) setStatus(sid, 'live');
+        if (eraEspera) setStatus(sid, 'live');
         if (convId) {
           // conversation_id real: se asocia y se enciende el polling del
           // transcript (lo que alimenta el panel en vivo).
@@ -352,7 +363,7 @@ export async function POST(req: NextRequest) {
       // Enganchar el assistant SOLO en call.initiated sin nadie contestado:
       // assistant.initialization significa que ya está en la llamada y
       // volver a contestar fallaría (la llamada ya fue contestada).
-      if (sesionEspera && type === 'call.initiated') {
+      if (eraEspera && type === 'call.initiated') {
         try {
           const cfg = getTelnyxConfig();
           if (cfg.assistantId && ccId) {
