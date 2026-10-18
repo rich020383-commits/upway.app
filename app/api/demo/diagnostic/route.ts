@@ -44,6 +44,10 @@ export async function GET() {
     sessions,
     config,
     webhookEvents,
+    // Commit exacto que está corriendo (Render inyecta RENDER_GIT_COMMIT).
+    // Si no coincide con el último push, el deploy NO se aplicó: revisar la
+    // pestaña Deploys de Render (build fallido) o el trigger (Auto Deploy).
+    buildCommit: (process.env.RENDER_GIT_COMMIT ?? '').slice(0, 7) || null,
     // El log y las sesiones viven en memoria: si la instancia arrancó hace
     // muy poco, un log vacío puede ser "se perdió en el redeploy", no "el
     // webhook nunca llegó".
