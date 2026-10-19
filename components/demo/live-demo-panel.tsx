@@ -17,6 +17,8 @@ export default function LiveDemoPanel({ sessionId }: DemoPanelProps) {
   // Teléfono enmascarado de la SESIÓN (el visitante lo registró en el
   // formulario): el transcript solo lo tendría si el usuario lo dice en voz.
   const [phoneSesion, setPhoneSesion] = useState<string | null>(null);
+  // Nombre del visitante desde el formulario de /demo (no del transcript).
+  const [nombreSesion, setNombreSesion] = useState<string | null>(null);
   const [lead, setLead] = useState<ReturnType<typeof extractLeadData> | null>(null);
   const [eventSource, setEventSource] = useState<EventSource | null>(null);
   // Auto-scroll: un transcript en vivo que no baja solo obliga al usuario a
@@ -41,6 +43,7 @@ export default function LiveDemoPanel({ sessionId }: DemoPanelProps) {
           setDurationSec(data.durationSec ?? null);
           setConversationId(data.conversationId ?? null);
           if (data.phone) setPhoneSesion(data.phone);
+          if (data.nombre) setNombreSesion(data.nombre);
         }
       } catch {
         // Ignorar mensajes malformados.
@@ -153,7 +156,7 @@ export default function LiveDemoPanel({ sessionId }: DemoPanelProps) {
               <User className="w-5 h-5 text-[#0ba9a9]" />
               <div>
                 <div className="text-xs text-[#7b93ab] uppercase tracking-wider">Cliente</div>
-                <div className="text-sm font-medium text-[#0d3168]">{lead?.nombre ?? '—'}</div>
+                <div className="text-sm font-medium text-[#0d3168]">{nombreSesion ?? lead?.nombre ?? '—'}</div>
               </div>
             </div>
             <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white border border-[#e0edf6]">

@@ -27,11 +27,26 @@ const SECTOR_KEYWORDS: Record<string, string[]> = {
 
 /** Palabras clave de dolor operativo. */
 const DOLOR_KEYWORDS: Record<string, string[]> = {
-  'llamadas perdidas': ['llamada perdida', 'perdemos llamadas', 'no contestamos', 'llamadas sin responder'],
-  'agenda desordenada': ['agenda', 'citas', 'reprogramar', 'cancelar cita', 'olvidamos'],
-  'seguimiento manual': ['seguimiento', 'manual', 'hoja de calculo', 'excel', 'libreta'],
-  'equipo saturado': ['saturado', 'sobrecargado', 'no damos abasto', 'demasiado trabajo'],
-  'clientes que no responden': ['cliente no responde', 'no nos devuelven la llamada', 'no contestan el telefono'],
+  'llamadas perdidas': [
+    'llamada perdida', 'perdemos llamadas', 'no contestamos', 'llamadas sin responder',
+    'llamadas caídas', 'no nos llaman', 'perdemos clientes por teléfono',
+  ],
+  'agenda desordenada': [
+    'agenda', 'citas', 'reprogramar', 'cancelar cita', 'olvidamos',
+    'agenda desordenada', 'no controlamos las citas', 'solapamos citas',
+  ],
+  'seguimiento manual': [
+    'seguimiento', 'manual', 'hoja de calculo', 'excel', 'libreta',
+    'seguimiento de leads', 'seguimiento de clientes',
+  ],
+  'equipo saturado': [
+    'saturado', 'sobrecargado', 'no damos abasto', 'demasiado trabajo',
+    'no damos respuesta', 'no podemos atender',
+  ],
+  'clientes que no responden': [
+    'cliente no responde', 'no nos devuelven la llamada', 'no contestan el telefono',
+    'no nos responden', 'clientes fríos',
+  ],
 };
 
 /** Palabras clave de interés alto. */

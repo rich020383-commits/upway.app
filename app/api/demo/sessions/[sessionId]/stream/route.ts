@@ -44,6 +44,8 @@ export async function GET(
       conversationId: sesion.conversationId,
       // Siempre enmascarado: el stream no expone el número completo.
       phone: maskPhone(sesion.phone),
+      // Nombre del visitante desde el formulario de /demo (no del transcript).
+      nombre: sesion.nombre ?? null,
     })}\n\n`;
     try {
       writer.write(encoder.encode(payload));
