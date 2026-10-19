@@ -382,24 +382,27 @@ export async function POST(req: NextRequest) {
     }
 
     // Fin de la conversación / de la llamada: cerrar la sesión del demo.
-    // El match es por conversationId guardado; fallback por `from` (algunos
-    // eventos de cierre del asistente no traen los ids de la llamada).
+    // Prioridad: conversationId/ccId EXACTO sobre el fallback por teléfono —
+    // con dos demos del mismo número, el match por teléfono cerraría la
+    // sesión más vieja en vez de la de esta llamada.
     const esCierre =
       type === 'call.conversation.ended' ||
       type === 'call.hangup' ||
       type === 'call.hangup.final' ||
       type === 'assistant.conversation.ended';
     if (esCierre && !tiendaId) {
-      const cierre = listSessionIds()
+      const vivas = listSessionIds()
         .map((sId) => ({ sId, s: getSession(sId) }))
-        .find(
-          (x) =>
-            x.s &&
-            x.s.status === 'live' &&
-            ((ccId !== '' && x.s.conversationId === ccId) ||
-              (convId !== null && x.s.conversationId === convId) ||
-              (fromNorm !== null && x.s.phone === fromNorm))
-        );
+        .filter((x) => x.s && x.s.status === 'live');
+      const porId = vivas.find(
+        (x) =>
+          x.s &&
+          ((ccId !== '' && x.s.conversationId === ccId) ||
+            (convId !== null && x.s.conversationId === convId))
+      );
+      const cierre =
+        porId ??
+        (fromNorm !== null ? vivas.find((x) => x.s && x.s.phone === fromNorm) : undefined);
       if (cierre?.s) {
         endSession(cierre.sId);
         logSid = cierre.sId;

@@ -49,6 +49,25 @@ const SESSION_TTL_MS = 30 * 60 * 1000;
 const MAX_SESSIONS = 500;
 /** Cadencia del polling del transcript mientras la llamada está viva. */
 const POLL_MS = 2000;
+/**
+ * Cierre automático por silencio: esta cuenta NO emite eventos de hangup
+ * (solo `assistant.initialization`), así que sin este tope la sesión quedaba
+ * `live` para siempre — el poller consultaba la API cada 2s de por vida y el
+ * SSE mantenía el navegador abierto sin motivo. Si el transcript deja de
+ * crecer por 2 minutos (Sophie habla cada pocos segundos en una demo), la
+ * llamada terminó: se cierra la sesión y TODO se libera. Es el fallback del
+ * cierre instantáneo por `assistant.conversation.ended` (ya soportado en el
+ * handler) por si ese evento no llega configurado.
+ */
+const IDLE_CIERRE_MS = 2 * 60 * 1000;
+/** Tope absoluto del polling de una misma llamada, pase lo que pase. */
+const DURACION_MAX_POLL_MS = 15 * 60 * 1000;
+/**
+ * Cierre por fallo sostenido de la API del transcript: ~30 errores
+ * consecutivos (1 minuto a POLL_MS) significan que la conversación ya no
+ * existe o la cuenta la bloqueó — no tiene sentido seguir consultando.
+ */
+const MAX_ERRORES_POLL = 30;
 
 type Listener = (session: DemoSession) => void;
 
@@ -126,6 +145,9 @@ export function createSession(phone: string, nombre?: string | null, institucion
   if (!normalizado) {
     throw new Error(`Número de teléfono inválido para sesión de demo: ${phone}`);
   }
+  // Purga de sesiones caducadas: sin llamada periódica, el TTL solo se
+  // aplicaba al llegar al tope MAX_SESSIONS. Barata (O(n), n ≤ 500).
+  cleanupExpired();
   if (sessions.size >= MAX_SESSIONS) {
     const ahora = Date.now();
     let masViejo: string | null = null;
@@ -289,25 +311,48 @@ export function startPolling(id: string): void {
   const convId = s?.conversationId;
   if (!convId) return;
 
-  const state: PollerState = {
+  const ahora = Date.now();
+  const state: PollerState & { ultimaCrecida: number; inicio: number; errores: number } = {
     timer: setInterval(async () => {
       const ses = sessions.get(id);
       if (!ses || ses.status === 'ended') {
         stopPollers(id);
         return;
       }
+      // Cierre por inactividad (ver IDLE_CIERRE_MS): esta cuenta no manda
+      // hangup, así que sin esto la sesión viviría para siempre.
+      const ts = Date.now();
+      if (ts - state.ultimaCrecida > IDLE_CIERRE_MS || ts - state.inicio > DURACION_MAX_POLL_MS) {
+        // Duración aproximada: primera→última actividad del transcript.
+        const dur = Math.round((state.ultimaCrecida - state.inicio) / 1000);
+        if (dur > 0) setDuration(id, dur);
+        endSession(id); // detiene este poller y notifica a los escuchas SSE.
+        return;
+      }
       try {
         const data = await getConversationMessages(convId);
         const msgs = normalizeApiMessages(data?.data ?? []);
+        state.errores = 0;
         if (msgs.length !== state.lastMessageCount) {
           state.lastMessageCount = msgs.length;
+          state.ultimaCrecida = ts;
           setMessages(id, msgs);
         }
       } catch (err) {
         console.warn('[demo] polling falló', id, err);
+        // Fallo sostenido = la conversación ya no es consultable: cerrar.
+        state.errores += 1;
+        if (state.errores >= MAX_ERRORES_POLL) {
+          const dur = Math.round((state.ultimaCrecida - state.inicio) / 1000);
+          if (dur > 0) setDuration(id, dur);
+          endSession(id);
+        }
       }
     }, POLL_MS),
     lastMessageCount: 0,
+    ultimaCrecida: ahora,
+    inicio: ahora,
+    errores: 0,
   };
   pollers.set(id, state.timer);
 }
