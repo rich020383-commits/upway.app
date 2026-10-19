@@ -54,12 +54,12 @@ const POLL_MS = 2000;
  * (solo `assistant.initialization`), así que sin este tope la sesión quedaba
  * `live` para siempre — el poller consultaba la API cada 2s de por vida y el
  * SSE mantenía el navegador abierto sin motivo. Si el transcript deja de
- * crecer por 2 minutos (Sophie habla cada pocos segundos en una demo), la
+ * crecer por 60 segundos (Sophie habla cada pocos segundos en una demo), la
  * llamada terminó: se cierra la sesión y TODO se libera. Es el fallback del
  * cierre instantáneo por `assistant.conversation.ended` (ya soportado en el
  * handler) por si ese evento no llega configurado.
  */
-const IDLE_CIERRE_MS = 2 * 60 * 1000;
+const IDLE_CIERRE_MS = 60 * 1000;
 /** Tope absoluto del polling de una misma llamada, pase lo que pase. */
 const DURACION_MAX_POLL_MS = 15 * 60 * 1000;
 /**
