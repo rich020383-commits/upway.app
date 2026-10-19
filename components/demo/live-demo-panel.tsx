@@ -112,6 +112,8 @@ export default function LiveDemoPanel({ sessionId }: DemoPanelProps) {
           <div
             ref={transcriptRef}
             className="h-[400px] overflow-y-auto rounded-[20px] border border-[#e0edf6] bg-[#f9fcff] p-4 md:p-6 text-sm leading-relaxed shadow-[0_4px_12px_rgba(15,31,54,0.05)]"
+            
+
           >
             {messages.length === 0 ? (
               <p className="text-[#7b93ab] text-center mt-10 italic">
@@ -213,6 +215,24 @@ export default function LiveDemoPanel({ sessionId }: DemoPanelProps) {
               </div>
             )}
           </div>
+          {status === 'live' && (
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  await fetch(`/api/demo/sessions/${sessionId}/end`, {
+                    method: 'POST',
+                  });
+                } catch {
+                  // Si falla, la sesión se cierra sola por inactividad (60s).
+                }
+              }}
+              className="mt-3 inline-flex items-center gap-2 rounded-full bg-[#e2555f] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#b3404a]"
+            >
+              <Phone className="w-4 h-4" />
+              Colgar / Finalizar llamada
+            </button>
+          )}
           {status === 'ended' && (
             <div className="rounded-[20px] border border-[#0ba9a9]/30 bg-[#e7fbfa] p-6">
               <div className="flex items-center gap-2 mb-2">

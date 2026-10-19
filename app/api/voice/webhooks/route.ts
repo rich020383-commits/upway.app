@@ -23,6 +23,7 @@ import {
   setStatus,
   startPolling,
 } from '@/lib/demo/store';
+import type { DemoSession } from '@/lib/demo/store';
 import { extractLeadData } from '@/lib/demo/extract';
 import { maskPhone } from '@/lib/demo/store';
 
@@ -394,7 +395,7 @@ export async function POST(req: NextRequest) {
       const vivas = listSessionIds()
         .map((sId) => ({ sId, s: getSession(sId) }))
         .filter((x) => x.s && x.s.status === 'live');
-      let cierre: { sId: string; s: DemoSession } | undefined;
+      let cierre: { sId: string; s: DemoSession | null } | undefined;
       // 1) Match exacto por IDs de llamada (más preciso, para conversation.ended).
       if (ccId !== '' || convId !== null) {
         cierre = vivas.find(
