@@ -46,6 +46,7 @@ export async function GET(
       phone: maskPhone(sesion.phone),
       // Nombre del visitante desde el formulario de /demo (no del transcript).
       nombre: sesion.nombre ?? null,
+      institucion: sesion.institucion ?? null,
     })}\n\n`;
     try {
       writer.write(encoder.encode(payload));
