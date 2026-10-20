@@ -55,6 +55,9 @@ export default function DemoPage() {
       if (!res.ok) throw new Error('No se pudo crear la sesión de demo.');
       const data = await res.json();
       setSessionId(data.sessionId);
+      // Dejar la sesión en la URL: un refresh restaura el panel (el efecto
+      // de montaje lee `?sessionId=`) en vez de devolver al formulario vacío.
+      window.history.replaceState(null, '', `/demo?sessionId=${data.sessionId}`);
       setStep('llamar');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error inesperado.');

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Phone,
   User,
@@ -28,7 +28,6 @@ export default function LiveDemoPanel({ sessionId }: DemoPanelProps) {
   const [nombreSesion, setNombreSesion] = useState<string | null>(null);
   const [institucionSesion, setInstitucionSesion] = useState<string | null>(null);
   const [lead, setLead] = useState<ReturnType<typeof extractLeadData> | null>(null);
-  const [eventSource, setEventSource] = useState<EventSource | null>(null);
   const [colgando, setColgando] = useState(false);
   const transcriptRef = useRef<HTMLDivElement | null>(null);
 
@@ -38,8 +37,15 @@ export default function LiveDemoPanel({ sessionId }: DemoPanelProps) {
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages]);
 
-  const conectar = useCallback(() => {
-    if (eventSource) eventSource.close();
+  /* Conexión SSE con ciclo de vida limpio: un solo EventSource por sesión.
+     El patrón anterior (useCallback + estado `eventSource` dentro de sus
+     dependencias) generaba un bucle infinito de abrir/cerrar la conexión:
+     el snapshot `waiting → live` se perdía en el cierre y el panel quedaba
+     mudo hasta que un remount (cambiar de pestaña) creaba una conexión
+     nueva que sí lo recibía. Sin onerror: el navegador reconecta solo con
+     backoff nativo; cerrar ahí mataba la recuperación ante cortes
+     transitorios. */
+  useEffect(() => {
     const es = new EventSource(`/api/demo/sessions/${sessionId}/stream`);
     es.onmessage = (ev) => {
       try {
@@ -54,12 +60,8 @@ export default function LiveDemoPanel({ sessionId }: DemoPanelProps) {
         }
       } catch { /* mensaje malformado */ }
     };
-    es.onerror = () => { es.close(); };
-    setEventSource(es);
-    return () => { es.close(); };
-  }, [sessionId, eventSource]);
-
-  useEffect(() => { conectar(); }, [conectar]);
+    return () => es.close();
+  }, [sessionId]);
 
   /** Cierre manual: fetch al servidor + fallback local 'ended'. */
   const colgar = async () => {
