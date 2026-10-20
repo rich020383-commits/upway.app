@@ -4,6 +4,10 @@
  *
  * COSTO REAL ALL-IN verificado (CO inbound + AI):
  * - Voz inbound CO: $0.065 USD/min
+ *   Evidencia: la factura sep-2026 ($1.46) NO cobró la pierna carrier inbound
+ *   (facturó piernas a $0.002/min: Call Control/SIP Subdomain/WebRTC) — caso barato,
+ *   no la regla. El reporte de usage oct-2026 sí cobra "Elastic SIP Trunking"
+ *   26,9 min = $1.75 → $0.065/min exacto. Confirma este componente; no bajar el default.
  * - AI Assistant: $0.05 + STT $0.003 + TTS ~$0.0035 + LLM ~$0.001 = $0.0575 USD/min
  * - Total: ~$0.1225 USD/min = $379 COP/min (TRM 3,090)
  * - Numeros CO: $13.50 USD/mes c/u = $41,715 COP
