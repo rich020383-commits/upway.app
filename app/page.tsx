@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { MessageCircle, Phone, Sparkles, Calendar, Bell, Users, Shield, ShieldCheck, Database, RefreshCw, ClipboardCheck, BadgeCheck, CalendarDays, ArrowRight, Headphones, Home as HomeIcon } from 'lucide-react';
 import Footer from '@/components/Footer';
 import SophieChatButton from '@/components/sophie-chat-button';
+import { abrirChat } from '@/lib/chat-event';
 import ScrambleText from '@/components/landing/scramble-text';
 import CountUp from '@/components/landing/count-up';
 import VoiceDemo from '@/components/landing/voice-demo';
@@ -530,12 +531,12 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="flex shrink-0 gap-2 pt-2 sm:pt-0">
-                  <a
-                    href="tel:+576019177737"
+                  <button
+                    onClick={abrirChat}
                     className="btn-glow-primary inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 sm:w-auto sm:px-7 sm:py-3.5"
                   >
-                    <Phone className="h-4 w-4" /> Hablar con Sophie
-                  </a>
+                    <MessageCircle className="h-4 w-4" /> Hablar con Sophie
+                  </button>
                 </div>
               </div>
             </div>
