@@ -52,7 +52,10 @@ export default function DemoPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: e164, nombre: nombre || null, institucion: institucion || null }),
       });
-      if (!res.ok) throw new Error('No se pudo crear la sesión de demo.');
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? 'No se pudo crear la sesión de demo.');
+      }
       const data = await res.json();
       setSessionId(data.sessionId);
       // Dejar la sesión en la URL: un refresh restaura el panel (el efecto

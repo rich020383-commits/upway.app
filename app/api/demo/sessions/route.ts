@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { checkRateLimit, getClientIp, rateLimitHeaders } from '@/lib/rate-limit';
 import { createSession } from '@/lib/demo/store';
+import { getSessionUser } from '@/lib/session';
 
 export const maxDuration = 30;
 
@@ -13,8 +14,32 @@ const createSchema = z.object({
 
 const RULE = { limit: 10, windowMs: 60 * 60 * 1000 } as const; // 10 sesiones por IP y hora
 
+/** Visitante sin cuenta: 1 demo por IP cada 24 horas. Protege el SIP Trunking de pruebas sin intención de compra. */
+const ANON_RULE = { limit: 1, windowMs: 24 * 60 * 60 * 1000 } as const;
+
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
+
+  // Verificar si el visitante tiene cuenta activa en Upway
+  const user = await getSessionUser(req);
+  const isAuthenticated = !!user;
+
+  // Límite para visitantes anónimos: sin cuenta = 1 demo por día
+  if (!isAuthenticated) {
+    const anonRate = checkRateLimit(`demo-anon:${ip}`, ANON_RULE);
+    if (!anonRate.allowed) {
+      return NextResponse.json(
+        {
+          error: 'Límite de prueba en vivo alcanzado: 1 demo por día sin cuenta.',
+          code: 'DEMO_LIMIT_REACHED',
+          retryAfterSeconds: anonRate.retryAfterSeconds,
+        },
+        { status: 429, headers: rateLimitHeaders(anonRate) },
+      );
+    }
+  }
+
+  // Límite general de sesiones (aplica a todos)
   const rate = checkRateLimit(`demo-session:${ip}`, RULE);
   if (!rate.allowed) {
     return NextResponse.json(
