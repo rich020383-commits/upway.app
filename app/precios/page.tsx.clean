@@ -1,0 +1,264 @@
+﻿import Link from 'next/link';
+import { useState } from 'react';
+import {
+  ALL_HEALTH_PLANS,
+  formatCOP,
+  HEALTH_PLANS_ENTERPRISE,
+} from '@/lib/health/plans-enterprise';
+import {
+  withIVA,
+  FACILITY_TYPE_OPTIONS,
+  IDENTITY_MODULE_COP,
+  IDENTITY_MODULE_LABEL,
+  IDENTITY_MODULE_DESCRIPTION,
+} from '@/lib/health/plans';
+import { VOICE_CLONE_MODULE_COP, VOICE_CLONE_MODULE_LABEL, VOICE_CLONE_MODULE_DESCRIPTION } from '@/lib/pricing/rules';
+import { INMOBILIARIA_PLANS, STANDARD_INMOB_PLANS } from '@/lib/inmobiliaria/plans';
+import { CENTER_PLANS, STANDARD_CENTER_PLANS } from '@/lib/center/plans';
+import { LEGAL_ENTITY } from '@/lib/legal';
+
+export const metadata = {
+  title: 'Planes y precios Upway - Salud, Inmobiliarias y Call Center | Upway',
+  description: 'Planes de voz IA para salud, inmobiliarias y call center. Minutos, numeros simultaneos y precios transparentes en COP con IVA incluido.',
+};
+
+type VerticalId = 'health' | 'inmobiliaria' | 'center';
+
+const VERTICAL_INFO: Record<VerticalId, { label: string; subtitle: string; accent: string; accentLight: string; textDark: string }> = {
+  health: {
+    label: 'Upway Health',
+    subtitle: 'ClÃ­nicas, IPS, consultorios y EPS',
+    accent: '#1b5ed6',
+    accentLight: '#edf5ff',
+    textDark: '#0f172a',
+  },
+  inmobiliaria: {
+    label: 'Upway Inmobiliarias',
+    subtitle: 'CaptaciÃ³n, seguimiento comercial y agenda de visitas',
+    accent: '#0ba9a9',
+    accentLight: '#e7fbfa',
+    textDark: '#0d3168',
+  },
+  center: {
+    label: 'Upway Center',
+    subtitle: 'Call center: servicio tÃ©cnico y atenciÃ³n al cliente 24/7',
+    accent: '#e11d48',
+    accentLight: '#fef3f2',
+    textDark: '#450a0a',
+  },
+};
+
+type GenericPlan = {
+  id: string;
+  name: string;
+  tagline: string;
+  monthlyCOP: number;
+  setupCOP: number;
+  includedMinutes: number;
+  includedNumbers: number;
+  concurrentCalls: number;
+  overageCOP: number;
+  features: string[];
+  bestFor: string;
+  target?: string[];
+  serviceLine?: string;
+  isCustom?: boolean;
+  requiresApproval?: boolean;
+};
+function FacilityBadge({ type }: { type: string }) {
+  const facility = FACILITY_TYPE_OPTIONS.find((f) => f.id === type);
+  if (!facility) return null;
+  return (
+    <span className="inline-flex items-center rounded-full bg-[#edf5ff] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#1b5ed6]">
+      {facility.label}
+    </span>
+  );
+}
+
+function PlanCard({ plan, vertical, isFeatured = false }: { plan: GenericPlan; vertical: VerticalId; isFeatured?: boolean }) {
+  const isCustom = plan.monthlyCOP === 0;
+  const v = VERTICAL_INFO[vertical];
+  const accent = v.accent;
+  const accentLight = v.accentLight;
+  return (
+    <div
+      id={plan.id}
+      className={`relative flex flex-col rounded-[24px] border p-6 transition-all hover:-translate-y-1 hover:shadow-xl ${isFeatured ? `border-[${accent}] bg-gradient-to-br from-[${v.textDark}] to-[${accent}] text-white shadow-2xl` : 'border-slate-200 bg-white shadow-md'}`}
+    >
+      {isFeatured && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-4 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white shadow-lg" style={{ backgroundColor: accent }}>
+          MÃ¡s popular
+        </div>
+      )}
+      <div className="mb-4">
+        <h3 className={`text-xl font-black tracking-tight ${isFeatured ? 'text-white' : 'text-slate-900'}`}>{plan.name}</h3>
+        <p className={`mt-1 text-sm ${isFeatured ? 'text-slate-300' : 'text-slate-500'}`}>{plan.tagline}</p>
+      </div>
+      {plan.target && plan.target.length > 0 && (
+        <div className="mb-4 flex flex-wrap gap-1.5">
+          {plan.target.map((t) => (
+            <span key={t} className={`inline-flex items-center rounded-full bg-[${accentLight}] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[${accent}]`}>
+              {t}
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="mb-5">
+        {isCustom ? (
+          <span className={`text-3xl font-black ${isFeatured ? 'text-white' : 'text-slate-900'}`}>A cotizar</span>
+        ) : (
+          <>
+            {/* Precio de venta al pÃºblico. El titular es el TOTAL con IVA, que
+                es lo que el cliente paga de verdad, y la base gravable queda
+                debajo en letra chica. Antes el titular era la base y el total
+                iba en una lÃ­nea de texto pequeÃ±o: la tarjeta se leÃ­a mÃ¡s
+                barata de lo que es. */}
+            <div className="flex items-baseline gap-2">
+              <span className={`text-3xl font-black ${isFeatured ? 'text-white' : 'text-slate-900'}`}>
+                {formatCOP(withIVA(plan.monthlyCOP))}
+              </span>
+              <span className="text-sm text-slate-500">/mes</span>
+            </div>
+            <p className="mt-1 text-xs text-slate-400">IVA 19% incluido Â· base sin IVA {formatCOP(plan.monthlyCOP)}</p>
+          </>
+        )}
+      </div>
+      <div className={`mb-5 space-y-2 text-sm ${isFeatured ? 'text-slate-200' : 'text-slate-600'}`}>
+        <div className="flex items-center gap-2"><span>{plan.includedNumbers} nÃºmero{plan.includedNumbers > 1 ? 's' : ''}</span></div>
+        <div className="flex items-center gap-2"><span>{plan.includedMinutes.toLocaleString('es-CO')} min/mes</span></div>
+        <div className="flex items-center gap-2"><span>Hasta {plan.concurrentCalls} simultánea{plan.concurrentCalls > 1 ? 's' : ''}</span></div>
+        {plan.overageCOP > 0 && <div className="flex items-center gap-2"><span>Minuto adicional {formatCOP(withIVA(plan.overageCOP))} con IVA</span></div>}
+        
+      </div>
+      <ul className="mb-6 flex-1 space-y-2">
+        {plan.features.map((f, i) => (
+          <li key={i} className={`flex items-start gap-2 text-sm ${isFeatured ? 'text-slate-200' : 'text-slate-600'}`}>
+            <span className={`mt-0.5 text-[${accent}]`}>âœ“</span><span>{f}</span>
+          </li>
+        ))}
+      </ul>
+      /* IDENTITY_MODULE_REMOVED_START */
+        
+          
+          
+          
+        </div>
+      )}
+      <div className="mt-auto space-y-3">
+        <Link href={`/login?segment=${vertical}&plan=${plan.id}`} className={`block rounded-full py-3 text-center text-sm font-bold transition-all ${isFeatured ? 'bg-white text-[#0f172a] hover:bg-slate-100' : 'bg-[#1b5ed6] text-white hover:bg-[#1548a8]'}`}>
+          {isCustom ? 'Contactar ventas' : 'Empezar ahora'}
+        </Link>
+        {plan.setupCOP > 0 && <p className="mt-1 text-xs text-slate-400">Implementación única {formatCOP(withIVA(plan.setupCOP))} con IVA</p>}
+      </div>
+      {plan.requiresApproval && (
+        <div className={`mt-4 rounded-xl p-3 text-xs ${isFeatured ? 'bg-white/10 text-slate-200' : 'bg-amber-50 text-amber-700'}`}>
+          Requiere ampliacion de capacidad (lo tramita Upway)
+        </div>
+      )}
+
+function VerticalSection({ vertical, plans, featuredId }: { vertical: VerticalId; plans: GenericPlan[]; featuredId?: string }) {
+  const v = VERTICAL_INFO[vertical];
+  const accent = v.accent;
+  const accentLight = v.accentLight;
+
+  return (
+    <section id={`precios-${vertical}`} className="py-16 border-b border-slate-100">
+      <div className="mx-auto max-w-7xl px-4">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center rounded-full bg-[#000] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] mb-3" style={{ backgroundColor: accentLight }}>
+            {v.label}
+          </div>
+          <h2 className="text-3xl font-black tracking-tight sm:text-4xl">{v.subtitle}</h2>
+          <p className="mt-4 text-slate-500 max-w-2xl mx-auto">
+            Voz IA 24/7, minutos incluidos, números dedicados y minuto adicional único. Todos los precios incluyen IVA (19%).
+          </p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {plans.map((plan) => (
+            <PlanCard key={plan.id} plan={plan} vertical={vertical} isFeatured={plan.id === featuredId} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function PreciosPage() {
+  const [activeVertical, setActiveVertical] = useState<VerticalId>('health');
+
+  const healthStandard = ALL_HEALTH_PLANS.filter((p: GenericPlan) => p.monthlyCOP > 0);
+  const healthEnterprise = HEALTH_PLANS_ENTERPRISE.filter((p: GenericPlan) => p.monthlyCOP > 0);
+
+  return (
+    <div className="min-h-screen bg-[#f4faff]">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div className="mx-auto max-w-7xl px-4 py-6 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <span className="text-2xl font-black text-[#0d3168] tracking-tight">Upway</span>
+          </Link>
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+            <Link href="/precios#precios-health" className={`hover:text-[#0d3168] transition ${activeVertical === 'health' ? 'text-[#0d3168] font-bold' : ''}`} onClick={() => setActiveVertical('health')}>Health</Link>
+            <Link href="/precios#precios-inmobiliaria" className={`hover:text-[#0d3168] transition ${activeVertical === 'inmobiliaria' ? 'text-[#0d3168] font-bold' : ''}`} onClick={() => setActiveVertical('inmobiliaria')}>Inmobiliaria</Link>
+            <Link href="/precios#precios-center" className={`hover:text-[#0d3168] transition ${activeVertical === 'center' ? 'text-[#0d3168] font-bold' : ''}`} onClick={() => setActiveVertical('center')}>Center</Link>
+          </nav>
+        </div>
+      </header>
+
+      <main className="relative overflow-hidden">
+        <section className="bg-gradient-to-br from-[#0f172a] to-[#132642] py-20 px-4 text-center">
+          <div className="mx-auto max-w-3xl">
+            <h1 className="text-4xl font-black text-white sm:text-5xl tracking-tight mb-4">Planes y precios para tu operación</h1>
+            <p className="text-slate-300 text-lg mb-8 max-w-xl mx-auto">
+              Elige tu vertical: Salud, Inmobiliarias o Call Center. Planes con minutos incluidos, números dedicados y minuto adicional único. Todo con IVA incluido.
+            </p>
+          </div>
+        </section>
+
+        <section className="py-16 px-4">
+          <div className="mx-auto max-w-7xl">
+            <h2 className="text-3xl font-black text-center text-[#0d3168] mb-12">Módulos adicionales</h2>
+            <div className="grid gap-6 md:grid-cols-3">
+              <div className="rounded-[24px] border border-emerald-200 bg-emerald-50/70 p-6 md:flex md:items-center md:gap-6">
+                <div className="flex-1">
+                  <h3 className="text-lg font-black text-emerald-900">{IDENTITY_MODULE_LABEL}</h3>
+                  <p className="mt-1 text-sm text-emerald-700">{IDENTITY_MODULE_DESCRIPTION}</p>
+                  <p className="mt-2 text-xs text-slate-500">Disponible sobre cualquier plan Health. Se activa con DPA firmado.</p>
+                </div>
+                <div className="mt-4 text-center md:mt-0">
+                  <p className="text-2xl font-black text-emerald-700">{formatCOP(withIVA(IDENTITY_MODULE_COP))}</p>
+                  <p className="text-xs text-emerald-600">por sede/mes · IVA 19% incluido</p>
+                </div>
+              </div>
+              <div className="rounded-[24px] border border-sky-200 bg-sky-50/70 p-6 md:flex md:items-center md:gap-6">
+                <div className="flex-1">
+                  <h3 className="text-lg font-black text-sky-900">{VOICE_CLONE_MODULE_LABEL}</h3>
+                  <p className="mt-1 text-sm text-sky-700">{VOICE_CLONE_MODULE_DESCRIPTION}</p>
+                  <p className="mt-2 text-xs text-slate-500">Disponible sobre cualquier plan. La voz la autoriza su titular.</p>
+                </div>
+                <div className="mt-4 text-center md:mt-0">
+                  <p className="text-2xl font-black text-sky-700">{formatCOP(withIVA(VOICE_CLONE_MODULE_COP))}</p>
+                  <p className="text-xs text-sky-600">por sede/mes · IVA 19% incluido</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-gradient-to-br from-[#0f172a] to-[#132642] py-16 px-4">
+          <div className="mx-auto max-w-3xl px-4 text-center">
+            <h2 className="text-3xl font-black text-white">Listo para dejar de perder llamadas?</h2>
+            <p className="mt-3 text-slate-300">Empieza con un piloto medido. Sin contratos largos; con DPA cuando se activa identidad conforme.</p>
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link href="/login?segment=health" className="w-full rounded-full bg-white px-8 py-4 text-sm font-bold text-[#0f172a] transition-all hover:-translate-y-0.5 hover:shadow-xl sm:w-auto">Comenzar ahora</Link>
+              <a href="mailto:contacto@upway.business?subject=Quiero%20cotizar%20Upway" className="w-full rounded-full border border-white/30 px-8 py-4 text-sm font-bold text-white transition-all hover:bg-white/10 sm:w-auto">Hablar con ventas</a>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="border-t border-slate-200 py-8 text-center text-xs text-slate-400 bg-white">
+        {LEGAL_ENTITY} · Marca Upway — Bogotá, Colombia
+      </footer>
+    </div>
+  );
+}

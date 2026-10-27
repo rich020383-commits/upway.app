@@ -1,98 +1,36 @@
-
+﻿
 import Link from 'next/link';
-import { useState } from 'react';
-import {
-  ALL_HEALTH_PLANS,
-  formatCOP,
-  HEALTH_PLANS_ENTERPRISE,
-} from '@/lib/health/plans-enterprise';
+import { formatCOP } from '@/lib/health/plans-enterprise';
 import {
   withIVA,
-  FACILITY_TYPE_OPTIONS,
   IDENTITY_MODULE_COP,
   IDENTITY_MODULE_LABEL,
   IDENTITY_MODULE_DESCRIPTION,
 } from '@/lib/health/plans';
-import { VOICE_CLONE_MODULE_COP, VOICE_CLONE_MODULE_LABEL, VOICE_CLONE_MODULE_DESCRIPTION } from '@/lib/pricing/rules';
-import { INMOBILIARIA_PLANS, STANDARD_INMOB_PLANS } from '@/lib/inmobiliaria/plans';
-import { CENTER_PLANS, STANDARD_CENTER_PLANS } from '@/lib/center/plans';
 import { LEGAL_ENTITY } from '@/lib/legal';
+import {
+  VOICE_CLONE_MODULE_COP,
+  VOICE_CLONE_MODULE_LABEL,
+  VOICE_CLONE_MODULE_DESCRIPTION,
+} from '@/lib/pricing/rules';
 
 export const metadata = {
   title: 'Planes y precios Upway - Salud, Inmobiliarias y Call Center | Upway',
   description: 'Planes de voz IA para salud, inmobiliarias y call center. Minutos, numeros simultaneos y precios transparentes en COP con IVA incluido.',
 };
 
-type VerticalId = 'health' | 'inmobiliaria' | 'center';
-
-const VERTICAL_INFO: Record<VerticalId, { label: string; subtitle: string; accent: string; accentLight: string; textDark: string }> = {
-  health: {
-    label: 'Upway Health',
-    subtitle: 'Clínicas, IPS, consultorios y EPS',
-    accent: '#1b5ed6',
-    accentLight: '#edf5ff',
-    textDark: '#0f172a',
-  },
-  inmobiliaria: {
-    label: 'Upway Inmobiliarias',
-    subtitle: 'Captación, seguimiento comercial y agenda de visitas',
-    accent: '#0ba9a9',
-    accentLight: '#e7fbfa',
-    textDark: '#0d3168',
-  },
-  center: {
-    label: 'Upway Center',
-    subtitle: 'Call center: servicio técnico y atención al cliente 24/7',
-    accent: '#e11d48',
-    accentLight: '#fef3f2',
-    textDark: '#450a0a',
-  },
-};
-
-type GenericPlan = {
-  id: string;
-  name: string;
-  tagline: string;
-  monthlyCOP: number;
-  setupCOP: number;
-  includedMinutes: number;
-  includedNumbers: number;
-  concurrentCalls: number;
-  overageCOP: number;
-  features: string[];
-  bestFor: string;
-  target?: string[];
-  serviceLine?: string;
-  isCustom?: boolean;
-  requiresApproval?: boolean;
-};
-
-function FacilityBadge({ type }: { type: string }) {
-  const facility = FACILITY_TYPE_OPTIONS.find((f) => f.id === type);
-  if (!facility) return null;
-  return (
-    <span className="inline-flex items-center rounded-full bg-[#edf5ff] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#1b5ed6]">
-      {facility.label}
-    </span>
-  );
-}
 export default function PreciosPage() {
-  const [activeVertical, setActiveVertical] = useState<VerticalId>('health');
-
-  const healthStandard = ALL_HEALTH_PLANS.filter((p: GenericPlan) => p.monthlyCOP > 0);
-  const healthEnterprise = HEALTH_PLANS_ENTERPRISE.filter((p: GenericPlan) => p.monthlyCOP > 0);
-
   return (
-    <div className="min-h-screen bg-[#f4farr]">
+    <div className="min-h-screen bg-[#f4f7fa]">
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="mx-auto max-w-7xl px-4 py-6 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <span className="text-2xl font-black text-[#0d3168] tracking-tight">Upway</span>
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-            <Link href="/precios#precios-health" className={`hover:text-[#0d3168] transition ${activeVertical === 'health' ? 'text-[#0d3168] font-bold' : ''}`} onClick={() => setActiveVertical('health')}>Health</Link>
-            <Link href="/precios#precios-inmobiliaria" className={`hover:text-[#0d3168] transition ${activeVertical === 'inmobiliaria' ? 'text-[#0d3168] font-bold' : ''}`} onClick={() => setActiveVertical('inmobiliaria')}>Inmobiliaria</Link>
-            <Link href="/precios#precios-center" className={`hover:text-[#0d3168] transition ${activeVertical === 'center' ? 'text-[#0d3168] font-bold' : ''}`} onClick={() => setActiveVertical('center')}>Center</Link>
+            <Link href="/#precios-health" className="hover:text-[#0d3168] transition">Health</Link>
+            <Link href="/#precios-inmobiliaria" className="hover:text-[#0d3168] transition">Inmobiliaria</Link>
+            <Link href="/#precios-center" className="hover:text-[#0d3168] transition">Center</Link>
           </nav>
         </div>
       </header>
