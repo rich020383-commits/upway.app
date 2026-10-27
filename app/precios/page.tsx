@@ -28,9 +28,9 @@ export default function PreciosPage() {
             <span className="text-2xl font-black text-[#0d3168] tracking-tight">Upway</span>
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-            <Link href="/#precios-health" className="hover:text-[#0d3168] transition">Health</Link>
-            <Link href="/#precios-inmobiliaria" className="hover:text-[#0d3168] transition">Inmobiliaria</Link>
-            <Link href="/#precios-center" className="hover:text-[#0d3168] transition">Center</Link>
+            <Link href="/salud" className="hover:text-[#0d3168] transition">Health</Link>
+            <Link href="/inmobiliarias" className="hover:text-[#0d3168] transition">Inmobiliaria</Link>
+            <Link href="/center" className="hover:text-[#0d3168] transition">Center</Link>
           </nav>
         </div>
       </header>
