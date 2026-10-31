@@ -38,6 +38,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 const gtmId = process.env.NEXT_PUBLIC_GTM_ID;
+const gtagId = process.env.NEXT_PUBLIC_GTAG_ID;
 
 // 🚀 Metadatos Premium para SEO, Redes y PWA
 export const metadata: Metadata = {
@@ -104,6 +105,27 @@ export default function RootLayout({
               `,
             }}
           />
+        ) : null}
+        {gtagId ? (
+          <>
+            <Script
+              id="google-gtag"
+              src={`https://www.googletagmanager.com/gtag/js?id=${gtagId}`}
+              strategy="afterInteractive"
+            />
+            <Script
+              id="google-gtag-config"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${gtagId}');
+                `,
+              }}
+            />
+          </>
         ) : null}
       </head>
       
