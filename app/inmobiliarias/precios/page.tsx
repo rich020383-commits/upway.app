@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { ArrowRight, Check, ShieldCheck } from 'lucide-react';
 import Footer from '@/components/Footer';
 import { STANDARD_INMOB_PLANS, CUSTOM_INMOB_PLANS, INMOBILIARIA_PLANS, withIVA, DEFAULT_OVERAGE_COP } from '@/lib/inmobiliaria/plans';
+import PromoPriceBadge from '@/components/pricing/promo-price-badge';
 
 export const metadata: Metadata = {
   title: 'Planes para inmobiliarias — Sophie atiende y agenda 24/7 | Upway',
@@ -144,6 +145,9 @@ export default function InmobiliariasPreciosPage() {
       </header>
 
       <div className="mx-auto w-full max-w-[1180px] px-5 md:px-[5%]">
+        <div className="mb-6 flex justify-center">
+          <PromoPriceBadge />
+        </div>
         {/* HERO */}
         <section className="pb-[10px] pt-[40px] md:pt-[60px]">
           <div className="mx-auto max-w-[760px] text-center">

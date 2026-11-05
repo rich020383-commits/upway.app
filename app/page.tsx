@@ -10,6 +10,7 @@ import { abrirChat } from '@/lib/chat-event';
 import ScrambleText from '@/components/landing/scramble-text';
 import CountUp from '@/components/landing/count-up';
 import VoiceDemo from '@/components/landing/voice-demo';
+import PromoBanner from '@/components/landing/promo-banner';
 
 /* El logo animado es el splash de arranque de la app, no un adorno de la
    página: se marca en sessionStorage para que solo aparezca al iniciar. La `v1`
@@ -436,6 +437,10 @@ export default function Home() {
       )}
 
       <main className="min-h-screen overflow-x-hidden bg-white text-[#0d3168] font-sans selection:bg-[#11b7b1] selection:text-white">
+        {/* PROMO: Implementación gratis fin de año */}
+        <div className="mx-auto max-w-[1320px] px-5 pt-4 md:px-8">
+          <PromoBanner />
+        </div>
         {/* NAVBAR SUPERIOR */}
         <header className="upway-topbar sticky top-0 z-50 flex items-center justify-between px-5 md:px-[5%] border-b border-[#edf3f8] bg-white/90 backdrop-blur-md">
           <a href="#inicio" className="flex items-center">

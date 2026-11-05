@@ -20,11 +20,10 @@ function PlanCard({ plan, featured = false, overageCOP }: { plan: Plan; featured
   return (
     <div
       id={plan.id}
-      className={`relative flex flex-col rounded-[24px] border p-[26px] transition hover:-translate-y-1 ${
-        featured
+      className={`relative flex flex-col rounded-[24px] border p-[26px] transition hover:-translate-y-1 ${featured
           ? 'border-transparent bg-[linear-gradient(135deg,#0c3775,#0b858d)] text-white shadow-[0_20px_50px_rgba(12,55,117,0.35)]'
           : 'border-[#e0edf6] bg-white text-[#0d3168] shadow-[0_8px_25px_#153f6810]'
-      }`}
+        }`}
     >
       {featured && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#0ba9a9] px-4 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white shadow-lg">
@@ -81,9 +80,8 @@ function PlanCard({ plan, featured = false, overageCOP }: { plan: Plan; featured
       </ul>
       <Link
         href="/login?segment=center"
-        className={`mt-[20px] inline-flex items-center justify-center gap-2 rounded-full px-[20px] py-[13px] text-[13px] font-bold transition ${
-          featured ? 'bg-white text-[#0c3775] hover:-translate-y-0.5' : 'bg-[#0c3775] text-white hover:bg-[#092a5c]'
-        }`}
+        className={`mt-[20px] inline-flex items-center justify-center gap-2 rounded-full px-[20px] py-[13px] text-[13px] font-bold transition ${featured ? 'bg-white text-[#0c3775] hover:-translate-y-0.5' : 'bg-[#0c3775] text-white hover:bg-[#092a5c]'
+          }`}
       >
         {isCustom ? 'Cotizar con ventas' : 'Activar este plan'} <ArrowRight className="h-4 w-4" />
       </Link>

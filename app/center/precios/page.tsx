@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Check, Clock, Phone, ShieldCheck } from 'lucide-react';
 import Footer from '@/components/Footer';
+import PromoPriceBadge from '@/components/pricing/promo-price-badge';
 
 export const metadata = {
   title: 'Precios — Upway Center',
@@ -159,6 +160,9 @@ export default function CenterPreciosPage() {
             aparte.
           </p>
         </section>
+        <div className="mb-6 flex justify-center">
+          <PromoPriceBadge />
+        </div>
         {/* Planes */}
         <section className="py-[30px] md:py-[45px]">
           <div className="grid gap-[15px] md:grid-cols-2">

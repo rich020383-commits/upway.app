@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowRight, Check } from 'lucide-react';
 import { ALL_HEALTH_PLANS, formatCOP } from '@/lib/health/plans-enterprise';
 import { withIVA, IDENTITY_MODULE_COP, IDENTITY_MODULE_LABEL, IDENTITY_MODULE_DESCRIPTION } from '@/lib/health/plans';
+import PromoPriceBadge from '@/components/pricing/promo-price-badge';
 
 export const metadata: Metadata = {
   title: 'Precios Health — Planes de voz IA para clínicas, IPS y EPS | Upway',
@@ -133,6 +134,9 @@ export default function PreciosSaludPage() {
           </p>
         </section>
 
+        <div className="mb-6 flex justify-center">
+          <PromoPriceBadge />
+        </div>
         <section className="py-[30px] md:py-[45px]">
           <div className="grid gap-[18px] md:grid-cols-2">
             {planes.map((plan) => (

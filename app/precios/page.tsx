@@ -8,6 +8,7 @@ import {
   IDENTITY_MODULE_DESCRIPTION,
 } from '@/lib/health/plans';
 import { LEGAL_ENTITY } from '@/lib/legal';
+import PromoPriceBadge from '@/components/pricing/promo-price-badge';
 import {
   VOICE_CLONE_MODULE_COP,
   VOICE_CLONE_MODULE_LABEL,
@@ -47,6 +48,9 @@ export default function PreciosPage() {
 
         <section className="py-16 px-4">
           <div className="mx-auto max-w-7xl">
+            <div className="mb-8 flex justify-center">
+              <PromoPriceBadge />
+            </div>
             <h2 className="text-3xl font-black text-center text-[#0d3168] mb-12">Módulos adicionales</h2>
             <div className="grid gap-6 md:grid-cols-3">
               <div className="rounded-[24px] border border-emerald-200 bg-emerald-50/70 p-6 md:flex md:items-center md:gap-6">
