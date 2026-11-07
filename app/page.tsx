@@ -788,9 +788,9 @@ export default function Home() {
               controls
               preload="metadata"
               playsInline
-              poster="/antes-despues-poster.jpg"
+              poster="/captura-llamada-poster.jpg"
               className="block w-full"
-              src="/antes-despues-720.mp4"
+              src="/captura-llamada.mp4"
             >
               Tu navegador no puede reproducir este video. Escríbenos y te lo contamos.
             </video>
