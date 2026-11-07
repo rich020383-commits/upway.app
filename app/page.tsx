@@ -450,8 +450,7 @@ export default function Home() {
               <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Shield className="h-3.5 w-3.5" /> Datos correctos la primera vez</span>
               <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Users className="h-3.5 w-3.5" /> Trazabilidad completa</span>
             </div>
-          </div>
-        </section>
+        </header>
 
         {/* CIFRAS VERIFICADAS + DEMO DE VOZ EN VIVO
             El escaparate: el visitante elige voz, escribe y escucha el producto
