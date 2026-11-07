@@ -788,7 +788,7 @@ export default function Home() {
               controls
               preload="metadata"
               playsInline
-              poster="/antes-despues-poster.jpg"
+              poster="/sophie-poster.jpg"
               className="block w-full"
               src="/captura-llamada.mp4"
             >
