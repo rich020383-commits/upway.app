@@ -726,6 +726,9 @@ export default function Home() {
               Ver planes y precios
             </Link>
           </div>
+                  </article>
+                ))
+              </div>
         </section>
         <Footer />
       </main>
