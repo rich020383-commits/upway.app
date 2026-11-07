@@ -759,6 +759,9 @@ export default function Home() {
             <p className="text-[15px] leading-relaxed text-[#a8c4d9] max-w-[600px] mx-auto mb-8">
               Llama al <span className="font-mono text-[#11b4b0] font-bold">+57 601 9177737</span> desde tu celular y mira cómo Sophie te atiende en tiempo real, captura tus datos y agenda tu cita.
             </p>
+            <p className="text-[14px] leading-relaxed text-[#a8c4d9]/90 max-w-[600px] mx-auto mb-8">
+              Sophie está programada para responder como lo haría en tu industria: salud, centros de atención o inmobiliarias. Llama y comprueba cómo maneja tu caso.
+            </p>
             {/* <Link href="/demo" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#11b4b0] px-8 py-3.5 text-[15px] font-bold text-white transition hover:bg-[#0ba9a9] hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(17,180,176,0.35)]">
               Ir a la demo en vivo <ArrowRight className="w-4 h-4" />
             </Link> */}
