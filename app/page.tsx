@@ -443,14 +443,245 @@ export default function Home() {
         </div>
         {/* NAVBAR SUPERIOR */}
         <header className="upway-topbar sticky top-0 z-50 flex items-center justify-between px-5 md:px-[5%] border-b border-[#edf3f8] bg-white/90 backdrop-blur-md">
-          {/* Botón header demo en vivo DESACTIVADO */}
+          <a href="#inicio" className="flex items-center">
+            <UpwayLogo />
+          </a>
+          <div className="flex items-center gap-3">
+            <nav className="hidden md:flex items-center gap-[14px] text-[13px] font-medium text-[#31547f] lg:gap-[22px] xl:gap-[30px]">
+            <a href="#capacidad" className="hover:text-[#103a77] transition">Solución</a>
+            <Link href="/salud" className="hover:text-[#103a77] transition">Health</Link>
+            <Link href="/center" className="hover:text-[#103a77] transition">Center</Link>
+            <Link href="/inmobiliarias" className="hover:text-[#103a77] transition">Inmobiliaria</Link>
+            <a href="#por-que" className="hover:text-[#103a77] transition">Beneficios</a>
+            <Link href="/precios" className="hover:text-[#103a77] transition">Precios</Link>
+            <a href="#contacto" className="hover:text-[#103a77] transition">Contacto</a>
+          </nav>
+            {/* Verticales en móvil: tres píldoras compactas en vez de una sola
+                "Verticales". En pantallas de 360–390px caben con el logo y el
+                CTA: labels cortos, texto 10px y padding mínimo. */}
+            <div className="flex md:hidden items-center gap-1.5">
+              <Link
+                href="/salud"
+                className="rounded-full border border-[#0ba9a9] bg-white px-2.5 py-[7px] text-[10px] font-bold text-[#0d3168]"
+              >
+                Health
+              </Link>
+              <Link
+                href="/center"
+                className="rounded-full border border-[#0ba9a9] bg-white px-2.5 py-[7px] text-[10px] font-bold text-[#0d3168]"
+              >
+                Center
+              </Link>
+              <Link
+                href="/inmobiliarias"
+                className="rounded-full border border-[#0ba9a9] bg-white px-2.5 py-[7px] text-[10px] font-bold text-[#0d3168]"
+              >
+                Inmobiliaria
+              </Link>
+            </div>
+            {/* <a
+              href="#contacto"
+              className="hidden sm:inline-flex items-center justify-center rounded-full bg-[#0c3775] px-[23px] py-[10px] md:py-[14px] text-[11px] md:text-[13px] font-bold text-white hover:bg-[#092a5c] transition shadow-md"
+            >
+              Solicita una demo ?
+            </a> */}
+          </div>
+        </header>
+
+        {/* SECCIÓN SOPHIE V2 + VIDEO EN VIVO */}
+        <section className="bg-[linear-gradient(180deg,#f7fbff_0%,#eef5ff_100%)] py-20 px-5 md:px-[5%] border-y border-[#e2edf5]">
+          <div className="max-w-7xl mx-auto">
+            {/* VIDEO CINEMATOGRÁFICO DE SOPHIE V2
+                Móvil: servimos `sophie-mobile.mp4` (H.264 720p, ~1.1MB, con
+                decodificación por hardware en cualquier celular) en lugar del
+                master VP9 4K de 6.9MB, que obligaba a decodificar 3830x2160
+                en software y trababa el scroll. El `poster` se pinta al
+                instante, así el bloque nunca aparece vacío ni desplaza el
+                contenido al cargar. */}
+            <div className="relative mb-14 overflow-hidden rounded-[24px] border border-[#e2edf5] bg-white shadow-[0_30px_80px_rgba(15,31,54,0.10)] md:rounded-[32px]">
+              <div className="relative aspect-video w-full overflow-hidden rounded-t-[24px] md:aspect-auto md:h-[500px] md:rounded-[32px] lg:h-[560px]">
+                <video
+                  ref={heroVideoRef}
+                  src={heroVideoReady ? (isMobile ? '/sophie-mobile.mp4' : '/sophie-optimizada.webm') : undefined}
+                  poster="/sophie-poster.jpg"
+                  autoPlay={heroVideoReady}
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                  onLoadedData={() => setHeroVideoLoaded(true)}
+                  disablePictureInPicture
+                  controlsList="nodownload nofullscreen"
+                  className={`h-full w-full object-cover object-center transition-opacity duration-300 ${
+                    heroVideoLoaded || isMobile ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
+                <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-t from-white/25 via-transparent to-white/5 md:block"></div>
+              </div>
+
+              <div className="relative z-10 flex flex-col justify-between gap-4 border-t border-[#e2edf5] bg-white/90 p-4 backdrop-blur-md sm:p-6 md:absolute md:bottom-6 md:left-6 md:right-6 md:flex-row md:items-end md:gap-6 md:rounded-[20px] md:border md:border-white/70 md:bg-white/85 md:p-5 md:shadow-[0_18px_50px_rgba(15,31,54,0.16)]">
+                <div className="max-w-2xl space-y-2 sm:space-y-3">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-[#bfe9e6] bg-[#e7fbfa] px-3 py-1 text-[11px] font-bold text-[#0d8a88]">
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#0ba9a9] opacity-75" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-[#079fa0]" />
+                    </span>
+                    Sophie v2 • Atención de voz en vivo
+                  </div>
+                  <h2 className="font-display text-xl font-extrabold leading-tight tracking-tight text-[#0d3168] sm:text-2xl md:text-4xl">
+                    Atención y priorización en vivo <span className="text-[#0ba9a9]">24/7</span>
+                  </h2>
+                  <p className="text-xs font-medium leading-relaxed text-[#55718f] sm:text-sm md:text-base">
+                    Atendiendo llamadas con priorización asistida por los protocolos de tu institución y agendamiento en tiempo real sobre nuestra propia agenda: sin Google Calendar, sin Calendly y sin licencias de terceros.
+                  </p>
+                </div>
+                <div className="flex shrink-0 gap-2 pt-2 sm:pt-0">
+                  <button
+                    onClick={abrirChat}
+                    className="btn-glow-primary inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 sm:w-auto sm:px-7 sm:py-3.5"
+                  >
+                    <MessageCircle className="h-4 w-4" /> Hablar con Sophie
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+              <div className="lg:col-span-6 space-y-6">
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#bfe9e6] bg-[#e7fbfa] px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#0d8a88] shadow-sm">
+                  <Sparkles size={14} className="text-[#0ba9a9]" /> La inteligencia que mueve al agente
+                </div>
+                <h2 className="font-display text-3xl font-extrabold leading-[1.1] tracking-tight text-[#0d3168] md:text-5xl">
+                  Sophie v2:
+                  <br />
+                  IA que entiende, atiende y agenda por ti.
+                </h2>
+                <p className="max-w-xl text-lg font-medium leading-relaxed text-[#55718f]">
+                  No es un guion que se reproduce: Sophie escucha, entiende lo que la persona pide, consulta lo que tu
+                  operación necesita y agenda sobre tu disponibilidad real. Mientras habla aparta el cupo, así nadie
+                  más lo toma y se acaban los cruces de horarios.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                  <a
+                    href="https://wa.me/573126427856?text=Hola%20Upway%2C%20quiero%20conocer%20la%20agenda%20y%20la%20voz%20IA"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-[#0c3775] px-6 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#092a5c] shadow-md"
+                  >
+                    <MessageCircle className="h-4 w-4" /> Escríbenos por mensaje
+                  </a>
+                  <SophieChatButton className="inline-flex items-center justify-center gap-2 rounded-full border border-[#9fe0dc] bg-[#e7fbfa] px-6 py-3.5 text-sm font-bold text-[#0d8a88] transition hover:border-[#0ba9a9] hover:bg-[#d7f5f2]" />
+                </div>
+              </div>
+
+              <div className="lg:col-span-6">
+                <div className="relative rounded-[32px] border border-[#e0edf6] bg-white p-6 shadow-[0_30px_70px_rgba(15,31,54,0.12)] text-[#0d3168]">
+                  <div className="flex items-center justify-between pb-6 border-b border-[#e8f0f8]">
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#0d8a88]">
+                      <span className="h-2 w-2 rounded-full bg-[#0ba9a9] animate-pulse"></span>
+                      Operación activa
+                    </div>
+                    <span className="text-xs font-mono text-[#7b93ab]">live</span>
+                  </div>
+
+                  <div className="relative overflow-hidden rounded-2xl border border-[#d7f5f2] bg-[#f4f9ff] my-6 p-4 flex items-center gap-5 shadow-inner">
+                    <div className="relative h-20 w-20 shrink-0 rounded-2xl overflow-hidden border border-[#d7f5f2] bg-gradient-to-br from-[#e7fbfa] via-[#f2fcfb] to-white shadow-md flex items-center justify-center">
+                      <Sparkles size={28} className="text-[#0ba9a9]" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#0d8a88] mb-1">
+                        <Sparkles size={14} /> Upway
+                      </div>
+                      <p className="text-xs font-medium text-[#55718f] leading-relaxed">
+                        Sincronizando atención, agenda y seguimiento con contexto operativo completo.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="rounded-2xl bg-white border border-[#e0edf6] p-5">
+                      <p className="text-xs font-semibold text-[#7b93ab] mb-1">ATENCIÓN</p>
+                      <p className="text-3xl font-extrabold tracking-tight text-[#0d3168]">24/7</p>
+                      <p className="text-[11px] font-medium text-[#55718f] mt-1">sin depender de una persona en línea</p>
+                    </div>
+                    <div className="rounded-2xl bg-white border border-[#e0edf6] p-5">
+                      <p className="text-xs font-semibold text-[#7b93ab] mb-1">AGENDA</p>
+                      <p className="text-3xl font-extrabold tracking-tight text-[#0d3168]">0</p>
+                      <p className="text-[11px] font-medium text-[#55718f] mt-1">licencias de terceros</p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl bg-[#f4f9ff]/60 border border-[#e0edf6] p-4 space-y-2.5">
+                    <div className="flex items-center justify-between text-xs font-bold text-[#55718f] mb-2">
+                      <span>Trabajo crítico</span>
+                      <span className="text-[#0f9d6b] flex items-center gap-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#12b76a]"></span> en vivo
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs font-medium text-[#55718f] bg-white px-3 py-2 rounded-xl border border-[#e0edf6]">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-[#e9f3ff] text-[10px] font-bold text-[#1b5ed6]">1</span>
+                      Priorización asistida y escalamiento humano
+                    </div>
+                    <div className="flex items-center gap-3 text-xs font-medium text-[#55718f] bg-white px-3 py-2 rounded-xl border border-[#e0edf6]">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-[#e9f3ff] text-[10px] font-bold text-[#1b5ed6]">2</span>
+                      Agenda y disponibilidad sincronizadas
+                    </div>
+                    <div className="flex items-center gap-3 text-xs font-medium text-[#55718f] bg-white px-3 py-2 rounded-xl border border-[#e0edf6]">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-[#e9f3ff] text-[10px] font-bold text-[#1b5ed6]">3</span>
+                      Seguimiento y escalamiento automáticos
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* HERO — la portada es de Upway, no de una vertical.
+            Sin fotografía de una vertical: la portada es común a las tres y una
+            foto de sector haría que el primer pantallazo respondiera "¿tu
+            operación es salud?", dejando a las otras dos como apéndice. El peso
+            visual del hero lo carga el titular y el bloque de dolor/cura que va
+            justo antes de las tarjetas. */}
+        <section id="inicio" className="relative overflow-hidden max-w-[900px] mx-auto pt-[45px] md:pt-[70px] pb-[35px] px-5 text-center bg-[radial-gradient(circle_at_50%_0%,_#e8fbfa,_transparent_55%)]">
+          {/* Aurora: dos manchas de gradiente que respiran con transform (nunca
+              filter). Solo adornan — el contenido va encima y sigue legible. */}
+          <div className="upway-aurora" aria-hidden="true">
+            <span />
+            <span />
+          </div>
+          <div className="relative flex flex-col items-center">
+            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">? &nbsp; La línea de atención de tu negocio, con IA</div>
+            <h1 className="font-display text-[35px] md:text-[52px] leading-[1.06] tracking-[-2px] md:tracking-[-2.6px] m-0 mb-[22px] font-extrabold">
+              <ScrambleText text="Atiende, agenda y confirma con quien te llama." />
+              <br />
+              <em className="not-italic text-[#11b4b0]">Las 24 horas, sin perder un dato.</em>
+            </h1>
+            <p className="text-[16px] leading-[1.65] text-[#49698f] max-w-[600px]">
+              Una inteligencia artificial con voz que responde tu línea 24/7: entiende lo que le piden, agenda sobre tu
+              disponibilidad real y entrega el dato estructurado a tu sistema. Funciona en salud, en servicio técnico y
+              en inmobiliaria, con las reglas de cada una.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 my-[26px]">
+              <a
+                href="#contacto"
+                className="inline-flex items-center justify-center rounded-full bg-[#0c3775] px-[23px] py-[14px] text-[13px] font-bold text-white hover:bg-[#092a5c] hover:shadow-[0_22px_48px_rgba(12,55,117,0.42)] transition">
+                Ir a la demo en vivo
+              </a>
+              <a
+                href="#verticales"
+                className="inline-flex items-center justify-center rounded-full border border-[#b8cce3] bg-white px-[23px] py-[14px] text-[13px] font-bold text-[#0c3775] hover:bg-slate-50 hover:shadow-[0_22px_48px_rgba(12,55,117,0.22)] transition">
+                Descubre cómo funciona
+              </a>
+            </div>
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-[20px] text-[#315982] text-[12px] font-semibold uppercase tracking-wide mt-2">
               <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Phone className="h-3.5 w-3.5" /> Voz IA 24/7</span>
               <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Calendar className="h-3.5 w-3.5" /> Agenda propia</span>
               <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Shield className="h-3.5 w-3.5" /> Datos correctos la primera vez</span>
               <span className="flex items-center gap-1.5 text-[#0ba9a9]"><Users className="h-3.5 w-3.5" /> Trazabilidad completa</span>
             </div>
-        </header>
+          </div>
+        </section>
 
         {/* CIFRAS VERIFICADAS + DEMO DE VOZ EN VIVO
             El escaparate: el visitante elige voz, escribe y escucha el producto
@@ -512,14 +743,27 @@ export default function Home() {
           </div>
 
           <div className="relative">
-            {/* <VoiceDemo /> desactivado: demo en vivo con captura de datos a agenda (costo alto) */}
+            {/* <VoiceDemo /> desactivado: captura de datos a agenda (costo alto) */}
           </div>
         </section>
 
         {/* CTA: Demo en vivo con Sophie */}
-                {/* Sección demo en vivo DESACTIVADA: captura de datos a agenda (costo alto).
-             Se deja solo el número de teléfono para llamada directa.
-        */}
+        <section className="max-w-[1180px] mx-[15px] md:mx-auto mt-[10px] mb-[10px]">
+          <div className="rounded-[28px] border border-[#e0edf6] bg-gradient-to-br from-[#0d3168] to-[#132642] p-[30px] shadow-[0_20px_40px_#153f6820] text-center">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Phone className="w-6 h-6 text-[#11b4b0]" />
+              <h2 className="font-display text-[24px] font-extrabold leading-[1.1] tracking-[-1px] text-white md:text-[32px]">
+                Prueba a Sophie en vivo
+              </h2>
+            </div>
+            <p className="text-[15px] leading-relaxed text-[#a8c4d9] max-w-[600px] mx-auto mb-8">
+              Llama al <span className="font-mono text-[#11b4b0] font-bold">+57 601 9177737</span> desde tu celular y mira cómo Sophie te atiende en tiempo real, captura tus datos y agenda tu cita.
+            </p>
+            {/* <Link href="/demo" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#11b4b0] px-8 py-3.5 text-[15px] font-bold text-white transition hover:bg-[#0ba9a9] hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(17,180,176,0.35)]">
+              Ir a la demo en vivo <ArrowRight className="w-4 h-4" />
+            </Link> */}
+          </div>
+        </section>
 
         {/* ANTES / DESPUÉS — el video del "mientras dormías": llamadas perdidas
             de la noche ? red de llamadas ? el cliente dormido con 500 llamadas
@@ -721,14 +965,101 @@ export default function Home() {
                     digital"): la parte que más argumentaba a favor. Debajo se
                     lee la pieza entera y la tarjeta sigue siendo la imagen. */}
                 <div className="grid grid-cols-2 gap-2 p-[12px]">
-                  {/* Botón final demo en vivo DESACTIVADO */}
+                  <Link
+                    href={v.href}
+                    className={`flex items-center justify-center gap-1.5 rounded-full px-3 py-[11px] text-[12px] font-bold transition ${
+                      v.insignia
+                        ? 'bg-[linear-gradient(115deg,#0ba9a9,#0c3775)] text-white shadow-[0_8px_20px_rgba(11,169,169,0.28)]'
+                        : 'border border-[#0ba9a9] text-[#0d3168] hover:bg-[#e7fbfa]'
+                    }`}
+                  >
+                    {v.nombre}
+                    <ArrowRight className="h-3.5 w-3.5 shrink-0" />
+                  </Link>
+                  <Link
+                    href={v.loginHref}
+                    className="flex items-center justify-center rounded-full border border-[#e0edf6] px-3 py-[11px] text-[12px] font-bold text-[#31547f] transition hover:border-[#9fc6ee]"
+                  >
+                    Entrar
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* POR QUÉ UPWAY */}
+        <section id="por-que" className="max-w-[1180px] mx-[15px] md:mx-auto my-[55px] md:my-[80px] px-5">
+          <div className="text-center mb-[32px]">
+            <div className="text-[#0ba9a9] font-bold text-[13px] mb-[17px]">Por qué Upway</div>
+            <h2 className="font-display text-[35px] leading-[1.12] tracking-[-1.5px] mb-[18px] font-extrabold text-[#0d3168]">
+              Un solo sistema, no tres productos distintos.
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[15px]">
+            {[
+              {
+                icon: Phone,
+                t: 'La línea nunca queda ocupada',
+                d: 'Cada llamada entrante se atiende, a cualquier hora y en temporada alta. Varias a la vez.',
+              },
+              {
+                icon: CalendarDays,
+                t: 'Menos ausencias, más adherencia',
+                d: 'Confirmación y recordatorios sobre la misma agenda, sin llamadas manuales.',
+              },
+              {
+                icon: RefreshCw,
+                t: 'Procesos más eficientes',
+                d: 'El dato llega estructurado a tu sistema: tu equipo deja de retranscribir.',
+              },
+              {
+                icon: ShieldCheck,
+                t: 'Seguridad y trazabilidad',
+                d: 'Cada acceso y cada corrección con usuario, rol, fecha y hora.',
+              },
+              {
+                icon: Users,
+                t: 'Escalamiento según tu protocolo',
+                d: 'Cuando el caso lo pide, la llamada pasa a tu equipo con el contexto completo.',
+              },
+              {
+                icon: BadgeCheck,
+                t: 'Un solo lugar de trabajo',
+                d: 'Agenda, casos, leads y agente en el mismo panel, sin licencias de terceros.',
+              },
+            ].map(({ t, d, icon: Icon }) => (
+              <article
+                key={t}
+                className="rounded-[17px] border border-[#e0edf6] bg-white p-[22px] shadow-[0_8px_25px_#153f6810] transition hover:-translate-y-1 hover:border-[#9fc6ee]"
+              >
+                <span className="grid place-items-center w-[34px] h-[34px] rounded-full bg-[#e7fbfa] text-[#079fa0]">
+                  <Icon className="h-4 w-4" />
+                </span>
+                <h3 className="text-[13px] font-bold mt-[13px] mb-[6px] text-[#0d3168]">{t}</h3>
+                <p className="text-[12px] leading-[1.6] text-[#55718f]">{d}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+                {/* CTA CONTACTO */}
+        <section id="contacto" className="py-[48px] px-5 md:px-[8%] flex flex-col md:flex-row items-center justify-between bg-[linear-gradient(110deg,#103d79,#0b858d)] text-white gap-8">
+          <div>
+            <small className="text-[13px] text-[#50e1d5] font-semibold block mb-2">Empieza por tu vertical</small>
+            <h2 className="font-display text-[28px] max-w-[650px] m-0 font-extrabold leading-[1.2]">
+              Tu operación merece una <em className="not-italic text-[#50e1d5]">comunicación más inteligente.</em>
+            </h2>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link href="/demo" className="inline-flex items-center justify-center gap-2 rounded-full bg-white text-[#0d3168] px-6 py-3 text-[14px] font-bold transition hover:bg-[#50e1d5] hover:shadow-[0_10px_25px_rgba(255,255,255,0.3)]">
+              Probar demo en vivo <ArrowRight className="w-4 h-4" />
+            </Link>
             <Link href="/precios" className="inline-flex items-center justify-center gap-2 rounded-full border border-white text-white px-6 py-3 text-[14px] font-bold transition hover:bg-white/10">
               Ver planes y precios
             </Link>
           </div>
-                  </article>
-                ))}
-              </div>
         </section>
         <Footer />
       </main>
