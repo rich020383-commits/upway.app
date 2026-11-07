@@ -9,7 +9,7 @@ import SophieChatButton from '@/components/sophie-chat-button';
 import { abrirChat } from '@/lib/chat-event';
 import ScrambleText from '@/components/landing/scramble-text';
 import CountUp from '@/components/landing/count-up';
-// import VoiceDemo from '@/components/landing/voice-demo'; — DESACTIVADO (costo alto)
+import VoiceDemo from '@/components/landing/voice-demo';
 import PromoBanner from '@/components/landing/promo-banner';
 
 /* El logo animado es el splash de arranque de la app, no un adorno de la
@@ -743,7 +743,7 @@ export default function Home() {
           </div>
 
           <div className="relative">
-            {/* <VoiceDemo /> desactivado: captura de datos a agenda (costo alto) */}
+            <VoiceDemo />
           </div>
         </section>
 
