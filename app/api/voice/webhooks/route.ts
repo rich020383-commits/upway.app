@@ -8,6 +8,7 @@ import {
   missingTelnyxCallEnv,
   missingTelnyxVoiceEnv,
   startAssistantOnCall,
+  transferirLlamada,
 } from '@/lib/telnyx/client';
 import {
   associateCall,
@@ -433,6 +434,27 @@ export async function POST(req: NextRequest) {
     sid: logSid,
     payloadKeys: Object.keys(p).slice(0, 24).join(','),
   });
+
+  // ── Transferencia a humano (código) ──
+  // Si el llamador presiona 0 durante la llamada, o el payload trae
+  // transfer_to_human: true, se transfiere a +573126427857.
+  const ccIdLocal = p.call_control_id ?? '';
+  const forzarTransferencia = (p as { transfer_to_human?: boolean }).transfer_to_human === true;
+  const esDTMFCero = type === 'call.dtmf' && (
+    (p as { digits?: string }).digits === '0' ||
+    (p as { dtmf_digit?: string }).dtmf_digit === '0'
+  );
+
+  if ((forzarTransferencia || esDTMFCero) && ccIdLocal) {
+    try {
+      const cfg = getTelnyxConfig();
+      await transferirLlamada(ccIdLocal, '+573126427857', cfg.defaultPhone);
+      return NextResponse.json({ received: true, type, outcome: 'transferido-a-humano' });
+    } catch (err) {
+      console.error('[telnyx] transferencia a humano fallida', err);
+      // Si falla la transferencia, seguimos con el flujo normal
+    }
+  }
 
   // Responder 200 rápido: Telnyx reintenta si tardas >10s (tu "Custom webhook timeout: 10").
   return NextResponse.json({ received: true, type });

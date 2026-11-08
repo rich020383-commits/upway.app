@@ -418,3 +418,27 @@ export async function updateAssistantVoice(assistantId: string, voice: string) {
 export async function getConversationMessages(conversationId: string) {
   return telnyxFetch(`/ai/conversations/${encodeURIComponent(conversationId)}/messages`);
 }
+
+/**
+ * POST /v2/calls/{call_control_id}/actions/transfer
+ * Transfiere una llamada de voz activa a otro número (tu móvil, por ejemplo).
+ * Requiere TELNYX_API_KEY y TELNYX_DEFAULT_PHONE_NUMBER (como transfer_from).
+ */
+export async function transferirLlamada(
+  callControlId: string,
+  transferTo: string,
+  transferFrom?: string
+) {
+  const apiKey = requireEnv('TELNYX_API_KEY');
+  const from = transferFrom ?? process.env.TELNYX_DEFAULT_PHONE_NUMBER ?? '';
+  if (!from) {
+    throw new Error('[telnyx] Falta TELNYX_DEFAULT_PHONE_NUMBER para transferir');
+  }
+  return telnyxFetch(
+    `/calls/${encodeURIComponent(callControlId)}/actions/transfer`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ transfer_to: transferTo, transfer_from: from }),
+    }
+  );
+}
