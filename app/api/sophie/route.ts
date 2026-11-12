@@ -4,6 +4,9 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { checkRateLimit, getClientIp, rateLimitHeaders } from '@/lib/rate-limit';
 import { retrieve } from '@/lib/sophie/rag';
 import { buildSophieSystemPrompt } from '@/lib/sophie/prompt';
+import { prisma } from '@/lib/prisma';
+import { sendEmail } from '@/lib/email';
+import { LEGAL_ENTITY } from '@/lib/legal';
 
 /**
  * Limite de peticiones por IP.
@@ -322,18 +325,89 @@ export async function POST(req: NextRequest) {
       botReply = buildLocalFallback(messages);
     }
 
+    // 🔍 Extrae datos de contacto de los mensajes del usuario para crear el lead
+    const extractContactInfo = (msgs: SophieMessage[]): { name?: string; phone?: string; email?: string } => {
+      const userMsgs = msgs.filter((m) => (m.role === 'user') && m.content?.trim());
+      const lastUser = userMsgs[userMsgs.length - 1]?.content || '';
+      const allUserText = userMsgs.map((m) => m.content).join(' ');
+
+      const nameMatch = allUserText.match(/(?:me llamo|mi nombre es|soy)\s+([a-zA-ZáéíóúÁÉÍÓÚñÑ ]{2,40})/i);
+      const phoneMatch = allUserText.match(/(\+?57\s?)?3\d{2}\s?\d{3}\s?\d{4}/);
+      const emailMatch = allUserText.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+
+      return {
+        name: nameMatch?.[1]?.trim(),
+        phone: phoneMatch?.[0],
+        email: emailMatch?.[1],
+      };
+    };
+
     // 🚨 HANDOFF WEB -> HUMANO: si el cliente pidió explícitamente una persona,
-    // se garantiza el marcador [CONTACTAR_ASESOR] (aunque el LLM no lo genere) y
-    // se devuelve el contacto directo del equipo por correo.
+    // se garantiza el marcador [CONTACTAR_ASESOR] (aunque el LLM no lo genere),
+    // se crea el lead y se notifica al equipo por correo.
     let advisorLink: string | null = null;
+    let leadId: string | null = null;
     if (detectHumanIntent(messages)) {
       if (!botReply.includes('[CONTACTAR_ASESOR]')) {
         botReply = humanIntentReply;
       }
       advisorLink = buildAdvisorLink(messages);
+
+      const contacto = extractContactInfo(messages);
+
+      const lead = await prisma.lead.create({
+        data: {
+          name: contacto.name || 'Cliente (chat web)',
+          phone: contacto.phone || null,
+          email: contacto.email || null,
+          interest: 'Consulta desde chat web',
+          notes: contacto.name ? `Contacto vía chat web de Upway.${contacto.email ? ` Email: ${contacto.email}` : ''}` : null,
+          status: 'NEW',
+          source: 'sophie-web-chat',
+          sourceCallId: null,
+          sourceCallPhone: null,
+          sourceCallDuration: null,
+          estimatedValue: null,
+          segment: 'general',
+          nextContactAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        },
+      });
+      leadId = lead.id;
+
+      await prisma.leadActivity.create({
+        data: {
+          leadId: lead.id,
+          type: 'CREATED',
+          message: 'Lead capturado por Sophie (chat web)',
+          metadata: {
+            source: 'sophie-web-chat',
+            advisorLink,
+          },
+        },
+      });
+
+      const emailHtml = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8" /><title>Nuevo Lead de Sophie - Chat Web</title></head><body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background-color: #f8fafc;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"><tr><td style="background-color: #1b5ed6; padding: 24px; text-align: center;"><h1 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 700;">💬 Nuevo Lead de Sophie - Chat Web</h1><p style="color: #e2e8f0; margin: 8px 0 0; font-size: 14px;">${LEGAL_ENTITY} · ${new Date().toLocaleDateString('es-CO')}</p></td></tr><tr><td style="padding: 24px;"><h2 style="color: #0f172a; margin: 0 0 16px; font-size: 18px;">Datos del Lead</h2><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;"><tr><td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #334155; white-space: nowrap;">Nombre:</td><td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a;">${contacto.name || 'No proporcionado'}</td></tr><tr><td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #334155; white-space: nowrap;">Teléfono:</td><td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a;"><a href="tel:${contacto.phone || ''}" style="color: #1b5ed6; text-decoration: none;">${contacto.phone || 'No proporcionado'}</a></td></tr>${contacto.email ? `<tr><td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #334155; white-space: nowrap;">Email:</td><td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a;"><a href="mailto:${contacto.email}" style="color: #1b5ed6; text-decoration: none;">${contacto.email}</a></td></tr>` : ''}</table></td></tr><tr><td style="padding: 24px;"><h2 style="color: #0f172a; margin: 0 0 16px; font-size: 18px;">Contexto de la conversación</h2><p style="color: #334155; font-size: 14px; line-height: 1.6;">El cliente solicitó hablar con un asesor humano a través del chat web de Sophie.</p></td></tr><tr><td style="padding: 24px; text-align: center;"><a href="${process.env.NEXTAUTH_URL ?? 'https://upway.app'}/leads/${lead.id}" style="background-color: #1b5ed6; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">Ver lead en Upway</a></td></tr></table></body></html>`;
+
+      const emailText = `NUEVO LEAD DE SOPHIE - CHAT WEB
+========================================
+Nombre: ${contacto.name || 'No proporcionado'}
+Teléfono: ${contacto.phone || 'No proporcionado'}
+${contacto.email ? `Email: ${contacto.email}` : ''}
+Lead ID: ${lead.id}
+Fecha: ${new Date().toLocaleDateString('es-CO')}
+Ver lead: ${process.env.NEXTAUTH_URL ?? 'https://upway.app'}/leads/${lead.id}
+${LEGAL_ENTITY} · Bogotá, Colombia`;
+
+      await sendEmail({
+        to: process.env.UPWAY_REVIEW_EMAIL || 'activacionplan@upway.business',
+        subject: `[Upway] Nuevo Lead de Sophie (Chat Web): ${contacto.name || 'Sin nombre'}`,
+        html: emailHtml,
+        text: emailText,
+        replyTo: contacto.email || undefined,
+      });
     }
 
-    return NextResponse.json({ reply: botReply, provider: chosenProvider, ok: providerWorked, advisorLink });
+    return NextResponse.json({ reply: botReply, provider: chosenProvider, ok: providerWorked, advisorLink, leadId });
 
   } catch (error: unknown) {
     console.error('Error crítico en Sophie:', error);
