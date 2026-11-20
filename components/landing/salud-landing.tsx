@@ -899,9 +899,12 @@ export default function Home() {
             <button type="submit" className="rounded-full font-bold text-[13px] bg-white text-[#123e77] hover:bg-slate-100 transition px-[23px] py-[14px]">
               Ir a la demo en vivo
             </button>
-            <a href="tel:+576019177737" className="text-center text-[11px] text-[#50e1d5] hover:underline">
-              o llama ya: +57 601 9177737 — la atiende Sophie, nuestra asistente de IA
-            </a>
+            <button
+              onClick={() => window.open('tel:+576019177737', '_blank')}
+              className="rounded-full border border-[#50e1d5] bg-white px-4 py-2 text-[11px] text-[#1b5ed6] font-medium hover:bg-[#f0f4f8] transition-colors"
+            >
+              o llama ya: +57 601 9177737 — la atiende Sophie
+            </button>
             <p className="text-center text-[11px] leading-relaxed text-white/85">
               Es nuestro mejor ejemplo de producto: Sophie atiende 24/7 con voz humana, agenda citas sobre tu agenda real,
               responde consultas y prioriza según los protocolos de tu institución. ¿Un superrecepcionista o un agente completo para tu consultorio? Ella hace las dos.
