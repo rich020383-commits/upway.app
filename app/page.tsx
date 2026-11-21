@@ -664,9 +664,9 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 my-[26px]">
               <a
-                href="#contacto"
-                className="inline-flex items-center justify-center rounded-full bg-[#0c3775] px-[23px] py-[14px] text-[13px] font-bold text-white hover:bg-[#092a5c] hover:shadow-[0_22px_48px_rgba(12,55,117,0.42)] transition">
-                Ir a la demo en vivo
+                href="tel:+576019177737"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#0c3775] px-[23px] py-[14px] text-[13px] font-bold text-white hover:bg-[#092a5c] hover:shadow-[0_22px_48px_rgba(12,55,117,0.42)] transition">
+                <Phone className="h-4 w-4" /> Ir a la demo en vivo
               </a>
               <a
                 href="#verticales"
@@ -757,14 +757,16 @@ export default function Home() {
               </h2>
             </div>
             <p className="text-[15px] leading-relaxed text-[#a8c4d9] max-w-[600px] mx-auto mb-8">
-              Llama al <span className="font-mono text-[#11b4b0] font-bold">+57 601 9177737</span> desde tu celular y mira cómo Sophie te atiende en tiempo real, captura tus datos y agenda tu cita.
+              Llama al <a href="tel:+576019177737" className="font-mono text-[#11b4b0] font-bold underline decoration-2 underline-offset-4 hover:text-[#50e1d5] transition-colors">+57 601 9177737</a> desde tu celular y mira cómo Sophie te atiende en tiempo real, captura tus datos y agenda tu cita.
             </p>
             <p className="text-[14px] leading-relaxed text-[#a8c4d9]/90 max-w-[600px] mx-auto mb-8">
               Sophie está programada para responder como lo haría en tu industria: salud, centros de atención o inmobiliarias. Llama y comprueba cómo maneja tu caso.
             </p>
-            {/* <Link href="/demo" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#11b4b0] px-8 py-3.5 text-[15px] font-bold text-white transition hover:bg-[#0ba9a9] hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(17,180,176,0.35)]">
-              Ir a la demo en vivo <ArrowRight className="w-4 h-4" />
-            </Link> */}
+            <a
+              href="tel:+576019177737"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#11b4b0] px-8 py-3.5 text-[15px] font-bold text-white transition hover:bg-[#0ba9a9] hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(17,180,176,0.35)]">
+              <Phone className="h-4 w-4" /> Llama ya y prueba a Sophie
+            </a>
           </div>
         </section>
 

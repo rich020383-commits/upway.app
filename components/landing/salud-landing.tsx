@@ -867,7 +867,7 @@ export default function Home() {
         </section>
 
         {/* CTA CONTACTO */}
-        <section id="contacto" className="py-[48px] px-5 md:px-[8%] flex flex-col md:flex-row items-center justify-between bg-[linear-gradient(110deg,#103d79,#0b858d)] text-white gap-8">
+        <section className="py-20 px-5 md:px-[5%] bg-gradient-to-b from-[#f0f4f8] to-[#e8f0f8] overflow-hidden">
           <div>
             <small className="text-[13px] text-[#50e1d5] font-semibold block mb-2">Transforma la atención en salud hoy</small>
             <h2 className="font-display text-[28px] max-w-[650px] m-0 font-extrabold leading-[1.2]">
